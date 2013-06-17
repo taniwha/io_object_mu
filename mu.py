@@ -344,7 +344,10 @@ class MuMesh:
             elif type == MuEnum.ET_MESH_TRIANGLES:
                 print("    sub mesh")
                 num_tris = mu.read_int()
-                self.submeshes.append(mu.read_int(num_tris))
+                tris = []
+                for i in range(int(num_tris / 3)):   #FIXME is this guaranteed?
+                    tris.append(mu.read_int(3))
+                self.submeshes.append(tris)
             else:
                 raise ValueError("MuMesh %x %d" % (mu.file.tell(), type))
         return self
