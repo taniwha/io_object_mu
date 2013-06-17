@@ -123,17 +123,17 @@ class MuTexture:
     def __init__(self):
         pass
     def read(self, mu):
-        print("MuTexture")
+        #print("MuTexture")
         self.name = mu.read_string()
         self.type = mu.read_int()
-        print("   ", self.name, self.type)
+        #print("   ", self.name, self.type)
         return self
 
 class MuMatTex:
     def __init__(self):
         pass
     def read(self, mu):
-        print("MuMatTex")
+        #print("MuMatTex")
         self.index = mu.read_int()
         self.scale = mu.read_float(2)
         self.offset = mu.read_float(2)
@@ -143,7 +143,7 @@ class MuMaterial:
     def __init__(self):
         pass
     def read(self, mu):
-        print("MuMaterial")
+        #print("MuMaterial")
         self.name = mu.read_string()
         self.type = mu.read_int()
         if self.type == MuEnum.ST_SPECULAR:
@@ -205,50 +205,50 @@ class MuTransform:
     def __init__(self):
         pass
     def read(self, mu):
-        print("MuTransform")
+        #print("MuTransform")
         self.name = mu.read_string()
         self.localPosition = mu.read_float(3)
         self.localRotation = mu.read_float(4)
         self.localScale = mu.read_float(3)
-        print("   ", self.name, self.localPosition, self.localRotation,
-              self.localScale)
+        #print("   ", self.name, self.localPosition, self.localRotation,
+        #      self.localScale)
         return self
 
 class MuTagLayer:
     def __init__(self):
         pass
     def read(self, mu):
-        print("MuTagLayer")
+        #print("MuTagLayer")
         self.tag = mu.read_string()
         self.layer = mu.read_int()
-        print("   ", self.tag, self.layer)
+        #print("   ", self.tag, self.layer)
         return self
 
 class MuKey:
     def __init__(self):
         pass
     def read(self, mu):
-        print("MuKey")
+        #print("MuKey")
         self.time = mu.read_float()
         self.value = mu.read_float()
         self.tangent = mu.read_float(2) # in, out
         self.tangentMode = mu.read_int()
         # editable, smooth, linear, stepped (0..3?)
-        print("   ", self.time, self.value, self.tangent, self.tangentMode)
+        #print("   ", self.time, self.value, self.tangent, self.tangentMode)
         return self
 
 class MuCurve:
     def __init__(self):
         pass
     def read(self, mu):
-        print("MuCurve")
+        #print("MuCurve")
         self.path = mu.read_string()
         self.property = mu.read_string()
         self.type = mu.read_int()
         self.wrapMode = mu.read_int(2)  # pre, post
-        print("   ", self.path, self.property, self.type, self.wrapMode)
+        #print("   ", self.path, self.property, self.type, self.wrapMode)
         num_keys = mu.read_int()
-        print(num_keys)
+        #print(num_keys)
         self.keys = []
         for i in range(num_keys):
             self.keys.append(MuKey().read(mu))
@@ -258,12 +258,12 @@ class MuClip:
     def __init__(self):
         self.curves = []
     def read(self, mu):
-        print("MuClip")
+        #print("MuClip")
         self.name = mu.read_string()
         self.lbCenter = mu.read_float(3)
         self.lbSize = mu.read_float(3)
         self.wrapMode = mu.read_int()
-        print("   ", self.name, self.lbCenter, self.lbSize, self.wrapMode)
+        #print("   ", self.name, self.lbCenter, self.lbSize, self.wrapMode)
         num_curves = mu.read_int()
         for i in range(num_curves):
             self.curves.append(MuCurve().read(mu))
@@ -273,13 +273,13 @@ class MuAnimation:
     def __init__(self):
         self.clips = []
     def read(self, mu):
-        print("MuAnimation")
+        #print("MuAnimation")
         num_clips = mu.read_int()
         for i in range(num_clips):
             self.clips.append(MuClip().read(mu))
         self.clip = mu.read_string()
         self.autoPlay = mu.read_byte()  #XXX is this right?
-        print(self.clip, self.autoPlay)
+        #print(self.clip, self.autoPlay)
         return self
 
 class MuBoneWeight:
@@ -303,7 +303,7 @@ class MuMesh:
         self.bindPoses = []
         self.submeshes = []
     def read(self, mu):
-        print("MuMesh")
+        #print("MuMesh")
         start = mu.read_int()
         if start != MuEnum.ET_MESH_START:
             raise
@@ -313,36 +313,36 @@ class MuMesh:
             if type == MuEnum.ET_MESH_END:
                 break
             elif type == MuEnum.ET_MESH_VERTS:
-                print("    verts")
+                #print("    verts")
                 for i in range(num_verts):
                     self.verts.append(mu.read_float(3))
             elif type == MuEnum.ET_MESH_UV:
-                print("    uvs")
+                #print("    uvs")
                 for i in range(num_verts):
                     self.uvs.append(mu.read_float(2))
             elif type == MuEnum.ET_MESH_UV2:
-                print("    uv2s")
+                #print("    uv2s")
                 for i in range(num_verts):
                     self.uv2s.append(mu.read_float(2))
             elif type == MuEnum.ET_MESH_NORMALS:
-                print("    normals")
+                #print("    normals")
                 for i in range(num_verts):
                     self.normals.append(mu.read_float(3))
             elif type == MuEnum.ET_MESH_TANGENTS:
-                print("    tangents")
+                #print("    tangents")
                 for i in range(num_verts):
                     self.tangents.append(mu.read_float(4))
             elif type == MuEnum.ET_MESH_BONE_WEIGHTS:
-                print("    bone weights")
+                #print("    bone weights")
                 for i in range(num_verts):
                     self.boneWeights.append(MuBoneWeight().read(mu))
             elif type == MuEnum.ET_MESH_BIND_POSES:
-                print("    bind poses")
+                #print("    bind poses")
                 num_poses = mu.read_int()
                 for i in range(num_poses):
                     self.boneWeights.append(mu.read_float(12))
             elif type == MuEnum.ET_MESH_TRIANGLES:
-                print("    sub mesh")
+                #print("    sub mesh")
                 num_tris = mu.read_int()
                 tris = []
                 for i in range(int(num_tris / 3)):   #FIXME is this guaranteed?
@@ -368,35 +368,35 @@ class MuCollider_Base:
 
 class MuColliderMesh(MuCollider_Base):
     def read(self, mu):
-        print("MuColliderMesh", self.type)
+        #print("MuColliderMesh", self.type)
         self.isTrigger, self.convex = mu.read_byte(2)
-        print(self.isTrigger, self.convex)
+        #print(self.isTrigger, self.convex)
         self.mesh = MuMesh().read(mu)
         return self
 
 class MuColliderSphere(MuCollider_Base):
     def read(self, mu):
-        print("MuColliderSphere", self.type)
+        #print("MuColliderSphere", self.type)
         self.isTrigger = mu.read_byte()
         self.radius = mu.read_float()
         self.center = mu.read_float(3)
-        print(self.isTrigger, self.radius, self.center)
+        #print(self.isTrigger, self.radius, self.center)
         return self
 
 class MuColliderCapsule(MuCollider_Base):
     def read(self, mu):
-        print("MuColliderCapsule", self.type)
-        print(hex(mu.file.tell()))
+        #print("MuColliderCapsule", self.type)
+        #print(hex(mu.file.tell()))
         raise
         return self
 
 class MuColliderBox(MuCollider_Base):
     def read(self, mu):
-        print("MuColliderBox", self.type)
+        #print("MuColliderBox", self.type)
         self.isTrigger = mu.read_byte()
         self.size = mu.read_float(3)
         self.center = mu.read_float(3)
-        print(self.isTrigger, self.size, self.center)
+        #print(self.isTrigger, self.size, self.center)
         return self
 
 class MuSpring:
@@ -423,7 +423,7 @@ class MuColliderWheel(MuCollider_Base):
     def __init__(self):
         MuCollider_Base.__init__(self, 0)
     def read(self, mu):
-        print("MuColliderWheel")
+        #print("MuColliderWheel")
         self.mass = mu.read_float()
         self.radius = mu.read_float()
         self.suspensionDistance = mu.read_float()
@@ -465,7 +465,7 @@ class MuObject:
         self.materials = []
         self.textures = []
     def read(self, mu):
-        print("MuObject")
+        #print("MuObject")
         self.transform = MuTransform().read(mu)
         while True:
             try:
@@ -503,7 +503,8 @@ class MuObject:
                 for i in range(tex_count):
                     self.textures.append(MuTexture().read(mu))
             else:
-                print (entry_type, hex(mu.file.tell()))
+                #print (entry_type, hex(mu.file.tell()))
+                pass
         return self
 
 class Mu:
@@ -594,7 +595,7 @@ class Mu:
             or self.version > MuEnum.FILE_VERSION):
             return None
         self.name = self.read_string()
-        print("version: %d '%s'" % (self.version, self.name))
+        #print("version: %d '%s'" % (self.version, self.name))
         self.obj = MuObject().read(self)
         #self.read_materials()
         #self.read_textures()
