@@ -21,9 +21,44 @@
 
 import bpy
 from bpy_extras.object_utils import object_data_add
-from mathutils import Vector,Matrix
+from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum, Mu
+
+def create_mesh(mu, mumesh, name):
+    mesh = bpy.data.meshes.new(name)
+    faces = []
+    for sm in mumesh.submeshes:
+        faces.extend(sm)
+    mesh.from_pydata(mumesh.verts, [], faces)
+    return mesh
+
+def create_mesh_object(name, mesh, transform):
+    obj = bpy.data.objects.new(name, mesh)
+    obj.rotation_mode = 'QUATERNION'
+    obj.location = Vector(transform.localPosition)
+    #obj.rotation_quaternion = Quaternion(transform.localRotation)
+    obj.rotation_quaternion = Quaternion(((transform.localRotation[3],) + transform.localRotation[0:3]))
+    obj.scale = Vector(transform.localScale)
+    bpy.context.scene.objects.link(obj)
+    bpy.context.scene.objects.active = obj
+    obj.select = True
+    return obj
+
+def create_object(mu, muobj, parent):
+    obj = None
+    if hasattr(muobj, "collider"):
+        pass
+    if hasattr(muobj, "renderer"):
+        pass
+    if hasattr(muobj, "shared_mesh"):
+        mesh = create_mesh(mu, muobj.shared_mesh, muobj.transform.name)
+        obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
+    if not obj:
+        obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
+    obj.parent = parent
+    for child in muobj.children:
+        create_object(mu, child, obj)
 
 def import_mu(operator, context, filepath):
     bpy.context.user_preferences.edit.use_global_undo = False
@@ -36,6 +71,8 @@ def import_mu(operator, context, filepath):
         operator.report({'ERROR'},
             "Unrecognized format: %s %d" % (mu.magic, mu.version))
         return {'CANCELLED'}
+
+    create_object(mu, mu.obj, None)
 
     bpy.context.user_preferences.edit.use_global_undo = True
     return {'FINISHED'}
