@@ -38,10 +38,10 @@ bl_info = {
 # reload everything
 if "bpy" in locals():
     import imp
-    if "import_mdl" in locals():
-        imp.reload(import_mdl)
-    if "export_mdl" in locals():
-        imp.reload(export_mdl)
+    if "import_mu" in locals():
+        imp.reload(import_mu)
+    if "export_mu" in locals():
+        imp.reload(export_mu)
 
 
 import bpy
@@ -60,7 +60,7 @@ class ImportMu(bpy.types.Operator, ImportHelper):
     def execute(self, context):
         from . import import_mu
         keywords = self.as_keywords (ignore=("filter_glob",))
-        return import_mdl.import_mu(self, context, **keywords)
+        return import_mu.import_mu(self, context, **keywords)
 
 class ExportMu(bpy.types.Operator, ExportHelper):
     '''Save a KSP Mu (.mu) File'''
@@ -78,7 +78,7 @@ class ExportMu(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         from . import export_mu
         keywords = self.as_keywords (ignore=("check_existing", "filter_glob"))
-        return export_mdl.export_mdl(self, context, **keywords)
+        return export_mu.export_mu(self, context, **keywords)
 
 """
 class MDLPanel(bpy.types.Panel):
