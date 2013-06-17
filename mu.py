@@ -586,8 +586,8 @@ class Mu:
         pass
     def read(self, filepath):
         self.file = open(filepath, "rb")
-        magic, self.version = self.read_int(2)
-        if (magic != MuEnum.MODEL_BINARY or self.version < 0
+        self.magic, self.version = self.read_int(2)
+        if (self.magic != MuEnum.MODEL_BINARY or self.version < 0
             or self.version > MuEnum.FILE_VERSION):
             return None
         self.name = self.read_string()
