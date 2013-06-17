@@ -386,8 +386,11 @@ class MuColliderSphere(MuCollider_Base):
 class MuColliderCapsule(MuCollider_Base):
     def read(self, mu):
         #print("MuColliderCapsule", self.type)
-        #print(hex(mu.file.tell()))
-        raise
+        self.isTrigger = mu.read_byte()
+        self.radius = mu.read_float()
+        self.height = mu.read_float()
+        self.direction = mu.read_int()
+        self.center = mu.read_float(3)
         return self
 
 class MuColliderBox(MuCollider_Base):
