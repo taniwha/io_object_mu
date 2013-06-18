@@ -208,7 +208,9 @@ class MuTransform:
         #print("MuTransform")
         self.name = mu.read_string()
         self.localPosition = mu.read_float(3)
-        self.localRotation = mu.read_float(4)
+        # Unity is xyzw, blender is wxyz
+        rot = mu.read_float(4)
+        self.localRotation = (rot[3],) + rot[0:3]
         self.localScale = mu.read_float(3)
         #print("   ", self.name, self.localPosition, self.localRotation,
         #      self.localScale)
@@ -331,7 +333,9 @@ class MuMesh:
             elif type == MuEnum.ET_MESH_TANGENTS:
                 #print("    tangents")
                 for i in range(num_verts):
-                    self.tangents.append(mu.read_float(4))
+                    # Unity is xyzw, blender is wxyz
+                    tan = mu.read_float(4)
+                    self.tangents.append((tan[3],) + tan[0:3])
             elif type == MuEnum.ET_MESH_BONE_WEIGHTS:
                 #print("    bone weights")
                 for i in range(num_verts):

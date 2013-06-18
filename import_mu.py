@@ -37,8 +37,7 @@ def create_mesh_object(name, mesh, transform):
     obj = bpy.data.objects.new(name, mesh)
     obj.rotation_mode = 'QUATERNION'
     obj.location = Vector(transform.localPosition)
-    #obj.rotation_quaternion = Quaternion(transform.localRotation)
-    obj.rotation_quaternion = Quaternion(((transform.localRotation[3],) + transform.localRotation[0:3]))
+    obj.rotation_quaternion = Quaternion(transform.localRotation)
     obj.scale = Vector(transform.localScale)
     bpy.context.scene.objects.link(obj)
     bpy.context.scene.objects.active = obj
