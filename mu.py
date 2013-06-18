@@ -344,7 +344,7 @@ class MuMesh:
                 #print("    bind poses")
                 num_poses = mu.read_int()
                 for i in range(num_poses):
-                    self.boneWeights.append(mu.read_float(12))
+                    self.bindPoses.append(mu.read_float(12))
             elif type == MuEnum.ET_MESH_TRIANGLES:
                 #print("    sub mesh")
                 num_tris = mu.read_int()
