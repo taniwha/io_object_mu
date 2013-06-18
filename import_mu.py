@@ -26,12 +26,23 @@ from mathutils import Vector,Matrix,Quaternion
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuColliderBox, MuColliderWheel
 
+def create_uvs(mu, uvs, mesh, name):
+    uvlay = mesh.uv_textures.new(name)
+    uvloop = mesh.uv_layers[name]
+    for i, uvl in enumerate(uvloop.data):
+        v = mesh.loops[i].vertex_index
+        uvl.uv = uvs[v]
+
 def create_mesh(mu, mumesh, name):
     mesh = bpy.data.meshes.new(name)
     faces = []
     for sm in mumesh.submeshes:
         faces.extend(sm)
     mesh.from_pydata(mumesh.verts, [], faces)
+    if mumesh.uvs:
+        create_uvs(mu, mumesh.uvs, mesh, name + ".UV")
+    if mumesh.uv2s:
+        create_uvs(mu, mumesh.uv2s, mesh, name + ".UV2")
     return mesh
 
 def create_mesh_object(name, mesh, transform):
