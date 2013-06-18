@@ -23,7 +23,8 @@ import bpy
 from bpy_extras.object_utils import object_data_add
 from mathutils import Vector,Matrix,Quaternion
 
-from .mu import MuEnum, Mu
+from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
+from .mu import MuColliderBox, MuColliderWheel
 
 def create_mesh(mu, mumesh, name):
     mesh = bpy.data.meshes.new(name)
@@ -47,8 +48,21 @@ def create_mesh_object(name, mesh, transform):
 def create_object(mu, muobj, parent):
     obj = None
     if hasattr(muobj, "collider"):
-        pass
+        if type(muobj.collider) == MuColliderMesh:
+            name = muobj.transform.name + ".collider"
+            mesh = create_mesh(mu, muobj.collider.mesh, name)
+            obj = create_mesh_object(name, mesh, muobj.transform)
+            obj.parent = parent
+        elif type(muobj.collider) == MuColliderSphere:
+            print("sphere")
+        elif type(muobj.collider) == MuColliderCapsule:
+            print("capsule")
+        elif type(muobj.collider) == MuColliderBox:
+            print("box")
+        elif type(muobj.collider) == MuColliderWheel:
+            print("wheel")
     if hasattr(muobj, "renderer"):
+        #FIXME renderer settings
         pass
     if hasattr(muobj, "shared_mesh"):
         mesh = create_mesh(mu, muobj.shared_mesh, muobj.transform.name)
