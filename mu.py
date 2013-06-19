@@ -168,7 +168,7 @@ class MuMaterial:
             self.shininess = mu.read_float()
             self.emmisive = MuMatTex().read(mu)
             self.emissiveColor = mu.read_float(4)
-        elif self.type == MuEnum.ST_EMISSIVE_SPECULAR:
+        elif self.type == MuEnum.ST_EMISSIVE_BUMPED_SPECULAR:
             self.mainTex = MuMatTex().read(mu)
             self.bumpMap = MuMatTex().read(mu)
             self.specColor = mu.read_float(4)
