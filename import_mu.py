@@ -19,6 +19,8 @@
 
 # <pep8 compliant>
 
+from struct import unpack
+
 import bpy
 from bpy_extras.object_utils import object_data_add
 from mathutils import Vector,Matrix,Quaternion
@@ -84,6 +86,79 @@ def create_object(mu, muobj, parent):
     for child in muobj.children:
         create_object(mu, child, obj)
 
+def load_mbm(mbmpath):
+    mbmfile = open(mbmpath, "rb")
+    header = mbmfile.read(20)
+    magic, width, height, a, bpp = unpack("<5i", header)
+    if magic != 0x50534b03: # "\x03KSP" as little endian
+        raise
+    if bpp == 32:
+        pixels = mbmfile.read(width * height * 4)
+    elif bpp == 24:
+        pixels = [0, 0, 0, 255] * width * height
+        for i in range(width * height):
+            p = mbmfile.read(3)
+            l = i * 4
+            pixels[l:l+3] = list(p)
+    else:
+        raise
+    return width, height, pixels
+
+def create_textures(mu):
+    #texture info is in the top level object
+    for tex in mu.obj.textures:
+        if tex.name[-4:].lower() in [".png", ".tga"]:
+            bpy.data.images.load(tex.name)
+        elif tex.name[-4:].lower() == ".mbm":
+            w,h, pixels = load_mbm(tex.name)
+            img = bpy.data.images.new(tex.name, w, h)
+            img.pixels[:] = map(lambda x: x / 255.0, pixels)
+            img.pack(True)
+
+def add_texture(mu, mat, mattex):
+    i, s, o = mattex.index, mattex.scale, mattex.offset
+    tex = bpy.data.textures.new("", 'IMAGE')
+    tex.use_preview_alpha = True
+    tex.image = bpy.data.images[mu.obj.textures[i].name]
+    mat.texture_slots.add()
+    ts = mat.texture_slots[0]
+    ts.texture = tex
+    ts.use_map_alpha = True
+    ts.texture_coords = 'UV'
+    ts.scale = s + (1,)
+    ts.offset = o + (0,)
+
+def create_materials(mu):
+    #material info is in the top level object
+    for mumat in mu.obj.materials:
+        mat = bpy.data.materials.new(mumat.name)
+        if mumat.type == MuEnum.ST_SPECULAR:
+            pass
+        elif mumat.type == MuEnum.ST_BUMPED:
+            pass
+        elif mumat.type == MuEnum.ST_BUMPED_SPECULAR:
+            pass
+        elif mumat.type == MuEnum.ST_EMISSIVE:
+            pass
+        elif mumat.type == MuEnum.ST_EMISSIVE_SPECULAR:
+            pass
+        elif mumat.type == MuEnum.ST_EMISSIVE_BUMPED_SPECULAR:
+            pass
+        elif mumat.type == MuEnum.ST_ALPHA_CUTOUT:
+            pass
+        elif mumat.type == MuEnum.ST_ALPHA_CUTOUT_BUMPED:
+            pass
+        elif mumat.type == MuEnum.ST_ALPHA:
+            pass
+        elif mumat.type == MuEnum.ST_ALPHA_SPECULAR:
+            pass
+        elif mumat.type == MuEnum.ST_ALPHA_UNLIT:
+            pass
+        elif mumat.type == MuEnum.ST_UNLIT:
+            pass
+        elif mumat.type == MuEnum.ST_DIFFUSE:
+            add_texture(mu, mat, mumat.mainTex)
+
 def import_mu(operator, context, filepath):
     bpy.context.user_preferences.edit.use_global_undo = False
 
@@ -96,6 +171,8 @@ def import_mu(operator, context, filepath):
             "Unrecognized format: %s %d" % (mu.magic, mu.version))
         return {'CANCELLED'}
 
+    create_textures(mu)
+    create_materials(mu)
     create_object(mu, mu.obj, None)
 
     bpy.context.user_preferences.edit.use_global_undo = True
