@@ -363,7 +363,8 @@ class MuRenderer:
         self.castShadows = mu.read_byte()
         self.receiveShadows = mu.read_byte()
         num_mat = mu.read_int()
-        self.materials = mu.read_int(num_mat)
+        self.materials = mu.read_int(num_mat, True)
+        print(self.castShadows, self.receiveShadows, self.materials)
         return self
 
 class MuCollider_Base:
@@ -516,33 +517,33 @@ class MuObject:
 
 class Mu:
 
-    def read_byte(self, count=1):
+    def read_byte(self, count=1, force_list=False):
         size = 1 * count
         data = self.file.read(size)
         if len(data) < size:
             raise EOFError
         data = unpack("<%dB" % count, data)
-        if count == 1:
+        if count == 1 and not force_list:
             return data[0]
         return data
 
-    def read_int(self, count=1):
+    def read_int(self, count=1, force_list=False):
         size = 4 * count
         data = self.file.read(size)
         if len(data) < size:
             raise EOFError
         data = unpack("<%di" % count, data)
-        if count == 1:
+        if count == 1 and not force_list:
             return data[0]
         return data
 
-    def read_float(self, count=1):
+    def read_float(self, count=1, force_list=False):
         size = 4 * count
         data = self.file.read(size)
         if len(data) < size:
             raise EOFError
         data = unpack("<%df" % count, data)
-        if count == 1:
+        if count == 1 and not force_list:
             return data[0]
         return data
 
