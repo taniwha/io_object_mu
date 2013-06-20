@@ -207,11 +207,9 @@ class MuTransform:
     def read(self, mu):
         #print("MuTransform")
         self.name = mu.read_string()
-        self.localPosition = mu.read_float(3)
-        # Unity is xyzw, blender is wxyz
-        rot = mu.read_float(4)
-        self.localRotation = (rot[3],) + rot[0:3]
-        self.localScale = mu.read_float(3)
+        self.localPosition = mu.read_vector()
+        self.localRotation = mu.read_quaternion()
+        self.localScale = mu.read_vector()
         #print("   ", self.name, self.localPosition, self.localRotation,
         #      self.localScale)
         return self
@@ -262,8 +260,8 @@ class MuClip:
     def read(self, mu):
         #print("MuClip")
         self.name = mu.read_string()
-        self.lbCenter = mu.read_float(3)
-        self.lbSize = mu.read_float(3)
+        self.lbCenter = mu.read_vector()
+        self.lbSize = mu.read_vector()
         self.wrapMode = mu.read_int()
         #print("   ", self.name, self.lbCenter, self.lbSize, self.wrapMode)
         num_curves = mu.read_int()
@@ -317,7 +315,7 @@ class MuMesh:
             elif type == MuEnum.ET_MESH_VERTS:
                 #print("    verts")
                 for i in range(num_verts):
-                    self.verts.append(mu.read_float(3))
+                    self.verts.append(mu.read_vector())
             elif type == MuEnum.ET_MESH_UV:
                 #print("    uvs")
                 for i in range(num_verts):
@@ -329,13 +327,11 @@ class MuMesh:
             elif type == MuEnum.ET_MESH_NORMALS:
                 #print("    normals")
                 for i in range(num_verts):
-                    self.normals.append(mu.read_float(3))
+                    self.normals.append(mu.read_vector())
             elif type == MuEnum.ET_MESH_TANGENTS:
                 #print("    tangents")
                 for i in range(num_verts):
-                    # Unity is xyzw, blender is wxyz
-                    tan = mu.read_float(4)
-                    self.tangents.append((tan[3],) + tan[0:3])
+                    self.tangents.append(mu.read_quaternion())
             elif type == MuEnum.ET_MESH_BONE_WEIGHTS:
                 #print("    bone weights")
                 for i in range(num_verts):
@@ -350,7 +346,16 @@ class MuMesh:
                 num_tris = mu.read_int()
                 tris = []
                 for i in range(int(num_tris / 3)):   #FIXME is this guaranteed?
-                    tris.append(mu.read_int(3))
+                    tri = mu.read_int(3)
+                    #reverse the triangle winding for Blender (because of the
+                    # LHS/RHS swap)
+                    #avoid putting 0 at the end of the list (Blender doesn't
+                    #like that)
+                    if not tri[0]:
+                        tri = tri[0], tri[2], tri[1]
+                    else:
+                        tri = tri[2], tri[1], tri[0]
+                    tris.append(tri)
                 self.submeshes.append(tris)
             else:
                 raise ValueError("MuMesh %x %d" % (mu.file.tell(), type))
@@ -384,7 +389,7 @@ class MuColliderSphere(MuCollider_Base):
         #print("MuColliderSphere", self.type)
         self.isTrigger = mu.read_byte()
         self.radius = mu.read_float()
-        self.center = mu.read_float(3)
+        self.center = mu.read_vector()
         #print(self.isTrigger, self.radius, self.center)
         return self
 
@@ -395,15 +400,15 @@ class MuColliderCapsule(MuCollider_Base):
         self.radius = mu.read_float()
         self.height = mu.read_float()
         self.direction = mu.read_int()
-        self.center = mu.read_float(3)
+        self.center = mu.read_vector()
         return self
 
 class MuColliderBox(MuCollider_Base):
     def read(self, mu):
         #print("MuColliderBox", self.type)
         self.isTrigger = mu.read_byte()
-        self.size = mu.read_float(3)
-        self.center = mu.read_float(3)
+        self.size = mu.read_vector()
+        self.center = mu.read_vector()
         #print(self.isTrigger, self.size, self.center)
         return self
 
@@ -435,7 +440,7 @@ class MuColliderWheel(MuCollider_Base):
         self.mass = mu.read_float()
         self.radius = mu.read_float()
         self.suspensionDistance = mu.read_float()
-        self.center = mu.read_float(3)
+        self.center = mu.read_vector()
         self.suspensionSprint = MuSpring().read(mu)
         self.forwardFriction = MuFriction().read(mu)
         self.sidewaysFriction = MuFriction().read(mu)
@@ -546,6 +551,18 @@ class Mu:
         if count == 1 and not force_list:
             return data[0]
         return data
+
+    def read_vector(self):
+        v = self.read_float(3)
+        #convert from Unity's LHS to Blender's RHS
+        v = v[0], v[2], v[1]
+        return v
+
+    def read_quaternion(self):
+        q = self.read_float(4)
+        # Unity is xyzw, blender is wxyz
+        q = (q[3],) + q[0:3]
+        return q
 
     def read_bytes(self, size):
         data = self.file.read(size)
