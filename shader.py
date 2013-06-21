@@ -36,16 +36,16 @@ ksp_bumped_specular = (
 ksp_emissive_diffuse = (
 )
 ksp_emissive_specular = (
-    ("node", "Output", 'ShaderNodeOutput'),
-    ("node", "mainMaterial", 'ShaderNodeMaterial'),
-    ("node", "geometry", 'ShaderNodeGeometry'),
-    ("node", "mainTex", 'ShaderNodeTexture'),
-    ("node", "specColor", 'ShaderNodeValToRGB'),
-    ("node", "emissive", 'ShaderNodeTexture'),
-    ("node", "emissiveConvert", 'ShaderNodeRGBToBW'),
-    ("node", "emissiveColor", 'ShaderNodeValToRGB'),
-    ("node", "emissiveMaterial", 'ShaderNodeMaterial'),
-    ("node", "mix", 'ShaderNodeMixRGB'),
+    ("node", "Output", 'ShaderNodeOutput', (630, 730)),
+    ("node", "mainMaterial", 'ShaderNodeMaterial', (70, 680)),
+    ("node", "geometry", 'ShaderNodeGeometry', (-590, 260)),
+    ("node", "mainTex", 'ShaderNodeTexture', (-380, 480)),
+    ("node", "specColor", 'ShaderNodeValToRGB', (-210, 410)),
+    ("node", "emissive", 'ShaderNodeTexture', (-400, 40)),
+    ("node", "emissiveConvert", 'ShaderNodeRGBToBW', (-230, 30)),
+    ("node", "emissiveColor", 'ShaderNodeValToRGB', (-50, 180)),
+    ("node", "emissiveMaterial", 'ShaderNodeMaterial', (230, 400)),
+    ("node", "mix", 'ShaderNodeMixRGB', (430, 610)),
     ("link", "geometry", "UV", "mainTex", "Vector"),
     ("link", "mainTex", "Color", "mainMaterial", "Color"),
     ("link", "mainTex", "Value", "specColor", "Fac"),
@@ -57,6 +57,10 @@ ksp_emissive_specular = (
     ("link", "emissiveColor", "Color", "emissiveMaterial", "Color"),
     ("link", "emissiveMaterial", "Color", "mix", "Color2"),
     ("link", "mix", "Color", "Output", "Color"),
+    ("setval", "mix", "blend_type", 'ADD'),
+    ("setval", "mix", "inputs['Fac'].default_value", 1.0),
+    ("set", "specColor", "color_ramp.elements[1].color", "specColor"),
+    ("set", "emissiveColor", "color_ramp.elements[1].color", "emissiveColor"),
 )
 ksp_emissive_bumped_specular = (
 )
@@ -91,7 +95,8 @@ ksp_shaders = {
 "KSP/Diffuse":ksp_diffuse,
 }
 
-def make_shader(id, name):
+def make_shader(id, mumat):
+    name = mumat.name
     shader = ksp_shaders[id]
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
@@ -104,8 +109,15 @@ def make_shader(id, name):
             n = nodes.new(s[2])
             n.name = "%s.%s" % (name, s[1])
             n.label = s[1]
+            n.location = s[3]
         elif s[0] == "link":
             n1 = nodes["%s.%s" % (name, s[1])]
             n2 = nodes["%s.%s" % (name, s[3])]
             links.new(n1.outputs[s[2]], n2.inputs[s[4]])
+        elif s[0] == "set":
+            n = nodes["%s.%s" % (name, s[1])]
+            exec ("n.%s = mumat.%s" % (s[2], s[3]), {}, locals())
+        elif s[0] == "setval":
+            n = nodes["%s.%s" % (name, s[1])]
+            exec ("n.%s = %s" % (s[2], repr(s[3])), {}, locals())
     return mat
