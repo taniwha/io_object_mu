@@ -134,15 +134,15 @@ def create_textures(mu):
             img = bpy.data.images.new(tex.name, w, h)
             img.pixels[:] = map(lambda x: x / 255.0, pixels)
             img.pack(True)
+        tx = bpy.data.textures.new(tex.name, 'IMAGE')
+        tx.use_preview_alpha = True
+        tx.image = bpy.data.images[tex.name]
 
 def add_texture(mu, mat, mattex):
     i, s, o = mattex.index, mattex.scale, mattex.offset
-    tex = bpy.data.textures.new("", 'IMAGE')
-    tex.use_preview_alpha = True
-    tex.image = bpy.data.images[mu.obj.textures[i].name]
     mat.texture_slots.add()
     ts = mat.texture_slots[0]
-    ts.texture = tex
+    ts.texture = bpy.data.textures[mu.obj.textures[i].name]
     ts.use_map_alpha = True
     ts.texture_coords = 'UV'
     ts.scale = s + (1,)
