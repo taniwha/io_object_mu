@@ -86,10 +86,27 @@ def create_object(mu, muobj, parent):
     for child in muobj.children:
         create_object(mu, child, obj)
 
+def convert_bump(pixels, width, height):
+    outp = list(pixels)
+    for y in range(1, height - 1):
+        for x in range(1, width - 1):
+            i = ((y * width + x) * 4,
+                 (y * width + x - 1) * 4,
+                 (y * width + x + 1) * 4,
+                 ((y - 1) * width + x) * 4,
+                 ((y + 1) * width + x) * 4)
+            dx = Vector((1, 0, (pixels[i[2]] - pixels[i[1]]) / 2.0))
+            dy = Vector((0, 1, (pixels[i[4]] - pixels[i[3]]) / 2.0))
+            n = dx.cross(dy)
+            n.normalize()
+            outp[i[0]:i[0]+3] = map(lambda x: int(x * 127) + 128, list(n))
+    return outp
+
+
 def load_mbm(mbmpath):
     mbmfile = open(mbmpath, "rb")
     header = mbmfile.read(20)
-    magic, width, height, a, bpp = unpack("<5i", header)
+    magic, width, height, bump, bpp = unpack("<5i", header)
     if magic != 0x50534b03: # "\x03KSP" as little endian
         raise
     if bpp == 32:
@@ -102,6 +119,8 @@ def load_mbm(mbmpath):
             pixels[l:l+3] = list(p)
     else:
         raise
+    if bump:
+        pixels = convert_bump(pixels, width, height)
     return width, height, pixels
 
 def create_textures(mu):
