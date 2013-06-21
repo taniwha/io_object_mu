@@ -59,8 +59,12 @@ ksp_emissive_specular = (
     ("link", "mix", "Color", "Output", "Color"),
     ("setval", "mix", "blend_type", 'ADD'),
     ("setval", "mix", "inputs['Fac'].default_value", 1.0),
+    ("settex", "mainTex", "texture", "mainTex"),
     ("set", "specColor", "color_ramp.elements[1].color", "specColor"),
+    ("settex", "emissive", "texture", "emissive"),
     ("set", "emissiveColor", "color_ramp.elements[1].color", "emissiveColor"),
+    ("setval", "emissiveMaterial", "use_specular", False),
+    ("setval", "emissiveMaterial", "material.emit", 1.0),
 )
 ksp_emissive_bumped_specular = (
 )
@@ -95,7 +99,7 @@ ksp_shaders = {
 "KSP/Diffuse":ksp_diffuse,
 }
 
-def make_shader(id, mumat):
+def make_shader(id, mumat, mu):
     name = mumat.name
     shader = ksp_shaders[id]
     mat = bpy.data.materials.new(name)
@@ -110,6 +114,8 @@ def make_shader(id, mumat):
             n.name = "%s.%s" % (name, s[1])
             n.label = s[1]
             n.location = s[3]
+            if s[2] == "ShaderNodeMaterial":
+                n.material = bpy.data.materials.new(n.name)
         elif s[0] == "link":
             n1 = nodes["%s.%s" % (name, s[1])]
             n2 = nodes["%s.%s" % (name, s[3])]
@@ -117,6 +123,11 @@ def make_shader(id, mumat):
         elif s[0] == "set":
             n = nodes["%s.%s" % (name, s[1])]
             exec ("n.%s = mumat.%s" % (s[2], s[3]), {}, locals())
+        elif s[0] == "settex":
+            n = nodes["%s.%s" % (name, s[1])]
+            tex = getattr(mumat,s[3])
+            tex = bpy.data.textures[mu.obj.textures[tex.index].name]
+            exec ("n.%s = tex" % s[2], {}, locals())
         elif s[0] == "setval":
             n = nodes["%s.%s" % (name, s[1])]
             exec ("n.%s = %s" % (s[2], repr(s[3])), {}, locals())

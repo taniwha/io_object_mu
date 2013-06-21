@@ -160,7 +160,7 @@ def create_materials(mu):
         elif mumat.type == MuEnum.ST_EMISSIVE:
             pass
         elif mumat.type == MuEnum.ST_EMISSIVE_SPECULAR:
-            mat = make_shader("KSP/Emissive/Specular", mumat)
+            mat = make_shader("KSP/Emissive/Specular", mumat, mu)
         elif mumat.type == MuEnum.ST_EMISSIVE_BUMPED_SPECULAR:
             pass
         elif mumat.type == MuEnum.ST_ALPHA_CUTOUT:
