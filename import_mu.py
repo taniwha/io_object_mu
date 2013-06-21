@@ -166,7 +166,7 @@ def create_materials(mu):
         elif mumat.type == MuEnum.ST_ALPHA_CUTOUT:
             pass
         elif mumat.type == MuEnum.ST_ALPHA_CUTOUT_BUMPED:
-            pass
+            mat = make_shader("KSP/Alpha/Cutoff Bumped", mumat, mu)
         elif mumat.type == MuEnum.ST_ALPHA:
             pass
         elif mumat.type == MuEnum.ST_ALPHA_SPECULAR:
@@ -176,8 +176,7 @@ def create_materials(mu):
         elif mumat.type == MuEnum.ST_UNLIT:
             pass
         elif mumat.type == MuEnum.ST_DIFFUSE:
-            mat = bpy.data.materials.new(mumat.name)
-            add_texture(mu, mat, mumat.mainTex)
+            mat = make_shader("KSP/Diffuse", mumat, mu)
 
 def import_mu(operator, context, filepath):
     bpy.context.user_preferences.edit.use_global_undo = False
