@@ -27,6 +27,7 @@ from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuColliderBox, MuColliderWheel
+from .shader import make_shader
 
 def create_uvs(mu, uvs, mesh, name):
     uvlay = mesh.uv_textures.new(name)
@@ -150,7 +151,6 @@ def add_texture(mu, mat, mattex):
 def create_materials(mu):
     #material info is in the top level object
     for mumat in mu.obj.materials:
-        mat = bpy.data.materials.new(mumat.name)
         if mumat.type == MuEnum.ST_SPECULAR:
             pass
         elif mumat.type == MuEnum.ST_BUMPED:
@@ -160,7 +160,7 @@ def create_materials(mu):
         elif mumat.type == MuEnum.ST_EMISSIVE:
             pass
         elif mumat.type == MuEnum.ST_EMISSIVE_SPECULAR:
-            pass
+            mat = make_shader("KSP/Emissive/Specular", mumat.name)
         elif mumat.type == MuEnum.ST_EMISSIVE_BUMPED_SPECULAR:
             pass
         elif mumat.type == MuEnum.ST_ALPHA_CUTOUT:
@@ -176,6 +176,7 @@ def create_materials(mu):
         elif mumat.type == MuEnum.ST_UNLIT:
             pass
         elif mumat.type == MuEnum.ST_DIFFUSE:
+            mat = bpy.data.materials.new(mumat.name)
             add_texture(mu, mat, mumat.mainTex)
 
 def import_mu(operator, context, filepath):
