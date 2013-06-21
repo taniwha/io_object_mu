@@ -369,7 +369,7 @@ class MuRenderer:
         self.receiveShadows = mu.read_byte()
         num_mat = mu.read_int()
         self.materials = mu.read_int(num_mat, True)
-        print(self.castShadows, self.receiveShadows, self.materials)
+        #print(self.castShadows, self.receiveShadows, self.materials)
         return self
 
 class MuCollider_Base:
