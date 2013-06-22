@@ -100,6 +100,22 @@ class MuEnum:
         'ST_ALPHA_UNLIT':ST_ALPHA_UNLIT,
         'ST_UNLIT':ST_UNLIT,
     }
+    ShaderNames = (
+        "",
+        "KSP/Diffuse",
+        "KSP/Specular",
+        "KSP/Bumped",
+        "KSP/Bumped Specular",
+        "KSP/Emissive/Diffuse",
+        "KSP/Emissive/Specular",
+        "KSP/Emissive/Bumped Specular",
+        "KSP/Alpha/Cutoff",
+        "KSP/Alpha/Cutoff Bumped",
+        "KSP/Alpha/Translucent",
+        "KSP/Alpha/Translucent Specular",
+        "KSP/Alpha/Unlit Transparent",
+        "KSP/Unlit",
+    )
 
     AT_TRANSFORM = 0
     AT_MATERIAL = 1

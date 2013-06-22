@@ -151,32 +151,7 @@ def add_texture(mu, mat, mattex):
 def create_materials(mu):
     #material info is in the top level object
     for mumat in mu.obj.materials:
-        if mumat.type == MuEnum.ST_SPECULAR:
-            pass
-        elif mumat.type == MuEnum.ST_BUMPED:
-            pass
-        elif mumat.type == MuEnum.ST_BUMPED_SPECULAR:
-            pass
-        elif mumat.type == MuEnum.ST_EMISSIVE:
-            pass
-        elif mumat.type == MuEnum.ST_EMISSIVE_SPECULAR:
-            mat = make_shader("KSP/Emissive/Specular", mumat, mu)
-        elif mumat.type == MuEnum.ST_EMISSIVE_BUMPED_SPECULAR:
-            pass
-        elif mumat.type == MuEnum.ST_ALPHA_CUTOUT:
-            pass
-        elif mumat.type == MuEnum.ST_ALPHA_CUTOUT_BUMPED:
-            mat = make_shader("KSP/Alpha/Cutoff Bumped", mumat, mu)
-        elif mumat.type == MuEnum.ST_ALPHA:
-            pass
-        elif mumat.type == MuEnum.ST_ALPHA_SPECULAR:
-            pass
-        elif mumat.type == MuEnum.ST_ALPHA_UNLIT:
-            pass
-        elif mumat.type == MuEnum.ST_UNLIT:
-            pass
-        elif mumat.type == MuEnum.ST_DIFFUSE:
-            mat = make_shader("KSP/Diffuse", mumat, mu)
+        mat = make_shader(MuEnum.ShaderNames[mumat.type], mumat, mu)
 
 def import_mu(operator, context, filepath):
     bpy.context.user_preferences.edit.use_global_undo = False
