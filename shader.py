@@ -27,143 +27,77 @@ from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum
 
-ksp_specular = (
+mainTex_block = (
     ("node", "Output", 'ShaderNodeOutput', (630, 730)),
     ("node", "mainMaterial", 'ShaderNodeMaterial', (70, 680)),
     ("node", "geometry", 'ShaderNodeGeometry', (-590, 260)),
     ("node", "mainTex", 'ShaderNodeTexture', (-380, 480)),
-    ("node", "specColor", 'ShaderNodeValToRGB', (-210, 410)),
     ("link", "geometry", "UV", "mainTex", "Vector"),
     ("link", "mainTex", "Color", "mainMaterial", "Color"),
+    ("settex", "mainTex", "texture", "mainTex"),
+    ("link", "mainMaterial", "Color", "Output", "Color"),
+)
+
+specular_block = (
+    ("node", "specColor", 'ShaderNodeValToRGB', (-210, 410)),
     ("link", "mainTex", "Value", "specColor", "Fac"),
     ("link", "specColor", "Color", "mainMaterial", "Spec"),
-    ("link", "mainMaterial", "Color", "Output", "Color"),
-    ("settex", "mainTex", "texture", "mainTex"),
     ("set", "specColor", "color_ramp.elements[1].color", "specColor"),
     #FIXME shinines
 )
-ksp_bumped = (
-    ("node", "Output", 'ShaderNodeOutput', (630, 730)),
-    ("node", "mainMaterial", 'ShaderNodeMaterial', (70, 680)),
-    ("node", "geometry", 'ShaderNodeGeometry', (-590, 260)),
-    ("node", "mainTex", 'ShaderNodeTexture', (-380, 480)),
+
+bumpmap_block = (
     ("node", "bumpMap", 'ShaderNodeMaterial', (-380, 480)),
-    ("link", "geometry", "UV", "mainTex", "Vector"),
     ("link", "bumpMap", "Normal", "mainMaterial", "Normal"),
-    ("link", "mainTex", "Color", "mainMaterial", "Color"),
-    ("link", "mainMaterial", "Color", "Output", "Color"),
-    ("settex", "mainTex", "texture", "mainTex"),
     ("call", "bumpMap", "material.texture_slots.add()"),
     ("settex", "bumpMap", "material.texture_slots[0].texture", "bumpMap"),
     ("setval", "bumpMap", "material.texture_slots[0].texture_coords", 'UV'),
     ("setval", "bumpMap", "material.texture_slots[0].use_map_color_diffuse", False),
     ("setval", "bumpMap", "material.texture_slots[0].use_map_normal", True),
 )
-ksp_bumped_specular = (
-)
-ksp_emissive_diffuse = (
-    ("node", "Output", 'ShaderNodeOutput', (630, 730)),
-    ("node", "mainMaterial", 'ShaderNodeMaterial', (70, 680)),
-    ("node", "geometry", 'ShaderNodeGeometry', (-590, 260)),
-    ("node", "mainTex", 'ShaderNodeTexture', (-380, 480)),
+
+emissive_block = (
     ("node", "emissive", 'ShaderNodeTexture', (-400, 40)),
     ("node", "emissiveConvert", 'ShaderNodeRGBToBW', (-230, 30)),
     ("node", "emissiveColor", 'ShaderNodeValToRGB', (-50, 180)),
     ("node", "emissiveMaterial", 'ShaderNodeMaterial', (230, 400)),
-    ("node", "mix", 'ShaderNodeMixRGB', (430, 610)),
-    ("link", "geometry", "UV", "mainTex", "Vector"),
-    ("link", "mainTex", "Color", "mainMaterial", "Color"),
-    ("link", "mainMaterial", "Color", "mix", "Color1"),
     ("link", "geometry", "UV", "emissive", "Vector"),
     ("link", "emissive", "Color", "emissiveConvert", "Color"),
     ("link", "emissiveConvert", "Val", "emissiveColor", "Fac"),
     ("link", "emissiveColor", "Color", "emissiveMaterial", "Color"),
-    ("link", "emissiveMaterial", "Color", "mix", "Color2"),
-    ("link", "mix", "Color", "Output", "Color"),
-    ("setval", "mix", "blend_type", 'ADD'),
-    ("setval", "mix", "inputs['Fac'].default_value", 1.0),
-    ("settex", "mainTex", "texture", "mainTex"),
     ("settex", "emissive", "texture", "emissive"),
     ("set", "emissiveColor", "color_ramp.elements[1].color", "emissiveColor"),
     ("setval", "emissiveMaterial", "use_specular", False),
     ("setval", "emissiveMaterial", "material.emit", 1.0),
-)
-ksp_emissive_specular = (
-    ("node", "Output", 'ShaderNodeOutput', (630, 730)),
-    ("node", "mainMaterial", 'ShaderNodeMaterial', (70, 680)),
-    ("node", "geometry", 'ShaderNodeGeometry', (-590, 260)),
-    ("node", "mainTex", 'ShaderNodeTexture', (-380, 480)),
-    ("node", "specColor", 'ShaderNodeValToRGB', (-210, 410)),
-    ("node", "emissive", 'ShaderNodeTexture', (-400, 40)),
-    ("node", "emissiveConvert", 'ShaderNodeRGBToBW', (-230, 30)),
-    ("node", "emissiveColor", 'ShaderNodeValToRGB', (-50, 180)),
-    ("node", "emissiveMaterial", 'ShaderNodeMaterial', (230, 400)),
     ("node", "mix", 'ShaderNodeMixRGB', (430, 610)),
-    ("link", "geometry", "UV", "mainTex", "Vector"),
-    ("link", "mainTex", "Color", "mainMaterial", "Color"),
-    ("link", "mainTex", "Value", "specColor", "Fac"),
-    ("link", "specColor", "Color", "mainMaterial", "Spec"),
     ("link", "mainMaterial", "Color", "mix", "Color1"),
-    ("link", "geometry", "UV", "emissive", "Vector"),
-    ("link", "emissive", "Color", "emissiveConvert", "Color"),
-    ("link", "emissiveConvert", "Val", "emissiveColor", "Fac"),
-    ("link", "emissiveColor", "Color", "emissiveMaterial", "Color"),
     ("link", "emissiveMaterial", "Color", "mix", "Color2"),
     ("link", "mix", "Color", "Output", "Color"),
     ("setval", "mix", "blend_type", 'ADD'),
     ("setval", "mix", "inputs['Fac'].default_value", 1.0),
-    ("settex", "mainTex", "texture", "mainTex"),
-    ("set", "specColor", "color_ramp.elements[1].color", "specColor"),
-    #FIXME shinines
-    ("settex", "emissive", "texture", "emissive"),
-    ("set", "emissiveColor", "color_ramp.elements[1].color", "emissiveColor"),
-    ("setval", "emissiveMaterial", "use_specular", False),
-    ("setval", "emissiveMaterial", "material.emit", 1.0),
 )
-ksp_emissive_bumped_specular = (
-)
-ksp_alpha_cutoff = (
-)
-ksp_alpha_cutoff_bumped = (
-    ("node", "Output", 'ShaderNodeOutput', (630, 730)),
-    ("node", "mainMaterial", 'ShaderNodeMaterial', (70, 680)),
+
+alpha_cutoff_block = (
     ("node", "alphaCutoff", 'ShaderNodeMath', (-230, 30)),
-    ("node", "geometry", 'ShaderNodeGeometry', (-590, 260)),
-    ("node", "mainTex", 'ShaderNodeTexture', (-380, 480)),
-    ("node", "bumpMap", 'ShaderNodeMaterial', (-280, 480)),
-    ("link", "geometry", "UV", "mainTex", "Vector"),
-    ("link", "bumpMap", "Normal", "mainMaterial", "Normal"),
-    ("link", "mainTex", "Color", "mainMaterial", "Color"),
     ("link", "mainTex", "Value", "alphaCutoff", 0),
     ("link", "alphaCutoff", "Value", "Output", "Alpha"),
-    ("link", "mainMaterial", "Color", "Output", "Color"),
-    ("settex", "mainTex", "texture", "mainTex"),
-    ("call", "bumpMap", "material.texture_slots.add()"),
-    ("settex", "bumpMap", "material.texture_slots[0].texture", "bumpMap"),
-    ("setval", "bumpMap", "material.texture_slots[0].texture.image.colorspace_settings.name", "Non-Color"),
-    ("setval", "bumpMap", "material.texture_slots[0].texture_coords", 'UV'),
-    ("setval", "bumpMap", "material.texture_slots[0].use_map_color_diffuse", False),
-    ("setval", "bumpMap", "material.texture_slots[0].use_map_normal", True),
     ("set", "alphaCutoff", "inputs[1].default_value", "cutoff"),
 )
-ksp_alpha_translucent = (
-)
-ksp_alpha_translucent_specular = (
-)
-ksp_unlit_transparent = (
-)
-ksp_unlit = (
-)
-ksp_diffuse = (
-    ("node", "Output", 'ShaderNodeOutput', (630, 730)),
-    ("node", "mainMaterial", 'ShaderNodeMaterial', (70, 680)),
-    ("node", "geometry", 'ShaderNodeGeometry', (-590, 260)),
-    ("node", "mainTex", 'ShaderNodeTexture', (-380, 480)),
-    ("link", "geometry", "UV", "mainTex", "Vector"),
-    ("link", "mainTex", "Color", "mainMaterial", "Color"),
-    ("link", "mainMaterial", "Color", "Output", "Color"),
-    ("settex", "mainTex", "texture", "mainTex"),
-)
+
+ksp_specular = mainTex_block + specular_block
+ksp_bumped = mainTex_block + bumpmap_block
+ksp_bumped_specular = mainTex_block + specular_block + bumpmap_block
+ksp_emissive_diffuse = mainTex_block + emissive_block
+ksp_emissive_specular = mainTex_block + emissive_block + specular_block
+ksp_emissive_bumped_specular = (mainTex_block + emissive_block
+                                + specular_block + bumpmap_block)
+ksp_alpha_cutoff = mainTex_block + alpha_cutoff_block
+ksp_alpha_cutoff_bumped = mainTex_block + alpha_cutoff_block + bumpmap_block
+ksp_alpha_translucent = ()
+ksp_alpha_translucent_specular = ()
+ksp_unlit_transparent = ()
+ksp_unlit = ()
+ksp_diffuse = mainTex_block
 
 ksp_shaders = {
 "KSP/Specular":ksp_specular,
