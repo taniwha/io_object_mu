@@ -61,6 +61,7 @@ def create_mesh_object(name, mesh, transform):
 
 def create_object(mu, muobj, parent):
     obj = None
+    mesh = None
     if hasattr(muobj, "collider"):
         if type(muobj.collider) == MuColliderMesh:
             name = muobj.transform.name + ".collider"
@@ -75,12 +76,13 @@ def create_object(mu, muobj, parent):
             print("box")
         elif type(muobj.collider) == MuColliderWheel:
             print("wheel")
-    if hasattr(muobj, "renderer"):
-        #FIXME renderer settings
-        pass
     if hasattr(muobj, "shared_mesh"):
         mesh = create_mesh(mu, muobj.shared_mesh, muobj.transform.name)
         obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
+    if hasattr(muobj, "renderer"):
+        if mesh:
+            mat = mu.obj.materials[muobj.renderer.materials[0]]
+            mesh.materials.append(bpy.data.materials[mat.name])
     if not obj:
         obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
     obj.parent = parent
