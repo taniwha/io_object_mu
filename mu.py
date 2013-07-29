@@ -489,8 +489,8 @@ class MuLight:
         return self
 
 class MuObject:
-    def __init__(self):
-        self.name = ""
+    def __init__(self, name=""):
+        self.name = name
         self.children = []
         self.materials = []
         self.textures = []
