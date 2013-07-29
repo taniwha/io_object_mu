@@ -381,8 +381,9 @@ class MuRenderer:
     def __init__(self):
         pass
     def read(self, mu):
-        self.castShadows = mu.read_byte()
-        self.receiveShadows = mu.read_byte()
+        if mu.version > 0:
+            self.castShadows = mu.read_byte()
+            self.receiveShadows = mu.read_byte()
         num_mat = mu.read_int()
         self.materials = mu.read_int(num_mat, True)
         #print(self.castShadows, self.receiveShadows, self.materials)
