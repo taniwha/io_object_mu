@@ -576,8 +576,10 @@ class Mu:
 
     def read_quaternion(self):
         q = self.read_float(4)
-        # Unity is xyzw, blender is wxyz
-        q = (q[3],) + q[0:3]
+        # Unity is xyzw, blender is wxyz. However, Unity is left-handed and
+        # blender is right handed. To convert between LH and RH (either
+        # direction), just swap y and z and reverse the rotation direction.
+        q = q[3], -q[0], -q[2], -q[1]
         return q
 
     def read_bytes(self, size):
