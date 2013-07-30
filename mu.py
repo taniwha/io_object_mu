@@ -144,6 +144,9 @@ class MuTexture:
         self.type = mu.read_int()
         #print("   ", self.name, self.type)
         return self
+    def write(self, mu):
+        mu.write_string(self.name)
+        mu.write_int(self.type)
 
 class MuMatTex:
     def __init__(self):
@@ -154,6 +157,10 @@ class MuMatTex:
         self.scale = mu.read_float(2)
         self.offset = mu.read_float(2)
         return self
+    def write(self, mu):
+        mu.write_int(self.index)
+        mu.write_float(self.scale)
+        mu.write_float(self.offset)
 
 class MuMaterial:
     def __init__(self):
@@ -216,6 +223,60 @@ class MuMaterial:
         else:
             raise ValueError("MuMaterial %d" % self.type)
         return self
+    def write(self, mu):
+        mu.write_string(self.name)
+        mu.write_int(self.type)
+        if self.type == MuEnum.ST_SPECULAR:
+            self.mainTex.write(mu)
+            mu.write_float(self.specColor)
+            mu.write_float(self.shininess)
+        elif self.type == MuEnum.ST_BUMPED:
+            self.mainTex.write(mu)
+            self.bumpMap.write(mu)
+        elif self.type == MuEnum.ST_BUMPED_SPECULAR:
+            self.mainTex.write(mu)
+            self.bumpMap.write(mu)
+            mu.write_float(self.specColor)
+            mu.write_float(self.shininess)
+        elif self.type == MuEnum.ST_EMISSIVE:
+            self.mainTex.write(mu)
+            self.emissive.write(mu)
+            mu.write_float(self.emissiveColor)
+        elif self.type == MuEnum.ST_EMISSIVE_SPECULAR:
+            self.mainTex.write(mu)
+            mu.write_float(self.specColor)
+            mu.write_float(self.shininess)
+            self.emissive.write(mu)
+            mu.write_float(self.emissiveColor)
+        elif self.type == MuEnum.ST_EMISSIVE_BUMPED_SPECULAR:
+            self.mainTex.write(mu)
+            self.bumpMap.write(mu)
+            mu.write_float(self.specColor)
+            mu.write_float(self.shininess)
+            self.emissive.write(mu)
+            mu.write_float(self.emissiveColor)
+        elif self.type == MuEnum.ST_ALPHA_CUTOUT:
+            self.mainTex.write(mu)
+            mu.write_float(self.cutoff)
+        elif self.type == MuEnum.ST_ALPHA_CUTOUT_BUMPED:
+            self.mainTex.write(mu)
+            self.bumpMap.write(mu)
+            mu.write_float(self.cutoff)
+        elif self.type == MuEnum.ST_ALPHA:
+            self.mainTex.write(mu)
+        elif self.type == MuEnum.ST_ALPHA_SPECULAR:
+            self.mainTex.write(mu)
+            mu.write_float(self.gloss)
+            mu.write_float(self.specColor)
+            mu.write_float(self.shininess)
+        elif self.type == MuEnum.ST_ALPHA_UNLIT:
+            self.mainTex.write(mu)
+            mu.write_float(self.color)
+        elif self.type == MuEnum.ST_UNLIT:
+            self.mainTex.write(mu)
+            mu.write_float(self.color)
+        elif self.type == MuEnum.ST_DIFFUSE:
+            self.mainTex.write(mu)
 
 class MuTransform:
     def __init__(self):
@@ -229,6 +290,11 @@ class MuTransform:
         #print("   ", self.name, self.localPosition, self.localRotation,
         #      self.localScale)
         return self
+    def write(self, mu):
+        mu.write_string(self.name)
+        mu.write_vector(self.localPosition)
+        mu.write_quaternion(self.localRotaion)
+        mu.write_vector(self.localScale)
 
 class MuTagLayer:
     def __init__(self):
@@ -239,6 +305,9 @@ class MuTagLayer:
         self.layer = mu.read_int()
         #print("   ", self.tag, self.layer)
         return self
+    def write(self, mu):
+        mu.write_string(tag)
+        mu.write_int(self.layer)
 
 class MuKey:
     def __init__(self):
@@ -252,6 +321,11 @@ class MuKey:
         # editable, smooth, linear, stepped (0..3?)
         #print("   ", self.time, self.value, self.tangent, self.tangentMode)
         return self
+    def write(self, mu):
+        mu.write_float(self.time)
+        mu.write_float(self.value)
+        mu.write_float(self.tangent)
+        mu.write_int(self.tangentMode)
 
 class MuCurve:
     def __init__(self):
@@ -269,6 +343,14 @@ class MuCurve:
         for i in range(num_keys):
             self.keys.append(MuKey().read(mu))
         return self
+    def write(self, mu):
+        mu.write_string(self.path)
+        mu.write_string(self.property)
+        mu.write_int(self.type)
+        mu.write_int(self.wrapMode)
+        mu.write_int(len(self.keys))
+        for key in self.keys:
+            key.write(mu)
 
 class MuClip:
     def __init__(self):
@@ -284,6 +366,14 @@ class MuClip:
         for i in range(num_curves):
             self.curves.append(MuCurve().read(mu))
         return self
+    def write(self, mu):
+        mu.write_string(self.name)
+        mu.write_vector(self.lbCenter)
+        mu.write_vector(self.lbSize)
+        mu.write_int(self.wrapMode)
+        mu.write_int(len(self.curves))
+        for curve in self.curves:
+            curve.write(mu)
 
 class MuAnimation:
     def __init__(self):
@@ -297,6 +387,12 @@ class MuAnimation:
         self.autoPlay = mu.read_byte()  #XXX is this right?
         #print(self.clip, self.autoPlay)
         return self
+    def write(self, mu):
+        mu.write_int(len(self.clips))
+        for clip in self.clips:
+            clip.write(mu)
+        mu.write_string(self.clip)
+        mu.write_byte(self.autoPlay)  #XXX is this right?
 
 class MuBoneWeight:
     def __init__(self):
@@ -307,6 +403,10 @@ class MuBoneWeight:
             self.indices.append(mu.read_int())
             self.weights.append(mu.read_float())
         return self
+    def write(self, mu):
+        for i in range(4):
+            mu.write_int(self.indices[l])
+            mu.write_float(self.weights[l])
 
 class MuMesh:
     def __init__(self):
@@ -347,7 +447,7 @@ class MuMesh:
             elif type == MuEnum.ET_MESH_TANGENTS:
                 #print("    tangents")
                 for i in range(num_verts):
-                    self.tangents.append(mu.read_quaternion())
+                    self.tangents.append(mu.read_quaternion())#FIXME not a quaternion
             elif type == MuEnum.ET_MESH_BONE_WEIGHTS:
                 #print("    bone weights")
                 for i in range(num_verts):
@@ -376,6 +476,46 @@ class MuMesh:
             else:
                 raise ValueError("MuMesh %x %d" % (mu.file.tell(), type))
         return self
+    def write(self, mu):
+        mu.write_int(MuEnum.ET_MESH_START)
+        mu.write_int(len(self.verts))
+        mu.write_int(len(self.submeshes))
+
+        mu.write_int(MuEnum.ET_MESH_VERTS)
+        for v in self.verts:
+            mu.write_vector(v)
+        if len(self.uvs) == len(self.verts):
+            mu.write_int(MuEnum.ET_MESH_UV)
+            for uv in self.uvs:
+                mu.write_float(uv)
+        if len(self.uv2s) == len(self.verts):
+            mu.write_int(MuEnum.ET_MESH_UV2)
+            for uv in self.uv2s:
+                mu.write_float(uv)
+        if len(self.normals) == len(self.verts):
+            mu.write_int(MuEnum.ET_MESH_NORMALS)
+            for n in self.normals:
+                mu.write_vector(n)
+        if len(self.tangents) == len(self.verts):
+            mu.write_int(MuEnum.ET_MESH_TANGENTS)
+            for t in self.tangents:
+                mu.write_quaternion(t)#FIXME not a quaternion
+        if len(self.boneWeights) == len(self.verts):
+            mu.write_int(MuEnum.ET_MESH_BONE_WEIGHTS)
+            for bw in self.boneWeights:
+                bw.write(mu)
+        if len(self.bindPoses):
+            mu.write_int(MuEnum.ET_MESH_BIND_POSES)
+            for bp in self.bindPoses:
+                mu.write_float(bp)
+        for sm in self.submeshes:
+            mu.write_int(len(sm))
+            for tri in sm:
+                #reverse the triangle winding for Blender (because of the
+                # LHS/RHS swap)
+                tri = tri[0], tri[2], tri[1]
+                mu.write_int(tri)
+        mu.write_int(MuEnum.ET_MESH_END)
 
 class MuRenderer:
     def __init__(self):
@@ -388,6 +528,11 @@ class MuRenderer:
         self.materials = mu.read_int(num_mat, True)
         #print(self.castShadows, self.receiveShadows, self.materials)
         return self
+    def write(self, mu):
+        mu.write_byte(self.castShadows)
+        mu.write_byte(self.receiveShadows)
+        mu.write_int(len(self.materials))
+        mu.write_int(self.materials)
 
 class MuCollider_Base:
     def __init__(self, type):
@@ -400,6 +545,14 @@ class MuColliderMesh(MuCollider_Base):
         #print(self.isTrigger, self.convex)
         self.mesh = MuMesh().read(mu)
         return self
+    def write(self, mu):
+        if self.type:
+            mu.write_int(MuEnum.ET_MESH_COLLIDER2)
+        else:
+            mu.write_int(MuEnum.ET_MESH_COLLIDER)
+        mu.write_byte(self.isTrigger)
+        mu.write_byte(self.convex)
+        self.mesh.write(mu)
 
 class MuColliderSphere(MuCollider_Base):
     def read(self, mu):
@@ -409,6 +562,14 @@ class MuColliderSphere(MuCollider_Base):
         self.center = mu.read_vector()
         #print(self.isTrigger, self.radius, self.center)
         return self
+    def write(self, mu):
+        if self.type:
+            mu.write_int(MuEnum.ET_SPHERE_COLLIDER2)
+        else:
+            mu.write_int(MuEnum.ET_SPHERE_COLLIDER)
+        mu.write_byte(self.isTrigger)
+        mu.write_float(self.radius)
+        mu.write_vector(self.center)
 
 class MuColliderCapsule(MuCollider_Base):
     def read(self, mu):
@@ -419,6 +580,16 @@ class MuColliderCapsule(MuCollider_Base):
         self.direction = mu.read_int()
         self.center = mu.read_vector()
         return self
+    def write(self, mu):
+        if self.type:
+            mu.write_int(MuEnum.ET_CAPSULE_COLLIDER2)
+        else:
+            mu.write_int(MuEnum.ET_CAPSULE_COLLIDER)
+        mu.write_byte(self.isTrigger)
+        mu.write_float(self.radius)
+        mu.write_float(self.height)
+        mu.write_int(self.direction)
+        mu.write_vector(self.center)
 
 class MuColliderBox(MuCollider_Base):
     def read(self, mu):
@@ -428,6 +599,14 @@ class MuColliderBox(MuCollider_Base):
         self.center = mu.read_vector()
         #print(self.isTrigger, self.size, self.center)
         return self
+    def write(self, mu):
+        if self.type:
+            mu.write_int(MuEnum.ET_BOX_COLLIDER2)
+        else:
+            mu.write_int(MuEnum.ET_BOX_COLLIDER)
+        mu.write_byte(self.isTrigger)
+        mu.write_vector(self.size)
+        mu.write_vector(self.center)
 
 class MuSpring:
     def __init__(self):
@@ -437,6 +616,10 @@ class MuSpring:
         self.damper = mu.read_float()
         self.targetPosition = mu.read_float()
         return self
+    def write(self, mu):
+        mu.write_float(self.spring)
+        mu.write_float(self.damper)
+        mu.write_float(self.targetPosition)
 
 class MuFriction:
     def __init__(self):
@@ -448,6 +631,12 @@ class MuFriction:
         self.asymptoteValue = mu.read_float()
         self.stiffness = mu.read_float()
         return self
+    def write(self, mu):
+        mu.write_float(self.extremumSlip)
+        mu.write_float(self.extremumValue)
+        mu.write_float(self.asymptoteSlip)
+        mu.write_float(self.asymptoteValue)
+        mu.write_float(self.stiffness)
 
 class MuColliderWheel(MuCollider_Base):
     def __init__(self):
@@ -462,6 +651,15 @@ class MuColliderWheel(MuCollider_Base):
         self.forwardFriction = MuFriction().read(mu)
         self.sidewaysFriction = MuFriction().read(mu)
         return self
+    def write(self, mu):
+        mu.write_int(MuEnum.ET_WHEEL_COLLIDER)
+        mu.write_float(self.mass)
+        mu.write_float(self.radius)
+        mu.write_float(self.suspensionDistance)
+        mu.write_vector(self.center)
+        self.suspensionSpring.write(mu)
+        self.forwardFriction.write(mu)
+        self.sidewaysFriction.write(mu)
 
 def MuCollider(type):
     if type in [MuEnum.ET_MESH_COLLIDER, MuEnum.ET_MESH_COLLIDER2]:
@@ -487,6 +685,12 @@ class MuLight:
         self.color = mu.read_float(3)
         self.spotAngle = mu.read_float()
         return self
+    def write(self, mu):
+        mu.write_int(self.type)
+        mu.write_float(self.intensity)
+        mu.write_float(self.range)
+        mu.write_float(self.color)
+        mu.write_float(self.spotAngle)
 
 class MuObject:
     def __init__(self, name=""):
@@ -533,9 +737,23 @@ class MuObject:
                 for i in range(tex_count):
                     self.textures.append(MuTexture().read(mu))
             else:
-                #print (entry_type, hex(mu.file.tell()))
+                #print(entry_type, hex(mu.file.tell()))
                 pass
         return self
+    def write(self, mu):
+        self.transform.write(mu)
+        self.tag_and_layer.write(mu)
+        self.collider.write(mu)
+        self.shared_mesh.write(mu)
+        self.renderer.write(mu)
+        #self.skinned_mesh_renderer.write(mu)
+        self.animation.write(mu)
+        #self.camera.write(mu)
+        #self.light.write(mu)
+        for child in self.children:
+            mu.write_int(MuEnum.ET_CHILD_TRANSFORM_START)
+            child.write(mu)
+            mu.write_int(MuEnum.ET_CHILD_TRANSFORM_END)
 
 class Mu:
 
@@ -616,6 +834,19 @@ class Mu:
             data = (data,)
         self.file.write(pack(("<%df" % len(data)), *data))
 
+    def write_vector(self, v):
+        v = self.read_float(3)
+        #convert from Blender's RHS to Unity's LHS
+        v = v[0], v[2], v[1]
+        self.write_float(v)
+
+    def write_quaternion(self, q):
+        # Unity is xyzw, blender is wxyz. However, Unity is left-handed and
+        # blender is right handed. To convert between LH and RH (either
+        # direction), just swap y and z and reverse the rotation direction.
+        q = -q[1], -q[3], -q[2], q[0]
+        self.write_float(v)
+
     def write_bytes(self, data, size=-1):
         if size == -1:
             size = len(data)
@@ -645,7 +876,15 @@ class Mu:
         self.obj = MuObject().read(self)
         #self.read_materials()
         #self.read_textures()
+        del self.file
         return self
+    def write(self, filepath):
+        self.file = open(filepath, "wb")
+        self.write_int(MuEnum.MODEL_BINARY)
+        self.write_int(MuEnum.FILE_VERSION)
+        self.write_string(self.name)
+        self.obj.write(self)
+        del self.file
 
 if __name__ == "__main__":
     mu = Mu()
