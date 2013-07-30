@@ -458,7 +458,7 @@ class MuColliderWheel(MuCollider_Base):
         self.radius = mu.read_float()
         self.suspensionDistance = mu.read_float()
         self.center = mu.read_vector()
-        self.suspensionSprint = MuSpring().read(mu)
+        self.suspensionSpring = MuSpring().read(mu)
         self.forwardFriction = MuFriction().read(mu)
         self.sidewaysFriction = MuFriction().read(mu)
         return self
