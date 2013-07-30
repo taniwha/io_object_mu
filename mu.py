@@ -594,6 +594,8 @@ class Mu:
         data = self.file.read(size)
         if len(data) < size:
             raise EOFError
+        if type(data) == type(""):
+            return data
         s = ""
         for c in data:
             s = s + chr(c)
