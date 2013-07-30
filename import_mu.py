@@ -55,8 +55,6 @@ def create_mesh_object(name, mesh, transform):
     obj.rotation_quaternion = Quaternion(transform.localRotation)
     obj.scale = Vector(transform.localScale)
     bpy.context.scene.objects.link(obj)
-    bpy.context.scene.objects.active = obj
-    obj.select = True
     return obj
 
 def create_object(mu, muobj, parent):
@@ -88,6 +86,7 @@ def create_object(mu, muobj, parent):
     obj.parent = parent
     for child in muobj.children:
         create_object(mu, child, obj)
+    return obj
 
 def convert_bump(pixels, width, height):
     outp = list(pixels)
@@ -169,7 +168,9 @@ def import_mu(operator, context, filepath):
 
     create_textures(mu)
     create_materials(mu)
-    create_object(mu, mu.obj, None)
+    obj = create_object(mu, mu.obj, None)
+    bpy.context.scene.objects.active = obj
+    obj.select = True
 
     bpy.context.user_preferences.edit.use_global_undo = True
     return {'FINISHED'}
