@@ -1,2 +1,4 @@
 *.swp
+*.mu
+*.mbm
 __pycache__/
