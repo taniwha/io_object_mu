@@ -28,14 +28,14 @@ class MuEnum:
     ET_MESH_BONE_WEIGHTS = 20
     ET_MESH_BIND_POSES = 21
     ET_MESH_END = 22
-    ET_LIGHT = 23   #XXX
+    ET_LIGHT = 23
     ET_TAG_AND_LAYER = 24
     ET_MESH_COLLIDER2 = 25
     ET_SPHERE_COLLIDER2 = 26
     ET_CAPSULE_COLLIDER2 = 27
     ET_BOX_COLLIDER2 = 28
     ET_WHEEL_COLLIDER = 29
-    ET_CAMERA = 30  #XXX
+    ET_CAMERA = 30
     ENTRY_TYPES = {
         'ET_CHILD_TRANSFORM_START':ET_CHILD_TRANSFORM_START,
         'ET_CHILD_TRANSFORM_END':ET_CHILD_TRANSFORM_END,
@@ -293,7 +293,7 @@ class MuTransform:
     def write(self, mu):
         mu.write_string(self.name)
         mu.write_vector(self.localPosition)
-        mu.write_quaternion(self.localRotaion)
+        mu.write_quaternion(self.localRotation)
         mu.write_vector(self.localScale)
 
 class MuTagLayer:
@@ -306,7 +306,8 @@ class MuTagLayer:
         #print("   ", self.tag, self.layer)
         return self
     def write(self, mu):
-        mu.write_string(tag)
+        mu.write_int(MuEnum.ET_TAG_AND_LAYER)
+        mu.write_string(self.tag)
         mu.write_int(self.layer)
 
 class MuKey:
@@ -388,6 +389,7 @@ class MuAnimation:
         #print(self.clip, self.autoPlay)
         return self
     def write(self, mu):
+        mu.write_int(MuEnum.ET_ANIMATION)
         mu.write_int(len(self.clips))
         for clip in self.clips:
             clip.write(mu)
@@ -509,7 +511,8 @@ class MuMesh:
             for bp in self.bindPoses:
                 mu.write_float(bp)
         for sm in self.submeshes:
-            mu.write_int(len(sm))
+            mu.write_int(MuEnum.ET_MESH_TRIANGLES)
+            mu.write_int(len(sm) * 3)
             for tri in sm:
                 #reverse the triangle winding for Blender (because of the
                 # LHS/RHS swap)
@@ -519,7 +522,8 @@ class MuMesh:
 
 class MuRenderer:
     def __init__(self):
-        pass
+        self.castShadows = 1
+        self.receiveShadows = 1
     def read(self, mu):
         if mu.version > 0:
             self.castShadows = mu.read_byte()
@@ -529,10 +533,41 @@ class MuRenderer:
         #print(self.castShadows, self.receiveShadows, self.materials)
         return self
     def write(self, mu):
+        mu.write_int(MuEnum.ET_MESH_RENDERER)
         mu.write_byte(self.castShadows)
         mu.write_byte(self.receiveShadows)
         mu.write_int(len(self.materials))
         mu.write_int(self.materials)
+
+class MuSkinnedMeshRenderer:
+    def __init__(self):
+        self.materials = []
+        self.bones = []
+    def read(self, mu):
+        num_mat = mu.read_int()
+        for i in range(num_mat):
+            self.materials.append(mu.read_int())
+        self.center = mu.read_vector()
+        self.size = mu.read_vector()
+        self.quality = mu.read_int()
+        self.updateWhenOffscreen = mu.read_byte()
+        nBones = mu.read_int()
+        for i in range(nBones):
+            self.bones.append(mu.read_string)
+        self.mesh = MuMesh().read(mu)
+        return self
+    def write(self, mu):
+        mu.write_int(MuEnum.ET_SKINNED_MESH_RENDERER)
+        mu.write_int(len(self.materials))
+        mu.write_int(self.materials)
+        mu.write_vector(self.center)
+        mu.write_vector(self.size)
+        mu.write_int(self.quality)
+        mu.write_byte(self.updateWhenOffscreen)
+        mu.write_int(len(self.bones))
+        for bone in self.bones:
+            mu.write_string(bone)
+        self.mesh.write(mu)
 
 class MuCollider_Base:
     def __init__(self, type):
@@ -675,6 +710,30 @@ def MuCollider(type):
     else:
         raise ValueError("MuCollider %d" % type)
 
+class MuCamera:
+    def __init__(self):
+        pass
+    def read(self, mu):
+        self.clearFlags = mu.read_int()
+        self.backgroundColor = mu.read_float(4)
+        self.cullingMask = mu.read_int()
+        self.orthographic = mu.read_int()
+        self.fov = mu.read_float()
+        self.near = mu.read_float()
+        self.far = mu.read_float()
+        self.dept = mu.read_float()
+        return self
+    def write(self, mu):
+        mu.write_int(MuEnum.ET_CAMERA)
+        mu.write_int(self.clearFlags)
+        mu.write_float(self.backgroundColor)
+        mu.write_int(self.cullingMask)
+        mu.write_int(self.orthographic)
+        mu.write_float(self.fov)
+        mu.write_float(self.near)
+        mu.write_float(self.far)
+        mu.write_float(self.dept)
+
 class MuLight:
     def __init__(self):
         pass
@@ -686,6 +745,7 @@ class MuLight:
         self.spotAngle = mu.read_float()
         return self
     def write(self, mu):
+        mu.write_int(MuEnum.ET_LIGHT)
         mu.write_int(self.type)
         mu.write_float(self.intensity)
         mu.write_float(self.range)
@@ -726,8 +786,14 @@ class MuObject:
                 self.shared_mesh = MuMesh().read(mu)
             elif entry_type == MuEnum.ET_MESH_RENDERER:
                 self.renderer = MuRenderer().read(mu)
+            elif entry_type == MuEnum.ET_SKINNED_MESH_RENDERER:
+                self.skinned_mesh_renderer = MuSkinnedMeshRender().read(mu)
             elif entry_type == MuEnum.ET_ANIMATION:
                 self.animation = MuAnimation().read(mu)
+            elif entry_type == MuEnum.ET_CAMERA:
+                self.camera = MuCamera().read(mu)
+            elif entry_type == MuEnum.ET_LIGHT:
+                self.light = MuLight().read(mu)
             elif entry_type == MuEnum.ET_MATERIALS:
                 mat_count = mu.read_int()
                 for i in range(mat_count):
@@ -743,13 +809,21 @@ class MuObject:
     def write(self, mu):
         self.transform.write(mu)
         self.tag_and_layer.write(mu)
-        self.collider.write(mu)
-        self.shared_mesh.write(mu)
-        self.renderer.write(mu)
-        #self.skinned_mesh_renderer.write(mu)
-        self.animation.write(mu)
-        #self.camera.write(mu)
-        #self.light.write(mu)
+        if hasattr(self, "collider"):
+            self.collider.write(mu)
+        if hasattr(self, "shared_mesh"):
+            mu.write_int(MuEnum.ET_MESH_FILTER)
+            self.shared_mesh.write(mu)
+        if hasattr(self, "renderer"):
+            self.renderer.write(mu)
+        if hasattr(self, "skinned_mesh_renderer"):
+            self.skinned_mesh_renderer.write(mu)
+        if hasattr(self, "animation"):
+            self.animation.write(mu)
+        if hasattr(self, "camera"):
+            self.camera.write(mu)
+        if hasattr(self, "light"):
+            self.light.write(mu)
         for child in self.children:
             mu.write_int(MuEnum.ET_CHILD_TRANSFORM_START)
             child.write(mu)
@@ -835,7 +909,6 @@ class Mu:
         self.file.write(pack(("<%df" % len(data)), *data))
 
     def write_vector(self, v):
-        v = self.read_float(3)
         #convert from Blender's RHS to Unity's LHS
         v = v[0], v[2], v[1]
         self.write_float(v)
@@ -845,7 +918,7 @@ class Mu:
         # blender is right handed. To convert between LH and RH (either
         # direction), just swap y and z and reverse the rotation direction.
         q = -q[1], -q[3], -q[2], q[0]
-        self.write_float(v)
+        self.write_float(q)
 
     def write_bytes(self, data, size=-1):
         if size == -1:
@@ -859,7 +932,7 @@ class Mu:
         size = len(data)
         if size > 255:
             size = 255  # just truncate for now (FIXME exception?)
-        self.write_byte(data, size)
+        self.write_byte(size)
         self.write_bytes(data, size)
 
     def __init__(self, name = "mu"):
@@ -884,8 +957,19 @@ class Mu:
         self.write_int(MuEnum.FILE_VERSION)
         self.write_string(self.name)
         self.obj.write(self)
+        if len(self.obj.materials):
+            mu.write_int(MuEnum.ET_MATERIALS)
+            mu.write_int(len(self.obj.materials))
+            for mat in self.obj.materials:
+                mat.write(mu)
+        if len(self.obj.textures):
+            mu.write_int(MuEnum.ET_TEXTURES)
+            mu.write_int(len(self.obj.textures))
+            for tex in self.obj.textures:
+                tex.write(mu)
         del self.file
 
 if __name__ == "__main__":
     mu = Mu()
     mu.read("model.mu")
+    mu.write("write.mu")
