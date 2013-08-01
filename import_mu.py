@@ -20,6 +20,7 @@
 # <pep8 compliant>
 
 from struct import unpack
+import os.path
 
 import bpy
 from bpy_extras.object_utils import object_data_add
@@ -125,13 +126,13 @@ def load_mbm(mbmpath):
         pixels = convert_bump(pixels, width, height)
     return width, height, pixels
 
-def create_textures(mu):
+def create_textures(mu, path):
     #texture info is in the top level object
     for tex in mu.obj.textures:
         if tex.name[-4:].lower() in [".png", ".tga"]:
-            bpy.data.images.load(tex.name)
+            bpy.data.images.load(os.path.join(path, tex.name))
         elif tex.name[-4:].lower() == ".mbm":
-            w,h, pixels = load_mbm(tex.name)
+            w,h, pixels = load_mbm(os.path.join(path, tex.name))
             img = bpy.data.images.new(tex.name, w, h)
             img.pixels[:] = map(lambda x: x / 255.0, pixels)
             img.pack(True)
@@ -166,7 +167,7 @@ def import_mu(operator, context, filepath):
             "Unrecognized format: %s %d" % (mu.magic, mu.version))
         return {'CANCELLED'}
 
-    create_textures(mu)
+    create_textures(mu, os.path.dirname(filepath))
     create_materials(mu)
     obj = create_object(mu, mu.obj, None)
     bpy.context.scene.objects.active = obj
