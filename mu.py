@@ -977,18 +977,18 @@ class Mu:
         self.write_string(self.name)
         self.obj.write(self)
         if len(self.obj.materials):
-            mu.write_int(MuEnum.ET_MATERIALS)
-            mu.write_int(len(self.obj.materials))
+            self.write_int(MuEnum.ET_MATERIALS)
+            self.write_int(len(self.obj.materials))
             for mat in self.obj.materials:
-                mat.write(mu)
+                mat.write(self)
         if len(self.obj.textures):
-            mu.write_int(MuEnum.ET_TEXTURES)
-            mu.write_int(len(self.obj.textures))
+            self.write_int(MuEnum.ET_TEXTURES)
+            self.write_int(len(self.obj.textures))
             for tex in self.obj.textures:
-                tex.write(mu)
+                tex.write(self)
         del self.file
 
 if __name__ == "__main__":
     mu = Mu()
     mu.read("model.mu")
-    mu.write("write.mu")
+    #mu.write("write.mu")
