@@ -1,4 +1,5 @@
 *.swp
 *.mu
 *.mbm
+*.pyc
 __pycache__/
