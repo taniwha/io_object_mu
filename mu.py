@@ -426,8 +426,8 @@ class MuBoneWeight:
         return self
     def write(self, mu):
         for i in range(4):
-            mu.write_int(self.indices[l])
-            mu.write_float(self.weights[l])
+            mu.write_int(self.indices[i])
+            mu.write_float(self.weights[i])
 
 class MuMesh:
     def __init__(self):
@@ -477,7 +477,7 @@ class MuMesh:
                 #print("    bind poses")
                 num_poses = mu.read_int()
                 for i in range(num_poses):
-                    self.bindPoses.append(mu.read_float(12))
+                    self.bindPoses.append(mu.read_float(16))
             elif type == MuEnum.ET_MESH_TRIANGLES:
                 #print("    sub mesh")
                 num_tris = mu.read_int()
@@ -527,6 +527,7 @@ class MuMesh:
                 bw.write(mu)
         if len(self.bindPoses):
             mu.write_int(MuEnum.ET_MESH_BIND_POSES)
+            mu.write_int(len(self.bindPoses))
             for bp in self.bindPoses:
                 mu.write_float(bp)
         for sm in self.submeshes:
@@ -572,7 +573,7 @@ class MuSkinnedMeshRenderer:
         self.updateWhenOffscreen = mu.read_byte()
         nBones = mu.read_int()
         for i in range(nBones):
-            self.bones.append(mu.read_string)
+            self.bones.append(mu.read_string())
         self.mesh = MuMesh().read(mu)
         return self
     def write(self, mu):
