@@ -806,7 +806,7 @@ class MuObject:
             elif entry_type == MuEnum.ET_MESH_RENDERER:
                 self.renderer = MuRenderer().read(mu)
             elif entry_type == MuEnum.ET_SKINNED_MESH_RENDERER:
-                self.skinned_mesh_renderer = MuSkinnedMeshRender().read(mu)
+                self.skinned_mesh_renderer = MuSkinnedMeshRenderer().read(mu)
             elif entry_type == MuEnum.ET_ANIMATION:
                 self.animation = MuAnimation().read(mu)
             elif entry_type == MuEnum.ET_CAMERA:
