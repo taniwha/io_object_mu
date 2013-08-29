@@ -29,6 +29,7 @@ from mathutils import Vector,Matrix,Quaternion
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuColliderBox, MuColliderWheel
 from .shader import make_shader
+from . import collider
 
 def create_uvs(mu, uvs, mesh, name):
     uvlay = mesh.uv_textures.new(name)
@@ -62,19 +63,20 @@ def create_object(mu, muobj, parent):
     obj = None
     mesh = None
     if hasattr(muobj, "collider"):
-        if type(muobj.collider) == MuColliderMesh:
-            name = muobj.transform.name + ".collider"
-            mesh = create_mesh(mu, muobj.collider.mesh, name)
-            obj = create_mesh_object(name, mesh, muobj.transform)
-            obj.parent = parent
-        elif type(muobj.collider) == MuColliderSphere:
-            print("sphere")
-        elif type(muobj.collider) == MuColliderCapsule:
-            print("capsule")
-        elif type(muobj.collider) == MuColliderBox:
-            print("box")
-        elif type(muobj.collider) == MuColliderWheel:
-            print("wheel")
+        col = muobj.collider
+        name = muobj.transform.name + ".collider"
+        if type(col) == MuColliderMesh:
+            mesh = create_mesh(mu, col.mesh, name)
+        elif type(col) == MuColliderSphere:
+            mesh = collider.sphere(name, col.radius)
+        elif type(col) == MuColliderCapsule:
+            mesh = collider.capsule(name, col.radius, col.height, col.direction)
+        elif type(col) == MuColliderBox:
+            mesh = collider.box(name, col.size)
+        elif type(col) == MuColliderWheel:
+            mesh = collider.wheel(name, col.radius)
+        obj = create_mesh_object(name, mesh, muobj.transform)
+        obj.parent = parent
     if hasattr(muobj, "shared_mesh"):
         mesh = create_mesh(mu, muobj.shared_mesh, muobj.transform.name)
         obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
