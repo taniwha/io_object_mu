@@ -22,6 +22,7 @@
 import bpy, bmesh
 from bpy_extras.object_utils import object_data_add
 from mathutils import Vector,Matrix,Quaternion
+from pprint import pprint
 
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuObject, MuTransform, MuMesh
@@ -76,13 +77,15 @@ def make_tris(mesh, submeshes):
             tris = split_face(mesh, sm[i])
             sm[i:i+1] = tris
             i += len(tris)
+    return submeshes
 
 def make_verts(mesh, submeshes):
     verts = []
     normals = []
     uvs = []
     for sm in submeshes:
-        for ft in sm:
+        vuvdict = {}
+        for i, ft in enumerate(sm):
             tv = []
             for vuv in ft:
                 if vuv not in vuvdict:
@@ -92,7 +95,49 @@ def make_verts(mesh, submeshes):
                     normals.append(tuple(mv.normal))
                     uvs.append(vuv[1])
                 tv.append(vuvdict[vuv])
+            sm[i] = tv
     return verts, uvs, normals
+
+def make_tangents(verts, uvs, normals, submeshes):
+    sdir = [Vector()] * len(verts)
+    tdir = [Vector()] * len(verts)
+    tangents = []
+    for sm in submeshes:
+        for tri in sm:
+            v1 = Vector(verts[tri[0]])
+            v2 = Vector(verts[tri[1]])
+            v3 = Vector(verts[tri[2]])
+
+            w1 = uvs[tri[0]]
+            w2 = uvs[tri[1]]
+            w3 = uvs[tri[2]]
+
+            u1 = v2 - v1
+            u2 = v3 - v1
+
+            s1 = w2[0] - w1[0]
+            s2 = w3[0] - w1[0]
+            t1 = w2[1] - w1[1]
+            t2 = w3[1] - w1[1]
+
+            r = s1 * t2 - s2 * t1
+
+            sd = (t2 * u1 - t1 * u2) / r
+            td = (s1 * u2 - s2 * u1) / r
+
+            sdir[tri[0]] += sd
+            sdir[tri[1]] += sd
+            sdir[tri[2]] += sd
+            tdir[tri[0]] += td
+            tdir[tri[1]] += td
+            tdir[tri[2]] += td
+    for i, n in enumerate(normals):
+        t = sdir[i]
+        t -= t.dot(n) * n
+        t.normalize()
+        hand = t.dot(tdir[i]) < 0 and -1.0 or 1.0
+        tangents.append(t + (hand,))
+    return tangents
 
 def make_mesh(mu, obj):
     submeshes = build_submeshes(obj.data)
@@ -100,8 +145,11 @@ def make_mesh(mu, obj):
     submeshes = make_tris(mesh, submeshes)
     mumesh = MuMesh()
     vun = make_verts(mesh, submeshes)
-    mumesh.verts, mumesh.uvs, umesh.normals = vun
+    mumesh.verts, mumesh.uvs, mumesh.normals = vun
     mumesh.submeshes = submeshes
+    mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs, mumesh.normals,
+                                    mumesh.submeshes)
+    return mumesh
 
 def make_obj(mu, obj):
     muobj = MuObject()
