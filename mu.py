@@ -404,7 +404,7 @@ class MuAnimation:
         for i in range(num_clips):
             self.clips.append(MuClip().read(mu))
         self.clip = mu.read_string()
-        self.autoPlay = mu.read_byte()  #XXX is this right?
+        self.autoPlay = mu.read_byte()
         #print(self.clip, self.autoPlay)
         return self
     def write(self, mu):
@@ -545,7 +545,7 @@ class MuRenderer:
         self.castShadows = 1
         self.receiveShadows = 1
     def read(self, mu):
-        if mu.version > 0:
+        if mu.version > 1:
             self.castShadows = mu.read_byte()
             self.receiveShadows = mu.read_byte()
         num_mat = mu.read_int()
@@ -762,7 +762,8 @@ class MuLight:
         self.intensity = mu.read_float()
         self.range = mu.read_float()
         self.color = mu.read_float(3)
-        self.spotAngle = mu.read_float()
+        if mu.version > 1:
+            self.spotAngle = mu.read_float()
         return self
     def write(self, mu):
         mu.write_int(MuEnum.ET_LIGHT)
