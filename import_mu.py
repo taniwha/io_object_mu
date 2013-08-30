@@ -29,7 +29,7 @@ from mathutils import Vector,Matrix,Quaternion
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuColliderBox, MuColliderWheel
 from .shader import make_shader
-from . import collider
+from . import collider, properties
 
 def create_uvs(mu, uvs, mesh, name):
     uvlay = mesh.uv_textures.new(name)
@@ -59,6 +59,18 @@ def create_mesh_object(name, mesh, transform):
     bpy.context.scene.objects.link(obj)
     return obj
 
+def copy_spring(dst, src):
+    dst.spring = src.spring
+    dst.damper = src.damper
+    dst.targetPostion = src.targetPostion
+
+def copy_friciton(dst, src):
+    dst.extremumSlip = src.extremumSlip
+    dst.extremumValue = src.extremumValue
+    dst.asymptoteSlip = src.asymptoteSlip
+    dst.extremumValue = src.extremumValue
+    dst.stiffness = src.stiffness
+
 def create_object(mu, muobj, parent):
     obj = None
     mesh = None
@@ -77,6 +89,32 @@ def create_object(mu, muobj, parent):
             mesh = collider.wheel(name, col.radius)
         obj = create_mesh_object(name, mesh, muobj.transform)
         obj.parent = parent
+
+        obj.muproperties.isTrigger = col.isTrigger
+        if type(col) == MuColliderMesh:
+            obj.muproperties.collider = 'MU_COL_MESH'
+        elif type(col) == MuColliderSphere:
+            obj.muproperties.collider = 'MU_COL_SPHERE'
+            obj.muproperties.radius = col.radius
+            obj.muproperties.center = col.center
+        elif type(col) == MuColliderCapsule:
+            obj.muproperties.collider = 'MU_COL_CAPSULE'
+            obj.muproperties.radius = col.radius
+            obj.muproperties.height = col.height
+            obj.muproperties.direction = properties.dir_map[col.direction]
+            obj.muproperties.center = col.center
+        elif type(col) == MuColliderBox:
+            obj.muproperties.collider = 'MU_COL_BOX'
+            obj.muproperties.size = col.size
+            obj.muproperties.center = col.center
+        elif type(col) == MuColliderWheel:
+            obj.muproperties.collider = 'MU_COL_WHEEL'
+            obj.muproperties.radius = col.radius
+            obj.muproperties.suspensionDistance = col.suspensionDistance
+            obj.muproperties.center = col.center
+            copy_spring(obj.muproperties.suspensionSpring, col.suspensionSpring)
+            copy_friction(obj.muproperties.forwardFriction, col.forwardFriction)
+            copy_friction(obj.muproperties.sideFriction, col.sidewaysFriction)
     if hasattr(muobj, "shared_mesh"):
         mesh = create_mesh(mu, muobj.shared_mesh, muobj.transform.name)
         obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
