@@ -95,16 +95,17 @@ def sphere(name, radius):
     return make_collider(name, col)
 
 def capsule(name, radius, height, direction):
-    m = (Matrix.Translation(Vector(0, 0, height/2))
-         * Matrix.Matrix.Scale(radius, 4))
+    m = (Matrix.Translation(Vector((0, 0, height/2)))
+         * Matrix.Scale(radius, 4))
     col = (collider_capsule_end_ve + (m,)),
     m = Matrix.Scale(-1,4) * m
-    col = col + (collider_capsule_end_ve + (m,)),
+    col = col + ((collider_capsule_end_ve + (m,)),)
     m = Matrix(((radius,      0,        0, 0),
                 (     0, radius,        0, 0),
                 (     0,      0, height/2, 0),
                 (     0,      0,        0, 1)))
-    return make_collider(name, collider_capsule_arm)
+    col = col + ((collider_capsule_cyl_ve + (m,)),)
+    return make_collider(name, col)
 
 def box(name, size):
     s = Vector(size)
