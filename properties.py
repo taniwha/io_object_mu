@@ -94,7 +94,27 @@ class MuPropertiesPanel(bpy.types.Panel):
         col = row.column()
         col.prop(muprops, "tag")
         col.prop(muprops, "layer")
-        col.prop(muprops, "collider")
+
+class MuColliderPanel(bpy.types.Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'object'
+    bl_label = 'Mu Collider'
+
+    @classmethod
+    def poll(cls, context):
+        muprops = context.active_object.muproperties
+        return muprops.collider and muprops.collider != 'MU_COL_NONE'
+
+    def draw(self, context):
+        layout = self.layout
+        muprops = context.active_object.muproperties
+        row = layout.row()
+        col = row.column()
+        col.prop(muprops, "tag")
+        col.prop(muprops, "layer")
+        # can't change object types :/ (?)
+        #col.prop(muprops, "collider")
         if muprops.collider == 'MU_COL_MESH':
             col.prop(muprops, "isTrigger")
         elif muprops.collider == 'MU_COL_SPHERE':
@@ -119,3 +139,6 @@ class MuPropertiesPanel(bpy.types.Panel):
 
 def register():
     bpy.types.Object.muproperties = PointerProperty(type=MuProperties)
+
+def unregister():
+    pass

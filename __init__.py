@@ -49,7 +49,7 @@ from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import FloatVectorProperty, PointerProperty
 from bpy_extras.io_utils import ExportHelper, ImportHelper, path_reference_mode, axis_conversion
 
-from . import properties
+from . import collider, properties
 
 class ImportMu(bpy.types.Operator, ImportHelper):
     '''Load a KSP Mu (.mu) File'''
@@ -122,13 +122,15 @@ def register():
     bpy.types.INFO_MT_file_export.append(menu_func_export)
 
     properties.register()
-
+    bpy.types.INFO_MT_add.append(collider.menu_func)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
 
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    properties.unregister()
+    bpy.types.INFO_MT_add.remove(collider.menu_func)
 
 if __name__ == "__main__":
     register()

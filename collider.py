@@ -21,9 +21,13 @@
 
 import bpy
 from bpy_extras.object_utils import object_data_add
+from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
+from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
+from bpy.props import FloatVectorProperty, IntProperty
 from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum
+from . import properties
 
 collider_sphere_ve = (
     [(-1.000, 0.000, 0.000), (-0.866, 0.000, 0.500), (-0.500, 0.000, 0.866),
@@ -140,3 +144,101 @@ def wheel(name, center, radius):
     m = translate(center) * scale((radius,)*3)
     col = (collider_sphere_ve + (m,)),
     return make_collider(name, col)
+
+def add_collider(self, context):
+    context.user_preferences.edit.use_global_undo = False
+    name = "collider"
+    if type(self) == ColliderMesh:
+        mesh = box(name, (0, 0, 0), (1, 1, 1))
+    elif type(self) == ColliderSphere:
+        mesh = sphere(name, self.center, self.radius)
+    elif type(self) == ColliderCapsule:
+        mesh = capsule(name, self.center, self.radius, self.height,
+                       self.direction)
+    elif type(self) == ColliderBox:
+        mesh = box(name, self.center, self.size)
+    elif type(self) == ColliderWheel:
+        mesh = wheel(name, self.center, self.radius)
+    obj = bpy.data.objects.new(name, mesh)
+    obj.location = context.scene.cursor_location
+    obj.select = True
+    context.scene.objects.link(obj)
+    bpy.context.scene.objects.active=obj
+    context.user_preferences.edit.use_global_undo = True
+    return {'FINISHED'}
+
+
+class ColliderMesh(bpy.types.Operator):
+    """Add Mesh Collider"""
+    bl_idname = "mucollider.mesh"
+    bl_label = "Add Mesh Collider"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        return add_collider(self, context)
+
+class ColliderSphere(bpy.types.Operator):
+    """Add Sphere Collider"""
+    bl_idname = "mucollider.sphere"
+    bl_label = "Add Sphere Collider"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    radius = FloatProperty(name = "Radius")
+    center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
+
+    def execute(self, context):
+        return add_collider(self, context)
+
+class ColliderCapsule(bpy.types.Operator):
+    """Add Capsule Collider"""
+    bl_idname = "mucollider.capsule"
+    bl_label = "Add Capsule Collider"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    radius = FloatProperty(name = "Radius")
+    height = FloatProperty(name = "Height")
+    direction = EnumProperty(items = properties.dir_items, name = "Direction")
+    center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
+
+    def execute(self, context):
+        return add_collider(self, context)
+
+class ColliderBox(bpy.types.Operator):
+    """Add Box Collider"""
+    bl_idname = "mucollider.box"
+    bl_label = "Add Box Collider"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    size = FloatVectorProperty(name = "Size", subtype = 'XYZ')
+    center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
+
+    def execute(self, context):
+        return add_collider(self, context)
+
+class ColliderWheel(bpy.types.Operator):
+    """Add Wheel Collider"""
+    bl_idname = "mucollider.wheel"
+    bl_label = "Add Wheel Collider"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    radius = FloatProperty(name = "Radius")
+    center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
+
+    def execute(self, context):
+        return add_collider(self, context)
+
+class INFO_MT_mucollider_add(bpy.types.Menu):
+    bl_idname = "INFO_MT_mucollider_add"
+    bl_label = "Mu Collider"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("mucollider.mesh", text = "Mesh");
+        layout.operator("mucollider.sphere", text = "Sphere");
+        layout.operator("mucollider.capsule", text = "Capsule");
+        layout.operator("mucollider.box", text = "Box");
+        layout.operator("mucollider.wheel", text = "Wheel");
+
+def menu_func(self, context):
+    self.layout.menu("INFO_MT_mucollider_add", icon='PLUGIN')
