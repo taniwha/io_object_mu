@@ -80,13 +80,14 @@ def create_object(mu, muobj, parent):
         if type(col) == MuColliderMesh:
             mesh = create_mesh(mu, col.mesh, name)
         elif type(col) == MuColliderSphere:
-            mesh = collider.sphere(name, col.radius)
+            mesh = collider.sphere(name, col.center, col.radius)
         elif type(col) == MuColliderCapsule:
-            mesh = collider.capsule(name, col.radius, col.height, col.direction)
+            mesh = collider.capsule(name, col.center, col.radius, col.height,
+                                    col.direction)
         elif type(col) == MuColliderBox:
-            mesh = collider.box(name, col.size)
+            mesh = collider.box(name, col.center, col.size)
         elif type(col) == MuColliderWheel:
-            mesh = collider.wheel(name, col.radius)
+            mesh = collider.wheel(name, col.center, col.radius)
         obj = create_mesh_object(name, mesh, muobj.transform)
         obj.parent = parent
 

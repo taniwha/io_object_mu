@@ -90,32 +90,53 @@ def make_collider(name, vex_list):
     mesh.from_pydata(verts, edges, [])
     return mesh
 
-def sphere(name, radius):
-    col = (collider_sphere_ve + (Matrix.Scale(radius, 4),)),
+def translate(d):
+    return Matrix.Translation(Vector(d))
+
+def scale(s):
+    s = Vector(s)
+    return Matrix(((s.x,  0,  0, 0),
+                   (  0,s.y,  0, 0),
+                   (  0,  0,s.z, 0),
+                   (  0,  0,  0, 1)))
+
+def rotate(r):
+    return Quaternion(r).normalized().to_matrix().to_4x4()
+
+def sphere(name, center, radius):
+    m = translate(center) * scale((radius,)*3)
+    col = (collider_sphere_ve + (m,)),
     return make_collider(name, col)
 
-def capsule(name, radius, height, direction):
+def capsule(name, center, radius, height, direction):
+    if direction == 0:
+        # rotate will normalize the rotation
+        r = rotate((0, 1, 0, 1))
+    elif direction == 2:
+        # rotate will normalize the rotation
+        r = rotate((-1, 0, 0, 1))
+    elif direction == 1:
+        # the mesh is setup for running along Z (Unity Y), so don't rotate
+        r = rotate((0, 0, 0, 1))
+    r = translate(center) * r
     m = (Matrix.Translation(Vector((0, 0, height/2)))
          * Matrix.Scale(radius, 4))
-    col = (collider_capsule_end_ve + (m,)),
+    col = (collider_capsule_end_ve + (r * m,)),
     m = Matrix.Scale(-1,4) * m
-    col = col + ((collider_capsule_end_ve + (m,)),)
+    col = col + ((collider_capsule_end_ve + (r * m,)),)
     m = Matrix(((radius,      0,        0, 0),
                 (     0, radius,        0, 0),
                 (     0,      0, height/2, 0),
                 (     0,      0,        0, 1)))
-    col = col + ((collider_capsule_cyl_ve + (m,)),)
+    col = col + ((collider_capsule_cyl_ve + (r * m,)),)
     return make_collider(name, col)
 
-def box(name, size):
-    s = Vector(size)
-    m = Matrix(((s.x,  0,  0, 0),
-                (  0,s.y,  0, 0),
-                (  0,  0,s.z, 0),
-                (  0,  0,  0, 1)))
+def box(name, center, size):
+    m = translate(center) * scale(size)
     col = (collider_box_ve + (m,)),
     return make_collider(name, col)
 
-def wheel(name, radius):
-    col = (collider_sphere_ve + (Matrix.Scale(radius, 4),)),
+def wheel(name, center, radius):
+    m = translate(center) * scale((radius,)*3)
+    col = (collider_sphere_ve + (m,)),
     return make_collider(name, col)
