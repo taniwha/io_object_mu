@@ -86,6 +86,9 @@ def create_object(mu, muobj, parent):
             mesh.materials.append(bpy.data.materials[mat.name])
     if not obj:
         obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
+    if hasattr(muobj, "tag_and_layer"):
+        obj.muproperties.tag = muobj.tag_and_layer.tag
+        obj.muproperties.layer = muobj.tag_and_layer.layer
     obj.parent = parent
     for child in muobj.children:
         create_object(mu, child, obj)
