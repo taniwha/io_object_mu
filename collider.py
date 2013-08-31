@@ -54,15 +54,15 @@ collider_capsule_cyl_ve = (
     [(-1.000, 0.000,-1.000), (-0.866, 0.500,-1.000), (-0.500, 0.866,-1.000),
      ( 0.000, 1.000,-1.000), ( 0.500, 0.866,-1.000), ( 0.866, 0.500,-1.000),
      ( 1.000, 0.000,-1.000), ( 0.866,-0.500,-1.000), ( 0.500,-0.866,-1.000),
-     ( 0.000,-1.000,-1.000), (-0.500,-0.866,-1.000), (-0.866, 0.500,-1.000),
+     ( 0.000,-1.000,-1.000), (-0.500,-0.866,-1.000), (-0.866,-0.500,-1.000),
      (-1.000, 0.000, 1.000), (-0.866, 0.500, 1.000), (-0.500, 0.866, 1.000),
      ( 0.000, 1.000, 1.000), ( 0.500, 0.866, 1.000), ( 0.866, 0.500, 1.000),
      ( 1.000, 0.000, 1.000), ( 0.866,-0.500, 1.000), ( 0.500,-0.866, 1.000),
-     ( 0.000,-1.000, 1.000), (-0.500,-0.866, 1.000), (-0.866, 0.500, 1.000),],
+     ( 0.000,-1.000, 1.000), (-0.500,-0.866, 1.000), (-0.866,-0.500, 1.000),],
     [( 0, 1), ( 1, 2), ( 2, 3), ( 3, 4), ( 4, 5), ( 5, 6),
      ( 6, 7), ( 7, 8), ( 8, 9), ( 9,10), (10,11), (11, 0),
      (12,13), (13,14), (14,15), (15,16), (16,17), (17,18),
-     (18,19), (19,20), (20,21), (21,21), (22,21), (23,12),
+     (18,19), (19,20), (20,21), (21,22), (22,23), (23,12),
      ( 0,12), ( 3,15), ( 6,18), ( 9,21)])
 collider_capsule_end_ve = (
     [(-1.000, 0.000, 0.000), (-0.866, 0.000, 0.500), (-0.500, 0.000, 0.866),
@@ -118,15 +118,15 @@ def sphere(name, center, radius):
     return make_collider(name, col)
 
 def capsule(name, center, radius, height, direction):
-    if direction == 0:
-        # rotate will normalize the rotation
-        r = rotate((0, 1, 0, 1))
-    elif direction == 2:
-        # rotate will normalize the rotation
-        r = rotate((-1, 0, 0, 1))
-    elif direction == 1:
+    if direction == 0 or direction == 'MU_X':
+        # rotate will normalize the quaternion
+        r = rotate((1, 0, 1, 0))
+    elif direction == 2 or direction == 'MU_Y':
+        # rotate will normalize the quaternion
+        r = rotate((1,-1, 0, 0))
+    elif direction == 1 or direction == 'MU_Z':
         # the mesh is setup for running along Z (Unity Y), so don't rotate
-        r = rotate((0, 0, 0, 1))
+        r = rotate((1, 0, 0, 0))
     r = translate(center) * r
     m = (Matrix.Translation(Vector((0, 0, height/2)))
          * Matrix.Scale(radius, 4))
