@@ -80,10 +80,10 @@ collider_box_ve = (
       ( 4, 5), ( 5, 6), ( 6, 7), ( 7, 0),
       ( 6, 1), ( 5, 2), ( 7, 4), ( 3, 0)])
 collider_wheel_ve = (
-    [(-1.000, 0.000,-1.000), (-0.866, 0.500,-1.000), (-0.500, 0.866,-1.000),
-     ( 0.000, 1.000,-1.000), ( 0.500, 0.866,-1.000), ( 0.866, 0.500,-1.000),
-     ( 1.000, 0.000,-1.000), ( 0.866,-0.500,-1.000), ( 0.500,-0.866,-1.000),
-     ( 0.000,-1.000,-1.000), (-0.500,-0.866,-1.000), (-0.866, 0.500,-1.000)],
+    [(-1.000, 0.000, 0.000), (-0.866, 0.000, 0.500), (-0.500, 0.000, 0.866),
+     ( 0.000, 0.000, 1.000), ( 0.500, 0.000, 0.866), ( 0.866, 0.000, 0.500),
+     ( 1.000, 0.000, 0.000), ( 0.866, 0.000,-0.500), ( 0.500, 0.000,-0.866),
+     ( 0.000, 0.000,-1.000), (-0.500, 0.000,-0.866), (-0.866, 0.000,-0.500)],
     [( 0, 1), ( 1, 2), ( 2, 3), ( 3, 4), ( 4, 5), ( 5, 6),
      ( 6, 7), ( 7, 8), ( 8, 9), ( 9,10), (10,11), (11, 0)])
 
@@ -147,7 +147,7 @@ def box(name, center, size):
 
 def wheel(name, center, radius):
     m = translate(center) * scale((radius,)*3)
-    col = (collider_sphere_ve + (m,)),
+    col = (collider_wheel_ve + (m,)),
     return make_collider(name, col)
 
 def add_collider(self, context):
@@ -170,6 +170,26 @@ def add_collider(self, context):
     context.scene.objects.link(obj)
     bpy.context.scene.objects.active=obj
     context.user_preferences.edit.use_global_undo = True
+    if type(self) == ColliderMesh:
+        obj.muproperties.collider = 'MU_COL_MESH'
+    elif type(self) == ColliderSphere:
+        obj.muproperties.collider = 'MU_COL_SPHERE'
+        obj.muproperties.radius = self.radius
+        obj.muproperties.center = self.center
+    elif type(self) == ColliderCapsule:
+        obj.muproperties.collider = 'MU_COL_CAPSULE'
+        obj.muproperties.radius = self.radius
+        obj.muproperties.height = self.height
+        obj.muproperties.direction = self.direction
+        obj.muproperties.center = self.center
+    elif type(self) == ColliderBox:
+        obj.muproperties.collider = 'MU_COL_BOX'
+        obj.muproperties.size = self.size
+        obj.muproperties.center = self.center
+    elif type(self) == ColliderWheel:
+        obj.muproperties.collider = 'MU_COL_WHEEL'
+        obj.muproperties.radius = self.radius
+        obj.muproperties.center = self.center
     return {'FINISHED'}
 
 
@@ -188,7 +208,7 @@ class ColliderSphere(bpy.types.Operator):
     bl_label = "Add Sphere Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
-    radius = FloatProperty(name = "Radius")
+    radius = FloatProperty(name = "Radius", min = 0.0, default = 0.5)
     center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
 
     def execute(self, context):
@@ -200,8 +220,8 @@ class ColliderCapsule(bpy.types.Operator):
     bl_label = "Add Capsule Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
-    radius = FloatProperty(name = "Radius")
-    height = FloatProperty(name = "Height")
+    radius = FloatProperty(name = "Radius", min = 0.0, default = 0.5)
+    height = FloatProperty(name = "Height", min = 0.0, default = 1.0)
     direction = EnumProperty(items = properties.dir_items, name = "Direction")
     center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
 
@@ -214,7 +234,8 @@ class ColliderBox(bpy.types.Operator):
     bl_label = "Add Box Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
-    size = FloatVectorProperty(name = "Size", subtype = 'XYZ')
+    size = FloatVectorProperty(name = "Size", size = 3, subtype = 'XYZ',
+                               min = 0.0, default = (1.0,1.0,1.0))
     center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
 
     def execute(self, context):
@@ -226,7 +247,7 @@ class ColliderWheel(bpy.types.Operator):
     bl_label = "Add Wheel Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
-    radius = FloatProperty(name = "Radius")
+    radius = FloatProperty(name = "Radius", min = 0.0, default = 0.5)
     center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
 
     def execute(self, context):
