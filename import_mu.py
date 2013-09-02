@@ -197,7 +197,7 @@ def add_texture(mu, mat, mattex):
 def create_materials(mu):
     #material info is in the top level object
     for mumat in mu.obj.materials:
-        mat = make_shader(MuEnum.ShaderNames[mumat.type], mumat, mu)
+        mat = make_shader(mumat, mu)
 
 def import_mu(operator, context, filepath):
     bpy.context.user_preferences.edit.use_global_undo = False
