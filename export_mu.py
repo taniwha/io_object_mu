@@ -151,11 +151,90 @@ def make_mesh(mu, obj):
                                     mumesh.submeshes)
     return mumesh
 
+def make_spring(spr):
+    spring = MuSpring()
+    spring.spring = spr.spring
+    spring.damper = spr.damper
+    spring.targetPosition = spr.targetPosition
+    return spring
+
+def make_friction(fric):
+    friction = MuFriction()
+    friction.extremumSlip = fric.extremumSlip
+    friction.extremumValue = fric.extremumValue
+    friction.asymptoteSlip = fric.asymptoteSlip
+    friction.asymptoteValue = fric.asymptoteValue
+    friction.stiffness = fric.stiffness
+    return friction
+
+def make_collider(mu, obj):
+    if (obj.muproperties.collider == 'MU_COL_MESH' and obj.data
+        and type (obj.data) == bpy.types.Mesh):
+        col = MuColliderMesh(True)
+        col.isTrigger = obj.muproperties.isTrigger
+        col.isconvex = True #FIXME calculate
+        col.mesh = make_mesh (obj.data)
+    elif obj.muproperties.collider == 'MU_COL_SPHERE':
+        col = MuColliderSphere(True)
+        col.isTrigger = obj.muproperties.isTrigger
+        col.radius = obj.muproperties.radius
+        col.center = obj.muproperties.center
+    elif obj.muproperties.collider == 'MU_COL_CAPSULE':
+        col = MuColliderCapsule(True)
+        col.isTrigger = obj.muproperties.isTrigger
+        col.radius = obj.muproperties.radius
+        col.height = obj.muproperties.height
+        col.direction = obj.muproperties.direction
+        if type(col.direction) is not int:
+            col.direction = properties.dir_map[col.direction]
+        col.center = obj.muproperties.center
+    elif obj.muproperties.collider == 'MU_COL_BOX':
+        col = MuColliderBox(True)
+        col.isTrigger = obj.muproperties.isTrigger
+        col.size = obj.muproperties.size
+        col.center = obj.muproperties.center
+    elif obj.muproperties.collider == 'MU_COL_WHEEL':
+        col = MuColliderWheel(True)
+        col.isTrigger = obj.muproperties.isTrigger
+        col.mass = obj.muproperties.mass
+        col.radius = obj.muproperties.radius
+        col.suspensionDistance = obj.muproperties.suspensionDistance
+        col.center = obj.muproperties.center
+        col.suspensionSpring = make_spring(obj.muproperties.suspensionSpring)
+        col.forwardFriction = make_friction(obj.muproperties.forwardFriction)
+        col.sidewaysFriction = make_friction(obj.muproperties.sideFriction)
+    return col
+
+def make_tag_and_layer(obj):
+    tl = MuTagLayer()
+    tl.tag = obj.muproperties.tag
+    tl.layer = obj.muproperties.layer
+    return tl
+
+def make_material(mu, mat):
+    material = MuMaterial()
+    material.index = len(mu.materials)
+    return material
+
+def make_renderer(mu, mesh):
+    rend = MuRenderer()
+    #FIXME shadows
+    rend.materials = []
+    for mat in mesh.materials:
+        if mat.name not in mu.materials:
+            mu.materials[mat.name] = make_material(mu, mat)
+        rend.materials.append(mu.materials[mat.name].index))
+    return rend
+
 def make_obj(mu, obj):
     muobj = MuObject()
     muobj.transform = make_transform (obj)
-    if obj.data:
+    muobj.tag_and_layer = make_tag_and_layer(obj)
+    if obj.muproperties.collider != 'MU_COL_NONE':
+        muobj.collider = make_collider(mu, obj)
+    elif obj.data:
         muobj.shared_mesh = make_mesh(mu, obj)
+        muobj.renderer = make_renderer(mu, obj.data)
     for o in obj.children:
         if (o.data and type(o.data) != bpy.types.Mesh):
             continue
@@ -164,5 +243,7 @@ def make_obj(mu, obj):
 def export_mu(operator, context, filepath):
     obj = context.active_object
     mu = Mu()
+    mu.materials = {}
+    mu.textures = []
     mu.obj = make_obj(mu, obj)
     return {'FINISHED'}
