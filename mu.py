@@ -468,7 +468,7 @@ class MuMesh:
             elif type == MuEnum.ET_MESH_TANGENTS:
                 #print("    tangents")
                 for i in range(num_verts):
-                    self.tangents.append(mu.read_quaternion())#FIXME not a quaternion
+                    self.tangents.append(mu.read_tangent())
             elif type == MuEnum.ET_MESH_BONE_WEIGHTS:
                 #print("    bone weights")
                 for i in range(num_verts):
@@ -520,7 +520,7 @@ class MuMesh:
         if len(self.tangents) == len(self.verts):
             mu.write_int(MuEnum.ET_MESH_TANGENTS)
             for t in self.tangents:
-                mu.write_quaternion(t)#FIXME not a quaternion
+                mu.write_tangent(t)
         if len(self.boneWeights) == len(self.verts):
             mu.write_int(MuEnum.ET_MESH_BONE_WEIGHTS)
             for bw in self.boneWeights:
@@ -896,6 +896,11 @@ class Mu:
         q = q[3], -q[0], -q[2], -q[1]
         return q
 
+    def read_tangent(self):
+        t = self.read_float(4)
+        t = t[0], t[2], t[1], -t[3]
+        return t
+
     def read_bytes(self, size):
         data = self.file.read(size)
         if len(data) < size:
@@ -940,6 +945,10 @@ class Mu:
         # direction), just swap y and z and reverse the rotation direction.
         q = -q[1], -q[3], -q[2], q[0]
         self.write_float(q)
+
+    def write_tangent(self, t):
+        t = t[0], t[2], t[1], -t[3]
+        self.write_float(t)
 
     def write_bytes(self, data, size=-1):
         if size == -1:
