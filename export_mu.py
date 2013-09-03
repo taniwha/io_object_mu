@@ -25,9 +25,10 @@ from mathutils import Vector,Matrix,Quaternion
 from pprint import pprint
 
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
-from .mu import MuObject, MuTransform, MuMesh
-from .mu import MuColliderBox, MuColliderWheel
+from .mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer
+from .mu import MuColliderBox, MuColliderWheel, MuMaterial, MuTexture, MuMatTex
 from .shader import make_shader
+from . import properties
 
 def make_transform(obj):
     transform = MuTransform()
@@ -133,10 +134,10 @@ def make_tangents(verts, uvs, normals, submeshes):
             tdir[tri[2]] += td
     for i, n in enumerate(normals):
         t = sdir[i]
-        t -= t.dot(n) * n
+        t -= t.dot(n) * Vector(n)
         t.normalize()
         hand = t.dot(tdir[i]) < 0 and -1.0 or 1.0
-        tangents.append(t + (hand,))
+        tangents.append(tuple(t) + (hand,))
     return tangents
 
 def make_mesh(mu, obj):
@@ -147,8 +148,10 @@ def make_mesh(mu, obj):
     vun = make_verts(mesh, submeshes)
     mumesh.verts, mumesh.uvs, mumesh.normals = vun
     mumesh.submeshes = submeshes
-    mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs, mumesh.normals,
-                                    mumesh.submeshes)
+    print(obj.name)
+    if len(mesh.materials) and len(mesh.polygons):
+        mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs,
+                                        mumesh.normals, mumesh.submeshes)
     return mumesh
 
 def make_spring(spr):
@@ -172,8 +175,8 @@ def make_collider(mu, obj):
         and type (obj.data) == bpy.types.Mesh):
         col = MuColliderMesh(True)
         col.isTrigger = obj.muproperties.isTrigger
-        col.isconvex = True #FIXME calculate
-        col.mesh = make_mesh (obj.data)
+        col.convex = True #FIXME calculate
+        col.mesh = make_mesh (mu, obj)
     elif obj.muproperties.collider == 'MU_COL_SPHERE':
         col = MuColliderSphere(True)
         col.isTrigger = obj.muproperties.isTrigger
@@ -226,6 +229,7 @@ def make_texture(mu, tex):
 
 def make_material(mu, mat):
     material = MuMaterial()
+    material.name = mat.name
     material.index = len(mu.materials)
     matprops = mat.mumatprop
     material.type = MuEnum.ShaderNames.index(matprops.shader)
@@ -305,12 +309,20 @@ def make_obj(mu, obj):
     for o in obj.children:
         if (o.data and type(o.data) != bpy.types.Mesh):
             continue
-        make_obj(mu, o)
+        muobj.children.append(make_obj(mu, o))
+    return muobj
 
 def export_mu(operator, context, filepath):
     obj = context.active_object
     mu = Mu()
     mu.materials = {}
-    mu.textures = []
+    mu.textures = {}
     mu.obj = make_obj(mu, obj)
+    mu.obj.materials = list(mu.materials.values())
+    mu.obj.materials.sort(key=lambda x: x.index)
+    mu.obj.textures = list(mu.textures.values())
+    mu.obj.textures.sort(key=lambda x: x.index)
+    del(mu.materials)
+    del(mu.textures)
+    mu.write(filepath)
     return {'FINISHED'}
