@@ -30,9 +30,17 @@ from .mu import MuColliderBox, MuColliderWheel, MuMaterial, MuTexture, MuMatTex
 from .shader import make_shader
 from . import properties
 
+def strip_nnn(name):
+    ind = name.rfind(".")
+    if ind < 0 or len(name) - ind != 4:
+        return name
+    if not name[ind+1:].isdigit():
+        return name
+    return name[:ind]
+
 def make_transform(obj):
     transform = MuTransform()
-    transform.name = obj.name
+    transform.name = strip_nnn(obj.name)
     transform.localPosition = obj.location
     transform.localRotation = obj.rotation_quaternion
     transform.localScale = obj.scale
@@ -148,7 +156,6 @@ def make_mesh(mu, obj):
     vun = make_verts(mesh, submeshes)
     mumesh.verts, mumesh.uvs, mumesh.normals = vun
     mumesh.submeshes = submeshes
-    print(obj.name)
     if len(mesh.materials) and len(mesh.polygons):
         mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs,
                                         mumesh.normals, mumesh.submeshes)
