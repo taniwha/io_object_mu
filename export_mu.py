@@ -131,6 +131,8 @@ def make_tangents(verts, uvs, normals, submeshes):
 
             r = s1 * t2 - s2 * t1
 
+            if r * r < 1e-6:
+                continue
             sd = (t2 * u1 - t1 * u2) / r
             td = (s1 * u2 - s2 * u1) / r
 
@@ -156,9 +158,8 @@ def make_mesh(mu, obj):
     vun = make_verts(mesh, submeshes)
     mumesh.verts, mumesh.uvs, mumesh.normals = vun
     mumesh.submeshes = submeshes
-    if len(mesh.materials) and len(mesh.polygons):
-        mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs,
-                                        mumesh.normals, mumesh.submeshes)
+    mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs,
+                                    mumesh.normals, mumesh.submeshes)
     return mumesh
 
 def make_spring(spr):
