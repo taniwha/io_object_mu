@@ -265,7 +265,7 @@ class MuMaterialPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return True
+        return context.material != None
 
     def drawtex(self, layout, texprop):
         box = layout.box()
