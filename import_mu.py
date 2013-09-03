@@ -76,7 +76,7 @@ def create_object(mu, muobj, parent):
     mesh = None
     if hasattr(muobj, "collider"):
         col = muobj.collider
-        name = muobj.transform.name + ".collider"
+        name = muobj.transform.name
         if type(col) == MuColliderMesh:
             mesh = create_mesh(mu, col.mesh, name)
         elif type(col) == MuColliderSphere:
