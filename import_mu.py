@@ -121,7 +121,7 @@ def create_object(mu, muobj, parent):
         obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
     if hasattr(muobj, "renderer"):
         if mesh:
-            mat = mu.obj.materials[muobj.renderer.materials[0]]
+            mat = mu.materials[muobj.renderer.materials[0]]
             mesh.materials.append(bpy.data.materials[mat.name])
     if not obj:
         obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
@@ -172,7 +172,7 @@ def load_mbm(mbmpath):
 
 def create_textures(mu, path):
     #texture info is in the top level object
-    for tex in mu.obj.textures:
+    for tex in mu.textures:
         if tex.name[-4:].lower() in [".png", ".tga"]:
             bpy.data.images.load(os.path.join(path, tex.name))
         elif tex.name[-4:].lower() == ".mbm":
@@ -188,7 +188,7 @@ def add_texture(mu, mat, mattex):
     i, s, o = mattex.index, mattex.scale, mattex.offset
     mat.texture_slots.add()
     ts = mat.texture_slots[0]
-    ts.texture = bpy.data.textures[mu.obj.textures[i].name]
+    ts.texture = bpy.data.textures[mu.textures[i].name]
     ts.use_map_alpha = True
     ts.texture_coords = 'UV'
     ts.scale = s + (1,)
@@ -196,7 +196,7 @@ def add_texture(mu, mat, mattex):
 
 def create_materials(mu):
     #material info is in the top level object
-    for mumat in mu.obj.materials:
+    for mumat in mu.materials:
         mat = make_shader(mumat, mu)
 
 def import_mu(operator, context, filepath):

@@ -777,8 +777,6 @@ class MuObject:
     def __init__(self, name=""):
         self.name = name
         self.children = []
-        self.materials = []
-        self.textures = []
     def read(self, mu):
         #print("MuObject")
         self.transform = MuTransform().read(mu)
@@ -818,11 +816,11 @@ class MuObject:
             elif entry_type == MuEnum.ET_MATERIALS:
                 mat_count = mu.read_int()
                 for i in range(mat_count):
-                    self.materials.append(MuMaterial().read(mu))
+                    mu.materials.append(MuMaterial().read(mu))
             elif entry_type == MuEnum.ET_TEXTURES:
                 tex_count = mu.read_int()
                 for i in range(tex_count):
-                    self.textures.append(MuTexture().read(mu))
+                    mu.textures.append(MuTexture().read(mu))
             else:
                 #print(entry_type, hex(mu.file.tell()))
                 pass
@@ -969,6 +967,8 @@ class Mu:
         self.name = name
         pass
     def read(self, filepath):
+        self.materials = []
+        self.textures = []
         self.file = open(filepath, "rb")
         self.magic, self.version = self.read_int(2)
         if (self.magic != MuEnum.MODEL_BINARY or self.version < 0
@@ -987,15 +987,15 @@ class Mu:
         self.write_int(MuEnum.FILE_VERSION)
         self.write_string(self.name)
         self.obj.write(self)
-        if len(self.obj.materials):
+        if len(self.materials):
             self.write_int(MuEnum.ET_MATERIALS)
-            self.write_int(len(self.obj.materials))
-            for mat in self.obj.materials:
+            self.write_int(len(self.materials))
+            for mat in self.materials:
                 mat.write(self)
-        if len(self.obj.textures):
+        if len(self.textures):
             self.write_int(MuEnum.ET_TEXTURES)
-            self.write_int(len(self.obj.textures))
-            for tex in self.obj.textures:
+            self.write_int(len(self.textures))
+            for tex in self.textures:
                 tex.write(self)
         del self.file
 

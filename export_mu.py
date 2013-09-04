@@ -326,11 +326,9 @@ def export_mu(operator, context, filepath):
     mu.materials = {}
     mu.textures = {}
     mu.obj = make_obj(mu, obj)
-    mu.obj.materials = list(mu.materials.values())
-    mu.obj.materials.sort(key=lambda x: x.index)
-    mu.obj.textures = list(mu.textures.values())
-    mu.obj.textures.sort(key=lambda x: x.index)
-    del(mu.materials)
-    del(mu.textures)
+    mu.materials = list(mu.materials.values())
+    mu.materials.sort(key=lambda x: x.index)
+    mu.textures = list(mu.textures.values())
+    mu.textures.sort(key=lambda x: x.index)
     mu.write(filepath)
     return {'FINISHED'}
