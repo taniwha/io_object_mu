@@ -157,9 +157,11 @@ def make_mesh(mu, obj):
     mumesh = MuMesh()
     vun = make_verts(mesh, submeshes)
     mumesh.verts, mumesh.uvs, mumesh.normals = vun
+    mumesh.uv2s = mumesh.uvs#FIXME
     mumesh.submeshes = submeshes
-    mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs,
-                                    mumesh.normals, mumesh.submeshes)
+    if len(mesh.materials):
+        mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs,
+                                        mumesh.normals, mumesh.submeshes)
     return mumesh
 
 def make_spring(spr):
