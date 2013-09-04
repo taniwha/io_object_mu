@@ -222,11 +222,11 @@ def make_tag_and_layer(obj):
     tl.layer = obj.muproperties.layer
     return tl
 
-def make_texture(mu, tex):
+def make_texture(mu, tex, type):
     if tex.tex not in mu.textures:
         mutex = MuTexture()
         mutex.name = tex.tex
-        mutex.type = 0
+        mutex.type = type
         mutex.index = len(mu.textures)
         mu.textures[tex.tex] = mutex
     mattex = MuMatTex()
@@ -242,56 +242,56 @@ def make_material(mu, mat):
     matprops = mat.mumatprop
     material.type = MuEnum.ShaderNames.index(matprops.shader)
     if matprops.shader == 'KSP/Specular':
-        material.mainTex = make_texture(mu, matprops.mainTex)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
         material.specColor = matprops.specColor
         material.shininess = matprops.shininess
     elif matprops.shader == 'KSP/Bumped':
-        matprops.mainTex = make_texture(mu, matprops.mainTex)
-        matprops.bumpMap = make_texture(mu, matprops.bumpMap)
+        matprops.mainTex = make_texture(mu, matprops.mainTex, 0)
+        matprops.bumpMap = make_texture(mu, matprops.bumpMap, 1)
     elif matprops.shader == 'KSP/Bumped Specular':
-        material.mainTex = make_texture(mu, matprops.mainTex)
-        material.bumpMap = make_texture(mu, matprops.bumpMap)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
+        material.bumpMap = make_texture(mu, matprops.bumpMap, 1)
         material.specColor = matprops.specColor
         material.shininess = matprops.shininess
     elif matprops.shader == 'KSP/Emissive/Diffuse':
-        material.mainTex = make_texture(mu, matprops.mainTex)
-        material.emissive = make_texture(mu, matprops.emissive)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
+        material.emissive = make_texture(mu, matprops.emissive, 0)
         material.emissiveColor = matprops.emissiveColor
     elif matprops.shader == 'KSP/Emissive/Specular':
-        material.mainTex = make_texture(mu, matprops.mainTex)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
         material.specColor = matprops.specColor
         material.shininess = matprops.shininess
-        material.emissive = make_texture(mu, matprops.emissive)
+        material.emissive = make_texture(mu, matprops.emissive, 0)
         material.emissiveColor = matprops.emissiveColor
     elif matprops.shader == 'KSP/Emissive/Bumped Specular':
-        material.mainTex = make_texture(mu, matprops.mainTex)
-        material.bumpMap = make_texture(mu, matprops.bumpMap)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
+        material.bumpMap = make_texture(mu, matprops.bumpMap, 1)
         material.specColor = matprops.specColor
         material.shininess = matprops.shininess
-        material.emissive = make_texture(mu, matprops.emissive)
+        material.emissive = make_texture(mu, matprops.emissive, 0)
         material.emissiveColor = matprops.emissiveColor
     elif matprops.shader == 'KSP/Alpha/Cutoff':
-        material.mainTex = make_texture(mu, matprops.mainTex)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
         material.cutoff = matprops.cutoff
     elif matprops.shader == 'KSP/Alpha/Cutoff Bumped':
-        material.mainTex = make_texture(mu, matprops.mainTex)
-        material.bumpMap = make_texture(mu, matprops.bumpMap)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
+        material.bumpMap = make_texture(mu, matprops.bumpMap, 1)
         material.cutoff = matprops.cutoff
     elif matprops.shader == 'KSP/Alpha/Translucent':
-        material.mainTex = make_texture(mu, matprops.mainTex)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
     elif matprops.shader == 'KSP/Alpha/Translucent Specular':
-        material.mainTex = make_texture(mu, matprops.mainTex)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
         material.gloss = matprops.gloss
         material.specColor = matprops.specColor
         material.shininess = matprops.shininess
     elif matprops.shader == 'KSP/Alpha/Unlit Transparent':
-        material.mainTex = make_texture(mu, matprops.mainTex)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
         material.color = matprops.color
     elif matprops.shader == 'KSP/Unlit':
-        material.mainTex = make_texture(mu, matprops.mainTex)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
         material.color = matprops.color
     elif matprops.shader == 'KSP/Diffuse':
-        material.mainTex = make_texture(mu, matprops.mainTex)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
     return material
 
 def make_renderer(mu, mesh):
