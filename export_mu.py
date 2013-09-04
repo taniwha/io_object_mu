@@ -61,22 +61,11 @@ def split_face(mesh, index):
     return tris
 
 def build_submeshes(mesh):
-    bmsh = bmesh.new ()
-    bmsh.from_mesh(mesh)
     submeshes = []
-    face_set = set(bmsh.faces)
-    while face_set:
-        face_queue = [face_set.pop()]
-        submesh = []
-        while face_queue:
-            face = face_queue.pop()
-            submesh.append(face.index)
-            for edge in face.edges:
-                for link_face in edge.link_faces:
-                    if link_face in face_set:
-                        face_set.remove(link_face)
-                        face_queue.append(link_face)
-        submeshes.append(submesh)
+    submesh = []
+    for i in range(len(mesh.polygons)):
+        submesh.append(i)
+    submeshes.append(submesh)
     return submeshes
 
 def make_tris(mesh, submeshes):
