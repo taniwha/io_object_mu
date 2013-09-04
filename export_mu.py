@@ -148,7 +148,7 @@ def make_mesh(mu, obj):
     mumesh.verts, mumesh.uvs, mumesh.normals = vun
     mumesh.uv2s = mumesh.uvs#FIXME
     mumesh.submeshes = submeshes
-    if len(mesh.materials):
+    if True or len(mesh.materials):
         mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs,
                                         mumesh.normals, mumesh.submeshes)
     return mumesh
