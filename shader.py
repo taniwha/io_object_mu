@@ -173,7 +173,7 @@ def create_nodes(mat):
             exec ("n.%s" % s[2], {}, locals())
 
 def set_tex(mu, dst, src):
-    dst.tex = mu.obj.textures[src.index].name
+    dst.tex = mu.textures[src.index].name
     dst.scale = src.scale
     dst.offset = src.offset
 
