@@ -140,8 +140,8 @@ def make_tangents(verts, uvs, normals, submeshes):
     return tangents
 
 def make_mesh(mu, obj):
-    submeshes = build_submeshes(obj.data)
     mesh = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+    submeshes = build_submeshes(mesh)
     submeshes = make_tris(mesh, submeshes)
     mumesh = MuMesh()
     vun = make_verts(mesh, submeshes)
