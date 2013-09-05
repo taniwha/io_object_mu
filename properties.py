@@ -62,7 +62,7 @@ collider_items = (
 )
 
 class MuProperties(bpy.types.PropertyGroup):
-    tag = StringProperty(name = "Tag")
+    tag = StringProperty(name = "Tag", default="Untagged")
     layer = IntProperty(name = "Layer")
     collider = EnumProperty(items = collider_items, name = "Collider")
     isTrigger = BoolProperty(name = "Trigger")
