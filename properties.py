@@ -111,8 +111,6 @@ class MuColliderPanel(bpy.types.Panel):
         muprops = context.active_object.muproperties
         row = layout.row()
         col = row.column()
-        col.prop(muprops, "tag")
-        col.prop(muprops, "layer")
         # can't change object types :/ (?)
         #col.prop(muprops, "collider")
         if muprops.collider == 'MU_COL_MESH':
