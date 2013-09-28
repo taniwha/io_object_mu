@@ -116,7 +116,7 @@ def create_object(mu, muobj, parent):
             copy_spring(obj.muproperties.suspensionSpring, col.suspensionSpring)
             copy_friction(obj.muproperties.forwardFriction, col.forwardFriction)
             copy_friction(obj.muproperties.sideFriction, col.sidewaysFriction)
-    if hasattr(muobj, "shared_mesh"):
+    elif hasattr(muobj, "shared_mesh"):
         mesh = create_mesh(mu, muobj.shared_mesh, muobj.transform.name)
         obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
     if hasattr(muobj, "renderer"):
