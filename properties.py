@@ -30,7 +30,7 @@ from .mu import MuEnum
 class MuSpringProp(bpy.types.PropertyGroup):
     spring = FloatProperty(name = "Spring")
     damper = FloatProperty(name = "Damper")
-    targetPostion = FloatProperty(name = "Target")
+    targetPosition = FloatProperty(name = "Target")
 
 class MuFrictionProp(bpy.types.PropertyGroup):
     extremumSlip = FloatProperty(name = "Slip")
@@ -73,9 +73,9 @@ class MuProperties(bpy.types.PropertyGroup):
     size = FloatVectorProperty(name = "Size", subtype = 'XYZ')
     mass = FloatProperty(name = "Mass")
     suspensionDistance = FloatProperty(name = "Distance")
-    suspensionSpring = CollectionProperty(type=MuSpringProp, name = "Spring")
-    forwardFriction = CollectionProperty(type=MuFrictionProp, name = "Forward")
-    sideFriction = CollectionProperty(type=MuFrictionProp, name = "Sideways")
+    suspensionSpring = PointerProperty(type=MuSpringProp, name = "Spring")
+    forwardFriction = PointerProperty(type=MuFrictionProp, name = "Forward")
+    sideFriction = PointerProperty(type=MuFrictionProp, name = "Sideways")
 
 class MuPropertiesPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'

@@ -62,9 +62,9 @@ def create_mesh_object(name, mesh, transform):
 def copy_spring(dst, src):
     dst.spring = src.spring
     dst.damper = src.damper
-    dst.targetPostion = src.targetPostion
+    dst.targetPosition = src.targetPosition
 
-def copy_friciton(dst, src):
+def copy_friction(dst, src):
     dst.extremumSlip = src.extremumSlip
     dst.extremumValue = src.extremumValue
     dst.asymptoteSlip = src.asymptoteSlip
@@ -91,7 +91,9 @@ def create_object(mu, muobj, parent):
         obj = create_mesh_object(name, mesh, muobj.transform)
         obj.parent = parent
 
-        obj.muproperties.isTrigger = col.isTrigger
+        obj.muproperties.isTrigger = False
+        if type(col) != MuColliderWheel:
+            obj.muproperties.isTrigger = col.isTrigger
         if type(col) == MuColliderMesh:
             obj.muproperties.collider = 'MU_COL_MESH'
         elif type(col) == MuColliderSphere:
