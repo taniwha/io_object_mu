@@ -596,8 +596,12 @@ class MuCollider_Base:
 class MuColliderMesh(MuCollider_Base):
     def read(self, mu):
         #print("MuColliderMesh", self.type)
-        self.isTrigger, self.convex = mu.read_byte(2)
         #print(self.isTrigger, self.convex)
+        self.isTrigger = mu.read_byte()
+        if (mu.version > 0):
+            self.convex = mu.read_byte()
+        else:
+            self.convex = 1
         self.mesh = MuMesh().read(mu)
         return self
     def write(self, mu):
