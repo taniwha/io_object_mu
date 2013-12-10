@@ -85,5 +85,5 @@ def dump(fname):
 	dump_materials(mu)
 	dump_object(mu, mu.obj)
 
-for f in sys.argv:
+for f in sys.argv[1:]:
 	dump(f)
