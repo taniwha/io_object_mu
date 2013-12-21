@@ -86,8 +86,9 @@ def dump_object(mu, obj, level=0):
 	print("%s  %s" % ("    " * level, `trans.localPosition`))
 	print("%s  %s" % ("    " * level, `trans.localRotation`))
 	print("%s  %s" % ("    " * level, `trans.localScale`))
-	tl = obj.tag_and_layer
-	print("%s  %s %d" % ("	  " * level, tl.tag, tl.layer))
+        if hasattr(obj, "tag_and_layer"):
+            tl = obj.tag_and_layer
+            print("%s  %s %d" % ("	  " * level, tl.tag, tl.layer))
 	dump_thing(obj, mu, level, ["transform", "tag_and_layer", "children"],
 				object_dump_funcs)
 
@@ -104,4 +105,5 @@ def dump(fname):
 	dump_object(mu, mu.obj)
 
 for f in sys.argv[1:]:
+	print f
 	dump(f)
