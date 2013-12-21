@@ -22,7 +22,7 @@
 from struct import pack, unpack
 class MuEnum:
     MODEL_BINARY = 76543
-    FILE_VERSION = 2
+    FILE_VERSION = 3
 
     ET_CHILD_TRANSFORM_START = 0
     ET_CHILD_TRANSFORM_END = 1
