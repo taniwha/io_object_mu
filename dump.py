@@ -99,7 +99,7 @@ def dump(fname):
 	mu = Mu()
 	if not mu.read(fname):
 		print("could not read: " + fname)
-		return
+		raise
 	dump_textures(mu)
 	dump_materials(mu)
 	dump_object(mu, mu.obj)
