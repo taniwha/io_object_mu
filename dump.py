@@ -46,6 +46,10 @@ def dump_mesh(name, mu, mesh, level):
 	print("%s Mesh: %s = %s" % ("	 " * level, name, `mesh`))
 	dump_thing(mesh, mu, level, [], mesh_dump_funcs)
 
+def dump_light(name, mu, mesh, level):
+	print("%s Light: %s" % ("	 " * level, name))
+	dump_thing(mesh, mu, level, [], mesh_dump_funcs)
+
 def dump_collider(name, mu, col, level):
 	print("%s Collider: %s = " % ("    " * level, name))
 	dump_thing(col, mu, level, [], {})
@@ -75,6 +79,7 @@ def dump_animation(name, mu, ani, level):
 object_dump_funcs={
 	"MuRenderer": dump_renderer,
 	"MuMesh": dump_mesh,
+	"MuLight": dump_light,
 	"MuColliderMesh": dump_collider,
 	"MuColliderCapsule": dump_collider,
 	"MuAnimation": dump_animation,
@@ -100,6 +105,7 @@ def dump(fname):
 	if not mu.read(fname):
 		print("could not read: " + fname)
 		raise
+        print mu.version
 	dump_textures(mu)
 	dump_materials(mu)
 	dump_object(mu, mu.obj)
