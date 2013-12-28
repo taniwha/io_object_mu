@@ -71,6 +71,20 @@ def copy_friction(dst, src):
     dst.extremumValue = src.extremumValue
     dst.stiffness = src.stiffness
 
+def create_light(mu, mulight, transform):
+    ltype = ('SPOT', 'SUN', 'POINT', 'AREA')[mulight.type]
+    light = bpy.data.lamps.new(transform.name, ltype)
+    light.color = mulight.color[:3]
+    light.distance = mulight.range
+    light.energy = mulight.intensity
+    obj = bpy.data.objects.new(transform.name, light)
+    obj.rotation_mode = 'QUATERNION'
+    obj.location = Vector(transform.localPosition)
+    obj.rotation_quaternion = Quaternion(transform.localRotation)
+    obj.scale = Vector(transform.localScale)
+    bpy.context.scene.objects.link(obj)
+    return obj
+
 def create_object(mu, muobj, parent):
     obj = None
     mesh = None
@@ -125,6 +139,9 @@ def create_object(mu, muobj, parent):
         if mesh:
             mat = mu.materials[muobj.renderer.materials[0]]
             mesh.materials.append(bpy.data.materials[mat.name])
+    if not obj:
+        if hasattr(muobj, "light"):
+            obj = create_light(mu, muobj.light, muobj.transform)
     if not obj:
         obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
     if hasattr(muobj, "tag_and_layer"):
