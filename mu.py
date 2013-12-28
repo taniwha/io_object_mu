@@ -770,7 +770,7 @@ class MuLight:
         self.type = mu.read_int()
         self.intensity = mu.read_float()
         self.range = mu.read_float()
-        self.color = mu.read_float(3)
+        self.color = mu.read_float(4)
         self.cullingMask = mu.read_int()
         if mu.version > 1:
             self.spotAngle = mu.read_float()
