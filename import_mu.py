@@ -192,19 +192,36 @@ def load_mbm(mbmpath):
         pixels = convert_bump(pixels, width, height)
     return width, height, pixels
 
+def load_image(name, path):
+    if name[-4:].lower() in [".png", ".tga"]:
+        bpy.data.images.load(os.path.join(path, name))
+    elif name[-4:].lower() == ".mbm":
+        w,h, pixels = load_mbm(os.path.join(path, name))
+        img = bpy.data.images.new(name, w, h)
+        img.pixels[:] = map(lambda x: x / 255.0, pixels)
+        img.pack(True)
+
 def create_textures(mu, path):
+    extensions = [".mbm", ".tga", ".png"]
     #texture info is in the top level object
     for tex in mu.textures:
-        if tex.name[-4:].lower() in [".png", ".tga"]:
-            bpy.data.images.load(os.path.join(path, tex.name))
-        elif tex.name[-4:].lower() == ".mbm":
-            w,h, pixels = load_mbm(os.path.join(path, tex.name))
-            img = bpy.data.images.new(tex.name, w, h)
-            img.pixels[:] = map(lambda x: x / 255.0, pixels)
-            img.pack(True)
-        tx = bpy.data.textures.new(tex.name, 'IMAGE')
-        tx.use_preview_alpha = True
-        tx.image = bpy.data.images[tex.name]
+        ext = tex.name[-4:]
+        base = tex.name[:-4]
+        ind = extensions.index(ext)
+        lst = extensions[ind:] + extensions[:ind]
+        for e in lst:
+            try:
+                name = base+e
+                load_image(name, path)
+                tx = bpy.data.textures.new(name, 'IMAGE')
+                tx.use_preview_alpha = True
+                tx.image = bpy.data.images[name]
+                break
+            except FileNotFoundError:
+                continue
+            except RuntimeError:
+                continue
+    pass
 
 def add_texture(mu, mat, mattex):
     i, s, o = mattex.index, mattex.scale, mattex.offset
