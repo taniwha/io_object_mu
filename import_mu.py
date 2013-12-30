@@ -21,6 +21,7 @@
 
 from struct import unpack
 import os.path
+from math import pi
 
 import bpy
 from bpy_extras.object_utils import object_data_add
@@ -77,6 +78,8 @@ def create_light(mu, mulight, transform):
     light.color = mulight.color[:3]
     light.distance = mulight.range
     light.energy = mulight.intensity
+    if ltype == 'SPOT' and hasattr(mulight, "spotAngle"):
+        light.spot_size = mulight.spotAngle * pi / 180
     obj = bpy.data.objects.new(transform.name, light)
     obj.rotation_mode = 'QUATERNION'
     obj.location = Vector(transform.localPosition)
