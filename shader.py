@@ -163,8 +163,9 @@ def create_nodes(mat):
         elif s[0] == "settex":
             n = nodes["%s.%s" % (name, s[1])]
             tex = getattr(matprops,s[3])
-            tex = bpy.data.textures[tex.tex]
-            exec ("n.%s = tex" % s[2], {}, locals())
+            if tex.tex in bpy.data.textures:
+                tex = bpy.data.textures[tex.tex]
+                exec ("n.%s = tex" % s[2], {}, locals())
         elif s[0] == "setval":
             n = nodes["%s.%s" % (name, s[1])]
             exec ("n.%s = %s" % (s[2], repr(s[3])), {}, locals())
@@ -173,7 +174,10 @@ def create_nodes(mat):
             exec ("n.%s" % s[2], {}, locals())
 
 def set_tex(mu, dst, src):
-    dst.tex = mu.textures[src.index].name
+    try:
+        dst.tex = mu.textures[src.index].name
+    except IndexError:
+        pass
     dst.scale = src.scale
     dst.offset = src.offset
 
