@@ -237,8 +237,8 @@ def make_material(mu, mat):
         material.specColor = matprops.specColor
         material.shininess = matprops.shininess
     elif matprops.shader == 'KSP/Bumped':
-        matprops.mainTex = make_texture(mu, matprops.mainTex, 0)
-        matprops.bumpMap = make_texture(mu, matprops.bumpMap, 1)
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
+        material.bumpMap = make_texture(mu, matprops.bumpMap, 1)
     elif matprops.shader == 'KSP/Bumped Specular':
         material.mainTex = make_texture(mu, matprops.mainTex, 0)
         material.bumpMap = make_texture(mu, matprops.bumpMap, 1)
