@@ -196,7 +196,7 @@ def make_collider(mu, obj):
         col.size = obj.muproperties.size
         col.center = obj.muproperties.center
     elif obj.muproperties.collider == 'MU_COL_WHEEL':
-        col = MuColliderWheel(True)
+        col = MuColliderWheel()
         col.isTrigger = obj.muproperties.isTrigger
         col.mass = obj.muproperties.mass
         col.radius = obj.muproperties.radius
