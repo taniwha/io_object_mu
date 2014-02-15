@@ -27,6 +27,7 @@ from pprint import pprint
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer
 from .mu import MuColliderBox, MuColliderWheel, MuMaterial, MuTexture, MuMatTex
+from .mu import MuSpring, MuFriction
 from .shader import make_shader
 from . import properties
 
