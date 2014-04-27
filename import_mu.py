@@ -239,6 +239,7 @@ def create_materials(mu):
         mat = make_shader(mumat, mu)
 
 def import_mu(operator, context, filepath):
+    undo = bpy.context.user_preferences.edit.use_global_undo
     bpy.context.user_preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
@@ -256,5 +257,5 @@ def import_mu(operator, context, filepath):
     bpy.context.scene.objects.active = obj
     obj.select = True
 
-    bpy.context.user_preferences.edit.use_global_undo = True
+    bpy.context.user_preferences.edit.use_global_undo = undo
     return {'FINISHED'}
