@@ -50,9 +50,22 @@ def dump_light(name, mu, mesh, level):
 	print("%s Light: %s" % ("	 " * level, name))
 	dump_thing(mesh, mu, level, [], mesh_dump_funcs)
 
+def dump_friction(name, mu, col, level):
+	print("%s Friction: %s = " % ("    " * level, name))
+	dump_thing(col, mu, level, [], {})
+
+def dump_spring(name, mu, col, level):
+	print("%s Spring: %s = " % ("    " * level, name))
+	dump_thing(col, mu, level, [], {})
+
+collider_dump_funcs = {
+	"MuFriction": dump_friction,
+	"MuSpring": dump_spring,
+}
+
 def dump_collider(name, mu, col, level):
 	print("%s Collider: %s = " % ("    " * level, name))
-	dump_thing(col, mu, level, [], {})
+	dump_thing(col, mu, level + 1, [], collider_dump_funcs)
 
 def dump_key(name, mu, key, level):
 	print("%s Key: %s = " % ("	" * level, name))
@@ -81,16 +94,19 @@ object_dump_funcs={
 	"MuMesh": dump_mesh,
 	"MuLight": dump_light,
 	"MuColliderMesh": dump_collider,
+	"MuColliderSphere": dump_collider,
 	"MuColliderCapsule": dump_collider,
+	"MuColliderBox": dump_collider,
+	"MuColliderWheel": dump_collider,
 	"MuAnimation": dump_animation,
 }
 
 def dump_object(mu, obj, level=0):
 	trans = obj.transform
 	print("%s%s" % ("    " * level, trans.name))
-	print("%s  %s" % ("    " * level, str(trans.localPosition)))
-	print("%s  %s" % ("    " * level, str(trans.localRotation)))
-	print("%s  %s" % ("    " * level, str(trans.localScale)))
+	print("%s  lp %s" % ("    " * level, str(trans.localPosition)))
+	print("%s  lr %s" % ("    " * level, str(trans.localRotation)))
+	print("%s  ls %s" % ("    " * level, str(trans.localScale)))
 	if hasattr(obj, "tag_and_layer"):
 	    tl = obj.tag_and_layer
 	    print("%s  %s %d" % ("	  " * level, tl.tag, tl.layer))
