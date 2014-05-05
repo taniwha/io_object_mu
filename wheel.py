@@ -9,7 +9,7 @@ def find_wheels(obj, path=""):
         path = obj.transform.name
     else:
         path = ".".join([path, obj.transform.name])
-    if hasattr(obj, "collider") and type(obj.collider) == MuColliderWheel:
+    if hasattr(obj, "collider") and isinstance(obj.collider, MuColliderWheel):
         wheel_colliders[path] = obj.collider
     for o in obj.children:
         find_wheels(o, path)
