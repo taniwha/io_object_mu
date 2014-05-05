@@ -4,8 +4,6 @@ import sys
 
 wheel_colliders = {}
 
-wheel_mu = sys.argv[1]
-
 def find_wheels(obj, path=""):
     if not path:
         path = obj.transform.name
@@ -65,14 +63,71 @@ def dump_wheel(wheel):
     print("forwardFriction: %f %f %f %f %f" % fexp(wheel.forwardFriction))
     print("sidewaysFriction: %f %f %f %f %f" % fexp(wheel.sidewaysFriction))
 
+def vector(s):
+    return tuple(map(lambda x: float(x),s.split(",")))
+
+wheel_fields = (
+    ("mass", float),
+    ("radius", float),
+    ("suspensionDistance", float),
+    ("center", vector),
+)
+
+friction_fields = (
+    ("extremumSlip", float),
+    ("extremumValue", float),
+    ("asymptoteSlip", float),
+    ("asymptoteValue", float),
+    ("stiffness", float),
+)
+
+spring_fields = (
+    ("spring", float),
+    ("damper", float),
+    ("targetPosition", float),
+)
+
+def adjust_wheel(wheel_node):
+    name = wheel_node.GetValue("name")
+    wheel = wheel_colliders[name]
+    for f in wheel_fields:
+        val = wheel_node.GetValue(f[0])
+        if val:
+            setattr(wheel, f[0], f[1](val))
+    spring = wheel_node.GetNode("suspensionSpring")
+    if spring:
+        for f in spring_fields:
+            val = spring.GetValue(f[0])
+            if val:
+                setattr(wheel.suspensionSpring, f[0], f[1](val))
+    for fr in ["forwardFriction", "sidewaysFriction"]:
+        friction = wheel_node.GetNode(fr)
+        if friction:
+            fric = getattr(wheel, fr)
+            for f in friction_fields:
+                val = friction.GetValue(f[0])
+                if val:
+                    setattr(fric, f[0], f[1](val))
+
 def main():
+    wheel_mu = sys.argv[1]
     mu = Mu()
     if not mu.read(wheel_mu):
         print("could not read: " + fname)
         raise
     find_wheels(mu.obj)
-    for w in wheel_colliders.keys():
-        node = wheel_cfg(w, wheel_colliders[w])
-        print("Wheel "+ node.ToString())
+    if len(sys.argv) > 2:
+        text = open(sys.argv[2], "rt").read()
+        node = ConfigNode.load(text)
+        wheel = node.GetNode('Wheel')
+        if not wheel:
+            print("could not find Wheel")
+            sys.exit(1)
+        adjust_wheel(wheel)
+        mu.write("wheelout.mu")
+    else:
+        for w in wheel_colliders.keys():
+            node = wheel_cfg(w, wheel_colliders[w])
+            print("Wheel "+ node.ToString())
 
 main()
