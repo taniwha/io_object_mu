@@ -28,13 +28,22 @@ def friction_cfg(node, friction):
     node.AddValue("asymptoteValue", friction.asymptoteValue)
     node.AddValue("stiffness", friction.stiffness)
 
+def ValueString(val):
+    if type(val) in [tuple, list]:
+        vstr = str(val[0])
+        for v in val[1:]:
+            vstr += ", " + str(v)
+        return vstr
+    else:
+        return str(val)
+
 def wheel_cfg(name, wheel):
     node = ConfigNode ()
     node.AddValue("name", name)
     node.AddValue("mass", wheel.mass)
     node.AddValue("radius", wheel.radius)
     node.AddValue("suspensionDistance", wheel.suspensionDistance)
-    node.AddValue("center", wheel.center)
+    node.AddValue("center", ValueString(wheel.center))
     spring_cfg(node.AddNode("suspensionSpring"), wheel.suspensionSpring)
     friction_cfg(node.AddNode("forwardFriction"), wheel.forwardFriction)
     friction_cfg(node.AddNode("sidewaysFriction"), wheel.sidewaysFriction)

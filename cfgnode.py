@@ -95,18 +95,9 @@ class ConfigNode:
     def ToString(self, level = 0):
         text = "{ \n"
         for val in self.values:
-            vtext = self.ValueString(val[1])
-            text += "%s%s = %s\n" % ("    " * (level + 1), val[0], vtext)
+            text += "%s%s = %s\n" % ("    " * (level + 1), val[0], val[1])
         for node in self.nodes:
             ntext = node[1].ToString(level + 1)
             text += "%s%s %s\n" % ("    " * (level + 1), node[0], ntext)
         text += "%s}\n" % ("    " * (level))
         return text
-    def ValueString(self, val):
-        if type(val) in [tuple, list]:
-            vstr = str(val[0])
-            for v in val[1:]:
-                vstr += ", " + str(v)
-            return vstr
-        else:
-            return str(val)
