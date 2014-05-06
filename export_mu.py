@@ -319,7 +319,11 @@ def make_obj(mu, obj):
         if type(obj.data) == bpy.types.Mesh:
             muobj.shared_mesh = make_mesh(mu, obj)
             muobj.renderer = make_renderer(mu, obj.data)
-        elif type(obj.data) == bpy.types.Light:
+        elif type(obj.data) in [bpy.types.PointLamp,
+                                bpy.types.SunLamp,
+                                bpy.types.SpotLamp,
+                                bpy.types.HemiLamp,
+                                bpy.types.AreaLamp]:
             muobj.light = make_light(mu, obj.data)
             # Blender points spotlights along local -Z, unity along local +Z
             # which is Blender's +Y, so rotate -90 degrees around local X to
