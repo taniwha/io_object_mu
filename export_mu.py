@@ -297,6 +297,18 @@ def make_renderer(mu, mesh):
             rend.materials.append(mu.materials[mat.name].index)
     return rend
 
+def make_light(mu, light):
+    mulight = MuLight()
+    mulight.type = ('SPOT', 'SUN', 'POINT', 'AREA').index(light.type)
+    mulight.color = tuple(light.color) + (1.0,)
+    mulight.range = light.distance
+    mulight.intensity = light.energy
+    mulight.spotAngle = 0.0
+    mulight.cullingMask = properties.GetPropMask(obj.muproperties.cullingMask)
+    if light.type == 'SPOT':
+        mulight.spotAngle = light.spot_size * 180 / pi
+    return mulight
+
 def make_obj(mu, obj):
     muobj = MuObject()
     muobj.transform = make_transform (obj)
@@ -304,8 +316,11 @@ def make_obj(mu, obj):
     if obj.muproperties.collider != 'MU_COL_NONE':
         muobj.collider = make_collider(mu, obj)
     elif obj.data:
-        muobj.shared_mesh = make_mesh(mu, obj)
-        muobj.renderer = make_renderer(mu, obj.data)
+        if type(obj.data) == bpy.types.Mesh:
+            muobj.shared_mesh = make_mesh(mu, obj)
+            muobj.renderer = make_renderer(mu, obj.data)
+        elif type(obj.data) == bpy.types.Light:
+            muobj.light = make_light(mu, obj.data)
     for o in obj.children:
         if (o.data and type(o.data) != bpy.types.Mesh):
             continue
