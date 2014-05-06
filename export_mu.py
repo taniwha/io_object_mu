@@ -321,6 +321,11 @@ def make_obj(mu, obj):
             muobj.renderer = make_renderer(mu, obj.data)
         elif type(obj.data) == bpy.types.Light:
             muobj.light = make_light(mu, obj.data)
+            # Blender points spotlights along local -Z, unity along local +Z
+            # which is Blender's +Y, so rotate -90 degrees around local X to
+            # go from Blender to Unity
+            rot = Quaternion((0.5**0.5,-0.5**0.5,0,0))
+            muobj.transform = rot * muobj.transform
     for o in obj.children:
         if (o.data and type(o.data) != bpy.types.Mesh):
             continue

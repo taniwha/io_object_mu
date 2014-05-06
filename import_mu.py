@@ -83,7 +83,11 @@ def create_light(mu, mulight, transform):
     obj = bpy.data.objects.new(transform.name, light)
     obj.rotation_mode = 'QUATERNION'
     obj.location = Vector(transform.localPosition)
-    obj.rotation_quaternion = Quaternion(transform.localRotation)
+    # Blender points spotlights along local -Z, unity along local +Z
+    # which is Blender's +Y, so rotate 90 degrees around local X to
+    # go from Unity to Blender
+    rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
+    obj.rotation_quaternion = rot * Quaternion(transform.localRotation)
     obj.scale = Vector(transform.localScale)
     properties.SetPropMask(obj.muproperties.cullingMask, mulight.cullingMask)
     bpy.context.scene.objects.link(obj)
