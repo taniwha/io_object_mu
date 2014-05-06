@@ -61,6 +61,16 @@ collider_items = (
     ('MU_COL_WHEEL', "Wheel", ""),
 )
 
+def SetPropMask(prop, mask):
+    for i in range(32):
+       prop[i] = (mask & (1 << i)) and True or False
+
+def GetPropMask(prop):
+    mask = 0
+    for i in range(32):
+        mask |= int(prop[i]) << i;
+    return mask
+
 class MuProperties(bpy.types.PropertyGroup):
     tag = StringProperty(name = "Tag", default="Untagged")
     layer = IntProperty(name = "Layer")
@@ -76,6 +86,7 @@ class MuProperties(bpy.types.PropertyGroup):
     suspensionSpring = PointerProperty(type=MuSpringProp, name = "Spring")
     forwardFriction = PointerProperty(type=MuFrictionProp, name = "Forward")
     sideFriction = PointerProperty(type=MuFrictionProp, name = "Sideways")
+    cullingMask = BoolVectorProperty(size=32, name = "Mask", subtype = 'LAYER')
 
 class MuPropertiesPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -94,6 +105,12 @@ class MuPropertiesPanel(bpy.types.Panel):
         col = row.column()
         col.prop(muprops, "tag")
         col.prop(muprops, "layer")
+        if type(context.active_object.data) in [bpy.types.PointLamp,
+                                                bpy.types.SunLamp,
+                                                bpy.types.SpotLamp,
+                                                bpy.types.HemiLamp,
+                                                bpy.types.AreaLamp]:
+            col.prop(muprops, "cullingMask")
 
 class MuColliderPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'

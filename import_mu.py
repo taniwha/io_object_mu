@@ -85,6 +85,7 @@ def create_light(mu, mulight, transform):
     obj.location = Vector(transform.localPosition)
     obj.rotation_quaternion = Quaternion(transform.localRotation)
     obj.scale = Vector(transform.localScale)
+    properties.SetPropMask(obj.muproperties.cullingMask, mulight.cullingMask)
     bpy.context.scene.objects.link(obj)
     return obj
 
