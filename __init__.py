@@ -59,6 +59,10 @@ class ImportMu(bpy.types.Operator, ImportHelper):
     filename_ext = ".mu"
     filter_glob = StringProperty(default="*.mu", options={'HIDDEN'})
 
+    create_colliders = BoolProperty(name="Create Colliders",
+            description="Disable to import only visual and hierarchy elements",
+                                    default=True)
+
     def execute(self, context):
         from . import import_mu
         keywords = self.as_keywords (ignore=("filter_glob",))

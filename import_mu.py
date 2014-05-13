@@ -93,10 +93,10 @@ def create_light(mu, mulight, transform):
     bpy.context.scene.objects.link(obj)
     return obj
 
-def create_object(mu, muobj, parent):
+def create_object(mu, muobj, parent, create_colliders):
     obj = None
     mesh = None
-    if hasattr(muobj, "collider"):
+    if create_colliders and hasattr(muobj, "collider"):
         col = muobj.collider
         name = muobj.transform.name
         if type(col) == MuColliderMesh:
@@ -157,7 +157,7 @@ def create_object(mu, muobj, parent):
         obj.muproperties.layer = muobj.tag_and_layer.layer
     obj.parent = parent
     for child in muobj.children:
-        create_object(mu, child, obj)
+        create_object(mu, child, obj, create_colliders)
     return obj
 
 def convert_bump(pixels, width, height):
@@ -243,7 +243,8 @@ def create_materials(mu):
     for mumat in mu.materials:
         mumat.material = make_shader(mumat, mu)
 
-def import_mu(operator, context, filepath):
+def import_mu(self, context, filepath, create_colliders):
+    operator = self
     undo = bpy.context.user_preferences.edit.use_global_undo
     bpy.context.user_preferences.edit.use_global_undo = False
 
@@ -258,7 +259,7 @@ def import_mu(operator, context, filepath):
 
     create_textures(mu, os.path.dirname(filepath))
     create_materials(mu)
-    obj = create_object(mu, mu.obj, None)
+    obj = create_object(mu, mu.obj, None, create_colliders)
     bpy.context.scene.objects.active = obj
     obj.select = True
 
