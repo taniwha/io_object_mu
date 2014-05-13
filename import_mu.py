@@ -210,9 +210,10 @@ def create_textures(mu, path):
     extensions = [".mbm", ".tga", ".png"]
     #texture info is in the top level object
     for tex in mu.textures:
-        ext = tex.name[-4:]
-        base = tex.name[:-4]
-        ind = extensions.index(ext)
+        base, ext = os.path.splitext(tex.name)
+        ind = 0
+        if ext in extensions:
+            ind = extensions.index(ext)
         lst = extensions[ind:] + extensions[:ind]
         for e in lst:
             try:
