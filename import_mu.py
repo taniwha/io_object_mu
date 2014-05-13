@@ -145,8 +145,8 @@ def create_object(mu, muobj, parent):
         obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
     if hasattr(muobj, "renderer"):
         if mesh:
-            mat = mu.materials[muobj.renderer.materials[0]]
-            mesh.materials.append(bpy.data.materials[mat.name])
+            mumat = mu.materials[muobj.renderer.materials[0]]
+            mesh.materials.append(mumat.material)
     if not obj:
         if hasattr(muobj, "light"):
             obj = create_light(mu, muobj.light, muobj.transform)
@@ -241,7 +241,7 @@ def add_texture(mu, mat, mattex):
 def create_materials(mu):
     #material info is in the top level object
     for mumat in mu.materials:
-        mat = make_shader(mumat, mu)
+        mumat.material = make_shader(mumat, mu)
 
 def import_mu(operator, context, filepath):
     undo = bpy.context.user_preferences.edit.use_global_undo
