@@ -219,7 +219,7 @@ def create_textures(mu, path):
             try:
                 name = base+e
                 load_image(name, path)
-                tx = bpy.data.textures.new(name, 'IMAGE')
+                tx = bpy.data.textures.new(tex.name, 'IMAGE')
                 tx.use_preview_alpha = True
                 tx.image = bpy.data.images[name]
                 break
