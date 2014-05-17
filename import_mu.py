@@ -93,6 +93,39 @@ def create_light(mu, mulight, transform):
     bpy.context.scene.objects.link(obj)
     return obj
 
+property_map = {
+    "m_LocalPosition.x": ("location", 0),
+    "m_LocalPosition.y": ("location", 2),
+    "m_LocalPosition.z": ("location", 1),
+    "m_LocalRotation.x": ("rotation_quaternion", 1),
+    "m_LocalRotation.y": ("rotation_quaternion", 3),
+    "m_LocalRotation.z": ("rotation_quaternion", 2),
+    "m_LocalRotation.w": ("rotation_quaternion", 0),
+    "m_LocalScale.x": ("scale", 0),
+    "m_LocalScale.y": ("scale", 2),
+    "m_LocalScale.z": ("scale", 1),
+}
+
+def create_action(clip):
+    act = bpy.data.actions.new(clip.name)
+    actions = {}
+    for curve in clip.curves:
+        name = ".".join([curve.path, clip.name])
+        print(name, curve.property)
+        if name not in actions:
+            actions[name] = bpy.data.actions.new(name)
+        act = actions[name]
+        obj = bpy.data.objects[curve.path.split('/')[-1]]
+        dp, ind = property_map[curve.property]
+        fc = act.fcurves.new(data_path = dp, index = ind)
+        fc.keyframe_points.add(len(curve.keys))
+        for i, key in enumerate(curve.keys):
+            fc.keyframe_points[i].co = (key.time * 30, key.value)
+        if not obj.animation_data:
+            obj.animation_data_create()
+            track = obj.animation_data.nla_tracks.new()
+            track.strips.new(act.name, 1.0, act)
+
 def create_object(mu, muobj, parent, create_colliders):
     obj = None
     mesh = None
@@ -158,6 +191,9 @@ def create_object(mu, muobj, parent, create_colliders):
     obj.parent = parent
     for child in muobj.children:
         create_object(mu, child, obj, create_colliders)
+    if hasattr(muobj, "animation"):
+        for clip in muobj.animation.clips:
+            create_action(clip)
     return obj
 
 def convert_bump(pixels, width, height):
