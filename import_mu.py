@@ -94,16 +94,16 @@ def create_light(mu, mulight, transform):
     return obj
 
 property_map = {
-    "m_LocalPosition.x": ("location", 0),
-    "m_LocalPosition.y": ("location", 2),
-    "m_LocalPosition.z": ("location", 1),
-    "m_LocalRotation.x": ("rotation_quaternion", 1),
-    "m_LocalRotation.y": ("rotation_quaternion", 3),
-    "m_LocalRotation.z": ("rotation_quaternion", 2),
-    "m_LocalRotation.w": ("rotation_quaternion", 0),
-    "m_LocalScale.x": ("scale", 0),
-    "m_LocalScale.y": ("scale", 2),
-    "m_LocalScale.z": ("scale", 1),
+    "m_LocalPosition.x": ("location", 0, 1),
+    "m_LocalPosition.y": ("location", 2, 1),
+    "m_LocalPosition.z": ("location", 1, 1),
+    "m_LocalRotation.x": ("rotation_quaternion", 1, -1),
+    "m_LocalRotation.y": ("rotation_quaternion", 3, -1),
+    "m_LocalRotation.z": ("rotation_quaternion", 2, -1),
+    "m_LocalRotation.w": ("rotation_quaternion", 0, 1),
+    "m_LocalScale.x": ("scale", 0, 1),
+    "m_LocalScale.y": ("scale", 2, 1),
+    "m_LocalScale.z": ("scale", 1, 1),
 }
 
 def create_action(clip):
@@ -116,23 +116,23 @@ def create_action(clip):
             actions[name] = bpy.data.actions.new(name)
         act = actions[name]
         obj = bpy.data.objects[curve.path.split('/')[-1]]
-        dp, ind = property_map[curve.property]
+        dp, ind, mult = property_map[curve.property]
         fc = act.fcurves.new(data_path = dp, index = ind)
         fc.keyframe_points.add(len(curve.keys))
         for i, key in enumerate(curve.keys):
-            x,y = key.time * fps, key.value
+            x,y = key.time * fps, key.value * mult
             fc.keyframe_points[i].co = x, y
             fc.keyframe_points[i].handle_left_type = 'FREE'
             fc.keyframe_points[i].handle_right_type = 'FREE'
             if i > 0:
                 dist = (key.time - curve.keys[i - 1].time) / 3
-                dx, dy = dist * fps, key.tangent[0] * dist
+                dx, dy = dist * fps, key.tangent[0] * dist * mult
             else:
                 dx, dy = 10, 0.0
             fc.keyframe_points[i].handle_left = x - dx, y - dy
             if i < len(curve.keys) - 1:
                 dist = (curve.keys[i + 1].time - key.time) / 3
-                dx, dy = dist * fps, key.tangent[1] * dist
+                dx, dy = dist * fps, key.tangent[1] * dist * mult
             else:
                 dx, dy = 10, 0.0
             fc.keyframe_points[i].handle_right = x + dx, y + dy
