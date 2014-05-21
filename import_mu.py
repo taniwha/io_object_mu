@@ -111,7 +111,6 @@ def create_action(clip):
     actions = {}
     for curve in clip.curves:
         name = ".".join([curve.path, clip.name])
-        print(name, curve.property)
         if name not in actions:
             actions[name] = bpy.data.actions.new(name)
         act = actions[name]
@@ -120,7 +119,22 @@ def create_action(clip):
         fc = act.fcurves.new(data_path = dp, index = ind)
         fc.keyframe_points.add(len(curve.keys))
         for i, key in enumerate(curve.keys):
-            fc.keyframe_points[i].co = (key.time * 30, key.value)
+            x,y = key.time * 30.0, key.value
+            fc.keyframe_points[i].co = x, y
+            fc.keyframe_points[i].handle_left_type = 'FREE'
+            fc.keyframe_points[i].handle_right_type = 'FREE'
+            if i > 0:
+                dist = (key.time - curve.keys[i - 1].time) / 3
+                dx, dy = dist * 30.0, key.tangent[0] * dist
+            else:
+                dx, dy = 10, 0.0
+            fc.keyframe_points[i].handle_left = x - dx, y - dy
+            if i < len(curve.keys) - 1:
+                dist = (curve.keys[i + 1].time - key.time) / 3
+                dx, dy = dist * 30.0, key.tangent[1] * dist
+            else:
+                dx, dy = 10, 0.0
+            fc.keyframe_points[i].handle_right = x + dx, y + dy
         if not obj.animation_data:
             obj.animation_data_create()
             track = obj.animation_data.nla_tracks.new()
