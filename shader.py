@@ -134,9 +134,39 @@ shader_items=(
     ('KSP/Diffuse', "KSP/Diffuse", ""),
 )
 
+def node_node(name, nodes, s):
+    n = nodes.new(s[2])
+    n.name = "%s.%s" % (name, s[1])
+    n.label = s[1]
+    n.location = s[3]
+    if s[2] == "ShaderNodeMaterial":
+        n.material = bpy.data.materials.new(n.name)
+
+def node_link(name, nodes, links, s):
+    n1 = nodes["%s.%s" % (name, s[1])]
+    n2 = nodes["%s.%s" % (name, s[3])]
+    links.new(n1.outputs[s[2]], n2.inputs[s[4]])
+
+def node_set(name, matprops, nodes, s):
+    n = nodes["%s.%s" % (name, s[1])]
+    exec ("n.%s = matprops.%s" % (s[2], s[3]), {}, locals())
+
+def node_settex(name, matprops, nodes, s):
+    n = nodes["%s.%s" % (name, s[1])]
+    tex = getattr(matprops,s[3])
+    if tex.tex in bpy.data.textures:
+        tex = bpy.data.textures[tex.tex]
+        exec ("n.%s = tex" % s[2], {}, locals())
+
+def node_setval(name, nodes, s):
+    n = nodes["%s.%s" % (name, s[1])]
+    exec ("n.%s = %s" % (s[2], repr(s[3])), {}, locals())
+
+def node_call(name, nodes, s):
+    n = nodes["%s.%s" % (name, s[1])]
+    exec ("n.%s" % s[2], {}, locals())
+
 def create_nodes(mat):
-    matprops = mat.mumatprop
-    name = mat.name
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
@@ -144,34 +174,20 @@ def create_nodes(mat):
         links.remove(links[0])
     while len(nodes):
         nodes.remove(nodes[0])
-    shader = ksp_shaders[matprops.shader]
+    shader = ksp_shaders[mat.mumatprop.shader]
     for s in shader:
         if s[0] == "node":
-            n = nodes.new(s[2])
-            n.name = "%s.%s" % (name, s[1])
-            n.label = s[1]
-            n.location = s[3]
-            if s[2] == "ShaderNodeMaterial":
-                n.material = bpy.data.materials.new(n.name)
+            node_node(mat.name, nodes, s)
         elif s[0] == "link":
-            n1 = nodes["%s.%s" % (name, s[1])]
-            n2 = nodes["%s.%s" % (name, s[3])]
-            links.new(n1.outputs[s[2]], n2.inputs[s[4]])
+            node_link(mat.name, nodes, links, s)
         elif s[0] == "set":
-            n = nodes["%s.%s" % (name, s[1])]
-            exec ("n.%s = matprops.%s" % (s[2], s[3]), {}, locals())
+            node_set(mat.name, mat.mumatprop, nodes, s)
         elif s[0] == "settex":
-            n = nodes["%s.%s" % (name, s[1])]
-            tex = getattr(matprops,s[3])
-            if tex.tex in bpy.data.textures:
-                tex = bpy.data.textures[tex.tex]
-                exec ("n.%s = tex" % s[2], {}, locals())
+            node_settex(mat.name, mat.mumatprop, nodes, s)
         elif s[0] == "setval":
-            n = nodes["%s.%s" % (name, s[1])]
-            exec ("n.%s = %s" % (s[2], repr(s[3])), {}, locals())
+            node_setval(mat.name, nodes, s)
         elif s[0] == "call":
-            n = nodes["%s.%s" % (name, s[1])]
-            exec ("n.%s" % s[2], {}, locals())
+            node_call(mat.name, nodes, s)
 
 def set_tex(mu, dst, src):
     try:
