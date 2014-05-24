@@ -116,7 +116,11 @@ def create_action(clip):
             actions[name] = bpy.data.actions.new(name)
         act = actions[name]
         obj = bpy.data.objects[curve.path.split('/')[-1]]
-        dp, ind, mult = property_map[curve.property]
+        try:
+            dp, ind, mult = property_map[curve.property]
+        except KeyError:
+            print("%s: Unknown property: %s" % (curve.path, curve.property))
+            continue
         fc = act.fcurves.new(data_path = dp, index = ind)
         fc.keyframe_points.add(len(curve.keys))
         for i, key in enumerate(curve.keys):
