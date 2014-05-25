@@ -256,26 +256,42 @@ def make_shader(mumat, mu):
     create_nodes(mat)
     return mat
 
-def shader_update(self, context):
-    if hasattr(context, "material"):
-        create_nodes(context.material)
+def shader_update(prop):
+    def updater(self, context):
+        if not hasattr(context, "material"):
+            return
+        mat = context.material
+        if type(self) == MuTextureProperties:
+            pass
+        elif type(self) == MuMaterialProperties:
+            if (prop) == "shader":
+                create_nodes(mat)
+            else:
+                shader = ksp_shaders[mat.mumatprop.shader]
+                nodes = mat.node_tree.nodes
+                for s in shader:
+                    if s[0] == "set" and s[3] == prop:
+                        node_set(mat.name, mat.mumatprop, nodes, s)
+                    elif s[0] == "settex" and s[3] == prop:
+                        node_settex(mat.name, mat.mumatprop, nodes, s)
+    return updater
 
 class MuTextureProperties(bpy.types.PropertyGroup):
-    tex = StringProperty(name="tex", update=shader_update)
-    scale = FloatVectorProperty(name="scale", size = 2, subtype='XYZ', default = (1.0, 1.0), update=shader_update)
-    offset = FloatVectorProperty(name="offset", size = 2, subtype='XYZ', default = (0.0, 0.0), update=shader_update)
+    tex = StringProperty(name="tex", update=shader_update("tex"))
+    scale = FloatVectorProperty(name="scale", size = 2, subtype='XYZ', default = (1.0, 1.0), update=shader_update("scale"))
+    offset = FloatVectorProperty(name="offset", size = 2, subtype='XYZ', default = (0.0, 0.0), update=shader_update("offset"))
 
 class MuMaterialProperties(bpy.types.PropertyGroup):
-    shader = EnumProperty(items = shader_items, name = "Shader", update=shader_update)
+    shader = EnumProperty(items = shader_items, name = "Shader", update=shader_update("shader"))
     mainTex = PointerProperty(type=MuTextureProperties, name = "mainTex")
-    specColor = FloatVectorProperty(name="specColor", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=shader_update)
-    shininess = FloatProperty(name="shininess", update=shader_update)
+    specColor = FloatVectorProperty(name="specColor", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=shader_update("specColor"))
+    shininess = FloatProperty(name="shininess", update=shader_update("shininess"))
     bumpMap = PointerProperty(type=MuTextureProperties, name = "bumpMap")
     emissive = PointerProperty(type=MuTextureProperties, name = "emissive")
-    emissiveColor = FloatVectorProperty(name="emissiveColor", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=shader_update)
-    cutoff = FloatProperty(name="cutoff", min=0, max=1, update=shader_update)
-    gloss = FloatProperty(name="gloss", update=shader_update)
-    color = FloatVectorProperty(name="color", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=shader_update)
+    emissiveColor = FloatVectorProperty(name="emissiveColor", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=shader_update("emissiveColor"))
+    cutoff = FloatProperty(name="cutoff", min=0, max=1, update=shader_update("cutoff"))
+    gloss = FloatProperty(name="gloss", update=shader_update("gloss"))
+    color = FloatVectorProperty(name="color", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=shader_update("color"))
 
 class MuMaterialPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
