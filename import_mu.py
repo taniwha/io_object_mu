@@ -106,7 +106,7 @@ property_map = {
     "m_LocalScale.z": ("scale", 1, 1),
 }
 
-def create_action(clip):
+def create_action(mu, path, clip):
     act = bpy.data.actions.new(clip.name)
     actions = {}
     fps = bpy.context.scene.render.fps
@@ -115,7 +115,7 @@ def create_action(clip):
         if name not in actions:
             actions[name] = bpy.data.actions.new(name)
         act = actions[name]
-        obj = bpy.data.objects[curve.path.split('/')[-1]]
+        obj = mu.objects["/".join([path, curve.path])]
         try:
             dp, ind, mult = property_map[curve.property]
         except KeyError:
@@ -145,7 +145,7 @@ def create_action(clip):
             track = obj.animation_data.nla_tracks.new()
             track.strips.new(act.name, 1.0, act)
 
-def create_object(mu, muobj, parent, create_colliders):
+def create_object(mu, muobj, parent, create_colliders, parents):
     obj = None
     mesh = None
     if create_colliders and hasattr(muobj, "collider"):
@@ -204,15 +204,19 @@ def create_object(mu, muobj, parent, create_colliders):
             obj = create_light(mu, muobj.light, muobj.transform)
     if not obj:
         obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
+    parents.append(muobj.transform.name)
+    path = "/".join(parents)
+    mu.objects[path] = obj
     if hasattr(muobj, "tag_and_layer"):
         obj.muproperties.tag = muobj.tag_and_layer.tag
         obj.muproperties.layer = muobj.tag_and_layer.layer
     obj.parent = parent
     for child in muobj.children:
-        create_object(mu, child, obj, create_colliders)
+        create_object(mu, child, obj, create_colliders, parents)
     if hasattr(muobj, "animation"):
         for clip in muobj.animation.clips:
-            create_action(clip)
+            create_action(mu, path, clip)
+    parents.remove(muobj.transform.name)
     return obj
 
 def convert_bump(pixels, width, height):
@@ -315,7 +319,8 @@ def import_mu(self, context, filepath, create_colliders):
 
     create_textures(mu, os.path.dirname(filepath))
     create_materials(mu)
-    obj = create_object(mu, mu.obj, None, create_colliders)
+    mu.objects = {}
+    obj = create_object(mu, mu.obj, None, create_colliders, [])
     bpy.context.scene.objects.active = obj
     obj.select = True
 
