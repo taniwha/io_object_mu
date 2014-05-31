@@ -54,9 +54,14 @@ def create_mesh(mu, mumesh, name):
 def create_mesh_object(name, mesh, transform):
     obj = bpy.data.objects.new(name, mesh)
     obj.rotation_mode = 'QUATERNION'
-    obj.location = Vector(transform.localPosition)
-    obj.rotation_quaternion = Quaternion(transform.localRotation)
-    obj.scale = Vector(transform.localScale)
+    if transform:
+        obj.location = Vector(transform.localPosition)
+        obj.rotation_quaternion = Quaternion(transform.localRotation)
+        obj.scale = Vector(transform.localScale)
+    else:
+        obj.location = Vector((0, 0, 0))
+        obj.rotation_quaternion = Quaternion((1,0,0,0))
+        obj.scale = Vector((1,1,1))
     bpy.context.scene.objects.link(obj)
     return obj
 
@@ -145,53 +150,55 @@ def create_action(mu, path, clip):
             track = obj.animation_data.nla_tracks.new()
             track.strips.new(act.name, 1.0, act)
 
+def create_collider(mu, muobj):
+    col = muobj.collider
+    name = muobj.transform.name
+    if type(col) == MuColliderMesh:
+        name = name + ".collider"
+        mesh = create_mesh(mu, col.mesh, name)
+    elif type(col) == MuColliderSphere:
+        mesh = collider.sphere(name, col.center, col.radius)
+    elif type(col) == MuColliderCapsule:
+        mesh = collider.capsule(name, col.center, col.radius, col.height,
+                                col.direction)
+    elif type(col) == MuColliderBox:
+        mesh = collider.box(name, col.center, col.size)
+    elif type(col) == MuColliderWheel:
+        mesh = collider.wheel(name, col.center, col.radius)
+    obj = create_mesh_object(name, mesh, None)
+
+    obj.muproperties.isTrigger = False
+    if type(col) != MuColliderWheel:
+        obj.muproperties.isTrigger = col.isTrigger
+    if type(col) == MuColliderMesh:
+        obj.muproperties.collider = 'MU_COL_MESH'
+    elif type(col) == MuColliderSphere:
+        obj.muproperties.collider = 'MU_COL_SPHERE'
+        obj.muproperties.radius = col.radius
+        obj.muproperties.center = col.center
+    elif type(col) == MuColliderCapsule:
+        obj.muproperties.collider = 'MU_COL_CAPSULE'
+        obj.muproperties.radius = col.radius
+        obj.muproperties.height = col.height
+        obj.muproperties.direction = properties.dir_map[col.direction]
+        obj.muproperties.center = col.center
+    elif type(col) == MuColliderBox:
+        obj.muproperties.collider = 'MU_COL_BOX'
+        obj.muproperties.size = col.size
+        obj.muproperties.center = col.center
+    elif type(col) == MuColliderWheel:
+        obj.muproperties.collider = 'MU_COL_WHEEL'
+        obj.muproperties.radius = col.radius
+        obj.muproperties.suspensionDistance = col.suspensionDistance
+        obj.muproperties.center = col.center
+        copy_spring(obj.muproperties.suspensionSpring, col.suspensionSpring)
+        copy_friction(obj.muproperties.forwardFriction, col.forwardFriction)
+        copy_friction(obj.muproperties.sideFriction, col.sidewaysFriction)
+    return obj
+
 def create_object(mu, muobj, parent, create_colliders, parents):
     obj = None
     mesh = None
-    if create_colliders and hasattr(muobj, "collider"):
-        col = muobj.collider
-        name = muobj.transform.name
-        if type(col) == MuColliderMesh:
-            mesh = create_mesh(mu, col.mesh, name)
-        elif type(col) == MuColliderSphere:
-            mesh = collider.sphere(name, col.center, col.radius)
-        elif type(col) == MuColliderCapsule:
-            mesh = collider.capsule(name, col.center, col.radius, col.height,
-                                    col.direction)
-        elif type(col) == MuColliderBox:
-            mesh = collider.box(name, col.center, col.size)
-        elif type(col) == MuColliderWheel:
-            mesh = collider.wheel(name, col.center, col.radius)
-        obj = create_mesh_object(name, mesh, muobj.transform)
-        obj.parent = parent
-
-        obj.muproperties.isTrigger = False
-        if type(col) != MuColliderWheel:
-            obj.muproperties.isTrigger = col.isTrigger
-        if type(col) == MuColliderMesh:
-            obj.muproperties.collider = 'MU_COL_MESH'
-        elif type(col) == MuColliderSphere:
-            obj.muproperties.collider = 'MU_COL_SPHERE'
-            obj.muproperties.radius = col.radius
-            obj.muproperties.center = col.center
-        elif type(col) == MuColliderCapsule:
-            obj.muproperties.collider = 'MU_COL_CAPSULE'
-            obj.muproperties.radius = col.radius
-            obj.muproperties.height = col.height
-            obj.muproperties.direction = properties.dir_map[col.direction]
-            obj.muproperties.center = col.center
-        elif type(col) == MuColliderBox:
-            obj.muproperties.collider = 'MU_COL_BOX'
-            obj.muproperties.size = col.size
-            obj.muproperties.center = col.center
-        elif type(col) == MuColliderWheel:
-            obj.muproperties.collider = 'MU_COL_WHEEL'
-            obj.muproperties.radius = col.radius
-            obj.muproperties.suspensionDistance = col.suspensionDistance
-            obj.muproperties.center = col.center
-            copy_spring(obj.muproperties.suspensionSpring, col.suspensionSpring)
-            copy_friction(obj.muproperties.forwardFriction, col.forwardFriction)
-            copy_friction(obj.muproperties.sideFriction, col.sidewaysFriction)
     if hasattr(muobj, "shared_mesh"):
         mesh = create_mesh(mu, muobj.shared_mesh, muobj.transform.name)
         obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
@@ -210,6 +217,9 @@ def create_object(mu, muobj, parent, create_colliders, parents):
     if hasattr(muobj, "tag_and_layer"):
         obj.muproperties.tag = muobj.tag_and_layer.tag
         obj.muproperties.layer = muobj.tag_and_layer.layer
+    if hasattr(muobj, "collider"):
+        cobj = create_collider(mu, muobj)
+        cobj.parent = obj
     obj.parent = parent
     for child in muobj.children:
         create_object(mu, child, obj, create_colliders, parents)
