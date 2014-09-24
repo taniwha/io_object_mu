@@ -313,8 +313,10 @@ def make_obj(mu, obj):
     muobj = MuObject()
     muobj.transform = make_transform (obj)
     muobj.tag_and_layer = make_tag_and_layer(obj)
-    if obj.muproperties.collider != 'MU_COL_NONE':
-        muobj.collider = make_collider(mu, obj)
+    if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
+        # colliders are children of the object representing the transform so
+        # they are never exported directly.
+        pass
     elif obj.data:
         if type(obj.data) == bpy.types.Mesh:
             muobj.shared_mesh = make_mesh(mu, obj)
@@ -331,6 +333,10 @@ def make_obj(mu, obj):
             rot = Quaternion((0.5**0.5,-0.5**0.5,0,0))
             muobj.transform = rot * muobj.transform
     for o in obj.children:
+        muprops = o.muproperties
+        if muprops.collider and muprops.collider != 'MU_COL_NONE':
+            muobj.collider = make_collider(mu, o)
+            continue
         if (o.data and type(o.data) != bpy.types.Mesh):
             continue
         muobj.children.append(make_obj(mu, o))
