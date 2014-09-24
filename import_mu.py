@@ -116,11 +116,20 @@ def create_action(mu, path, clip):
     actions = {}
     fps = bpy.context.scene.render.fps
     for curve in clip.curves:
+        if not curve.path:
+            #FIXME need to look into this more as I'm not sure if the animation
+            # is broken or if the property is somewhere weird
+            continue
         name = ".".join([curve.path, clip.name])
         if name not in actions:
             actions[name] = bpy.data.actions.new(name)
         act = actions[name]
-        obj = mu.objects["/".join([path, curve.path])]
+        pth = "/".join([path, curve.path])
+        try:
+            obj = mu.objects[pth]
+        except KeyError:
+            print("Unknown path: %s" % (pth))
+            continue
         try:
             dp, ind, mult = property_map[curve.property]
         except KeyError:
