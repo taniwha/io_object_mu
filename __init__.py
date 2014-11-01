@@ -24,7 +24,7 @@
 bl_info = {
     "name": "Mu model format (KSP)",
     "author": "Bill Currie",
-    "blender": (2, 6, 3),
+    "blender": (2, 7, 0),
     "api": 35622,
     "location": "File > Import-Export",
     "description": "Import-Export KSP Mu format files. (.mu)",
