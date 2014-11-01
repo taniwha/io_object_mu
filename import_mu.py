@@ -226,7 +226,7 @@ def create_object(mu, muobj, parent, create_colliders, parents):
     if hasattr(muobj, "tag_and_layer"):
         obj.muproperties.tag = muobj.tag_and_layer.tag
         obj.muproperties.layer = muobj.tag_and_layer.layer
-    if hasattr(muobj, "collider"):
+    if create_colliders and hasattr(muobj, "collider"):
         cobj = create_collider(mu, muobj)
         cobj.parent = obj
     obj.parent = parent
