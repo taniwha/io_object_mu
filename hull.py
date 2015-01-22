@@ -111,21 +111,29 @@ def get_convex_hull(mesh):
                 best = (p, q)
                 bestd = r
     a, b = best
-    c = a
+    c = None
     bestd = 0
     for p in points:
-        r = dist2(mesh, a, c) + dist2(mesh, b, c)
+        if p in (a, b):
+            continue
+        r = dist2(mesh, a, p) + dist2(mesh, b, p)
         if r > bestd:
             c = p
             bestd = r
+    if c in (a, b) or c == None:
+        raise
     bestd = 0
-    d = a
+    d = None
     tri = Triangle(mesh,a,b,c)
     for p in range(len(mesh.verts)):
+        if p in (a, b, c):
+            continue
         r = tri.dist(p)
         if r**2 > bestd**2:
             d = p
             bestd = r
+    if d in (a, b, c) or d == None:
+        raise
     if bestd > 0:
         b,c = c, b
     faces = [Triangle(mesh, a, b, c),
@@ -187,14 +195,15 @@ def make_mesh(mesh, hull):
 
 def find_colliders(obj, level=0):
     if hasattr(obj, "collider") and isinstance(obj.collider, MuColliderMesh):
+        m=obj.collider.mesh
         hull = get_convex_hull (obj.collider.mesh)
         obj.collider.mesh = make_mesh(obj.collider.mesh, hull)
+        m=obj.collider.mesh
     for child in obj.children:
         find_colliders(child, level+1)
 
 def main():
-    #fname = sys.argv[1]
-    fname = "/home/bill/ksp/KSP_linux/GameData/JARFR_THSS/Parts/Structural/JARFR_TriStrut/model.mu"
+    fname = sys.argv[1]
     mu = Mu()
     if not mu.read(fname):
         print("could not read: " + fname)
