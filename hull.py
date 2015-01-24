@@ -203,12 +203,16 @@ def find_colliders(obj, level=0):
         find_colliders(child, level+1)
 
 def main():
+    if len(sys.argv) != 3:
+        print("hull.py <in-name> <out-name>")
+        sys.exit(1)
     fname = sys.argv[1]
+    oname = sys.argv[2]
     mu = Mu()
     if not mu.read(fname):
         print("could not read: " + fname)
-        raise
+        sys.exit(1)
     find_colliders(mu.obj)
-    mu.write("out.mu")
+    mu.write(oname)
 
 main()
