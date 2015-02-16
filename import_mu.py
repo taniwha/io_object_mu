@@ -21,7 +21,7 @@
 
 from struct import unpack
 import os.path
-from math import pi
+from math import pi, sqrt
 
 import bpy
 from bpy_extras.object_utils import object_data_add
@@ -242,16 +242,13 @@ def convert_bump(pixels, width, height):
     outp = list(pixels)
     for y in range(1, height - 1):
         for x in range(1, width - 1):
-            i = ((y * width + x) * 4,
-                 (y * width + x - 1) * 4,
-                 (y * width + x + 1) * 4,
-                 ((y - 1) * width + x) * 4,
-                 ((y + 1) * width + x) * 4)
-            dx = Vector((1, 0, (pixels[i[2]] - pixels[i[1]]) / 2.0))
-            dy = Vector((0, 1, (pixels[i[4]] - pixels[i[3]]) / 2.0))
-            n = dx.cross(dy)
-            n.normalize()
-            outp[i[0]:i[0]+3] = map(lambda x: int(x * 127) + 128, list(n))
+            index = (y * width + x) * 4
+            p = pixels[index:index + 4]
+            nx = (p[3]-128) / 127.
+            nz = (p[2]-128) / 127.
+            #n = [p[3],p[2],int(sqrt(1-nx**2-nz**2)*127 + 128),255]
+            n = [p[3],p[2],255,255]
+            outp[index:index + 4] = n
     return outp
 
 
