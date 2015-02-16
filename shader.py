@@ -53,6 +53,7 @@ bumpmap_block = (
     ("link", "bumpMap", "Normal", "mainMaterial", "Normal"),
     ("call", "bumpMap", "material.texture_slots.add()"),
     ("settex", "bumpMap", "material.texture_slots[0].texture", "bumpMap"),
+    ("setval", "bumpMap", "material.texture_slots[0].texture.use_normal_map", True),
     ("setval", "bumpMap", "material.texture_slots[0].texture_coords", 'UV'),
     ("setval", "bumpMap", "material.texture_slots[0].use_map_color_diffuse", False),
     ("setval", "bumpMap", "material.texture_slots[0].use_map_normal", True),
