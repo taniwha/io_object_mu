@@ -210,6 +210,8 @@ def create_object(mu, muobj, parent, create_colliders, parents):
     mesh = None
     if hasattr(muobj, "shared_mesh"):
         mesh = create_mesh(mu, muobj.shared_mesh, muobj.transform.name)
+        for poly in mesh.polygons:
+            poly.use_smooth = True
         obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
     if hasattr(muobj, "renderer"):
         if mesh:
