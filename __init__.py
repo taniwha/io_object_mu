@@ -87,29 +87,6 @@ class ExportMu(bpy.types.Operator, ExportHelper):
         keywords = self.as_keywords (ignore=("check_existing", "filter_glob"))
         return export_mu.export_mu(self, context, **keywords)
 
-"""
-class MDLPanel(bpy.types.Panel):
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = 'object'
-    bl_label = 'QF MDL'
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.active_object
-        return obj and obj.type == 'MESH'
-
-    def draw(self, context):
-        layout = self.layout
-        obj = context.active_object
-        layout.prop(obj.qfmdl, "eyeposition")
-        layout.prop(obj.qfmdl, "synctype")
-        layout.prop(obj.qfmdl, "rotate")
-        layout.prop(obj.qfmdl, "effects")
-        layout.prop(obj.qfmdl, "script")
-        layout.prop(obj.qfmdl, "xform")
-        layout.prop(obj.qfmdl, "md16")
-"""
 
 def menu_func_import(self, context):
     self.layout.operator(ImportMu.bl_idname, text="KSP Mu (.mu)")
