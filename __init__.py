@@ -55,6 +55,8 @@ class ImportMu(bpy.types.Operator, ImportHelper):
     '''Load a KSP Mu (.mu) File'''
     bl_idname = "import_object.ksp_mu"
     bl_label = "Import Mu"
+    bl_description = """Import a KSP .mu model."""
+    bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = ".mu"
     filter_glob = StringProperty(default="*.mu", options={'HIDDEN'})

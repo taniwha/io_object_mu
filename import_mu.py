@@ -331,6 +331,7 @@ def import_mu(self, context, filepath, create_colliders):
 
     mu = Mu()
     if not mu.read(filepath):
+        bpy.context.user_preferences.edit.use_global_undo = undo
         operator.report({'ERROR'},
             "Unrecognized format: %s %d" % (mu.magic, mu.version))
         return {'CANCELLED'}
