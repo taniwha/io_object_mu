@@ -746,7 +746,7 @@ class MuCamera:
         self.clearFlags = mu.read_int()
         self.backgroundColor = mu.read_float(4)
         self.cullingMask = mu.read_int()
-        self.orthographic = mu.read_int()
+        self.orthographic = mu.read_byte()
         self.fov = mu.read_float()
         self.near = mu.read_float()
         self.far = mu.read_float()
