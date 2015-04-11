@@ -150,22 +150,22 @@ def node_link(name, nodes, links, s):
 
 def node_set(name, matprops, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
-    exec ("n.%s = matprops.%s" % (s[2], s[3]), {}, locals())
+    exec("n.%s = matprops.%s" % (s[2], s[3]), {}, locals())
 
 def node_settex(name, matprops, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
     tex = getattr(matprops,s[3])
     if tex.tex in bpy.data.textures:
         tex = bpy.data.textures[tex.tex]
-        exec ("n.%s = tex" % s[2], {}, locals())
+        exec("n.%s = tex" % s[2], {}, locals())
 
 def node_setval(name, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
-    exec ("n.%s = %s" % (s[2], repr(s[3])), {}, locals())
+    exec("n.%s = %s" % (s[2], repr(s[3])), {}, locals())
 
 def node_call(name, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
-    exec ("n.%s" % s[2], {}, locals())
+    exec("n.%s" % s[2], {}, locals())
 
 def create_nodes(mat):
     mat.use_nodes = True
