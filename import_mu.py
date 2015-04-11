@@ -275,7 +275,7 @@ def load_mbm(mbmpath):
     return width, height, pixels
 
 def load_image(name, path):
-    if name[-4:].lower() in [".png", ".tga"]:
+    if name[-4:].lower() in [".dds", ".png", ".tga"]:
         bpy.data.images.load(os.path.join(path, name))
     elif name[-4:].lower() == ".mbm":
         w,h, pixels = load_mbm(os.path.join(path, name))
@@ -284,7 +284,7 @@ def load_image(name, path):
         img.pack(True)
 
 def create_textures(mu, path):
-    extensions = [".mbm", ".tga", ".png"]
+    extensions = [".dds", ".mbm", ".tga", ".png"]
     #texture info is in the top level object
     for tex in mu.textures:
         base, ext = os.path.splitext(tex.name)
