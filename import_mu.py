@@ -111,53 +111,61 @@ property_map = {
     "m_LocalScale.z": ("scale", 1, 1),
 }
 
-def create_action(mu, path, clip):
-    act = bpy.data.actions.new(clip.name)
-    actions = {}
+def create_fcurve(action, curve):
+    try:
+        dp, ind, mult = property_map[curve.property]
+    except KeyError:
+        print("%s: Unknown property: %s" % (curve.path, curve.property))
+        return False
     fps = bpy.context.scene.render.fps
+    fc = action.fcurves.new(data_path = dp, index = ind)
+    fc.keyframe_points.add(len(curve.keys))
+    for i, key in enumerate(curve.keys):
+        x,y = key.time * fps, key.value * mult
+        fc.keyframe_points[i].co = x, y
+        fc.keyframe_points[i].handle_left_type = 'FREE'
+        fc.keyframe_points[i].handle_right_type = 'FREE'
+        if i > 0:
+            dist = (key.time - curve.keys[i - 1].time) / 3
+            dx, dy = dist * fps, key.tangent[0] * dist * mult
+        else:
+            dx, dy = 10, 0.0
+        fc.keyframe_points[i].handle_left = x - dx, y - dy
+        if i < len(curve.keys) - 1:
+            dist = (curve.keys[i + 1].time - key.time) / 3
+            dx, dy = dist * fps, key.tangent[1] * dist * mult
+        else:
+            dx, dy = 10, 0.0
+        fc.keyframe_points[i].handle_right = x + dx, y + dy
+    return True
+
+def create_action(mu, path, clip):
+    print(clip.name)
+    actions = {}
     for curve in clip.curves:
         if not curve.path:
             #FIXME need to look into this more as I'm not sure if the animation
             # is broken or if the property is somewhere weird
             continue
-        name = ".".join([curve.path, clip.name])
+        name = ".".join([clip.name, curve.path])
         if name not in actions:
-            actions[name] = bpy.data.actions.new(name)
-        act = actions[name]
-        pth = "/".join([path, curve.path])
-        try:
-            obj = mu.objects[pth]
-        except KeyError:
-            print("Unknown path: %s" % (pth))
+            mu_path = "/".join([path, curve.path])
+            try:
+                obj = mu.objects[mu_path]
+            except KeyError:
+                print("Unknown path: %s" % (mu_path))
+                continue
+            actions[name] = bpy.data.actions.new(name), obj
+        act, obj = actions[name]
+        if not create_fcurve(act, curve):
             continue
-        try:
-            dp, ind, mult = property_map[curve.property]
-        except KeyError:
-            print("%s: Unknown property: %s" % (curve.path, curve.property))
-            continue
-        fc = act.fcurves.new(data_path = dp, index = ind)
-        fc.keyframe_points.add(len(curve.keys))
-        for i, key in enumerate(curve.keys):
-            x,y = key.time * fps, key.value * mult
-            fc.keyframe_points[i].co = x, y
-            fc.keyframe_points[i].handle_left_type = 'FREE'
-            fc.keyframe_points[i].handle_right_type = 'FREE'
-            if i > 0:
-                dist = (key.time - curve.keys[i - 1].time) / 3
-                dx, dy = dist * fps, key.tangent[0] * dist * mult
-            else:
-                dx, dy = 10, 0.0
-            fc.keyframe_points[i].handle_left = x - dx, y - dy
-            if i < len(curve.keys) - 1:
-                dist = (curve.keys[i + 1].time - key.time) / 3
-                dx, dy = dist * fps, key.tangent[1] * dist * mult
-            else:
-                dx, dy = 10, 0.0
-            fc.keyframe_points[i].handle_right = x + dx, y + dy
+    for name in actions:
+        act, obj = actions[name]
         if not obj.animation_data:
             obj.animation_data_create()
-            track = obj.animation_data.nla_tracks.new()
-            track.strips.new(act.name, 1.0, act)
+        track = obj.animation_data.nla_tracks.new()
+        track.name = clip.name
+        track.strips.new(act.name, 1.0, act)
 
 def create_collider(mu, muobj):
     col = muobj.collider
