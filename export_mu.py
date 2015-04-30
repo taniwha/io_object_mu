@@ -284,6 +284,14 @@ def make_material(mu, mat):
         material.color = matprops.color
     elif matprops.shader == 'KSP/Diffuse':
         material.mainTex = make_texture(mu, matprops.mainTex, 0)
+    elif matprops.shader == 'KSP/Particles/Alpha Blended':
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
+        material.color = matprops.color
+        material.invFade = matprops.invFade
+    elif matprops.shader == 'KSP/Particles/Additive':
+        material.mainTex = make_texture(mu, matprops.mainTex, 0)
+        material.color = matprops.color
+        material.invFade = matprops.invFade
     return material
 
 def make_renderer(mu, mesh):

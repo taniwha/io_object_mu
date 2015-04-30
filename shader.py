@@ -101,6 +101,8 @@ ksp_alpha_translucent_specular = ()
 ksp_unlit_transparent = ()
 ksp_unlit = ()
 ksp_diffuse = mainTex_block
+ksp_particles_alpha_blended = mainTex_block
+ksp_particles_additive = mainTex_block
 
 ksp_shaders = {
 "KSP/Specular":ksp_specular,
@@ -116,6 +118,8 @@ ksp_shaders = {
 "KSP/Alpha/Unlit Transparent":ksp_unlit_transparent,
 "KSP/Unlit":ksp_unlit,
 "KSP/Diffuse":ksp_diffuse,
+"KSP/Particles/Alpha Blended":ksp_particles_alpha_blended,
+"KSP/Particles/Additive":ksp_particles_additive,
 }
 
 shader_items=(
@@ -133,6 +137,8 @@ shader_items=(
     ('KSP/Alpha/Unlit Transparent', "KSP/Alpha/Unlit Transparent", ""),
     ('KSP/Unlit', "KSP/Unlit", ""),
     ('KSP/Diffuse', "KSP/Diffuse", ""),
+    ('KSP/Particles/Alpha Blended', "KSP/Particles/Alpha Blended", ""),
+    ('KSP/Particles/Additive', "KSP/Particles/Additive", ""),
 )
 
 def node_node(name, nodes, s):
@@ -293,6 +299,7 @@ class MuMaterialProperties(bpy.types.PropertyGroup):
     cutoff = FloatProperty(name="cutoff", min=0, max=1, update=shader_update("cutoff"))
     gloss = FloatProperty(name="gloss", update=shader_update("gloss"))
     color = FloatVectorProperty(name="color", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=shader_update("color"))
+    invFade = FloatProperty(name="invFade", min=0, max=1, update=shader_update("cutoff"))
 
 class MuMaterialPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
