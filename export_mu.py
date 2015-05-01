@@ -28,6 +28,7 @@ from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer
 from .mu import MuColliderBox, MuColliderWheel, MuMaterial, MuTexture, MuMatTex
 from .mu import MuSpring, MuFriction
+from .mu import MuAnimation, MuClip, MuCurve, MuKey
 from .shader import make_shader
 from . import properties
 
@@ -317,9 +318,13 @@ def make_light(mu, light):
         mulight.spotAngle = light.spot_size * 180 / pi
     return mulight
 
-def make_obj(mu, obj):
+def make_obj(mu, obj, path = ""):
     muobj = MuObject()
     muobj.transform = make_transform (obj)
+    if path:
+        path += "/"
+    path += muobj.transform.name
+    mu.objects[path] = muobj
     muobj.tag_and_layer = make_tag_and_layer(obj)
     if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
         # colliders are children of the object representing the transform so
@@ -347,12 +352,121 @@ def make_obj(mu, obj):
             continue
         if (o.data and type(o.data) != bpy.types.Mesh):
             continue
-        muobj.children.append(make_obj(mu, o))
+        muobj.children.append(make_obj(mu, o, path))
     return muobj
+
+def collect_animations(obj, path=""):
+    animations = {}
+    if path:
+        path += "/"
+    path += strip_nnn(obj.name)
+    if obj.animation_data:
+        for track in obj.animation_data.nla_tracks:
+            if track.strips:
+                animations[track.name] = [(track, path)]
+    for o in obj.children:
+        sub_animations = collect_animations(o, path)
+        for sa in sub_animations:
+            if sa not in animations:
+                animations[sa] = sub_animations[sa]
+            else:
+                animations[sa].extend(sub_animations[sa])
+    return animations
+
+def find_path_root(animations):
+    paths = {}
+    for clip in animations:
+        for data in animations[clip]:
+            objects = data[1].split("/")
+            p = paths
+            for o in objects:
+                if not o in p:
+                    p[o] = {}
+                p = p[o]
+    path_root = ""
+    p = paths
+    while len(p) == 1:
+        if path_root:
+            path_root += "/"
+        o = list(p)[0]
+        path_root += o
+        p = p[o]
+    return path_root
+
+def make_key(key, mult):
+    fps = bpy.context.scene.render.fps
+    mukey = MuKey()
+    x, y = key.co
+    mukey.time = x / fps
+    mukey.value = y * mult
+    dx, dy = key.handle_left
+    dx = (x - dx) / fps
+    dy = (y - dy) * mult
+    t1 = dy / dx
+    dx, dy = key.handle_right
+    dx = (dx - x) / fps
+    dy = (dy - y) * mult
+    t2 = dy / dx
+    mukey.tangent = t1, t2
+    mukey.tangentMode = 0
+    return mukey
+
+property_map = {
+    "location":(
+        ("m_LocalPosition.x", 1),
+        ("m_LocalPosition.z", 1),
+        ("m_LocalPosition.y", 1),
+    ),
+    "rotation_quaternion":(
+        ("m_LocalRotation.w", 1),
+        ("m_LocalRotation.x", -1),
+        ("m_LocalRotation.z", -1),
+        ("m_LocalRotation.y", -1),
+    ),
+    "scale":(
+        ("m_LocalScale.x", 1),
+        ("m_LocalScale.z", 1),
+        ("m_LocalScale.y", 1),
+    ),
+}
+
+def make_curve(mu, curve, path):
+    mucurve = MuCurve()
+    mucurve.path = path
+    property, mult = property_map[curve.data_path][curve.array_index]
+    mucurve.property = property
+    mucurve.type = 0
+    mucurve.wrapMode = (8, 8)
+    mucurve.keys = []
+    for key in curve.keyframe_points:
+        mucurve.keys.append(make_key(key, mult))
+    return mucurve
+
+def make_animations(mu, animations, anim_root):
+    anim = MuAnimation()
+    anim.clip = ""
+    anim.autoPlay = False
+    for clip_name in animations:
+        clip = MuClip()
+        clip.name = clip_name
+        clip.lbCenter = (0, 0, 0)
+        clip.lbSize = (0, 0, 0)
+        clip.wrapMode = 0   #FIXME
+        for data in animations[clip_name]:
+            track, path = data
+            path = path[len(anim_root) + 1:]
+            strip = track.strips[0]
+            for curve in strip.action.fcurves:
+                clip.curves.append(make_curve(mu, curve, path))
+        anim.clips.append(clip)
+    return anim
 
 def export_mu(operator, context, filepath):
     obj = context.active_object
+    animations = collect_animations(obj)
+    anim_root = find_path_root(animations)
     mu = Mu()
+    mu.objects = {}
     mu.materials = {}
     mu.textures = {}
     mu.obj = make_obj(mu, obj)
@@ -360,5 +474,7 @@ def export_mu(operator, context, filepath):
     mu.materials.sort(key=lambda x: x.index)
     mu.textures = list(mu.textures.values())
     mu.textures.sort(key=lambda x: x.index)
+    anim_root_obj = mu.objects[anim_root]
+    anim_root_obj.animation = make_animations(mu, animations, anim_root)
     mu.write(filepath)
     return {'FINISHED'}
