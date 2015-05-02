@@ -936,7 +936,7 @@ class MuObject:
                 for i in range(tex_count):
                     mu.textures.append(MuTexture().read(mu))
             else:
-                print(entry_type, hex(mu.file.tell()))
+                #print(entry_type, hex(mu.file.tell()))
                 pass
         return self
     def write(self, mu):

@@ -140,7 +140,7 @@ def create_fcurve(action, curve):
     return True
 
 def create_action(mu, path, clip):
-    print(clip.name)
+    #print(clip.name)
     actions = {}
     for curve in clip.curves:
         if not curve.path:
