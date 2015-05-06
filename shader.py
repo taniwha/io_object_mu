@@ -19,6 +19,7 @@
 
 # <pep8 compliant>
 
+import sys, traceback
 from struct import unpack
 
 import bpy
@@ -183,18 +184,23 @@ def create_nodes(mat):
         nodes.remove(nodes[0])
     shader = ksp_shaders[mat.mumatprop.shader]
     for s in shader:
-        if s[0] == "node":
-            node_node(mat.name, nodes, s)
-        elif s[0] == "link":
-            node_link(mat.name, nodes, links, s)
-        elif s[0] == "set":
-            node_set(mat.name, mat.mumatprop, nodes, s)
-        elif s[0] == "settex":
-            node_settex(mat.name, mat.mumatprop, nodes, s)
-        elif s[0] == "setval":
-            node_setval(mat.name, nodes, s)
-        elif s[0] == "call":
-            node_call(mat.name, nodes, s)
+        print(s)
+        try :
+            if s[0] == "node":
+                node_node(mat.name, nodes, s)
+            elif s[0] == "link":
+                node_link(mat.name, nodes, links, s)
+            elif s[0] == "set":
+                node_set(mat.name, mat.mumatprop, nodes, s)
+            elif s[0] == "settex":
+                node_settex(mat.name, mat.mumatprop, nodes, s)
+            elif s[0] == "setval":
+                node_setval(mat.name, nodes, s)
+            elif s[0] == "call":
+                node_call(mat.name, nodes, s)
+        except:
+           print("Exception in node setup code:")
+           traceback.print_exc(file=sys.stdout)
 
 def set_tex(mu, dst, src):
     try:
