@@ -474,7 +474,8 @@ def export_mu(operator, context, filepath):
     mu.materials.sort(key=lambda x: x.index)
     mu.textures = list(mu.textures.values())
     mu.textures.sort(key=lambda x: x.index)
-    anim_root_obj = mu.objects[anim_root]
-    anim_root_obj.animation = make_animations(mu, animations, anim_root)
+    if anim_root:
+        anim_root_obj = mu.objects[anim_root]
+        anim_root_obj.animation = make_animations(mu, animations, anim_root)
     mu.write(filepath)
     return {'FINISHED'}
