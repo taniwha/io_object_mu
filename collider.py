@@ -192,6 +192,35 @@ def add_collider(self, context):
         obj.muproperties.center = self.center
     return {'FINISHED'}
 
+def add_mesh_colliders(self, context):
+    operator = self
+    undo = bpy.context.user_preferences.edit.use_global_undo
+    bpy.context.user_preferences.edit.use_global_undo = False
+
+    for obj in bpy.context.scene.objects:
+        if not obj.select:
+            continue
+        obj.select = False
+        if obj.type != 'MESH':
+            continue
+        name = obj.name + ".collider"
+        col = bpy.data.objects.new(name, obj.data)
+        col.parent = obj
+        col.select = True
+        context.scene.objects.link(col)
+        col.muproperties.collider = 'MU_COL_MESH'
+
+    context.user_preferences.edit.use_global_undo = True
+    return {'FINISHED'}
+
+class ColliderFromMesh(bpy.types.Operator):
+    """Add Mesh Collider to Selected Meshes"""
+    bl_idname = "mucollider.from_mesh"
+    bl_label = "Add Mesh Collideri to Selected Meshes"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        return add_mesh_colliders(self, context)
 
 class ColliderMesh(bpy.types.Operator):
     """Add Mesh Collider"""
@@ -266,5 +295,32 @@ class INFO_MT_mucollider_add(bpy.types.Menu):
         layout.operator("mucollider.box", text = "Box");
         layout.operator("mucollider.wheel", text = "Wheel");
 
+class VIEW3D_PT_tools_mu_collider(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_category = "Mu Collider"
+    bl_context = "objectmode"
+    bl_label = "Add Mu Collider"
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        col.label(text="Single Collider:")
+        layout.operator("mucollider.mesh", text = "Mesh");
+        layout.operator("mucollider.sphere", text = "Sphere");
+        layout.operator("mucollider.capsule", text = "Capsule");
+        layout.operator("mucollider.box", text = "Box");
+        layout.operator("mucollider.wheel", text = "Wheel");
+
+        col = layout.column(align=True)
+        col.label(text="Multiple Colliders:")
+        layout.operator("mucollider.from_mesh", text = "Selected Meshes");
+
 def menu_func(self, context):
     self.layout.menu("INFO_MT_mucollider_add", icon='PLUGIN')
+
+def register():
+    bpy.types.INFO_MT_add.append(menu_func)
+
+def unregister():
+    bpy.types.INFO_MT_add.append(menu_func)

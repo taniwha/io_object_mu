@@ -105,7 +105,7 @@ def register():
     bpy.types.INFO_MT_file_export.append(menu_func_export)
 
     properties.register()
-    bpy.types.INFO_MT_add.append(collider.menu_func)
+    collider.register()
     shader.register()
 
 def unregister():
@@ -114,7 +114,7 @@ def unregister():
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
     properties.unregister()
-    bpy.types.INFO_MT_add.remove(collider.menu_func)
+    collider.unregister()
 
 if __name__ == "__main__":
     register()
