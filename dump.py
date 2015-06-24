@@ -64,6 +64,10 @@ def dump_mesh(name, mu, mesh, level):
 	print("%s Mesh: %s = %s" % ("	 " * level, name, str(mesh)))
 	dump_thing(mesh, mu, level, [], mesh_dump_funcs)
 
+def dump_skinnedmeshrenderer(name, mu, mesh, level):
+	print("%s SkinnedMeshRenderer: %s = %s" % ("	 " * level, name, str(mesh)))
+	dump_thing(mesh, mu, level + 1, [], {})
+
 def dump_light(name, mu, mesh, level):
 	print("%s Light: %s" % ("	 " * level, name))
 	dump_thing(mesh, mu, level, [], mesh_dump_funcs)
@@ -110,6 +114,7 @@ def dump_animation(name, mu, ani, level):
 object_dump_funcs={
 	"MuRenderer": dump_renderer,
 	"MuMesh": dump_mesh,
+	"MuSkinnedMeshRenderer": dump_skinnedmeshrenderer,
 	"MuLight": dump_light,
 	"MuColliderMesh": dump_collider,
 	"MuColliderSphere": dump_collider,
