@@ -44,7 +44,10 @@ def make_transform(obj):
     transform = MuTransform()
     transform.name = strip_nnn(obj.name)
     transform.localPosition = obj.location
-    transform.localRotation = obj.rotation_quaternion
+    if obj.rotation_mode != 'QUATERNION':
+      transform.localRotation = obj.rotation_euler.to_quaternion()
+    else:
+      transform.localRotation = obj.rotation_quaternion
     transform.localScale = obj.scale
     return transform
 
