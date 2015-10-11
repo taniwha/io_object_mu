@@ -284,7 +284,21 @@ def load_mbm(mbmpath):
 
 def load_image(name, path):
     if name[-4:].lower() in [".dds", ".png", ".tga"]:
-        bpy.data.images.load(os.path.join(path, name))
+        img = bpy.data.images.load(os.path.join(path, name))
+        if name[-4:].lower() == ".dds":
+            pixels = list(img.pixels[:])
+            rowlen = img.size[0] * 4
+            height = img.size[1]
+            for y in range(int(height/2)):
+                ind1 = y * rowlen
+                ind2 = (height - 1 - y) * rowlen
+                t = pixels[ind1 : ind1 + rowlen]
+                pixels[ind1:ind1+rowlen] = pixels[ind2:ind2+rowlen]
+                pixels[ind2:ind2+rowlen] = t
+            if name[-6:-4] == "_n":
+                pixels = convert_bump(pixels, img.size[0], height)
+            img.pixels = pixels[:]
+            img.pack(True)
     elif name[-4:].lower() == ".mbm":
         w,h, pixels = load_mbm(os.path.join(path, name))
         img = bpy.data.images.new(name, w, h)
