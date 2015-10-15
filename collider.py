@@ -188,7 +188,6 @@ def add_collider(self, context):
     obj.select = True
     context.scene.objects.link(obj)
     bpy.context.scene.objects.active=obj
-    context.user_preferences.edit.use_global_undo = True
     if type(self) == ColliderMesh:
         obj.muproperties.collider = 'MU_COL_MESH'
     elif type(self) == ColliderSphere:
@@ -211,6 +210,7 @@ def add_collider(self, context):
         obj.muproperties.collider = 'MU_COL_WHEEL'
 
     build_collider(obj)
+    context.user_preferences.edit.use_global_undo = True
     return {'FINISHED'}
 
 def add_mesh_colliders(self, context):

@@ -173,15 +173,8 @@ def create_collider(mu, muobj):
     if type(col) == MuColliderMesh:
         name = name + ".collider"
         mesh = create_mesh(mu, col.mesh, name)
-    elif type(col) == MuColliderSphere:
-        mesh = collider.sphere(name, col.center, col.radius)
-    elif type(col) == MuColliderCapsule:
-        mesh = collider.capsule(name, col.center, col.radius, col.height,
-                                col.direction)
-    elif type(col) == MuColliderBox:
-        mesh = collider.box(name, col.center, col.size)
-    elif type(col) == MuColliderWheel:
-        mesh = collider.wheel(name, col.center, col.radius)
+    else:
+        mesh = bpy.data.meshes.new(name)
     obj = create_mesh_object(name, mesh, None)
 
     obj.muproperties.isTrigger = False
@@ -190,21 +183,20 @@ def create_collider(mu, muobj):
     if type(col) == MuColliderMesh:
         obj.muproperties.collider = 'MU_COL_MESH'
     elif type(col) == MuColliderSphere:
-        obj.muproperties.collider = 'MU_COL_SPHERE'
         obj.muproperties.radius = col.radius
         obj.muproperties.center = col.center
+        obj.muproperties.collider = 'MU_COL_SPHERE'
     elif type(col) == MuColliderCapsule:
-        obj.muproperties.collider = 'MU_COL_CAPSULE'
         obj.muproperties.radius = col.radius
         obj.muproperties.height = col.height
         obj.muproperties.direction = properties.dir_map[col.direction]
         obj.muproperties.center = col.center
+        obj.muproperties.collider = 'MU_COL_CAPSULE'
     elif type(col) == MuColliderBox:
-        obj.muproperties.collider = 'MU_COL_BOX'
         obj.muproperties.size = col.size
         obj.muproperties.center = col.center
+        obj.muproperties.collider = 'MU_COL_BOX'
     elif type(col) == MuColliderWheel:
-        obj.muproperties.collider = 'MU_COL_WHEEL'
         obj.muproperties.radius = col.radius
         obj.muproperties.suspensionDistance = col.suspensionDistance
         obj.muproperties.center = col.center
@@ -212,6 +204,9 @@ def create_collider(mu, muobj):
         copy_spring(obj.muproperties.suspensionSpring, col.suspensionSpring)
         copy_friction(obj.muproperties.forwardFriction, col.forwardFriction)
         copy_friction(obj.muproperties.sideFriction, col.sidewaysFriction)
+        obj.muproperties.collider = 'MU_COL_WHEEL'
+    if type(col) != MuColliderMesh:
+        collider.build_collider(obj)
     return obj
 
 def create_object(mu, muobj, parent, create_colliders, parents):
