@@ -400,6 +400,7 @@ def make_key(key, mult):
     fps = bpy.context.scene.render.fps
     mukey = MuKey()
     x, y = key.co
+    x -= bpy.context.scene.frame_start
     mukey.time = x / fps
     mukey.value = y * mult
     dx, dy = key.handle_left
