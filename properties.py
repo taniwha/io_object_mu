@@ -32,12 +32,31 @@ class MuSpringProp(bpy.types.PropertyGroup):
     damper = FloatProperty(name = "Damper")
     targetPosition = FloatProperty(name = "Target")
 
+    def draw(self, context, layout):
+        row = layout.row()
+        col = row.column()
+        col.prop(self, "spring")
+        col.prop(self, "damper")
+        col.prop(self, "targetPosition")
+
 class MuFrictionProp(bpy.types.PropertyGroup):
     extremumSlip = FloatProperty(name = "Slip")
     extremumValue = FloatProperty(name = "Value")
     asymptoteSlip = FloatProperty(name = "Slip")
     asymptoteValue = FloatProperty(name = "Value")
     stiffness = FloatProperty(name = "Stiffness")
+
+    def draw(self, context, layout):
+        row = layout.row()
+        col = row.column()
+        col.label("Extremum")
+        col.prop(self, "extremumSlip")
+        col.prop(self, "extremumValue")
+        col.label("Asymptote")
+        col.prop(self, "asymptoteSlip")
+        col.prop(self, "asymptoteValue")
+        col.separator()
+        col.prop(self, "stiffness")
 
 dir_map = {
     'MU_X':0,
@@ -155,9 +174,15 @@ class MuColliderPanel(bpy.types.Panel):
             col.prop(muprops, "center")
             col.prop(muprops, "mass")
             col.prop(muprops, "suspensionDistance")
-            col.prop(muprops, "suspensionSpring")
-            col.prop(muprops, "forwardFriction")
-            col.prop(muprops, "sideFriction")
+            box = col.box()
+            box.label("Suspension")
+            muprops.suspensionSpring.draw(context, box)
+            box = col.box()
+            box.label("Forward Friction")
+            muprops.forwardFriction.draw(context, box.box())
+            box = col.box()
+            box.label("Side Friction")
+            muprops.sideFriction.draw(context, box.box())
 
 def register():
     bpy.types.Object.muproperties = PointerProperty(type=MuProperties)
