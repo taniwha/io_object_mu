@@ -20,6 +20,7 @@
 # <pep8 compliant>
 
 import bpy
+import bmesh
 from bpy_extras.object_utils import object_data_add
 from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
@@ -87,7 +88,7 @@ collider_wheel_ve = (
     [( 0, 1), ( 1, 2), ( 2, 3), ( 3, 4), ( 4, 5), ( 5, 6),
      ( 6, 7), ( 7, 8), ( 8, 9), ( 9,10), (10,11), (11, 0)])
 
-def make_collider(name, vex_list):
+def make_collider_mesh(mesh, vex_list):
     verts = []
     edges = []
     for vex in vex_list:
@@ -95,8 +96,16 @@ def make_collider(name, vex_list):
         base = len(verts)
         verts.extend(list(map(lambda x: m * Vector(x), v)))
         edges.extend(list(map(lambda x: (x[0] + base, x[1] + base), e)))
-    mesh = bpy.data.meshes.new(name)
-    mesh.from_pydata(verts, edges, [])
+    if mesh.vertices:
+        bm = bmesh.new()
+        bv = [None] * len(verts)
+        for i, v in enumerate(verts):
+            bv[i] = bm.verts.new (v)
+        for e in edges:
+            bm.edges.new((bv[e[0]], bv[e[1]]))
+        bm.to_mesh(mesh)
+    else:
+        mesh.from_pydata(verts, edges, [])
     return mesh
 
 def translate(d):
@@ -112,12 +121,12 @@ def scale(s):
 def rotate(r):
     return Quaternion(r).normalized().to_matrix().to_4x4()
 
-def sphere(name, center, radius):
+def sphere(mesh, center, radius):
     m = translate(center) * scale((radius,)*3)
     col = (collider_sphere_ve + (m,)),
-    return make_collider(name, col)
+    make_collider_mesh(mesh, col)
 
-def capsule(name, center, radius, height, direction):
+def capsule(mesh, center, radius, height, direction):
     if direction == 0 or direction == 'MU_X':
         # rotate will normalize the quaternion
         r = rotate((1, 0, 1, 0))
@@ -138,32 +147,42 @@ def capsule(name, center, radius, height, direction):
                 (     0,      0, height/2, 0),
                 (     0,      0,        0, 1)))
     col = col + ((collider_capsule_cyl_ve + (r * m,)),)
-    return make_collider(name, col)
+    make_collider_mesh(mesh, col)
 
-def box(name, center, size):
+def box(mesh, center, size):
     m = translate(center) * scale(size)
     col = (collider_box_ve + (m,)),
-    return make_collider(name, col)
+    make_collider_mesh(mesh, col)
 
-def wheel(name, center, radius):
+def wheel(mesh, center, radius):
     m = translate(center) * scale((radius,)*3)
     col = (collider_wheel_ve + (m,)),
-    return make_collider(name, col)
+    make_collider_mesh(mesh, col)
+
+def build_collider(obj):
+    muprops = obj.muproperties
+    mesh = obj.data
+    if muprops.collider == "MU_COL_MESH":
+        box(mesh, (0, 0, 0), (1, 1, 1))
+    elif muprops.collider == "MU_COL_SPHERE":
+        sphere(mesh, muprops.center, muprops.radius)
+    elif muprops.collider == "MU_COL_CAPSULE":
+        capsule(mesh, muprops.center, muprops.radius, muprops.height, muprops.direction)
+    elif muprops.collider == "MU_COL_BOX":
+        box(mesh, muprops.center, muprops.size)
+    elif muprops.collider == "MU_COL_WHEEL":
+        wheel(mesh, muprops.center, muprops.radius)
+
+def update_collider(obj):
+    muprops = obj.muproperties
+    if not muprops.collider:
+        return
+    build_collider(obj)
 
 def add_collider(self, context):
     context.user_preferences.edit.use_global_undo = False
     name = "collider"
-    if type(self) == ColliderMesh:
-        mesh = box(name, (0, 0, 0), (1, 1, 1))
-    elif type(self) == ColliderSphere:
-        mesh = sphere(name, self.center, self.radius)
-    elif type(self) == ColliderCapsule:
-        mesh = capsule(name, self.center, self.radius, self.height,
-                       self.direction)
-    elif type(self) == ColliderBox:
-        mesh = box(name, self.center, self.size)
-    elif type(self) == ColliderWheel:
-        mesh = wheel(name, self.center, self.radius)
+    mesh = bpy.data.meshes.new(name)
     obj = bpy.data.objects.new(name, mesh)
     obj.location = context.scene.cursor_location
     obj.select = True
@@ -173,23 +192,25 @@ def add_collider(self, context):
     if type(self) == ColliderMesh:
         obj.muproperties.collider = 'MU_COL_MESH'
     elif type(self) == ColliderSphere:
-        obj.muproperties.collider = 'MU_COL_SPHERE'
         obj.muproperties.radius = self.radius
         obj.muproperties.center = self.center
+        obj.muproperties.collider = 'MU_COL_SPHERE'
     elif type(self) == ColliderCapsule:
-        obj.muproperties.collider = 'MU_COL_CAPSULE'
         obj.muproperties.radius = self.radius
         obj.muproperties.height = self.height
         obj.muproperties.direction = self.direction
         obj.muproperties.center = self.center
+        obj.muproperties.collider = 'MU_COL_CAPSULE'
     elif type(self) == ColliderBox:
-        obj.muproperties.collider = 'MU_COL_BOX'
         obj.muproperties.size = self.size
         obj.muproperties.center = self.center
+        obj.muproperties.collider = 'MU_COL_BOX'
     elif type(self) == ColliderWheel:
-        obj.muproperties.collider = 'MU_COL_WHEEL'
         obj.muproperties.radius = self.radius
         obj.muproperties.center = self.center
+        obj.muproperties.collider = 'MU_COL_WHEEL'
+
+    build_collider(obj)
     return {'FINISHED'}
 
 def add_mesh_colliders(self, context):

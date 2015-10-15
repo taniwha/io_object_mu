@@ -90,17 +90,22 @@ def GetPropMask(prop):
         mask |= int(prop[i]) << i;
     return mask
 
+def collider_update(self, context):
+    from .collider import update_collider
+    obj = context.active_object
+    update_collider(obj)
+
 class MuProperties(bpy.types.PropertyGroup):
     tag = StringProperty(name = "Tag", default="Untagged")
     layer = IntProperty(name = "Layer")
 
     collider = EnumProperty(items = collider_items, name = "Collider")
-    isTrigger = BoolProperty(name = "Trigger")
-    center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
-    radius = FloatProperty(name = "Radius")
-    height = FloatProperty(name = "Height")
-    direction = EnumProperty(items = dir_items, name = "Direction")
-    size = FloatVectorProperty(name = "Size", subtype = 'XYZ')
+    isTrigger = BoolProperty(name = "Trigger", update=collider_update)
+    center = FloatVectorProperty(name = "Center", subtype = 'XYZ', update=collider_update)
+    radius = FloatProperty(name = "Radius", update=collider_update)
+    height = FloatProperty(name = "Height", update=collider_update)
+    direction = EnumProperty(items = dir_items, name = "Direction", update=collider_update)
+    size = FloatVectorProperty(name = "Size", subtype = 'XYZ', update=collider_update)
 
     mass = FloatProperty(name = "Mass")
     suspensionDistance = FloatProperty(name = "Distance")
