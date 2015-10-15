@@ -74,6 +74,7 @@ def GetPropMask(prop):
 class MuProperties(bpy.types.PropertyGroup):
     tag = StringProperty(name = "Tag", default="Untagged")
     layer = IntProperty(name = "Layer")
+
     collider = EnumProperty(items = collider_items, name = "Collider")
     isTrigger = BoolProperty(name = "Trigger")
     center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
@@ -81,11 +82,13 @@ class MuProperties(bpy.types.PropertyGroup):
     height = FloatProperty(name = "Height")
     direction = EnumProperty(items = dir_items, name = "Direction")
     size = FloatVectorProperty(name = "Size", subtype = 'XYZ')
+
     mass = FloatProperty(name = "Mass")
     suspensionDistance = FloatProperty(name = "Distance")
     suspensionSpring = PointerProperty(type=MuSpringProp, name = "Spring")
     forwardFriction = PointerProperty(type=MuFrictionProp, name = "Forward")
     sideFriction = PointerProperty(type=MuFrictionProp, name = "Sideways")
+
     cullingMask = BoolVectorProperty(size=32, name = "Mask", subtype = 'LAYER')
 
 class MuPropertiesPanel(bpy.types.Panel):
@@ -150,7 +153,11 @@ class MuColliderPanel(bpy.types.Panel):
             col.prop(muprops, "isTrigger")
             col.prop(muprops, "radius")
             col.prop(muprops, "center")
+            col.prop(muprops, "mass")
             col.prop(muprops, "suspensionDistance")
+            col.prop(muprops, "suspensionSpring")
+            col.prop(muprops, "forwardFriction")
+            col.prop(muprops, "sideFriction")
 
 def register():
     bpy.types.Object.muproperties = PointerProperty(type=MuProperties)

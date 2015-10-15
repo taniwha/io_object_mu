@@ -208,6 +208,7 @@ def create_collider(mu, muobj):
         obj.muproperties.radius = col.radius
         obj.muproperties.suspensionDistance = col.suspensionDistance
         obj.muproperties.center = col.center
+        obj.muproperties.mass = col.mass
         copy_spring(obj.muproperties.suspensionSpring, col.suspensionSpring)
         copy_friction(obj.muproperties.forwardFriction, col.forwardFriction)
         copy_friction(obj.muproperties.sideFriction, col.sidewaysFriction)
