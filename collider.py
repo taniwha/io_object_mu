@@ -127,6 +127,7 @@ def sphere(mesh, center, radius):
     make_collider_mesh(mesh, col)
 
 def capsule(mesh, center, radius, height, direction):
+    height -= 2 * radius
     if direction == 0 or direction == 'MU_X':
         # rotate will normalize the quaternion
         r = rotate((1, 0, 1, 0))
