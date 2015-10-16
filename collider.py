@@ -174,6 +174,8 @@ def build_collider(obj):
         wheel(mesh, muprops.center, muprops.radius)
 
 def update_collider(obj):
+    if not obj:
+        return
     muprops = obj.muproperties
     if not muprops.collider:
         return
