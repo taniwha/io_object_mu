@@ -322,7 +322,7 @@ class INFO_MT_mucollider_add(bpy.types.Menu):
 class VIEW3D_PT_tools_mu_collider(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-    bl_category = "Mu Collider"
+    bl_category = "Mu Tools"
     bl_context = "objectmode"
     bl_label = "Add Mu Collider"
 

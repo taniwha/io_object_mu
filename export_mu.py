@@ -504,3 +504,38 @@ class ExportMu(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         keywords = self.as_keywords (ignore=("check_existing", "filter_glob"))
         return export_mu(self, context, **keywords)
+
+class ExportMu_quick(bpy.types.Operator, ExportHelper):
+    '''Save a KSP Mu (.mu) File, defaulting name to selected object'''
+    bl_idname = "export_object.ksp_mu_quick"
+    bl_label = "Export Mu (quick)"
+
+    filename_ext = ".mu"
+    filter_glob = StringProperty(default="*.mu", options={'HIDDEN'})
+
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object != None
+                and (not context.active_object.data
+                     or type(context.active_object.data) == bpy.types.Mesh))
+
+    def execute(self, context):
+        keywords = self.as_keywords (ignore=("check_existing", "filter_glob"))
+        return export_mu(self, context, **keywords)
+
+    def invoke(self, context, event):
+        if context.active_object != None:
+            self.filepath = context.active_object.name + self.filename_ext
+        return ExportHelper.invoke(self, context, event)
+
+class VIEW3D_PT_tools_mu_export(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_category = "Mu Tools"
+    bl_context = "objectmode"
+    bl_label = "Export Mu"
+
+    def draw(self, context):
+        layout = self.layout
+        #col = layout.column(align=True)
+        layout.operator("export_object.ksp_mu_quick", text = "Export Mu Model");
