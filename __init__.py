@@ -45,58 +45,17 @@ if "bpy" in locals():
 
 
 import bpy
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy.props import FloatVectorProperty, PointerProperty
-from bpy_extras.io_utils import ExportHelper, ImportHelper, path_reference_mode, axis_conversion
 
 from . import collider, properties, shader
-
-class ImportMu(bpy.types.Operator, ImportHelper):
-    '''Load a KSP Mu (.mu) File'''
-    bl_idname = "import_object.ksp_mu"
-    bl_label = "Import Mu"
-    bl_description = """Import a KSP .mu model."""
-    bl_options = {'REGISTER', 'UNDO'}
-
-    filename_ext = ".mu"
-    filter_glob = StringProperty(default="*.mu", options={'HIDDEN'})
-
-    create_colliders = BoolProperty(name="Create Colliders",
-            description="Disable to import only visual and hierarchy elements",
-                                    default=True)
-
-    def execute(self, context):
-        from . import import_mu
-        keywords = self.as_keywords (ignore=("filter_glob",))
-        return import_mu.import_mu(self, context, **keywords)
-
-class ExportMu(bpy.types.Operator, ExportHelper):
-    '''Save a KSP Mu (.mu) File'''
-    bl_idname = "export_object.ksp_mu"
-    bl_label = "Export Mu"
-
-    filename_ext = ".mu"
-    filter_glob = StringProperty(default="*.mu", options={'HIDDEN'})
-
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object != None
-                and (not context.active_object.data
-                     or type(context.active_object.data) == bpy.types.Mesh))
-
-    def execute(self, context):
-        from . import export_mu
-        keywords = self.as_keywords (ignore=("check_existing", "filter_glob"))
-        return export_mu.export_mu(self, context, **keywords)
+from . import export_mu
+from . import import_mu
 
 
 def menu_func_import(self, context):
-    self.layout.operator(ImportMu.bl_idname, text="KSP Mu (.mu)")
-
+    self.layout.operator(import_mu.ImportMu.bl_idname, text="KSP Mu (.mu)")
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportMu.bl_idname, text="KSP Mu (.mu)")
-
+    self.layout.operator(export_mu.ExportMu.bl_idname, text="KSP Mu (.mu)")
 
 def register():
     bpy.utils.register_module(__name__)

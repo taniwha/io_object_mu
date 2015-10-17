@@ -26,6 +26,9 @@ from math import pi, sqrt
 import bpy
 from bpy_extras.object_utils import object_data_add
 from mathutils import Vector,Matrix,Quaternion
+from bpy_extras.io_utils import ImportHelper
+from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
+from bpy.props import FloatVectorProperty, PointerProperty
 
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuColliderBox, MuColliderWheel
@@ -363,3 +366,21 @@ def import_mu(self, context, filepath, create_colliders):
 
     bpy.context.user_preferences.edit.use_global_undo = undo
     return {'FINISHED'}
+
+class ImportMu(bpy.types.Operator, ImportHelper):
+    '''Load a KSP Mu (.mu) File'''
+    bl_idname = "import_object.ksp_mu"
+    bl_label = "Import Mu"
+    bl_description = """Import a KSP .mu model."""
+    bl_options = {'REGISTER', 'UNDO'}
+
+    filename_ext = ".mu"
+    filter_glob = StringProperty(default="*.mu", options={'HIDDEN'})
+
+    create_colliders = BoolProperty(name="Create Colliders",
+            description="Disable to import only visual and hierarchy elements",
+                                    default=True)
+
+    def execute(self, context):
+        keywords = self.as_keywords (ignore=("filter_glob",))
+        return import_mu(self, context, **keywords)

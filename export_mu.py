@@ -23,6 +23,9 @@ import bpy, bmesh
 from bpy_extras.object_utils import object_data_add
 from mathutils import Vector,Matrix,Quaternion
 from pprint import pprint
+from bpy_extras.io_utils import ExportHelper
+from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
+from bpy.props import FloatVectorProperty, PointerProperty
 
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer
@@ -483,3 +486,21 @@ def export_mu(operator, context, filepath):
         anim_root_obj.animation = make_animations(mu, animations, anim_root)
     mu.write(filepath)
     return {'FINISHED'}
+
+class ExportMu(bpy.types.Operator, ExportHelper):
+    '''Save a KSP Mu (.mu) File'''
+    bl_idname = "export_object.ksp_mu"
+    bl_label = "Export Mu"
+
+    filename_ext = ".mu"
+    filter_glob = StringProperty(default="*.mu", options={'HIDDEN'})
+
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object != None
+                and (not context.active_object.data
+                     or type(context.active_object.data) == bpy.types.Mesh))
+
+    def execute(self, context):
+        keywords = self.as_keywords (ignore=("check_existing", "filter_glob"))
+        return export_mu(self, context, **keywords)
