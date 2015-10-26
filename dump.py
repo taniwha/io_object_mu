@@ -28,7 +28,7 @@ def dump_thing(thing, mu, level, exclude, dump_funcs):
 		if n in dump_funcs:
 			dump_funcs[n](a, mu, attr, level)
 		else:
-			print(("%s %s = " % ("	  " * level, a)) + str(attr))
+			print(("%s %s = " % ("    " * level, a)) + str(attr))
 
 def dump_textures(mu):
 	print("Textures")
@@ -61,24 +61,24 @@ mesh_dump_funcs = {
 }
 
 def dump_mesh(name, mu, mesh, level):
-	print("%s Mesh: %s = %s" % ("	 " * level, name, str(mesh)))
+	print("%s Mesh: %s = %s" % ("    " * level, name, str(mesh)))
 	dump_thing(mesh, mu, level, [], mesh_dump_funcs)
 
 def dump_skinnedmeshrenderer(name, mu, mesh, level):
-	print("%s SkinnedMeshRenderer: %s = %s" % ("	 " * level, name, str(mesh)))
+	print("%s SkinnedMeshRenderer: %s = %s" % ("    " * level, name, str(mesh)))
 	dump_thing(mesh, mu, level + 1, [], {})
 
 def dump_light(name, mu, mesh, level):
-	print("%s Light: %s" % ("	 " * level, name))
+	print("%s Light: %s" % ("    " * level, name))
 	dump_thing(mesh, mu, level, [], mesh_dump_funcs)
 
 def dump_friction(name, mu, col, level):
 	print("%s Friction: %s = " % ("    " * level, name))
-	dump_thing(col, mu, level, [], {})
+	dump_thing(col, mu, level + 1, [], {})
 
 def dump_spring(name, mu, col, level):
 	print("%s Spring: %s = " % ("    " * level, name))
-	dump_thing(col, mu, level, [], {})
+	dump_thing(col, mu, level + 1, [], {})
 
 collider_dump_funcs = {
 	"MuFriction": dump_friction,
@@ -90,23 +90,23 @@ def dump_collider(name, mu, col, level):
 	dump_thing(col, mu, level + 1, [], collider_dump_funcs)
 
 def dump_key(name, mu, key, level):
-	print("%s Key: %s = " % ("	" * level, name))
+	print("%s Key: %s = " % ("    " * level, name))
 	dump_thing(key, mu, level, [], {})
 
 def dump_curve(name, mu, curve, level):
-	print("%s Curve: %s = " % ("	" * level, name))
+	print("%s Curve: %s = " % ("    " * level, name))
 	dump_thing(curve, mu, level, ["keys"], {})
 	for i, key in enumerate(curve.keys):
 	    dump_key("key", mu, key, level + 1)
 
 def dump_clip(name, mu, clip, level):
-	print("%s Clip: %s = " % ("	" * level, name))
+	print("%s Clip: %s = " % ("    " * level, name))
 	dump_thing(clip, mu, level, ["curves", "name"], {})
 	for i, curve in enumerate(clip.curves):
 	    dump_curve("curve", mu, curve, level + 1)
 
 def dump_animation(name, mu, ani, level):
-	print("%s Animation: %s = " % ("	" * level, name))
+	print("%s Animation: %s = " % ("    " * level, name))
 	dump_thing(ani, mu, level, ["clips", "name"], {})
 	for i, clip in enumerate(ani.clips):
 	    dump_clip(clip.name, mu, clip, level + 1)
@@ -132,7 +132,7 @@ def dump_object(mu, obj, level=0):
 	print("%s  ls %s" % ("    " * level, str(trans.localScale)))
 	if hasattr(obj, "tag_and_layer"):
 	    tl = obj.tag_and_layer
-	    print("%s  %s %d" % ("	  " * level, tl.tag, tl.layer))
+	    print("%s  %s %d" % ("    " * level, tl.tag, tl.layer))
 	dump_thing(obj, mu, level, ["transform", "tag_and_layer", "children"],
 				object_dump_funcs)
 
