@@ -468,8 +468,7 @@ def make_animations(mu, animations, anim_root):
         anim.clips.append(clip)
     return anim
 
-def export_mu(operator, context, filepath):
-    obj = context.active_object
+def export_object(obj, filepath):
     animations = collect_animations(obj)
     anim_root = find_path_root(animations)
     mu = Mu()
@@ -485,6 +484,10 @@ def export_mu(operator, context, filepath):
         anim_root_obj = mu.objects[anim_root]
         anim_root_obj.animation = make_animations(mu, animations, anim_root)
     mu.write(filepath)
+    return mu
+
+def export_mu(operator, context, filepath):
+    export_object (context.active_object, filepath)
     return {'FINISHED'}
 
 class ExportMu(bpy.types.Operator, ExportHelper):
