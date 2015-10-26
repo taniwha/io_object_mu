@@ -28,7 +28,7 @@ from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import FloatVectorProperty, PointerProperty
 
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
-from .mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer
+from .mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer, MuLight
 from .mu import MuColliderBox, MuColliderWheel, MuMaterial, MuTexture, MuMatTex
 from .mu import MuSpring, MuFriction
 from .mu import MuAnimation, MuClip, MuCurve, MuKey
@@ -312,7 +312,7 @@ def make_renderer(mu, mesh):
             rend.materials.append(mu.materials[mat.name].index)
     return rend
 
-def make_light(mu, light):
+def make_light(mu, light, obj):
     mulight = MuLight()
     mulight.type = ('SPOT', 'SUN', 'POINT', 'AREA').index(light.type)
     mulight.color = tuple(light.color) + (1.0,)
@@ -323,6 +323,16 @@ def make_light(mu, light):
     if light.type == 'SPOT':
         mulight.spotAngle = light.spot_size * 180 / pi
     return mulight
+
+light_types = {
+    bpy.types.PointLamp,
+    bpy.types.SunLamp,
+    bpy.types.SpotLamp,
+    bpy.types.HemiLamp,
+    bpy.types.AreaLamp
+}
+
+exportable_types = {bpy.types.Mesh} | light_types
 
 def make_obj(mu, obj, path = ""):
     muobj = MuObject()
@@ -340,23 +350,19 @@ def make_obj(mu, obj, path = ""):
         if type(obj.data) == bpy.types.Mesh:
             muobj.shared_mesh = make_mesh(mu, obj)
             muobj.renderer = make_renderer(mu, obj.data)
-        elif type(obj.data) in [bpy.types.PointLamp,
-                                bpy.types.SunLamp,
-                                bpy.types.SpotLamp,
-                                bpy.types.HemiLamp,
-                                bpy.types.AreaLamp]:
-            muobj.light = make_light(mu, obj.data)
+        elif type(obj.data) in light_types:
+            muobj.light = make_light(mu, obj.data, obj)
             # Blender points spotlights along local -Z, unity along local +Z
             # which is Blender's +Y, so rotate -90 degrees around local X to
             # go from Blender to Unity
             rot = Quaternion((0.5**0.5,-0.5**0.5,0,0))
-            muobj.transform = rot * muobj.transform
+            muobj.transform.localRotation = rot * muobj.transform.localRotation
     for o in obj.children:
         muprops = o.muproperties
         if muprops.collider and muprops.collider != 'MU_COL_NONE':
             muobj.collider = make_collider(mu, o)
             continue
-        if (o.data and type(o.data) != bpy.types.Mesh):
+        if (o.data and type(o.data) not in exportable_types):
             continue
         muobj.children.append(make_obj(mu, o, path))
     return muobj
