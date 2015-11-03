@@ -22,7 +22,7 @@
 from struct import pack, unpack
 class MuEnum:
     MODEL_BINARY = 76543
-    FILE_VERSION = 3
+    FILE_VERSION = 4
 
     ET_CHILD_TRANSFORM_START = 0
     ET_CHILD_TRANSFORM_END = 1
@@ -188,6 +188,67 @@ class MuMatTex:
         mu.write_int(self.index)
         mu.write_float(self.scale)
         mu.write_float(self.offset)
+
+class MuMaterial4:
+    def __init__(self):
+        self.colorProperties = {}
+        self.vectorProperties = {}
+        self.floatProperties2 = {}
+        self.floatProperties3 = {}
+        self.textureProperties = {}
+        pass
+    def read(self, mu):
+        self.name = mu.read_string()
+        self.shaderName = mu.read_string()
+        num_properties = mu.read_int()
+        #print("MuMaterial4", self.name, self.shaderName, num_properties)
+        while num_properties > 0:
+            propName = mu.read_string()
+            propType = mu.read_int()
+            if propType == 0:
+                v = self.colorProperties[propName] = mu.read_float(4)
+            elif propType == 1:
+                v = self.vectorProperties[propName] = mu.read_float(4)
+            elif propType == 2:
+                v = self.floatProperties2[propName] = mu.read_float()
+            elif propType == 3:
+                v = self.floatProperties3[propName] = mu.read_float()
+            elif propType == 4:
+                v = self.textureProperties[propName] = MuMatTex().read(mu)
+            #print("   ", propName, propType, v)
+            num_properties -= 1
+        return self
+    def write(self, mu):
+        num_properties = (
+            len(self.colorProperties)
+            + len(self.vectorProperties)
+            + len(self.floatProperties2)
+            + len(self.floatProperties3)
+            + len(self.textureProperties)
+        )
+        mu.write_string(self.name)
+        mu.write_string(self.shaderName)
+        mu.write_int(num_properties)
+        for k in self.colorProperties:
+            mu.write_string(k)
+            mu.write_int(0)
+            mu.write_float(self.colorProperties[k])
+        for k in self.vectorProperties:
+            mu.write_string(k)
+            mu.write_int(1)
+            mu.write_float(self.vectorProperties[k])
+        for k in self.floatProperties2:
+            mu.write_string(k)
+            mu.write_int(2)
+            mu.write_float(self.floatProperties2[k])
+        for k in self.floatProperties3:
+            mu.write_string(k)
+            mu.write_int(3)
+            mu.write_float(self.floatProperties3[k])
+        for k in self.textureProperties:
+            mu.write_string(k)
+            mu.write_int(4)
+            self.textureProperties[k].write(mu)
 
 class MuMaterial:
     def __init__(self):
@@ -930,7 +991,11 @@ class MuObject:
             elif entry_type == MuEnum.ET_MATERIALS:
                 mat_count = mu.read_int()
                 for i in range(mat_count):
-                    mu.materials.append(MuMaterial().read(mu))
+                    if mu.version >= 4:
+                        mat = MuMaterial4().read(mu)
+                    else:
+                        mat = MuMaterial().read(mu)
+                    mu.materials.append(mat)
             elif entry_type == MuEnum.ET_TEXTURES:
                 tex_count = mu.read_int()
                 for i in range(tex_count):
