@@ -28,7 +28,7 @@ from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
 from bpy.props import FloatVectorProperty, IntProperty
 from mathutils import Vector,Matrix,Quaternion
 
-from .mu import MuEnum
+from .mu import MuEnum, MuMaterial4
 
 mainTex_block = (
     ("node", "Output", 'ShaderNodeOutput', (630, 730)),
@@ -210,7 +210,25 @@ def set_tex(mu, dst, src):
     dst.scale = src.scale
     dst.offset = src.offset
 
-def make_shader(mumat, mu):
+def make_shader_prop(muprop, blendprop):
+    for k in muprop:
+        item = blendprop.add()
+        item.name = k
+        item.value = muprop[k]
+
+def make_shader4(mumat, mu):
+    mat = bpy.data.materials.new(mumat.name)
+    matprops = mat.mumatprop
+    matprops.shaderName = mumat.shaderName
+    make_shader_prop(mumat.colorProperties, matprops.colorProps)
+    make_shader_prop(mumat.vectorProperties, matprops.vectorProps)
+    make_shader_prop(mumat.floatProperties2, matprops.float2Props)
+    make_shader_prop(mumat.floatProperties3, matprops.float3Props)
+    make_shader_prop(mumat.textureProperties, matprops.textureProps)
+    #create_nodes(mat)
+    return mat
+
+def make_shader3(mumat, mu):
     mat = bpy.data.materials.new(mumat.name)
     matprops = mat.mumatprop
     id = MuEnum.ShaderNames[mumat.type]
@@ -269,6 +287,12 @@ def make_shader(mumat, mu):
     create_nodes(mat)
     return mat
 
+def make_shader(mumat, mu):
+    if type(mumat) == MuMaterial4:
+        return make_shader4(mumat, mu)
+    else:
+        return make_shader3(mumat, mu)
+
 def shader_update(prop):
     def updater(self, context):
         if not hasattr(context, "material"):
@@ -294,18 +318,62 @@ class MuTextureProperties(bpy.types.PropertyGroup):
     scale = FloatVectorProperty(name="scale", size = 2, subtype='XYZ', default = (1.0, 1.0), update=shader_update("scale"))
     offset = FloatVectorProperty(name="offset", size = 2, subtype='XYZ', default = (0.0, 0.0), update=shader_update("offset"))
 
+class MuColorProp(bpy.types.PropertyGroup):
+    value=FloatVectorProperty(name="", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=shader_update("specColor"))
+
+class MuVectorProp(bpy.types.PropertyGroup):
+    value=FloatVectorProperty(name="", size = 4, subtype='XYZ', min = 0.0, max = 1.0, default = (0.0, 0.0, 0.0, 0.0), update=shader_update("specColor"))
+
+class MuFloatProp2(bpy.types.PropertyGroup):
+    value=FloatProperty(name="", update=shader_update("specColor"))
+
+class MuFloatProp3(bpy.types.PropertyGroup):
+    value=FloatProperty(name="", update=shader_update("specColor"))
+
 class MuMaterialProperties(bpy.types.PropertyGroup):
-    shader = EnumProperty(items = shader_items, name = "Shader", update=shader_update("shader"))
-    mainTex = PointerProperty(type=MuTextureProperties, name = "mainTex")
-    specColor = FloatVectorProperty(name="specColor", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=shader_update("specColor"))
-    shininess = FloatProperty(name="shininess", update=shader_update("shininess"))
-    bumpMap = PointerProperty(type=MuTextureProperties, name = "bumpMap")
-    emissive = PointerProperty(type=MuTextureProperties, name = "emissive")
-    emissiveColor = FloatVectorProperty(name="emissiveColor", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=shader_update("emissiveColor"))
-    cutoff = FloatProperty(name="cutoff", min=0, max=1, update=shader_update("cutoff"))
-    gloss = FloatProperty(name="gloss", update=shader_update("gloss"))
-    color = FloatVectorProperty(name="color", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=shader_update("color"))
-    invFade = FloatProperty(name="invFade", min=0, max=1, update=shader_update("cutoff"))
+    name = StringProperty(name="Name")
+    shaderName = StringProperty(name="Shader")
+    colorProps = CollectionProperty(type=MuColorProp, name="Colors")
+    colorProp_idx = IntProperty()
+    vectorProps = CollectionProperty(type=MuVectorProp, name="Vectors")
+    vectorProp_idx = IntProperty()
+    float2Props = CollectionProperty(type=MuFloatProp2, name="Float2")
+    float2Prop_idx = IntProperty()
+    float3Props = CollectionProperty(type=MuFloatProp3, name="Float3")
+    float3Prop_idx = IntProperty()
+    textureProps = CollectionProperty(type=MuTextureProperties, name = "Textures")
+    textureProp_idx = IntProperty()
+
+class Property_list(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data,
+                  active_propname, index):
+        layout.label(item.name)
+
+def draw_texture_item(layout, item):
+    row = layout.row()
+    col = row.column()
+    col.prop(item, "tex", "")
+    col.prop(item, "scale", "")
+    col.prop(item, "offset", "")
+
+def draw_basic_item(layout, item):
+    row = layout.row()
+    col = row.column()
+    col.prop(item, "name", "Name")
+    col.prop(item, "value", "")
+
+def draw_property_list(layout, properties, propname, draw_item):
+        row = layout.row()
+        col = row.column()
+        col.template_list("Property_list", "", properties, propname+"s",
+                          properties, propname+"_idx", rows=1)
+        col = row.column(align=True)
+        col.operator("object.entprop_add", icon='ZOOMIN', text="")
+        col.operator("object.entprop_remove", icon='ZOOMOUT', text="")
+        index = getattr(properties, propname+"_idx")
+        proplist = getattr(properties, propname+"s")
+        if len(proplist) > index >= 0:
+            draw_item(layout, proplist[index])
 
 class MuMaterialPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -328,58 +396,13 @@ class MuMaterialPanel(bpy.types.Panel):
         matprops = context.material.mumatprop
         row = layout.row()
         col = row.column()
-        col.prop(matprops, "shader")
-        if matprops.shader == 'KSP/Specular':
-            self.drawtex(col, matprops.mainTex)
-            col.prop(matprops, "specColor")
-            col.prop(matprops, "shininess")
-        elif matprops.shader == 'KSP/Bumped':
-            self.drawtex(col, matprops.mainTex)
-            self.drawtex(col, matprops.bumpMap)
-        elif matprops.shader == 'KSP/Bumped Specular':
-            self.drawtex(col, matprops.mainTex)
-            self.drawtex(col, matprops.bumpMap)
-            col.prop(matprops, "specColor")
-            col.prop(matprops, "shininess")
-        elif matprops.shader == 'KSP/Emissive/Diffuse':
-            self.drawtex(col, matprops.mainTex)
-            self.drawtex(col, matprops.emissive)
-            col.prop(matprops, "emissiveColor")
-        elif matprops.shader == 'KSP/Emissive/Specular':
-            self.drawtex(col, matprops.mainTex)
-            col.prop(matprops, "specColor")
-            col.prop(matprops, "shininess")
-            self.drawtex(col, matprops.emissive)
-            col.prop(matprops, "emissiveColor")
-        elif matprops.shader == 'KSP/Emissive/Bumped Specular':
-            self.drawtex(col, matprops.mainTex)
-            self.drawtex(col, matprops.bumpMap)
-            col.prop(matprops, "specColor")
-            col.prop(matprops, "shininess")
-            self.drawtex(col, matprops.emissive)
-            col.prop(matprops, "emissiveColor")
-        elif matprops.shader == 'KSP/Alpha/Cutoff':
-            self.drawtex(col, matprops.mainTex)
-            col.prop(matprops, "cutoff")
-        elif matprops.shader == 'KSP/Alpha/Cutoff Bumped':
-            self.drawtex(col, matprops.mainTex)
-            self.drawtex(col, matprops.bumpMap)
-            col.prop(matprops, "cutoff")
-        elif matprops.shader == 'KSP/Alpha/Translucent':
-            self.drawtex(col, matprops.mainTex)
-        elif matprops.shader == 'KSP/Alpha/Translucent Specular':
-            self.drawtex(col, matprops.mainTex)
-            col.prop(matprops, "gloss")
-            col.prop(matprops, "specColor")
-            col.prop(matprops, "shininess")
-        elif matprops.shader == 'KSP/Alpha/Unlit Transparent':
-            self.drawtex(col, matprops.mainTex)
-            col.prop(matprops, "color")
-        elif matprops.shader == 'KSP/Unlit':
-            self.drawtex(col, matprops.mainTex)
-            col.prop(matprops, "color")
-        elif matprops.shader == 'KSP/Diffuse':
-            self.drawtex(col, matprops.mainTex)
+        col.prop(matprops, "name")
+        col.prop(matprops, "shaderName")
+        draw_property_list(layout, matprops, "textureProp", draw_texture_item)
+        draw_property_list(layout, matprops, "colorProp", draw_basic_item)
+        draw_property_list(layout, matprops, "vectorProp", draw_basic_item)
+        draw_property_list(layout, matprops, "float2Prop", draw_basic_item)
+        draw_property_list(layout, matprops, "float3Prop", draw_basic_item)
 
 def register():
     bpy.types.Material.mumatprop = PointerProperty(type=MuMaterialProperties)
