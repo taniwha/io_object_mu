@@ -220,6 +220,12 @@ def create_object(mu, muobj, parent, create_colliders, parents):
         for poly in mesh.polygons:
             poly.use_smooth = True
         obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
+    elif hasattr(muobj, "skinned_mesh_renderer"):
+        smr = muobj.skinned_mesh_renderer
+        mesh = create_mesh(mu, smr.mesh, muobj.transform.name)
+        for poly in mesh.polygons:
+            poly.use_smooth = True
+        obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
     if hasattr(muobj, "renderer"):
         if mesh:
             mumat = mu.materials[muobj.renderer.materials[0]]
