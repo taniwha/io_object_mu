@@ -226,6 +226,8 @@ def create_object(mu, muobj, parent, create_colliders, parents):
         for poly in mesh.polygons:
             poly.use_smooth = True
         obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
+        mumat = mu.materials[smr.materials[0]]
+        mesh.materials.append(mumat.material)
     if hasattr(muobj, "renderer"):
         if mesh:
             mumat = mu.materials[muobj.renderer.materials[0]]
