@@ -37,7 +37,7 @@ mainTex_block = (
     ("node", "mainTex", 'ShaderNodeTexture', (-380, 480)),
     ("link", "geometry", "UV", "mainTex", "Vector"),
     ("link", "mainTex", "Color", "mainMaterial", "Color"),
-    ("settex", "mainTex", "texture", "mainTex"),
+    ("settex", "mainTex", "texture", "_MainTex"),
     ("link", "mainMaterial", "Color", "Output", "Color"),
 )
 
@@ -45,7 +45,7 @@ specular_block = (
     ("node", "specColor", 'ShaderNodeValToRGB', (-210, 410)),
     ("link", "mainTex", "Value", "specColor", "Fac"),
     ("link", "specColor", "Color", "mainMaterial", "Spec"),
-    ("set", "specColor", "color_ramp.elements[1].color", "specColor"),
+    ("set", "specColor", "color_ramp.elements[1].color", "colorProps", "_SpecColor"),
     #FIXME shinines
 )
 
@@ -69,8 +69,8 @@ emissive_block = (
     ("link", "emissive", "Color", "emissiveConvert", "Color"),
     ("link", "emissiveConvert", "Val", "emissiveColor", "Fac"),
     ("link", "emissiveColor", "Color", "emissiveMaterial", "Color"),
-    ("settex", "emissive", "texture", "emissive"),
-    ("set", "emissiveColor", "color_ramp.elements[1].color", "emissiveColor"),
+    ("settex", "emissive", "texture", "_Emissive"),
+    ("set", "emissiveColor", "color_ramp.elements[1].color", "colorProps", "_EmissiveColor"),
     ("setval", "emissiveMaterial", "use_specular", False),
     ("setval", "emissiveMaterial", "material.emit", 1.0),
     ("node", "mix", 'ShaderNodeMixRGB', (430, 610)),
@@ -85,7 +85,7 @@ alpha_cutoff_block = (
     ("node", "alphaCutoff", 'ShaderNodeMath', (-230, 30)),
     ("link", "mainTex", "Value", "alphaCutoff", 0),
     ("link", "alphaCutoff", "Value", "Output", "Alpha"),
-    ("set", "alphaCutoff", "inputs[1].default_value", "cutoff"),
+    ("set", "alphaCutoff", "inputs[1].default_value", "float3Props", "cutoff"),
 )
 
 ksp_specular = mainTex_block + specular_block
@@ -157,11 +157,12 @@ def node_link(name, nodes, links, s):
 
 def node_set(name, matprops, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
-    exec("n.%s = matprops.%s" % (s[2], s[3]), {}, locals())
+    str="n.%s = matprops.%s['%s'].value" % (s[2], s[3], s[4])
+    exec(str, {}, locals())
 
 def node_settex(name, matprops, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
-    tex = getattr(matprops,s[3])
+    tex = matprops.textureProps[s[3]]
     if tex.tex in bpy.data.textures:
         tex = bpy.data.textures[tex.tex]
         exec("n.%s = tex" % s[2], {}, locals())
@@ -182,7 +183,7 @@ def create_nodes(mat):
         links.remove(links[0])
     while len(nodes):
         nodes.remove(nodes[0])
-    shader = ksp_shaders[mat.mumatprop.shader]
+    shader = ksp_shaders[mat.mumatprop.shaderName]
     for s in shader:
         print(s)
         try :
@@ -225,7 +226,7 @@ def make_shader4(mumat, mu):
     make_shader_prop(mumat.floatProperties2, matprops.float2Props)
     make_shader_prop(mumat.floatProperties3, matprops.float3Props)
     make_shader_prop(mumat.textureProperties, matprops.textureProps)
-    #create_nodes(mat)
+    create_nodes(mat)
     return mat
 
 def make_shader3(mumat, mu):
