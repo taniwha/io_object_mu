@@ -53,7 +53,7 @@ bumpmap_block = (
     ("node", "bumpMap", 'ShaderNodeMaterial', (-380, 480)),
     ("link", "bumpMap", "Normal", "mainMaterial", "Normal"),
     ("call", "bumpMap", "material.texture_slots.add()"),
-    ("settex", "bumpMap", "material.texture_slots[0].texture", "bumpMap"),
+    ("settex", "bumpMap", "material.texture_slots[0].texture", "_BumpMap"),
     ("setval", "bumpMap", "material.texture_slots[0].texture.use_normal_map", True),
     ("setval", "bumpMap", "material.texture_slots[0].texture_coords", 'UV'),
     ("setval", "bumpMap", "material.texture_slots[0].use_map_color_diffuse", False),
@@ -185,7 +185,7 @@ def create_nodes(mat):
         nodes.remove(nodes[0])
     shader = ksp_shaders[mat.mumatprop.shaderName]
     for s in shader:
-        print(s)
+        #print(s)
         try :
             if s[0] == "node":
                 node_node(mat.name, nodes, s)
