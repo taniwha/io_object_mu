@@ -217,6 +217,12 @@ def make_shader_prop(muprop, blendprop):
         item.name = k
         item.value = muprop[k]
 
+def make_shader_tex_prop(mu, muprop, blendprop):
+    for k in muprop:
+        item = blendprop.add()
+        item.name = k
+        set_tex(mu, item, muprop[k])
+
 def make_shader4(mumat, mu):
     mat = bpy.data.materials.new(mumat.name)
     matprops = mat.mumatprop
@@ -225,7 +231,7 @@ def make_shader4(mumat, mu):
     make_shader_prop(mumat.vectorProperties, matprops.vectorProps)
     make_shader_prop(mumat.floatProperties2, matprops.float2Props)
     make_shader_prop(mumat.floatProperties3, matprops.float3Props)
-    make_shader_prop(mumat.textureProperties, matprops.textureProps)
+    make_shader_tex_prop(mu, mumat.textureProperties, matprops.textureProps)
     create_nodes(mat)
     return mat
 
