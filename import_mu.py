@@ -102,24 +102,21 @@ def create_light(mu, mulight, transform):
     return obj
 
 property_map = {
-    "m_LocalPosition.x": ("location", 0, 1),
-    "m_LocalPosition.y": ("location", 2, 1),
-    "m_LocalPosition.z": ("location", 1, 1),
-    "m_LocalRotation.x": ("rotation_quaternion", 1, -1),
-    "m_LocalRotation.y": ("rotation_quaternion", 3, -1),
-    "m_LocalRotation.z": ("rotation_quaternion", 2, -1),
-    "m_LocalRotation.w": ("rotation_quaternion", 0, 1),
-    "m_LocalScale.x": ("scale", 0, 1),
-    "m_LocalScale.y": ("scale", 2, 1),
-    "m_LocalScale.z": ("scale", 1, 1),
+    "m_LocalPosition.x": ("obj", "location", 0, 1),
+    "m_LocalPosition.y": ("obj", "location", 2, 1),
+    "m_LocalPosition.z": ("obj", "location", 1, 1),
+    "m_LocalRotation.x": ("obj", "rotation_quaternion", 1, -1),
+    "m_LocalRotation.y": ("obj", "rotation_quaternion", 3, -1),
+    "m_LocalRotation.z": ("obj", "rotation_quaternion", 2, -1),
+    "m_LocalRotation.w": ("obj", "rotation_quaternion", 0, 1),
+    "m_LocalScale.x": ("obj", "scale", 0, 1),
+    "m_LocalScale.y": ("obj", "scale", 2, 1),
+    "m_LocalScale.z": ("obj", "scale", 1, 1),
+    "m_Intensity": ("data", "energy", 0, 1),
 }
 
-def create_fcurve(action, curve):
-    try:
-        dp, ind, mult = property_map[curve.property]
-    except KeyError:
-        print("%s: Unknown property: %s" % (curve.path, curve.property))
-        return False
+def create_fcurve(action, curve, propmap):
+    dp, ind, mult = propmap
     fps = bpy.context.scene.render.fps
     fc = action.fcurves.new(data_path = dp, index = ind)
     fc.keyframe_points.add(len(curve.keys))
@@ -149,18 +146,29 @@ def create_action(mu, path, clip):
         if not curve.path:
             #FIXME need to look into this more as I'm not sure if the animation
             # is broken or if the property is somewhere weird
+            print("Empty path for %s", clip.name)
             continue
-        name = ".".join([clip.name, curve.path])
+
+        mu_path = "/".join([path, curve.path])
+        if mu_path not in mu.objects:
+            print("Unknown path: %s" % (mu_path))
+            continue
+        obj = mu.objects[mu_path]
+
+        if curve.property not in property_map:
+            print("%s: Unknown property: %s" % (curve.path, curve.property))
+            continue
+        propmap = property_map[curve.property]
+        subpath, propmap = propmap[0], propmap[1:]
+
+        if subpath != "obj":
+            obj = getattr (obj, subpath)
+
+        name = ".".join([clip.name, curve.path, subpath])
         if name not in actions:
-            mu_path = "/".join([path, curve.path])
-            try:
-                obj = mu.objects[mu_path]
-            except KeyError:
-                print("Unknown path: %s" % (mu_path))
-                continue
             actions[name] = bpy.data.actions.new(name), obj
         act, obj = actions[name]
-        if not create_fcurve(act, curve):
+        if not create_fcurve(act, curve, propmap):
             continue
     for name in actions:
         act, obj = actions[name]
