@@ -85,7 +85,7 @@ alpha_cutoff_block = (
     ("node", "alphaCutoff", 'ShaderNodeMath', (-230, 30)),
     ("link", "mainTex", "Value", "alphaCutoff", 0),
     ("link", "alphaCutoff", "Value", "Output", "Alpha"),
-    ("set", "alphaCutoff", "inputs[1].default_value", "float3Props", "cutoff"),
+    ("set", "alphaCutoff", "inputs[1].default_value", "float3Props", "_Cutoff"),
 )
 
 ksp_specular = mainTex_block + specular_block
@@ -240,6 +240,7 @@ def make_shader(mumat, mu):
 
 def shader_update(prop):
     def updater(self, context):
+        print("shader_update")
         if not hasattr(context, "material"):
             return
         mat = context.material
