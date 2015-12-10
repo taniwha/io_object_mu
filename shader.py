@@ -183,6 +183,9 @@ def create_nodes(mat):
         links.remove(links[0])
     while len(nodes):
         nodes.remove(nodes[0])
+    if mat.mumatprop.shaderName not in ksp_shaders:
+        print("Unknown shader: '%s'" % mat.mumatprop.shaderName)
+        return
     shader = ksp_shaders[mat.mumatprop.shaderName]
     for s in shader:
         #print(s)
