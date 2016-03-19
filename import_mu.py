@@ -144,19 +144,16 @@ def create_action(mu, path, clip):
     actions = {}
     for curve in clip.curves:
         if not curve.path:
-            #FIXME need to look into this more as I'm not sure if the animation
-            # is broken or if the property is somewhere weird
-            print("Empty path for %s", clip.name)
-            continue
-
-        mu_path = "/".join([path, curve.path])
+            mu_path = path
+        else:
+            mu_path = "/".join([path, curve.path])
         if mu_path not in mu.objects:
             print("Unknown path: %s" % (mu_path))
             continue
         obj = mu.objects[mu_path]
 
         if curve.property not in property_map:
-            print("%s: Unknown property: %s" % (curve.path, curve.property))
+            print("%s: Unknown property: %s" % (mu_path, curve.property))
             continue
         propmap = property_map[curve.property]
         subpath, propmap = propmap[0], propmap[1:]
