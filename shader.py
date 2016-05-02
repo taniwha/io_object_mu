@@ -21,6 +21,7 @@
 
 import sys, traceback
 from struct import unpack
+from pprint import pprint
 
 import bpy
 from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
@@ -208,7 +209,9 @@ def create_nodes(mat):
 
 def set_tex(mu, dst, src):
     try:
-        dst.tex = mu.textures[src.index].name
+        tex = mu.textures[src.index]
+        dst.tex = tex.name
+        dst.type = tex.type
     except IndexError:
         pass
     dst.scale = src.scale
@@ -264,6 +267,7 @@ def shader_update(prop):
 
 class MuTextureProperties(bpy.types.PropertyGroup):
     tex = StringProperty(name="tex", update=shader_update("tex"))
+    type = BoolProperty(name="type", description="Texture is a normal map", default = False)
     scale = FloatVectorProperty(name="scale", size = 2, subtype='XYZ', default = (1.0, 1.0), update=shader_update("scale"))
     offset = FloatVectorProperty(name="offset", size = 2, subtype='XYZ', default = (0.0, 0.0), update=shader_update("offset"))
 
@@ -301,7 +305,9 @@ class Property_list(bpy.types.UIList):
 def draw_texture_item(layout, item):
     row = layout.row()
     col = row.column()
-    col.prop(item, "tex", "")
+    r = col.row()
+    r.prop(item, "tex", "")
+    r.prop(item, "type", "")
     col.prop(item, "scale", "")
     col.prop(item, "offset", "")
 
