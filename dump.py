@@ -19,16 +19,30 @@
 from mu import Mu, MuEnum, MuMatTex
 import sys
 
+def dump_dict(thing, mu, level, dump_funcs):
+    for a in thing:
+        attr = thing[a]
+        n = attr.__class__.__name__
+        if n in dump_funcs:
+            dump_funcs[n](a, mu, attr, level)
+        else:
+            print(("%s%s = " % ("    " * level, a)) + str(attr))
+
 def dump_thing(thing, mu, level, exclude, dump_funcs):
     for a in dir(thing):
         if a[0] == "_" or a in ["read", "write"] or a in exclude:
             continue
         attr = getattr(thing, a)
         n = attr.__class__.__name__
-        if n in dump_funcs:
-            dump_funcs[n](a, mu, attr, level)
+        if type(attr) is dict and attr:
+            print(("%s%s = {" % ("    " * level, a)))
+            dump_dict(attr, mu, level + 1, dump_funcs)
+            print(("%s}" % ("    " * level,)))
         else:
-            print(("%s %s = " % ("    " * level, a)) + str(attr))
+            if n in dump_funcs:
+                dump_funcs[n](a, mu, attr, level)
+            else:
+                print(("%s%s = " % ("    " * level, a)) + str(attr))
 
 def dump_textures(mu):
     print("Textures")
@@ -36,8 +50,8 @@ def dump_textures(mu):
         print (i, tex.name, tex.type)
 
 def dump_mattex(name, mu, mt, level):
-    print("    %s %d %s %s" %
-          (name, mt.index, str(mt.scale), str(mt.offset)))
+    print("%s%s %d %s %s" %
+          ("    " * level, name, mt.index, str(mt.scale), str(mt.offset)))
 
 mat_dump_funcs = {
     'MuMatTex': dump_mattex
