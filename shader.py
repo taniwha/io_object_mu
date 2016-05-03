@@ -309,6 +309,7 @@ class Property_list(bpy.types.UIList):
 def draw_texture_item(layout, item):
     row = layout.row()
     col = row.column()
+    col.prop(item, "name", "Name")
     r = col.row()
     r.prop(item, "tex", "")
     r.prop(item, "type", "")
