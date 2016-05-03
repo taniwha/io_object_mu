@@ -323,21 +323,21 @@ def draw_basic_item(layout, item):
     col.prop(item, "value", "")
 
 def draw_property_list(layout, properties, propname, draw_item, title):
-        box = layout.box()
-        box.label(text = title)
-        row = box.row()
-        col = row.column()
-        col.template_list("Property_list", "", properties, propname+"s",
-                          properties, propname+"_idx", rows=1)
-        col = row.column(align=True)
-        add_op = "object.mushaderprop_add_" + propname[:-4]     # strip "Prop"
-        rem_op = "object.mushaderprop_remove_" + propname[:-4]  # strip "Prop"
-        col.operator(add_op, icon='ZOOMIN', text="")
-        col.operator(rem_op, icon='ZOOMOUT', text="")
-        index = getattr(properties, propname+"_idx")
-        proplist = getattr(properties, propname+"s")
-        if len(proplist) > index >= 0:
-            draw_item(box, proplist[index])
+    box = layout.box()
+    box.label(text = title)
+    row = box.row()
+    col = row.column()
+    col.template_list("Property_list", "", properties, propname+"s",
+                      properties, propname+"_idx", rows=1)
+    col = row.column(align=True)
+    add_op = "object.mushaderprop_add_" + propname[:-4]     # strip "Prop"
+    rem_op = "object.mushaderprop_remove_" + propname[:-4]  # strip "Prop"
+    col.operator(add_op, icon='ZOOMIN', text="")
+    col.operator(rem_op, icon='ZOOMOUT', text="")
+    index = getattr(properties, propname+"_idx")
+    proplist = getattr(properties, propname+"s")
+    if len(proplist) > index >= 0:
+        draw_item(box, proplist[index])
 
 class MuMaterialPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
