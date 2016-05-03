@@ -31,11 +31,28 @@ from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum, MuMaterial
 
-def mu_shader_prop_add(self, context, blendprop):
-    blendprop.add()
-    return {'FINISHED'}
+class MuShaderPropDummy(bpy.types.PropertyGroup):
+    pass
 
-def mu_shader_prop_remove(self, context, blendprop, index):
-    if index >= 0:
-        blendprop.remove(index)
-    return {'FINISHED'}
+class MuShaderPropAdd(bpy.types.Operator):
+    '''Add a mu shader property'''
+    bl_idname = "object.mushaderprop_add"
+    bl_label = "Mu shader prop Add"
+    propertyset = StringProperty()
+    def execute(self, context):
+        matprops = context.material.mumatprop
+        propset = getattr(matprops, self.propertyset)
+        propset.properties.add()
+        return {'FINISHED'}
+
+class MuShaderPropRemove(bpy.types.Operator):
+    '''Remove a mu shader property'''
+    bl_idname = "object.mushaderprop_remove"
+    bl_label = "Mu shader prop Remove"
+    propertyset = StringProperty()
+    def execute(self, context):
+        matprops = context.material.mumatprop
+        propset = getattr(matprops, self.propertyset)
+        if propset.index >= 0:
+            propset.properties.remove(propset.index)
+        return {'FINISHED'}

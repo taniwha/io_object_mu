@@ -255,11 +255,11 @@ def make_material(mu, mat):
     material.index = len(mu.materials)
     matprops = mat.mumatprop
     material.shaderName = matprops.shaderName
-    material.colorProperties = make_property(matprops.colorProps)
-    material.vectorProperties = make_property(matprops.vectorProps)
-    material.floatProperties2 = make_property(matprops.float2Props)
-    material.floatProperties3 = make_property(matprops.float3Props)
-    material.textureProperties = make_tex_property(mu, matprops.textureProps)
+    material.colorProperties = make_property(matprops.color.properties)
+    material.vectorProperties = make_property(matprops.vector.properties)
+    material.floatProperties2 = make_property(matprops.float2.properties)
+    material.floatProperties3 = make_property(matprops.float3.properties)
+    material.textureProperties = make_tex_property(mu, matprops.texture.properties)
     return material
 
 def make_renderer(mu, mesh):

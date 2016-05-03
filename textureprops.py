@@ -30,20 +30,29 @@ from bpy.props import FloatVectorProperty, IntProperty
 from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum, MuMaterial
-from .shaderprops import mu_shader_prop_add, mu_shader_prop_remove
 
-class MuShaderTexturePropAdd(bpy.types.Operator):
-    '''Add a mu shader texture property name/value pair'''
-    bl_idname = "object.mushaderprop_add_texture"
-    bl_label = "Mu shader texture prop Add"
-    def execute(self, context):
-        matprops = context.material.mumatprop
-        return mu_shader_prop_add(self, context, matprops.textureProps)
+def texture_update(self, context):
+    pass
 
-class MuShaderTexturePropRemove(bpy.types.Operator):
-    '''Remove a mu shader texture property name/value pair'''
-    bl_idname = "object.mushaderprop_remove_texture"
-    bl_label = "Mu shader texture prop Remove"
-    def execute(self, context):
-        matprops = context.material.mumatprop
-        return mu_shader_prop_remove(self, context, matprops.textureProps, matprops.textureProp_idx)
+class MuTextureProperties(bpy.types.PropertyGroup):
+    tex = StringProperty(name="tex", update=texture_update)
+    type = BoolProperty(name="type", description="Texture is a normal map", default = False)
+    scale = FloatVectorProperty(name="scale", size = 2, subtype='XYZ', default = (1.0, 1.0), update=texture_update)
+    offset = FloatVectorProperty(name="offset", size = 2, subtype='XYZ', default = (0.0, 0.0), update=texture_update)
+
+class MuMaterialTexturePropertySet(bpy.types.PropertyGroup):
+    bl_label = "Textures"
+    properties = CollectionProperty(type=MuTextureProperties, name="Textures")
+    index = IntProperty()
+    expanded = BoolProperty()
+
+    def draw_item(self, layout):
+        item = self.properties[self.index]
+        row = layout.row()
+        col = row.column()
+        col.prop(item, "name", "Name")
+        r = col.row()
+        r.prop(item, "tex", "")
+        r.prop(item, "type", "")
+        col.prop(item, "scale", "")
+        col.prop(item, "offset", "")

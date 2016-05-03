@@ -30,7 +30,12 @@ from bpy.props import FloatVectorProperty, IntProperty
 from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum, MuMaterial
-from . import colorprops, float2props, float3props, textureprops, vectorprops
+from . import shaderprops
+from .colorprops import  MuMaterialColorPropertySet
+from .float2props import MuMaterialFloat2PropertySet
+from .float3props import MuMaterialFloat3PropertySet
+from .textureprops import MuMaterialTexturePropertySet
+from .vectorprops import MuMaterialVectorPropertySet
 
 mainTex_block = (
     ("node", "Output", 'ShaderNodeOutput', (630, 730)),
@@ -47,7 +52,7 @@ specular_block = (
     ("node", "specColor", 'ShaderNodeValToRGB', (-210, 410)),
     ("link", "mainTex", "Value", "specColor", "Fac"),
     ("link", "specColor", "Color", "mainMaterial", "Spec"),
-    ("set", "specColor", "color_ramp.elements[1].color", "colorProps", "_SpecColor"),
+    ("set", "specColor", "color_ramp.elements[1].color", "color.properties", "_SpecColor"),
     #FIXME shinines
 )
 
@@ -72,7 +77,7 @@ emissive_block = (
     ("link", "emissiveConvert", "Val", "emissiveColor", "Fac"),
     ("link", "emissiveColor", "Color", "emissiveMaterial", "Color"),
     ("settex", "emissive", "texture", "_Emissive"),
-    ("set", "emissiveColor", "color_ramp.elements[1].color", "colorProps", "_EmissiveColor"),
+    ("set", "emissiveColor", "color_ramp.elements[1].color", "color.properties", "_EmissiveColor"),
     ("setval", "emissiveMaterial", "use_specular", False),
     ("setval", "emissiveMaterial", "material.emit", 1.0),
     ("node", "mix", 'ShaderNodeMixRGB', (430, 610)),
@@ -87,7 +92,7 @@ alpha_cutoff_block = (
     ("node", "alphaCutoff", 'ShaderNodeMath', (-230, 30)),
     ("link", "mainTex", "Value", "alphaCutoff", 0),
     ("link", "alphaCutoff", "Value", "Output", "Alpha"),
-    ("set", "alphaCutoff", "inputs[1].default_value", "float3Props", "_Cutoff"),
+    ("set", "alphaCutoff", "inputs[1].default_value", "float3.properties", "_Cutoff"),
 )
 
 ksp_specular = mainTex_block + specular_block
@@ -164,7 +169,7 @@ def node_set(name, matprops, nodes, s):
 
 def node_settex(name, matprops, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
-    tex = matprops.textureProps[s[3]]
+    tex = matprops.texture.properties[s[3]]
     if tex.tex in bpy.data.textures:
         tex = bpy.data.textures[tex.tex]
         exec("n.%s = tex" % s[2], {}, locals())
@@ -234,11 +239,11 @@ def make_shader4(mumat, mu):
     mat = bpy.data.materials.new(mumat.name)
     matprops = mat.mumatprop
     matprops.shaderName = mumat.shaderName
-    make_shader_prop(mumat.colorProperties, matprops.colorProps)
-    make_shader_prop(mumat.vectorProperties, matprops.vectorProps)
-    make_shader_prop(mumat.floatProperties2, matprops.float2Props)
-    make_shader_prop(mumat.floatProperties3, matprops.float3Props)
-    make_shader_tex_prop(mu, mumat.textureProperties, matprops.textureProps)
+    make_shader_prop(mumat.colorProperties, matprops.color.properties)
+    make_shader_prop(mumat.vectorProperties, matprops.vector.properties)
+    make_shader_prop(mumat.floatProperties2, matprops.float2.properties)
+    make_shader_prop(mumat.floatProperties3, matprops.float3.properties)
+    make_shader_tex_prop(mu, mumat.textureProperties, matprops.texture.properties)
     create_nodes(mat)
     return mat
 
@@ -266,37 +271,14 @@ def shader_update(prop):
                         node_settex(mat.name, mat.mumatprop, nodes, s)
     return updater
 
-class MuTextureProperties(bpy.types.PropertyGroup):
-    tex = StringProperty(name="tex", update=shader_update("tex"))
-    type = BoolProperty(name="type", description="Texture is a normal map", default = False)
-    scale = FloatVectorProperty(name="scale", size = 2, subtype='XYZ', default = (1.0, 1.0), update=shader_update("scale"))
-    offset = FloatVectorProperty(name="offset", size = 2, subtype='XYZ', default = (0.0, 0.0), update=shader_update("offset"))
-
-class MuColorProp(bpy.types.PropertyGroup):
-    value=FloatVectorProperty(name="", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=shader_update("specColor"))
-
-class MuVectorProp(bpy.types.PropertyGroup):
-    value=FloatVectorProperty(name="", size = 4, subtype='XYZ', min = 0.0, max = 1.0, default = (0.0, 0.0, 0.0, 0.0), update=shader_update("specColor"))
-
-class MuFloatProp2(bpy.types.PropertyGroup):
-    value=FloatProperty(name="", update=shader_update("specColor"))
-
-class MuFloatProp3(bpy.types.PropertyGroup):
-    value=FloatProperty(name="", update=shader_update("specColor"))
-
 class MuMaterialProperties(bpy.types.PropertyGroup):
     name = StringProperty(name="Name")
     shaderName = StringProperty(name="Shader")
-    colorProps = CollectionProperty(type=MuColorProp, name="Colors")
-    colorProp_idx = IntProperty()
-    vectorProps = CollectionProperty(type=MuVectorProp, name="Vectors")
-    vectorProp_idx = IntProperty()
-    float2Props = CollectionProperty(type=MuFloatProp2, name="Float2")
-    float2Prop_idx = IntProperty()
-    float3Props = CollectionProperty(type=MuFloatProp3, name="Float3")
-    float3Prop_idx = IntProperty()
-    textureProps = CollectionProperty(type=MuTextureProperties, name = "Textures")
-    textureProp_idx = IntProperty()
+    color = PointerProperty(type = MuMaterialColorPropertySet)
+    vector = PointerProperty(type = MuMaterialVectorPropertySet)
+    float2 = PointerProperty(type = MuMaterialFloat2PropertySet)
+    float3 = PointerProperty(type = MuMaterialFloat3PropertySet)
+    texture = PointerProperty(type = MuMaterialTexturePropertySet)
 
 class Property_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data,
@@ -306,38 +288,19 @@ class Property_list(bpy.types.UIList):
         else:
             layout.label(text="", icon_value=icon)
 
-def draw_texture_item(layout, item):
-    row = layout.row()
-    col = row.column()
-    col.prop(item, "name", "Name")
-    r = col.row()
-    r.prop(item, "tex", "")
-    r.prop(item, "type", "")
-    col.prop(item, "scale", "")
-    col.prop(item, "offset", "")
-
-def draw_basic_item(layout, item):
-    row = layout.row()
-    col = row.column()
-    col.prop(item, "name", "Name")
-    col.prop(item, "value", "")
-
-def draw_property_list(layout, properties, propname, draw_item, title):
+def draw_property_list(layout, propset, propsetname):
     box = layout.box()
-    box.label(text = title)
+    box.label(text = propset.bl_label)
     row = box.row()
     col = row.column()
-    col.template_list("Property_list", "", properties, propname+"s",
-                      properties, propname+"_idx", rows=1)
+    col.template_list("Property_list", "", propset, "properties", propset, "index")
     col = row.column(align=True)
-    add_op = "object.mushaderprop_add_" + propname[:-4]     # strip "Prop"
-    rem_op = "object.mushaderprop_remove_" + propname[:-4]  # strip "Prop"
-    col.operator(add_op, icon='ZOOMIN', text="")
-    col.operator(rem_op, icon='ZOOMOUT', text="")
-    index = getattr(properties, propname+"_idx")
-    proplist = getattr(properties, propname+"s")
-    if len(proplist) > index >= 0:
-        draw_item(box, proplist[index])
+    add_op = "object.mushaderprop_add"
+    rem_op = "object.mushaderprop_remove"
+    col.operator(add_op, icon='ZOOMIN', text="").propertyset = propsetname
+    col.operator(rem_op, icon='ZOOMOUT', text="").propertyset = propsetname
+    if len(propset.properties) > propset.index >= 0:
+        propset.draw_item(box)
 
 class MuMaterialPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -362,11 +325,11 @@ class MuMaterialPanel(bpy.types.Panel):
         col = row.column()
         col.prop(matprops, "name")
         col.prop(matprops, "shaderName")
-        draw_property_list(layout, matprops, "textureProp", draw_texture_item, "Textures")
-        draw_property_list(layout, matprops, "colorProp", draw_basic_item, "Colors")
-        draw_property_list(layout, matprops, "vectorProp", draw_basic_item, "Vectors")
-        draw_property_list(layout, matprops, "float2Prop", draw_basic_item, "Float 2")
-        draw_property_list(layout, matprops, "float3Prop", draw_basic_item, "Float 3")
+        draw_property_list(layout, matprops.texture, "texture")
+        draw_property_list(layout, matprops.color, "color")
+        draw_property_list(layout, matprops.vector, "vector")
+        draw_property_list(layout, matprops.float2, "float2")
+        draw_property_list(layout, matprops.float3, "float3")
 
 def mu_shader_prop_add(self, context, blendprop):
     return {'FINISHED'}

@@ -30,20 +30,22 @@ from bpy.props import FloatVectorProperty, IntProperty
 from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum, MuMaterial
-from .shaderprops import mu_shader_prop_add, mu_shader_prop_remove
 
-class MuShaderColorPropAdd(bpy.types.Operator):
-    '''Add a mu shader color property name/value pair'''
-    bl_idname = "object.mushaderprop_add_color"
-    bl_label = "Mu shader color prop Add"
-    def execute(self, context):
-        matprops = context.material.mumatprop
-        return mu_shader_prop_add(self, context, matprops.colorProps)
+def color_update(self, context):
+    pass
 
-class MuShaderColorPropRemove(bpy.types.Operator):
-    '''Remove a mu shader color property name/value pair'''
-    bl_idname = "object.mushaderprop_remove_color"
-    bl_label = "Mu shader color prop Remove"
-    def execute(self, context):
-        matprops = context.material.mumatprop
-        return mu_shader_prop_remove(self, context, matprops.colorProps, matprops.colorProp_idx)
+class MuColorProp(bpy.types.PropertyGroup):
+    value=FloatVectorProperty(name="", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=color_update)
+
+class MuMaterialColorPropertySet(bpy.types.PropertyGroup):
+    bl_label = "Colors"
+    properties = CollectionProperty(type=MuColorProp, name="Colors")
+    index = IntProperty()
+    expanded = BoolProperty()
+
+    def draw_item(self, layout):
+        item = self.properties[self.index]
+        row = layout.row()
+        col = row.column()
+        col.prop(item, "name", "Name")
+        col.prop(item, "value", "")
