@@ -290,17 +290,25 @@ class Property_list(bpy.types.UIList):
 
 def draw_property_list(layout, propset, propsetname):
     box = layout.box()
-    box.label(text = propset.bl_label)
     row = box.row()
-    col = row.column()
-    col.template_list("Property_list", "", propset, "properties", propset, "index")
-    col = row.column(align=True)
-    add_op = "object.mushaderprop_add"
-    rem_op = "object.mushaderprop_remove"
-    col.operator(add_op, icon='ZOOMIN', text="").propertyset = propsetname
-    col.operator(rem_op, icon='ZOOMOUT', text="").propertyset = propsetname
-    if len(propset.properties) > propset.index >= 0:
-        propset.draw_item(box)
+    row.operator("object.mushaderprop_expand",
+                 icon='TRIA_DOWN' if propset.expanded else 'TRIA_RIGHT',
+                 emboss=False).propertyset = propsetname
+    row.label(text = propset.bl_label)
+    row.label(text = "",
+              icon = 'RADIOBUT_ON' if propset.properties else 'RADIOBUT_OFF')
+    if propset.expanded:
+        box.separator()
+        row = box.row()
+        col = row.column()
+        col.template_list("Property_list", "", propset, "properties", propset, "index")
+        col = row.column(align=True)
+        add_op = "object.mushaderprop_add"
+        rem_op = "object.mushaderprop_remove"
+        col.operator(add_op, icon='ZOOMIN', text="").propertyset = propsetname
+        col.operator(rem_op, icon='ZOOMOUT', text="").propertyset = propsetname
+        if len(propset.properties) > propset.index >= 0:
+            propset.draw_item(box)
 
 class MuMaterialPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'

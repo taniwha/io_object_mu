@@ -31,8 +31,17 @@ from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum, MuMaterial
 
-class MuShaderPropDummy(bpy.types.PropertyGroup):
-    pass
+class MuShaderPropExpand(bpy.types.Operator):
+    '''Expand/collapse mu shader property set'''
+    bl_idname = "object.mushaderprop_expand"
+    bl_label = "Mu shader prop expand"
+    propertyset = StringProperty()
+    def execute(self, context):
+        matprops = context.material.mumatprop
+        propset = getattr(matprops, self.propertyset)
+        propset.expanded = not propset.expanded
+        return {'FINISHED'}
+
 
 class MuShaderPropAdd(bpy.types.Operator):
     '''Add a mu shader property'''
