@@ -322,8 +322,10 @@ def draw_basic_item(layout, item):
     col.prop(item, "name", "Name")
     col.prop(item, "value", "")
 
-def draw_property_list(layout, properties, propname, draw_item):
-        row = layout.row()
+def draw_property_list(layout, properties, propname, draw_item, title):
+        box = layout.box()
+        box.label(text = title)
+        row = box.row()
         col = row.column()
         col.template_list("Property_list", "", properties, propname+"s",
                           properties, propname+"_idx", rows=1)
@@ -335,7 +337,7 @@ def draw_property_list(layout, properties, propname, draw_item):
         index = getattr(properties, propname+"_idx")
         proplist = getattr(properties, propname+"s")
         if len(proplist) > index >= 0:
-            draw_item(layout, proplist[index])
+            draw_item(box, proplist[index])
 
 class MuMaterialPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -360,11 +362,11 @@ class MuMaterialPanel(bpy.types.Panel):
         col = row.column()
         col.prop(matprops, "name")
         col.prop(matprops, "shaderName")
-        draw_property_list(layout, matprops, "textureProp", draw_texture_item)
-        draw_property_list(layout, matprops, "colorProp", draw_basic_item)
-        draw_property_list(layout, matprops, "vectorProp", draw_basic_item)
-        draw_property_list(layout, matprops, "float2Prop", draw_basic_item)
-        draw_property_list(layout, matprops, "float3Prop", draw_basic_item)
+        draw_property_list(layout, matprops, "textureProp", draw_texture_item, "Textures")
+        draw_property_list(layout, matprops, "colorProp", draw_basic_item, "Colors")
+        draw_property_list(layout, matprops, "vectorProp", draw_basic_item, "Vectors")
+        draw_property_list(layout, matprops, "float2Prop", draw_basic_item, "Float 2")
+        draw_property_list(layout, matprops, "float3Prop", draw_basic_item, "Float 3")
 
 def mu_shader_prop_add(self, context, blendprop):
     return {'FINISHED'}
