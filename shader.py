@@ -30,6 +30,7 @@ from bpy.props import FloatVectorProperty, IntProperty
 from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum, MuMaterial
+from . import colorprops, float2props, float3props, textureprops, vectorprops
 
 mainTex_block = (
     ("node", "Output", 'ShaderNodeOutput', (630, 730)),
@@ -300,7 +301,10 @@ class MuMaterialProperties(bpy.types.PropertyGroup):
 class Property_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data,
                   active_propname, index):
-        layout.label(item.name)
+        if item:
+            layout.prop(item, "name", text="", emboss=False, icon_value=icon)
+        else:
+            layout.label(text="", icon_value=icon)
 
 def draw_texture_item(layout, item):
     row = layout.row()
@@ -323,8 +327,10 @@ def draw_property_list(layout, properties, propname, draw_item):
         col.template_list("Property_list", "", properties, propname+"s",
                           properties, propname+"_idx", rows=1)
         col = row.column(align=True)
-        col.operator("object.entprop_add", icon='ZOOMIN', text="")
-        col.operator("object.entprop_remove", icon='ZOOMOUT', text="")
+        add_op = "object.mushaderprop_add_" + propname[:-4]     # strip "Prop"
+        rem_op = "object.mushaderprop_remove_" + propname[:-4]  # strip "Prop"
+        col.operator(add_op, icon='ZOOMIN', text="")
+        col.operator(rem_op, icon='ZOOMOUT', text="")
         index = getattr(properties, propname+"_idx")
         proplist = getattr(properties, propname+"s")
         if len(proplist) > index >= 0:
@@ -358,6 +364,12 @@ class MuMaterialPanel(bpy.types.Panel):
         draw_property_list(layout, matprops, "vectorProp", draw_basic_item)
         draw_property_list(layout, matprops, "float2Prop", draw_basic_item)
         draw_property_list(layout, matprops, "float3Prop", draw_basic_item)
+
+def mu_shader_prop_add(self, context, blendprop):
+    return {'FINISHED'}
+
+def mu_shader_prop_remove(self, context, blendprop):
+    return {'FINISHED'}
 
 def register():
     bpy.types.Material.mumatprop = PointerProperty(type=MuMaterialProperties)
