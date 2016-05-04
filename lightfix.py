@@ -16,9 +16,12 @@ def find_lights(fname):
     if not mu.read(fname):
         print("could not read: " + fname)
         raise
+    sys.stdout.write("checking " + fname)
     if check_obj(mu.obj):
-        print(fname)
         mu.write(fname+".new")
+        print(" fixed")
+    else:
+        print(" ok")
 
 for f in sys.argv[1:]:
     try:
