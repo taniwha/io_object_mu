@@ -889,7 +889,7 @@ class MuLight:
         mu.write_float(self.intensity)
         mu.write_float(self.range)
         mu.write_float(self.color)
-        mu.write_int(self.cullingMask)
+        mu.write_uint(self.cullingMask)
         mu.write_float(self.spotAngle)
 
 class MuObject:
@@ -1049,6 +1049,11 @@ class Mu:
         if not hasattr(data, "__len__"):
             data = (data,)
         self.file.write(pack(("<%di" % len(data)), *data))
+
+    def write_uint(self, data):
+        if not hasattr(data, "__len__"):
+            data = (data,)
+        self.file.write(pack(("<%dI" % len(data)), *data))
 
     def write_float(self, data):
         if not hasattr(data, "__len__"):
