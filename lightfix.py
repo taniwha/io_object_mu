@@ -4,8 +4,8 @@ import sys
 def check_obj(obj):
     dirty = False
     if hasattr(obj, "light"):
-        if obj.light.cullingMask != 0x8001:
-            obj.light.cullingMask = 0x8001
+        if obj.light.cullingMask != 0x828001:
+            obj.light.cullingMask = 0x828001
             dirty = True
     for child in obj.children:
         dirty |= check_obj(child)
