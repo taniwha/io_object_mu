@@ -3,6 +3,7 @@ import sys
 
 def check_clip(clip, props):
     for curve in clip.curves:
+        print(curve.path)
         props.add(curve.property)
 
 def check_obj(obj, props):
