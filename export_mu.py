@@ -538,13 +538,16 @@ class VIEW3D_PT_tools_mu_export(bpy.types.Panel):
         #col = layout.column(align=True)
         layout.operator("export_object.ksp_mu_quick", text = "Export Mu Model");
 
+def swapyz(vec):
+    return vec[0], vec[2], vec[1]
+
 class AttachNode:
     node_types = ["stack", "attach"]
     def __init__(self, obj, inv):
         self.name = strip_nnn(obj.name)
         self.parts = self.name.split("_", 2)
-        self.pos = (inv*obj.matrix_world.col[3])[:3]
-        self.dir = (inv*obj.matrix_world.col[2])[:3]
+        self.pos = swapyz((inv*obj.matrix_world.col[3])[:3])
+        self.dir = swapyz((inv*obj.matrix_world.col[2])[:3])
         self.size = obj.muproperties.nodeSize
     def __lt__(self, other):
         return self.cmp(other) < 0
