@@ -271,6 +271,8 @@ def make_renderer(mu, mesh):
             if mat.name not in mu.materials:
                 mu.materials[mat.name] = make_material(mu, mat)
             rend.materials.append(mu.materials[mat.name].index)
+    if not rend.materials:
+        return None
     return rend
 
 def make_light(mu, light, obj):

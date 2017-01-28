@@ -951,20 +951,20 @@ class MuObject:
     def write(self, mu):
         self.transform.write(mu)
         self.tag_and_layer.write(mu)
-        if hasattr(self, "collider"):
+        if hasattr(self, "collider") and self.collider != None:
             self.collider.write(mu)
-        if hasattr(self, "shared_mesh"):
+        if hasattr(self, "shared_mesh") and self.shared_mesh != None:
             mu.write_int(MuEnum.ET_MESH_FILTER)
             self.shared_mesh.write(mu)
-        if hasattr(self, "renderer"):
+        if hasattr(self, "renderer") and self.renderer != None:
             self.renderer.write(mu)
-        if hasattr(self, "skinned_mesh_renderer"):
+        if hasattr(self, "skinned_mesh_renderer") and self.skinned_mesh_renderer != None:
             self.skinned_mesh_renderer.write(mu)
-        if hasattr(self, "animation"):
+        if hasattr(self, "animation") and self.animation != None:
             self.animation.write(mu)
-        if hasattr(self, "camera"):
+        if hasattr(self, "camera") and self.camera != None:
             self.camera.write(mu)
-        if hasattr(self, "light"):
+        if hasattr(self, "light") and self.light != None:
             self.light.write(mu)
         for child in self.children:
             mu.write_int(MuEnum.ET_CHILD_TRANSFORM_START)
