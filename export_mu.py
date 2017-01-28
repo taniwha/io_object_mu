@@ -19,6 +19,8 @@
 
 # <pep8 compliant>
 
+import os
+
 import bpy, bmesh
 from bpy_extras.object_utils import object_data_add
 from mathutils import Vector,Matrix,Quaternion
@@ -34,6 +36,7 @@ from .mu import MuSpring, MuFriction
 from .mu import MuAnimation, MuClip, MuCurve, MuKey
 from .shader import make_shader
 from . import properties
+from .cfgnode import ConfigNode, ConfigNodeError
 
 def strip_nnn(name):
     ind = name.rfind(".")
@@ -305,7 +308,9 @@ def make_obj(mu, obj, path = ""):
     path += muobj.transform.name
     mu.objects[path] = muobj
     muobj.tag_and_layer = make_tag_and_layer(obj)
-    if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
+    if not obj.data and obj.name[:4] == "node":
+        mu.nodes.append(AttachNode(obj, mu.inverse))
+    elif obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
         # colliders are children of the object representing the transform so
         # they are never exported directly.
         pass
@@ -437,6 +442,24 @@ def make_animations(mu, animations, anim_root):
         anim.clips.append(clip)
     return anim
 
+def generate_cfg(mu, filepath):
+    base = os.path.splitext(filepath)
+    cfgin = base[0] + ".cfg.in"
+    cfg = base[0] + ".cfg"
+    if os.path.isfile (cfgin):
+        try:
+            node = ConfigNode.load(open(cfgin, "rt").read())
+        except ConfigNodeError as e:
+            return
+        part = node.GetNode("PART")
+        if not part:
+            return
+        mu.nodes.sort()
+        for n in mu.nodes:
+            part.AddValue(n.name, n.cfgstring())
+        of = open(cfg, "wt")
+        of.write("PART " + part.ToString())
+
 def export_object(obj, filepath):
     animations = collect_animations(obj)
     anim_root = find_path_root(animations)
@@ -444,6 +467,8 @@ def export_object(obj, filepath):
     mu.objects = {}
     mu.materials = {}
     mu.textures = {}
+    mu.nodes = []
+    mu.inverse = obj.matrix_world.inverted()
     mu.obj = make_obj(mu, obj)
     mu.materials = list(mu.materials.values())
     mu.materials.sort(key=lambda x: x.index)
@@ -453,6 +478,7 @@ def export_object(obj, filepath):
         anim_root_obj = mu.objects[anim_root]
         anim_root_obj.animation = make_animations(mu, animations, anim_root)
     mu.write(filepath)
+    generate_cfg(mu, filepath)
     return mu
 
 def export_mu(operator, context, filepath):
@@ -511,3 +537,52 @@ class VIEW3D_PT_tools_mu_export(bpy.types.Panel):
         layout = self.layout
         #col = layout.column(align=True)
         layout.operator("export_object.ksp_mu_quick", text = "Export Mu Model");
+
+class AttachNode:
+    node_types = ["stack", "attach"]
+    def __init__(self, obj, inv):
+        self.name = strip_nnn(obj.name)
+        self.parts = self.name.split("_", 2)
+        self.pos = (inv*obj.matrix_world.col[3])[:3]
+        self.dir = (inv*obj.matrix_world.col[2])[:3]
+    def __lt__(self, other):
+        return self.cmp(other) < 0
+    def __eq__(self, other):
+        return self.cmp(other) == 0
+    def __gt__(self, other):
+        return self.cmp(other) > 0
+    def cmp(self, other):
+        # parts[0] will always be "node"
+        if self.parts[1] == other.parts[1]:
+            x = len(self.parts) - len(other.parts)
+            if x != 0:
+                return x
+            if len(self.parts) < 3:
+                return 0
+            if self.parts[2] == other.parts[2]:
+                return 0
+            if self.parts[2] == "bottom":
+                return 1
+            if self.parts[2] == "top":
+                if other.parts[2] == "bottom":
+                    return -1
+                else:
+                    return 1
+            if other.parts[2] == "bottom":
+                return -1
+            if other.parts[2] == "top":
+                if self.parts[2] == "bottom":
+                    return 1
+                else:
+                    return -1
+            return self.parts[2] > other.parts[2] and 1 or -1
+        elif self.parts[1] in node_types and other.parts[1] in node_types:
+            return ord(other.parts[1][0]) - ord(self.parts[1][0])
+        else:
+            return self.parts[1] > other.parts[1] and 1 or -1
+    def __repr__(self):
+        return self.name + self.pos.__repr__() + self.dir.__repr__()
+    def cfgstring(self):
+        pos = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.pos))
+        dir = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.dir))
+        return "%g, %g, %g, %g, %g, %g, %d" % (pos + dir + (1,))
