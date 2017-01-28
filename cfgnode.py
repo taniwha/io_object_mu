@@ -19,11 +19,12 @@
 
 # <pep8 compliant>
 
-from script import Script
+from .script import Script
 
 class ConfigNodeError(Exception):
     def __init__(self, fname, line, message):
         Exception.__init__(self, "%s:%d: %s" % (fname, line, message))
+        self.message = "%s:%d: %s" % (fname, line, message)
         self.line = line
 
 def cfg_error(self, msg):
@@ -35,26 +36,38 @@ class ConfigNode:
         self.nodes = []
     @classmethod
     def ParseNode(cls, node, script, top = False):
-        while script.getToken(True) != None:
+        while script.tokenAvailable(True):
+            token_start = script.pos
+            if script.getToken(True) == None:
+                break
+            if script.token == "\xef\xbb\xbf":
+                continue
             if script.token in (top and ['{', '}', '='] or ['{', '=']):
                 cfg_error(script, "unexpected " + script.token)
             if script.token == '}':
                 return
+            token_end = script.pos
             key = script.token
-            if script.tokenAvailable(True):
+            #print(key,script.line)
+            while script.tokenAvailable(True):
                 script.getToken(True)
+                token_end = script.pos
+                line = script.line
                 if script.token == '=':
                     value = ''
                     if script.tokenAvailable(False):
                         script.getLine()
                         value = script.token
-                    node.values.append((key, value))
+                    node.values.append((key, value, line))
+                    break
                 elif script.token == '{':
                     new_node = ConfigNode()
                     ConfigNode.ParseNode(new_node, script, False)
-                    node.nodes.append((key, new_node))
+                    node.nodes.append((key, new_node, line))
+                    break
                 else:
-                    cfg_error(script, "unexpected " + script.token)
+                    #cfg_error(script, "unexpected " + script.token)
+                    key = script.text[token_start:token_end]
         if not top:
             cfg_error(script, "unexpected end of file")
     @classmethod
@@ -69,6 +82,11 @@ class ConfigNode:
             if n[0] == key:
                 return n[1]
         return None
+    def GetNodeLine(self, key):
+        for n in self.nodes:
+            if n[0] == key:
+                return n[2]
+        return None
     def GetNodes(self, key):
         nodes = []
         for n in self.nodes:
@@ -79,6 +97,11 @@ class ConfigNode:
         for v in self.values:
             if v[0] == key:
                 return v[1]
+        return None
+    def GetValueLine(self, key):
+        for v in self.values:
+            if v[0] == key:
+                return v[2]
         return None
     def GetValues(self, key):
         values = []
@@ -92,8 +115,14 @@ class ConfigNode:
         return node
     def AddValue(self, key, value):
         self.values.append((key, value))
+    def SetValue(self, key, value):
+        for i in range(len(self.values)):
+            if self.values[i][0] == key:
+                self.values[i] = key, value, 0
+                return
+        self.AddValue(key, value)
     def ToString(self, level = 0):
-        text = "{ \n"
+        text = "{\n"
         for val in self.values:
             text += "%s%s = %s\n" % ("    " * (level + 1), val[0], val[1])
         for node in self.nodes:
@@ -101,3 +130,12 @@ class ConfigNode:
             text += "%s%s %s\n" % ("    " * (level + 1), node[0], ntext)
         text += "%s}\n" % ("    " * (level))
         return text
+
+if __name__ == "__main__":
+    import sys
+    for arg in sys.argv[1:]:
+        text = open(arg, "rt").read()
+        try:
+            node = ConfigNode.load(text)
+        except ConfigNodeError as e:
+            print(arg+e.message)
