@@ -545,6 +545,7 @@ class AttachNode:
         self.parts = self.name.split("_", 2)
         self.pos = (inv*obj.matrix_world.col[3])[:3]
         self.dir = (inv*obj.matrix_world.col[2])[:3]
+        self.size = obj.muproperties.nodeSize
     def __lt__(self, other):
         return self.cmp(other) < 0
     def __eq__(self, other):
@@ -585,4 +586,4 @@ class AttachNode:
     def cfgstring(self):
         pos = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.pos))
         dir = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.dir))
-        return "%g, %g, %g, %g, %g, %g, %d" % (pos + dir + (1,))
+        return "%g, %g, %g, %g, %g, %g, %d" % (pos + dir + (self.size,))

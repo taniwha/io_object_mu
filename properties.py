@@ -96,6 +96,7 @@ def collider_update(self, context):
     update_collider(obj)
 
 class MuProperties(bpy.types.PropertyGroup):
+    nodeSize = IntProperty(name = "Size", default = 1)
     tag = StringProperty(name = "Tag", default="Untagged")
     layer = IntProperty(name = "Layer")
 
@@ -114,6 +115,24 @@ class MuProperties(bpy.types.PropertyGroup):
     sideFriction = PointerProperty(type=MuFrictionProp, name = "Sideways")
 
     cullingMask = BoolVectorProperty(size=32, name = "Mask", subtype = 'LAYER')
+
+class MuAttachNodePanel(bpy.types.Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'data'
+    bl_label = 'Attach Node'
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        return obj and obj.type == 'EMPTY' and obj.name[:4] == "node"
+
+    def draw(self, context):
+        layout = self.layout
+        muprops = context.active_object.muproperties
+        row = layout.row()
+        col = row.column()
+        col.prop(muprops, "nodeSize")
 
 class MuPropertiesPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
