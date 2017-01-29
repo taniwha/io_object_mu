@@ -580,7 +580,8 @@ class AttachNode:
                 else:
                     return -1
             return self.parts[2] > other.parts[2] and 1 or -1
-        elif self.parts[1] in node_types and other.parts[1] in node_types:
+        elif (self.parts[1] in self.node_types
+              and other.parts[1] in self.node_types):
             return ord(other.parts[1][0]) - ord(self.parts[1][0])
         else:
             return self.parts[1] > other.parts[1] and 1 or -1
