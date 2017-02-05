@@ -14,6 +14,8 @@ loaded_models = {}
 parts = {}
 resources = {}
 gamedata = "/home/bill/ksp/KSP_linux-ckan/GameData"
+loaded_models_object = None
+parts_object = None
 
 def parse_vector_string(string):
     s = string.split(",")
@@ -59,6 +61,11 @@ def copy_objects(obj):
     return new_obj
 
 def load_models(nodes):
+    global loaded_models_object
+    if not loaded_models_object:
+        loaded_models_object = bpy.data.objects.new("loaded_models", None)
+        bpy.context.scene.objects.link(loaded_models_object)
+        loaded_models_object.hide = True
     objects = []
     for n in nodes:
         model = n.GetValue("model")
@@ -76,6 +83,7 @@ def load_models(nodes):
             m = import_mu(path, False)
             hide_objects(m)
             loaded_models[model] = m
+            m.parent = loaded_models_object
         obj = copy_objects(loaded_models[model])
         obj.location = position
         # blender is right-handed, KSP is left-handed
@@ -87,6 +95,7 @@ def load_models(nodes):
         objects.append(obj)
     if len(objects) > 1:
         obj = bpy.data.objects.new("something", None)
+        bpy.context.scene.objects.link(obj)
         obj.hide = True
         for o in objects:
             o.parent = obj
@@ -123,8 +132,13 @@ class Part:
                 node.AddValue("position", "0, 0, 0")
                 node.AddValue("rotation", "0, 0, 0")
                 node.AddValue("scale", "1, 1, 1")
-                print(self.name)
                 self.model = load_models ([node])
+            global parts_object
+            if not parts_object:
+                parts_object = bpy.data.objects.new("parts", None)
+                bpy.context.scene.objects.link(parts_object)
+                parts_object.hide = True
+            self.model.parent = parts_object
         model = copy_objects(self.model)
         model.location = Vector((0, 0, 0))
         model.rotation_mode = 'QUATERNION'
@@ -158,7 +172,6 @@ def build_cfgdb(path):
         if node[0] == "PART":
             gdpath = path[len(gamedata) + 1:]
             part = Part(gdpath, node[1])
-            print(part.name, part.path, gdpath, gamedata)
             parts[part.name] = part
         elif node[0] == "RESOURCE_DEFINITION":
             res = node[1]
