@@ -10,6 +10,7 @@ from .cfgnode import ConfigNode, ConfigNodeError
 from .import_mu import import_mu
 
 
+model_by_path = {}
 loaded_models = {}
 parts = {}
 resources = {}
@@ -121,11 +122,11 @@ class Part:
             if cfg.HasNode("MODEL"):
                 self.model = load_models (cfg.GetNodes("MODEL"))
             else:
-                mesh = "model"
-                if cfg.HasValue("mesh"):
-                    mesh = cfg.GetValue("mesh")
-                    if mesh[-3:] == '.mu':
-                        mesh = mesh[:-3]
+                mesh = model_by_path[self.path][0]
+                #if cfg.HasValue("mesh"):
+                #    mesh = cfg.GetValue("mesh")
+                #    if mesh[-3:] == '.mu':
+                #        mesh = mesh[:-3]
                 model = os.path.join(self.path, mesh)
                 node = ConfigNode()
                 node.AddValue("model", model)
@@ -158,9 +159,7 @@ def recurse_tree(path, func):
         else:
             func(p)
 
-def build_cfgdb(path):
-    if path[-4:].lower() != ".cfg":
-        return
+def process_cfg(path):
     bytes = open(path, "rb").read()
     text = "".join(map(lambda b: chr(b), bytes))
     try:
@@ -178,9 +177,29 @@ def build_cfgdb(path):
             resname = res.GetValue("name")
             resources[resname] = res
 
+def process_mu(path):
+    gdpath = path[len(gamedata) + 1:]
+    directory, model = os.path.split(gdpath)
+    if directory not in model_by_path:
+        model_by_path[directory] = []
+    model_by_path[directory].append(model[:-3])
+
+def build_db(path):
+    if path[-4:].lower() == ".cfg":
+        process_cfg(path)
+        return
+    if path[-3:].lower() == ".mu":
+        process_mu(path)
+        return
+
+def create_db():
+    recurse_tree(gamedata, build_db)
+    for k in model_by_path:
+        model_by_path[k].sort()
+
 def import_craft(filepath):
     if not parts:
-        recurse_tree(gamedata, build_cfgdb)
+        create_db()
     bytes = open(filepath, "rb").read()
     text = "".join(map(lambda b: chr(b), bytes))
     try:
@@ -208,7 +227,7 @@ def import_craft(filepath):
 
 def import_craft_op(self, context, filepath):
     if not parts:
-        recurse_tree(gamedata, build_cfgdb)
+        create_db()
     operator = self
     undo = bpy.context.user_preferences.edit.use_global_undo
     bpy.context.user_preferences.edit.use_global_undo = False
