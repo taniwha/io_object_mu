@@ -355,14 +355,7 @@ def create_materials(mu):
     for mumat in mu.materials:
         mumat.material = make_shader(mumat, mu)
 
-def import_mu(self, context, filepath, create_colliders):
-    operator = self
-    undo = bpy.context.user_preferences.edit.use_global_undo
-    bpy.context.user_preferences.edit.use_global_undo = False
-
-    for obj in bpy.context.scene.objects:
-        obj.select = False
-
+def import_mu(filepath, create_colliders):
     mu = Mu()
     if not mu.read(filepath):
         bpy.context.user_preferences.edit.use_global_undo = undo
@@ -373,7 +366,17 @@ def import_mu(self, context, filepath, create_colliders):
     create_textures(mu, os.path.dirname(filepath))
     create_materials(mu)
     mu.objects = {}
-    obj = create_object(mu, mu.obj, None, create_colliders, [])
+    return create_object(mu, mu.obj, None, create_colliders, [])
+
+def import_mu_op(self, context, filepath, create_colliders):
+    operator = self
+    undo = bpy.context.user_preferences.edit.use_global_undo
+    bpy.context.user_preferences.edit.use_global_undo = False
+
+    for obj in bpy.context.scene.objects:
+        obj.select = False
+
+    obj = import_mu(filepath, create_colliders)
     bpy.context.scene.objects.active = obj
     obj.select = True
 
@@ -396,4 +399,4 @@ class ImportMu(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         keywords = self.as_keywords (ignore=("filter_glob",))
-        return import_mu(self, context, **keywords)
+        return import_mu_op(self, context, **keywords)

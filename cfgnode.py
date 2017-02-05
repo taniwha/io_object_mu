@@ -98,6 +98,16 @@ class ConfigNode:
             if v[0] == key:
                 return v[1]
         return None
+    def HasNode(self, key):
+        for n in self.nodes:
+            if n[0] == key:
+                return True
+        return False
+    def HasValue(self, key):
+        for v in self.values:
+            if v[0] == key:
+                return True
+        return False
     def GetValueLine(self, key):
         for v in self.values:
             if v[0] == key:

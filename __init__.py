@@ -49,10 +49,12 @@ import bpy
 from . import collider, properties, shader
 from . import export_mu
 from . import import_mu
+from . import import_craft
 
 
 def menu_func_import(self, context):
     self.layout.operator(import_mu.ImportMu.bl_idname, text="KSP Mu (.mu)")
+    self.layout.operator(import_craft.ImportCraft.bl_idname, text="KSP Craft (.craft)")
 
 def menu_func_export(self, context):
     self.layout.operator(export_mu.ExportMu.bl_idname, text="KSP Mu (.mu)")
