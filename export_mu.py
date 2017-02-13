@@ -25,6 +25,7 @@ import bpy, bmesh
 from bpy_extras.object_utils import object_data_add
 from mathutils import Vector,Matrix,Quaternion
 from pprint import pprint
+from math import pi
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import FloatVectorProperty, PointerProperty
