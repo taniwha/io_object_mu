@@ -233,7 +233,7 @@ def create_object(mu, muobj, parent, create_colliders, parents):
         obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
         mumat = mu.materials[smr.materials[0]]
         mesh.materials.append(mumat.material)
-    if hasattr(muobj, "renderer"):
+    if hasattr(muobj, "renderer") and len(muobj.renderer.materials) > 0:
         if mesh:
             mumat = mu.materials[muobj.renderer.materials[0]]
             mesh.materials.append(mumat.material)
