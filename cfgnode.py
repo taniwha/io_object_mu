@@ -96,7 +96,7 @@ class ConfigNode:
     def GetValue(self, key):
         for v in self.values:
             if v[0] == key:
-                return v[1]
+                return v[1].strip()
         return None
     def HasNode(self, key):
         for n in self.nodes:

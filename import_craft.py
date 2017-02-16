@@ -128,7 +128,7 @@ class Part:
     def __init__(self, path, cfg):
         self.cfg = cfg
         self.path = os.path.dirname(path)
-        self.name = cfg.GetValue("name").replace("_", ".").strip()
+        self.name = cfg.GetValue("name").replace("_", ".")
         self.model = None
         self.scale = 1.0
         self.rescaleFactor = 1.25
