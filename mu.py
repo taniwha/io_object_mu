@@ -777,7 +777,7 @@ class MuCamera:
     def read(self, mu):
         self.clearFlags = mu.read_int()
         self.backgroundColor = mu.read_float(4)
-        self.cullingMask = mu.read_int()
+        self.cullingMask = mu.read_uint()
         self.orthographic = mu.read_byte()
         self.fov = mu.read_float()
         self.near = mu.read_float()
@@ -788,7 +788,7 @@ class MuCamera:
         mu.write_int(MuEnum.ET_CAMERA)
         mu.write_int(self.clearFlags)
         mu.write_float(self.backgroundColor)
-        mu.write_int(self.cullingMask)
+        mu.write_uint(self.cullingMask)
         mu.write_int(self.orthographic)
         mu.write_float(self.fov)
         mu.write_float(self.near)
@@ -879,7 +879,7 @@ class MuLight:
         self.intensity = mu.read_float()
         self.range = mu.read_float()
         self.color = mu.read_float(4)
-        self.cullingMask = mu.read_int()
+        self.cullingMask = mu.read_uint()
         if mu.version > 1:
             self.spotAngle = mu.read_float()
         return self
@@ -989,6 +989,16 @@ class Mu:
         if len(data) < size:
             raise EOFError
         data = unpack("<%di" % count, data)
+        if count == 1 and not force_list:
+            return data[0]
+        return data
+
+    def read_uint(self, count=1, force_list=False):
+        size = 4 * count
+        data = self.file.read(size)
+        if len(data) < size:
+            raise EOFError
+        data = unpack("<%dI" % count, data)
         if count == 1 and not force_list:
             return data[0]
         return data
