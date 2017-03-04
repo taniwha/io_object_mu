@@ -62,7 +62,7 @@ def quickhull_op(self, context):
             continue
         obj.select = False
         mesh = obj.to_mesh(context.scene, True, 'PREVIEW')
-        if not mesh.vertices:
+        if not mesh or not mesh.vertices:
             continue
         mesh = quickhull(mesh)
         hullobj = bpy.data.objects.new("ConvexHull", mesh)
