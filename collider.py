@@ -28,6 +28,7 @@ from bpy.props import FloatVectorProperty, IntProperty
 from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum
+from .quickhull import quickhull
 from . import properties
 
 collider_sphere_ve = (
@@ -216,7 +217,7 @@ def add_collider(self, context):
     context.user_preferences.edit.use_global_undo = True
     return {'FINISHED'}
 
-def add_mesh_colliders(self, context):
+def add_mesh_colliders(self, context, convex):
     operator = self
     undo = bpy.context.user_preferences.edit.use_global_undo
     bpy.context.user_preferences.edit.use_global_undo = False
@@ -228,7 +229,10 @@ def add_mesh_colliders(self, context):
         if obj.type != 'MESH':
             continue
         name = obj.name + ".collider"
-        col = bpy.data.objects.new(name, obj.data)
+        mesh = obj.to_mesh(context.scene, True, 'PREVIEW')
+        if convex:
+            mesh = quickhull(mesh)
+        col = bpy.data.objects.new(name, mesh)
         col.parent = obj
         col.select = True
         context.scene.objects.link(col)
@@ -243,8 +247,13 @@ class ColliderFromMesh(bpy.types.Operator):
     bl_label = "Add Mesh Collideri to Selected Meshes"
     bl_options = {'REGISTER', 'UNDO'}
 
+    convex = BoolProperty(name="Make Convex",
+                    description="Create a convex hull from the raw mesh.",
+                    default=True)
+
     def execute(self, context):
-        return add_mesh_colliders(self, context)
+        keywords = self.as_keywords ()
+        return add_mesh_colliders(self, context, **keywords)
 
 class ColliderMesh(bpy.types.Operator):
     """Add Mesh Collider"""
