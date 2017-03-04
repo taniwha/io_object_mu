@@ -25,6 +25,7 @@ else:
 import sys
 
 id = 0
+epsilon = 1e-5
 
 class Triangle:
     def __init__(self, mesh, a, b, c):
@@ -46,11 +47,12 @@ class Triangle:
         return dot(sub(p, self.a), self.n)
     def can_see(self, point):
         p = self.mesh.verts[point]
-        return dot(sub(p, self.a), self.n) > -1e-6
+        d = dot(sub(p, self.a), self.n)
+        return d > -epsilon
     def add_point(self, point):
         d = self.dist(point)
         # use an epsilon of 1um. Even 1mm is pretty small in KSP.
-        if d > 1e-6:
+        if d > epsilon:
             if d > self.height:
                 self.height = d
                 self.highest = len(self.vispoints)
@@ -147,7 +149,7 @@ def get_convex_hull(mesh):
     for p in range(len(mesh.verts)):
         for f in faces:
             if f.add_point(p):
-                break
+                break # process the next point
     final_faces = []
     itter = 0
     while faces:
