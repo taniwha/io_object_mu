@@ -50,6 +50,7 @@ from . import collider, properties, shader
 from . import export_mu
 from . import import_mu
 from . import import_craft
+from . import quickhull
 
 
 def menu_func_import(self, context):
@@ -64,6 +65,7 @@ def register():
 
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
+    bpy.types.INFO_MT_mesh_add.append(quickhull.menu_func)
 
     properties.register()
     collider.register()
