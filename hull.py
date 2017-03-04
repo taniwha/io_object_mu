@@ -16,8 +16,12 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-from mu import Mu, MuEnum, MuColliderMesh, MuMesh
-from vect import *
+if __name__ == "__main__":
+    from mu import Mu, MuEnum, MuColliderMesh, MuMesh
+    from vect import *
+else:
+    from .mu import Mu, MuEnum, MuColliderMesh, MuMesh
+    from .vect import *
 import sys
 
 id = 0
@@ -215,4 +219,5 @@ def main():
     find_colliders(mu.obj)
     mu.write(oname)
 
-main()
+if __name__ == "__main__":
+    main()
