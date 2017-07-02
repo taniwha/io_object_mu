@@ -22,7 +22,7 @@
 from struct import pack, unpack
 class MuEnum:
     MODEL_BINARY = 76543
-    FILE_VERSION = 4
+    FILE_VERSION = 5
 
     ET_CHILD_TRANSFORM_START = 0
     ET_CHILD_TRANSFORM_END = 1
@@ -56,6 +56,7 @@ class MuEnum:
     ET_WHEEL_COLLIDER = 29
     ET_CAMERA = 30
     ET_PARTICLES = 31
+    ET_MESH_VERTEX_COLORS = 32
     ENTRY_TYPES = {
         'ET_CHILD_TRANSFORM_START':ET_CHILD_TRANSFORM_START,
         'ET_CHILD_TRANSFORM_END':ET_CHILD_TRANSFORM_END,
@@ -89,6 +90,7 @@ class MuEnum:
         'ET_WHEEL_COLLIDER':ET_WHEEL_COLLIDER,
         'ET_CAMERA':ET_CAMERA,
         'ET_PARTICLES':ET_PARTICLES,
+        'ET_MESH_VERTEX_COLORS':ET_MESH_VERTEX_COLORS,
     }
 
     ST_CUSTOM = 0
@@ -471,6 +473,7 @@ class MuMesh:
         self.boneWeights = []
         self.bindPoses = []
         self.submeshes = []
+        self.colors = []
     def read(self, mu):
         #print("MuMesh")
         start = mu.read_int()
@@ -526,6 +529,11 @@ class MuMesh:
                         tri = tri[2], tri[1], tri[0]
                     tris.append(tri)
                 self.submeshes.append(tris)
+            elif type == MuEnum.ET_MESH_VERTEX_COLORS:
+                for i in range(num_verts):
+                    colb = mu.read_byte(4)
+                    col = tuple(map (lambda c: c / 255.0, colb))
+                    self.colors.append(col)
             else:
                 raise ValueError("MuMesh %x %d" % (mu.file.tell(), type))
         return self
@@ -562,6 +570,10 @@ class MuMesh:
             mu.write_int(len(self.bindPoses))
             for bp in self.bindPoses:
                 mu.write_float(bp)
+        if len(self.colors) == len(self.verts):
+            mu.write_int(MuEnum.ET_MESH_VERTEX_COLORS)
+            for t in self.colors:
+                mu.write_color(t)
         for sm in self.submeshes:
             mu.write_int(MuEnum.ET_MESH_TRIANGLES)
             mu.write_int(len(sm) * 3)
@@ -971,6 +983,13 @@ class MuObject:
             child.write(mu)
             mu.write_int(MuEnum.ET_CHILD_TRANSFORM_END)
 
+def bound(mi, x, ma):
+    if x < mi:
+        return mi
+    if x > ma:
+        return ma
+    return x
+
 class Mu:
 
     def read_byte(self, count=1, force_list=False):
@@ -1085,6 +1104,10 @@ class Mu:
     def write_tangent(self, t):
         t = t[0], t[2], t[1], -t[3]
         self.write_float(t)
+
+    def write_color(self, c):
+        cb = tuple(map(lambda x: int(bound(0, x, 1) * 255), x))
+        self.write_byte(cb)
 
     def write_bytes(self, data, size=-1):
         if size == -1:
