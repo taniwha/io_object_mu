@@ -79,6 +79,14 @@ collider_items = (
     ('MU_COL_BOX', "Box", ""),
     ('MU_COL_WHEEL', "Wheel", ""),
 )
+method_items = (
+    ('FIXED_JOINT', "Fixed Joint", ""),
+    ('HINGE_JOINT', "Hinge Joint", ""),
+    ('LOCKED_JOINT', "Locked Joint", ""),
+    ('MERGED_PHYSICS', "Merged Physics", ""),
+    ('NO_PHYSICS', "No Physics", ""),
+    ('NONE', "None", ""),
+)
 
 def SetPropMask(prop, mask):
     for i in range(32):
@@ -97,6 +105,10 @@ def collider_update(self, context):
 
 class MuProperties(bpy.types.PropertyGroup):
     nodeSize = IntProperty(name = "Size", default = 1)
+    nodeMethod = EnumProperty(items = method_items, name = "Method")
+    nodeCrossfeed = BoolProperty(name = "Crossfeed", default = True)
+    nodeRigid = BoolProperty(name = "Rigid", default = False)
+
     tag = StringProperty(name = "Tag", default="Untagged")
     layer = IntProperty(name = "Layer")
 
@@ -133,6 +145,9 @@ class MuAttachNodePanel(bpy.types.Panel):
         row = layout.row()
         col = row.column()
         col.prop(muprops, "nodeSize")
+        col.prop(muprops, "nodeMethod")
+        col.prop(muprops, "nodeCrossfeed")
+        col.prop(muprops, "nodeRigid")
 
 class MuPropertiesPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'

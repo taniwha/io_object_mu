@@ -311,6 +311,12 @@ def make_obj(mu, obj, path = ""):
     muobj.tag_and_layer = make_tag_and_layer(obj)
     if not obj.data and obj.name[:4] == "node":
         mu.nodes.append(AttachNode(obj, mu.inverse))
+        # Blender's empties use the +Z axis for single-arrow display, so that
+        # is the most natural orientation for nodes in blender. However, KSP
+        # uses the transform's +Z (Unity) axis which is Blender's +Y, so
+        # rotate 90 degrees around local X to go from Blender to KSP
+        rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
+        muobj.transform.localRotation = muobj.transform.localRotation * rot
     elif obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
         # colliders are children of the object representing the transform so
         # they are never exported directly.
@@ -457,7 +463,8 @@ def generate_cfg(mu, filepath):
             return
         mu.nodes.sort()
         for n in mu.nodes:
-            part.AddValue(n.name, n.cfgstring())
+            #part.AddValue(n.name, n.cfgstring())
+            part.AddNode("NODE", n.cfgnode())
         of = open(cfg, "wt")
         for n in node.nodes:
             of.write(n[0] + " " + n[1].ToString())
@@ -551,6 +558,9 @@ class AttachNode:
         self.pos = swapyz((inv*obj.matrix_world.col[3])[:3])
         self.dir = swapyz((inv*obj.matrix_world.col[2])[:3])
         self.size = obj.muproperties.nodeSize
+        self.method = obj.muproperties.nodeMethod
+        self.crossfeed = obj.muproperties.nodeCrossfeed
+        self.rigid = obj.muproperties.nodeRigid
     def __lt__(self, other):
         return self.cmp(other) < 0
     def __eq__(self, other):
@@ -593,3 +603,12 @@ class AttachNode:
         pos = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.pos))
         dir = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.dir))
         return "%g, %g, %g, %g, %g, %g, %d" % (pos + dir + (self.size,))
+    def cfgnode(self):
+        node = ConfigNode ()
+        node.AddValue ("name", self.name)
+        node.AddValue ("transform", self.name)
+        node.AddValue ("size", self.size)
+        node.AddValue ("method", self.method)
+        node.AddValue ("crossfeed", self.crossfeed)
+        node.AddValue ("rigid", self.rigid)
+        return node
