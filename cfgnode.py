@@ -125,10 +125,14 @@ class ConfigNode:
             if v[0] == key:
                 values.append(v[1])
         return values
-    def AddNode(self, key):
+    def AddNode(self, key, node):
+        self.nodes.append((key, node))
+        return node
+    def AddNewNode (self, key):
         node = ConfigNode ()
         self.nodes.append((key, node))
         return node
+
     def AddValue(self, key, value):
         self.values.append((key, value))
     def SetValue(self, key, value):
