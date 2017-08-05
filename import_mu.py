@@ -147,10 +147,10 @@ def create_action(mu, path, clip):
             mu_path = path
         else:
             mu_path = "/".join([path, curve.path])
-        if mu_path not in mu.objects:
+        if mu_path not in mu.object_paths:
             print("Unknown path: %s" % (mu_path))
             continue
-        obj = mu.objects[mu_path]
+        obj = mu.object_paths[mu_path]
 
         if curve.property not in property_map:
             print("%s: Unknown property: %s" % (mu_path, curve.property))
@@ -217,7 +217,7 @@ def create_collider(mu, muobj):
         collider.build_collider(obj)
     return obj
 
-def create_object(mu, muobj, parent, create_colliders, parents):
+def create_object(mu, muobj, parent, create_colliders):
     obj = None
     mesh = None
     if hasattr(muobj, "shared_mesh"):
@@ -242,9 +242,6 @@ def create_object(mu, muobj, parent, create_colliders, parents):
             obj = create_light(mu, muobj.light, muobj.transform)
     if not obj:
         obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
-    parents.append(muobj.transform.name)
-    path = "/".join(parents)
-    mu.objects[path] = obj
     if hasattr(muobj, "tag_and_layer"):
         obj.muproperties.tag = muobj.tag_and_layer.tag
         obj.muproperties.layer = muobj.tag_and_layer.layer
@@ -253,11 +250,10 @@ def create_object(mu, muobj, parent, create_colliders, parents):
         cobj.parent = obj
     obj.parent = parent
     for child in muobj.children:
-        create_object(mu, child, obj, create_colliders, parents)
+        create_object(mu, child, obj, create_colliders)
     if hasattr(muobj, "animation"):
         for clip in muobj.animation.clips:
-            create_action(mu, path, clip)
-    parents.remove(muobj.transform.name)
+            create_action(mu, muobj.path, clip)
     return obj
 
 def convert_bump(pixels, width, height):
@@ -355,15 +351,33 @@ def create_materials(mu):
     for mumat in mu.materials:
         mumat.material = make_shader(mumat, mu)
 
+def create_object_paths(mu, obj=None, parents=None):
+    if obj == None:
+        mu.objects = {}
+        mu.object_paths = {}
+        create_object_paths(mu, mu.obj, [])
+        return
+    name = obj.transform.name
+    parents.append(name)
+    obj.path = "/".join(parents)
+    mu.objects[name] = obj
+    mu.object_paths[obj.path] = obj
+    for child in obj.children:
+        create_object_paths(mu, child, parents)
+    parents.pop()
+
+def process_mu(mu, mudir, create_colliders):
+    create_textures(mu, mudir)
+    create_materials(mu)
+    create_object_paths(mu)
+    return create_object(mu, mu.obj, None, create_colliders)
+
 def import_mu(filepath, create_colliders):
     mu = Mu()
     if not mu.read(filepath):
         return None
 
-    create_textures(mu, os.path.dirname(filepath))
-    create_materials(mu)
-    mu.objects = {}
-    return create_object(mu, mu.obj, None, create_colliders, [])
+    return process_mu(mu, os.path.dirname(filepath), create_colliders)
 
 def import_mu_op(self, context, filepath, create_colliders):
     operator = self
@@ -380,10 +394,7 @@ def import_mu_op(self, context, filepath, create_colliders):
             "Unrecognized format: %s %d" % (mu.magic, mu.version))
         return {'CANCELLED'}
 
-    create_textures(mu, os.path.dirname(filepath))
-    create_materials(mu)
-    mu.objects = {}
-    obj = create_object(mu, mu.obj, None, create_colliders, [])
+    obj = process_mu(mu, os.path.dirname(filepath), create_colliders)
     bpy.context.scene.objects.active = obj
     obj.select = True
 

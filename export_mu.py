@@ -307,7 +307,7 @@ def make_obj(mu, obj, path = ""):
     if path:
         path += "/"
     path += muobj.transform.name
-    mu.objects[path] = muobj
+    mu.object_paths[path] = muobj
     muobj.tag_and_layer = make_tag_and_layer(obj)
     if not obj.data and obj.name[:4] == "node":
         mu.nodes.append(AttachNode(obj, mu.inverse))
@@ -473,7 +473,7 @@ def export_object(obj, filepath):
     animations = collect_animations(obj)
     anim_root = find_path_root(animations)
     mu = Mu()
-    mu.objects = {}
+    mu.object_paths = {}
     mu.materials = {}
     mu.textures = {}
     mu.nodes = []
@@ -484,7 +484,7 @@ def export_object(obj, filepath):
     mu.textures = list(mu.textures.values())
     mu.textures.sort(key=lambda x: x.index)
     if anim_root:
-        anim_root_obj = mu.objects[anim_root]
+        anim_root_obj = mu.object_paths[anim_root]
         anim_root_obj.animation = make_animations(mu, animations, anim_root)
     mu.write(filepath)
     generate_cfg(mu, filepath)
