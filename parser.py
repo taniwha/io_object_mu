@@ -23,7 +23,32 @@ import sys, traceback, math
 from struct import unpack
 from pprint import pprint
 
-def parse_node(mu, part):
+def build_dictionary(mu, node):
+    value_dict={
+        "math":math,
+        "model":mu.name + ".mu",
+        "modelSkinVolume":mu.skin_volume,
+        "modelExtVolume":mu.ext_volume,
+    }
+    i = 0
+    while i < len(node.nodes):
+        if node.nodes[i][0] == "values":
+            for val in node.nodes[i][1].values:
+                vstr = val[1].strip()
+                if vstr[:2] == "${" and vstr[-1:] == "}":
+                    try:
+                        nval=eval(vstr[2:-1], value_dict)
+                    except Exception as e:
+                        print(mu.name + ":" + val[2] + ": " + e.message)
+                    else:
+                        vstr = nval
+                value_dict[val[0]] = vstr
+            del (node.nodes[i])
+            continue
+        i += 1
+    return value_dict
+
+def parse_node(mu, node):
     def recurse(value_dict, node):
         for i,val in enumerate(node.values):
             vstr = val[1].strip()
@@ -31,17 +56,11 @@ def parse_node(mu, part):
                 try:
                     nval=eval(vstr[2:-1], value_dict)
                 except Exception as e:
-                    print(mu.name + ":" + val[2] + ": " + e.message)
+                    print(mu.name + ":" + str(val[2]) + ": " + str(e))
                 else:
                     node.values[i] = (val[0], nval, val[2])
         for n in node.nodes:
             recurse(value_dict, n[1])
 
-    value_dict={
-        "math":math,
-        "model":mu.name + ".mu",
-        "modelSkinVolume":mu.skin_volume,
-        "modelExtVolume":mu.ext_volume,
-    }
-    print(value_dict)
-    recurse(value_dict, part)
+    value_dict = build_dictionary(mu, node)
+    recurse(value_dict, node)
