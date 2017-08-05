@@ -187,6 +187,8 @@ def process_cfg(path):
     except ConfigNodeError as e:
         print(path+e.message)
         return
+    if not cfg:
+        return
     for node in cfg.nodes:
         if node[0] == "PART":
             gdpath = path[len(gamedata) + 1:]
