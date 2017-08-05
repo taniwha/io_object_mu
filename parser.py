@@ -39,7 +39,7 @@ def build_dictionary(mu, node):
                     try:
                         nval=eval(vstr[2:-1], value_dict)
                     except Exception as e:
-                        print(mu.name + ":" + val[2] + ": " + e.message)
+                        print(mu.name + ":" + str(val[2]) + ": " + str(e))
                     else:
                         vstr = nval
                 value_dict[val[0]] = vstr
