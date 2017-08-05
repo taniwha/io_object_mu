@@ -241,6 +241,8 @@ def create_object(mu, muobj, parent, create_colliders):
     if not obj:
         if hasattr(muobj, "light"):
             obj = create_light(mu, muobj.light, muobj.transform)
+    if hasattr(muobj, "bone"):
+        return obj
     if not obj:
         obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
     if hasattr(muobj, "tag_and_layer"):
@@ -352,6 +354,73 @@ def create_materials(mu):
     for mumat in mu.materials:
         mumat.material = make_shader(mumat, mu)
 
+def create_bone(bone_obj, edit_bones):
+    xform = bone_obj.transform
+    bone_obj.bone = bone = edit_bones.new(xform.name)
+    print(bone.name)
+    # actual positions will be sorted out when building the hierarchy
+    bone.head = Vector((0, 0, 0))
+    bone.tail = bone.head + Vector((0.1, 0, 0))
+
+def psgn(x):
+    return x >= 0 and 1 or -1
+
+def process_armature(mu, obj=None, position=None, rotation=None):
+    if obj == None:
+        pos = Vector((0, 0, 0))
+        rot = Quaternion((1, 0, 0, 0))
+        process_armature(mu, mu.obj, pos, rot)
+        return
+    if not hasattr(obj, "bone"):
+        for child in obj.children:
+            process_armature(mu, child, position, rotation)
+        return
+    xform = obj.transform
+    obj.bone.head = rotation * Vector(xform.localPosition) + position
+    rot = Quaternion(xform.localRotation)
+    lrot = rotation * rot
+    x = 0.0
+    for child in obj.children:
+        if hasattr(child, "bone"):
+            cx = child.transform.localPosition[0]
+            if abs(cx) > x:
+                x = abs(cx)
+        process_armature(mu, child, obj.bone.head, lrot)
+    if x == 0:
+        x = 0.05
+    x *= psgn(obj.bone.head.x)
+    obj.bone.tail = obj.bone.head + lrot * Vector((x, 0, 0))
+    for child in obj.children:
+        if hasattr(child, "bone"):
+            child.bone.parent = obj.bone
+            d = child.bone.head - obj.bone.tail
+            if d.dot(d) < 1e-5:
+                child.bone.use_connect = True
+
+def create_armature(mu, obj=None):
+    if obj == None:
+        create_armature(mu, mu.obj)
+        if hasattr(mu, "armature_obj"):
+            process_armature(mu)
+            bpy.ops.object.mode_set(mode='OBJECT')
+        return
+    if hasattr(obj, "skinned_mesh_renderer"):
+        if not hasattr(mu, "armature"):
+            mu.armature = bpy.data.armatures.new("armature")
+            mu.armature_obj = bpy.data.objects.new("armature", mu.armature)
+            bpy.context.scene.objects.link(mu.armature_obj)
+            bpy.context.scene.objects.active = mu.armature_obj
+            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        smr = obj.skinned_mesh_renderer
+        for bone_name in smr.bones:
+            bone_obj = mu.objects[bone_name]
+            if hasattr(bone_obj, "bone"):
+                #already done
+                continue
+            create_bone(bone_obj, mu.armature.edit_bones)
+    for child in obj.children:
+        create_armature(mu, child)
+
 def create_object_paths(mu, obj=None, parents=None):
     if obj == None:
         mu.objects = {}
@@ -371,6 +440,7 @@ def process_mu(mu, mudir, create_colliders):
     create_textures(mu, mudir)
     create_materials(mu)
     create_object_paths(mu)
+    create_armature(mu)
     return create_object(mu, mu.obj, None, create_colliders)
 
 def import_mu(filepath, create_colliders):
