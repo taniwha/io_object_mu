@@ -38,6 +38,7 @@ from .mu import MuAnimation, MuClip, MuCurve, MuKey
 from .shader import make_shader
 from . import properties
 from .cfgnode import ConfigNode, ConfigNodeError
+from .parser import parse_node
 
 def calcVolume(mesh):
     terms=[]
@@ -492,30 +493,45 @@ def make_animations(mu, animations, anim_root):
         anim.clips.append(clip)
     return anim
 
-def generate_cfg(mu, filepath):
+def find_template(mu, filepath):
     base = os.path.splitext(filepath)
-    cfgin = base[0] + ".cfg.in"
     cfg = base[0] + ".cfg"
+
+    cfgin = mu.name + ".cfg.in"
+    if cfgin in bpy.data.texts:
+        return cfg, bpy.data.texts[cfgin]
+
+    cfgin = base[0] + ".cfg.in"
     if os.path.isfile (cfgin):
-        try:
-            node = ConfigNode.load(open(cfgin, "rt").read())
-        except ConfigNodeError as e:
-            return
-        part = node.GetNode("PART")
-        if not part:
-            return
-        mu.nodes.sort()
-        for n in mu.nodes:
-            #part.AddValue(n.name, n.cfgstring())
-            part.AddNode("NODE", n.cfgnode())
-        of = open(cfg, "wt")
-        for n in node.nodes:
-            of.write(n[0] + " " + n[1].ToString())
+        return cfg, open(cfgin, "rt").read()
+
+    return None, None
+
+def generate_cfg(mu, filepath):
+    cfg, template = find_template(mu, filepath)
+    if not template:
+        return
+    try:
+        node = ConfigNode.load(template)
+    except ConfigNodeError as e:
+        return
+    part = node.GetNode("PART")
+    if not part:
+        return
+    parse_node(mu, node)
+    mu.nodes.sort()
+    for n in mu.nodes:
+        #part.AddValue(n.name, n.cfgstring())
+        part.AddNode("NODE", n.cfgnode())
+    of = open(cfg, "wt")
+    for n in node.nodes:
+        of.write(n[0] + " " + n[1].ToString())
 
 def export_object(obj, filepath):
     animations = collect_animations(obj)
     anim_root = find_path_root(animations)
     mu = Mu()
+    mu.name = strip_nnn(obj.name)+".mu"
     mu.object_paths = {}
     mu.materials = {}
     mu.textures = {}
@@ -530,6 +546,7 @@ def export_object(obj, filepath):
         anim_root_obj = mu.object_paths[anim_root]
         anim_root_obj.animation = make_animations(mu, animations, anim_root)
     mu.write(filepath)
+    mu.skin_volume, mu.ext_volume = model_volume(obj)
     generate_cfg(mu, filepath)
     return mu
 
