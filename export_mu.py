@@ -39,6 +39,49 @@ from .shader import make_shader
 from . import properties
 from .cfgnode import ConfigNode, ConfigNodeError
 
+def calcVolume(mesh):
+    terms=[]
+    for face in mesh.tessfaces:
+        a = mesh.vertices[face.vertices[0]].co
+        b = mesh.vertices[face.vertices[1]].co
+        for i in range(2, len(face.vertices)):
+            c = mesh.vertices[face.vertices[i]].co
+            vp =  a.y*b.z*c.x + a.z*b.x*c.y + a.x*b.y*c.z
+            vm = -a.z*b.y*c.x - a.x*b.z*c.y - a.y*b.x*c.z
+            terms.extend([vp, vm])
+            b = c
+    vol = 0
+    for t in sorted(terms, key=abs):
+        vol += t
+    return vol / 6
+
+def obj_volume(obj):
+    if type(obj.data) != bpy.types.Mesh:
+        return 0, 0
+    if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
+        return 0, 0
+    skin_mesh = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+    ext_mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
+    return calcVolume(skin_mesh), calcVolume(ext_mesh)
+
+def model_volume(obj):
+    svols = []
+    evols = []
+    def recurse(o):
+        v = obj_volume(o)
+        svols.append(v[0])
+        evols.append(v[1])
+        for c in o.children:
+            recurse(c)
+    recurse(obj)
+    skinvol = 0
+    extvol = 0
+    for s in sorted(svols, key=abs):
+        skinvol += s
+    for e in sorted(evols, key=abs):
+        extvol += e
+    return skinvol, extvol
+
 def strip_nnn(name):
     ind = name.rfind(".")
     if ind < 0 or len(name) - ind != 4:
@@ -535,6 +578,25 @@ class ExportMu_quick(bpy.types.Operator, ExportHelper):
             self.filepath = context.active_object.name + self.filename_ext
         return ExportHelper.invoke(self, context, event)
 
+class MuVolume(bpy.types.Operator):
+    bl_idname = 'object.mu_volume'
+    bl_label = 'Mu Volume'
+
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object != None
+                and (not context.active_object.data
+                     or type(context.active_object.data) == bpy.types.Mesh))
+
+    def execute(self, context):
+        obj = context.active_object
+        if obj.data and type(obj.data) == bpy.types.Mesh:
+            vol = obj_volume(obj)
+        else:
+            vol = model_volume(obj)
+        self.report({'INFO'}, 'Skin Volume = %g m^3, Ext Volume = %g m^3' % vol)
+        return {'FINISHED'}
+
 class VIEW3D_PT_tools_mu_export(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
@@ -546,6 +608,7 @@ class VIEW3D_PT_tools_mu_export(bpy.types.Panel):
         layout = self.layout
         #col = layout.column(align=True)
         layout.operator("export_object.ksp_mu_quick", text = "Export Mu Model");
+        layout.operator("object.mu_volume", text = "Calc Mu Volume");
 
 def swapyz(vec):
     return vec[0], vec[2], vec[1]
