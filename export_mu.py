@@ -354,7 +354,10 @@ def make_obj(mu, obj, path = ""):
     mu.object_paths[path] = muobj
     muobj.tag_and_layer = make_tag_and_layer(obj)
     if not obj.data and obj.name[:4] == "node":
-        mu.nodes.append(AttachNode(obj, mu.inverse))
+        n = AttachNode(obj, mu.inverse)
+        mu.nodes.append(n)
+        if not n.keep_transform():
+            return None
         # Blender's empties use the +Z axis for single-arrow display, so that
         # is the most natural orientation for nodes in blender. However, KSP
         # uses the transform's +Z (Unity) axis which is Blender's +Y, so
@@ -383,7 +386,9 @@ def make_obj(mu, obj, path = ""):
             continue
         if (o.data and type(o.data) not in exportable_types):
             continue
-        muobj.children.append(make_obj(mu, o, path))
+        child = make_obj(mu, o, path)
+        if child:
+            muobj.children.append(child)
     return muobj
 
 def collect_animations(obj, path=""):
@@ -521,8 +526,7 @@ def generate_cfg(mu, filepath):
     parse_node(mu, node)
     mu.nodes.sort()
     for n in mu.nodes:
-        #part.AddValue(n.name, n.cfgstring())
-        part.AddNode("NODE", n.cfgnode())
+        n.save(part)
     of = open(cfg, "wt")
     for n in node.nodes:
         of.write(n[0] + " " + n[1].ToString())
@@ -679,16 +683,28 @@ class AttachNode:
             return self.parts[1] > other.parts[1] and 1 or -1
     def __repr__(self):
         return self.name + self.pos.__repr__() + self.dir.__repr__()
+    def methodval(self):
+        for i, enum in enumerate(properties.method_items):
+            if enum[0] == self.method:
+                return i
+        return 0
     def cfgstring(self):
         pos = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.pos))
         dir = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.dir))
-        return "%g, %g, %g, %g, %g, %g, %d" % (pos + dir + (self.size,))
+        return "%g, %g, %g, %g, %g, %g, %d, %d, %d, %d" % (pos + dir + (self.size,self.methodval(), int(self.crossfeed), int(self.rigid)))
     def cfgnode(self):
         node = ConfigNode ()
-        node.AddValue ("name", self.name)
+        node.AddValue ("name", self.parts[1])
         node.AddValue ("transform", self.name)
         node.AddValue ("size", self.size)
         node.AddValue ("method", self.method)
         node.AddValue ("crossfeed", self.crossfeed)
         node.AddValue ("rigid", self.rigid)
         return node
+    def keep_transform(self):
+        return self.parts[1] not in ["attach"]
+    def save(self, cfg):
+        if self.parts[1] in ["attach"]:
+            cfg.AddValue (self.name, self.cfgstring())
+        else:
+            cfg.AddNode("NODE", self.cfgnode)
