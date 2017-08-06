@@ -499,7 +499,7 @@ def find_template(mu, filepath):
 
     cfgin = mu.name + ".cfg.in"
     if cfgin in bpy.data.texts:
-        return cfg, bpy.data.texts[cfgin]
+        return cfg, bpy.data.texts[cfgin].as_string()
 
     cfgin = base[0] + ".cfg.in"
     if os.path.isfile (cfgin):
@@ -531,7 +531,7 @@ def export_object(obj, filepath):
     animations = collect_animations(obj)
     anim_root = find_path_root(animations)
     mu = Mu()
-    mu.name = strip_nnn(obj.name)+".mu"
+    mu.name = strip_nnn(obj.name)
     mu.object_paths = {}
     mu.materials = {}
     mu.textures = {}
