@@ -639,6 +639,8 @@ class AttachNode:
     def __init__(self, obj, inv):
         self.name = strip_nnn(obj.name)
         self.parts = self.name.split("_", 2)
+        ind = self.parts[1] == "stack" and 2 or 1
+        self.id = "_".join(self.parts[ind:])
         self.pos = swapyz((inv*obj.matrix_world.col[3])[:3])
         self.dir = swapyz((inv*obj.matrix_world.col[2])[:3])
         self.size = obj.muproperties.nodeSize
@@ -694,7 +696,7 @@ class AttachNode:
         return "%g, %g, %g, %g, %g, %g, %d, %d, %d, %d" % (pos + dir + (self.size,self.methodval(), int(self.crossfeed), int(self.rigid)))
     def cfgnode(self):
         node = ConfigNode ()
-        node.AddValue ("name", self.parts[1])
+        node.AddValue ("name", self.id)
         node.AddValue ("transform", self.name)
         node.AddValue ("size", self.size)
         node.AddValue ("method", self.method)
@@ -707,4 +709,4 @@ class AttachNode:
         if self.parts[1] in ["attach"]:
             cfg.AddValue (self.name, self.cfgstring())
         else:
-            cfg.AddNode("NODE", self.cfgnode)
+            cfg.AddNode("NODE", self.cfgnode())
