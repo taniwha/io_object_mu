@@ -78,7 +78,7 @@ mesh_dump_funcs = {
 
 def dump_mesh(name, mu, mesh, level):
     print("%s Mesh: %s = %s" % ("    " * level, name, str(mesh)))
-    dump_thing(mesh, mu, level, [], mesh_dump_funcs)
+    #dump_thing(mesh, mu, level, [], mesh_dump_funcs)
 
 sharedmesh_dump_funcs = {
     "list": dump_list,
@@ -87,7 +87,7 @@ sharedmesh_dump_funcs = {
 
 def dump_skinnedmeshrenderer(name, mu, mesh, level):
     print("%s SkinnedMeshRenderer: %s = %s" % ("    " * level, name, str(mesh)))
-    dump_thing(mesh, mu, level + 1, [], sharedmesh_dump_funcs)
+    #dump_thing(mesh, mu, level + 1, [], sharedmesh_dump_funcs)
 
 def dump_light(name, mu, mesh, level):
     print("%s Light: %s" % ("    " * level, name))

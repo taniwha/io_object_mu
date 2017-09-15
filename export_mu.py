@@ -38,6 +38,50 @@ from .mu import MuAnimation, MuClip, MuCurve, MuKey
 from .shader import make_shader
 from . import properties
 from .cfgnode import ConfigNode, ConfigNodeError
+from .parser import parse_node
+
+def calcVolume(mesh):
+    terms=[]
+    for face in mesh.tessfaces:
+        a = mesh.vertices[face.vertices[0]].co
+        b = mesh.vertices[face.vertices[1]].co
+        for i in range(2, len(face.vertices)):
+            c = mesh.vertices[face.vertices[i]].co
+            vp =  a.y*b.z*c.x + a.z*b.x*c.y + a.x*b.y*c.z
+            vm = -a.z*b.y*c.x - a.x*b.z*c.y - a.y*b.x*c.z
+            terms.extend([vp, vm])
+            b = c
+    vol = 0
+    for t in sorted(terms, key=abs):
+        vol += t
+    return vol / 6
+
+def obj_volume(obj):
+    if type(obj.data) != bpy.types.Mesh:
+        return 0, 0
+    if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
+        return 0, 0
+    skin_mesh = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+    ext_mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
+    return calcVolume(skin_mesh), calcVolume(ext_mesh)
+
+def model_volume(obj):
+    svols = []
+    evols = []
+    def recurse(o):
+        v = obj_volume(o)
+        svols.append(v[0])
+        evols.append(v[1])
+        for c in o.children:
+            recurse(c)
+    recurse(obj)
+    skinvol = 0
+    extvol = 0
+    for s in sorted(svols, key=abs):
+        skinvol += s
+    for e in sorted(evols, key=abs):
+        extvol += e
+    return skinvol, extvol
 
 def strip_nnn(name):
     ind = name.rfind(".")
@@ -310,7 +354,10 @@ def make_obj(mu, obj, path = ""):
     mu.object_paths[path] = muobj
     muobj.tag_and_layer = make_tag_and_layer(obj)
     if not obj.data and obj.name[:4] == "node":
-        mu.nodes.append(AttachNode(obj, mu.inverse))
+        n = AttachNode(obj, mu.inverse)
+        mu.nodes.append(n)
+        if not n.keep_transform():
+            return None
         # Blender's empties use the +Z axis for single-arrow display, so that
         # is the most natural orientation for nodes in blender. However, KSP
         # uses the transform's +Z (Unity) axis which is Blender's +Y, so
@@ -339,7 +386,9 @@ def make_obj(mu, obj, path = ""):
             continue
         if (o.data and type(o.data) not in exportable_types):
             continue
-        muobj.children.append(make_obj(mu, o, path))
+        child = make_obj(mu, o, path)
+        if child:
+            muobj.children.append(child)
     return muobj
 
 def collect_animations(obj, path=""):
@@ -449,30 +498,44 @@ def make_animations(mu, animations, anim_root):
         anim.clips.append(clip)
     return anim
 
-def generate_cfg(mu, filepath):
+def find_template(mu, filepath):
     base = os.path.splitext(filepath)
-    cfgin = base[0] + ".cfg.in"
     cfg = base[0] + ".cfg"
+
+    cfgin = mu.name + ".cfg.in"
+    if cfgin in bpy.data.texts:
+        return cfg, bpy.data.texts[cfgin].as_string()
+
+    cfgin = base[0] + ".cfg.in"
     if os.path.isfile (cfgin):
-        try:
-            node = ConfigNode.load(open(cfgin, "rt").read())
-        except ConfigNodeError as e:
-            return
-        part = node.GetNode("PART")
-        if not part:
-            return
-        mu.nodes.sort()
-        for n in mu.nodes:
-            #part.AddValue(n.name, n.cfgstring())
-            part.AddNode("NODE", n.cfgnode())
-        of = open(cfg, "wt")
-        for n in node.nodes:
-            of.write(n[0] + " " + n[1].ToString())
+        return cfg, open(cfgin, "rt").read()
+
+    return None, None
+
+def generate_cfg(mu, filepath):
+    cfg, template = find_template(mu, filepath)
+    if not template:
+        return
+    try:
+        node = ConfigNode.load(template)
+    except ConfigNodeError as e:
+        return
+    part = node.GetNode("PART")
+    if not part:
+        return
+    parse_node(mu, node)
+    mu.nodes.sort()
+    for n in mu.nodes:
+        n.save(part)
+    of = open(cfg, "wt")
+    for n in node.nodes:
+        of.write(n[0] + " " + n[1].ToString())
 
 def export_object(obj, filepath):
     animations = collect_animations(obj)
     anim_root = find_path_root(animations)
     mu = Mu()
+    mu.name = strip_nnn(obj.name)
     mu.object_paths = {}
     mu.materials = {}
     mu.textures = {}
@@ -487,6 +550,7 @@ def export_object(obj, filepath):
         anim_root_obj = mu.object_paths[anim_root]
         anim_root_obj.animation = make_animations(mu, animations, anim_root)
     mu.write(filepath)
+    mu.skin_volume, mu.ext_volume = model_volume(obj)
     generate_cfg(mu, filepath)
     return mu
 
@@ -535,6 +599,25 @@ class ExportMu_quick(bpy.types.Operator, ExportHelper):
             self.filepath = context.active_object.name + self.filename_ext
         return ExportHelper.invoke(self, context, event)
 
+class MuVolume(bpy.types.Operator):
+    bl_idname = 'object.mu_volume'
+    bl_label = 'Mu Volume'
+
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object != None
+                and (not context.active_object.data
+                     or type(context.active_object.data) == bpy.types.Mesh))
+
+    def execute(self, context):
+        obj = context.active_object
+        if obj.data and type(obj.data) == bpy.types.Mesh:
+            vol = obj_volume(obj)
+        else:
+            vol = model_volume(obj)
+        self.report({'INFO'}, 'Skin Volume = %g m^3, Ext Volume = %g m^3' % vol)
+        return {'FINISHED'}
+
 class VIEW3D_PT_tools_mu_export(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
@@ -546,6 +629,7 @@ class VIEW3D_PT_tools_mu_export(bpy.types.Panel):
         layout = self.layout
         #col = layout.column(align=True)
         layout.operator("export_object.ksp_mu_quick", text = "Export Mu Model");
+        layout.operator("object.mu_volume", text = "Calc Mu Volume");
 
 def swapyz(vec):
     return vec[0], vec[2], vec[1]
@@ -555,6 +639,8 @@ class AttachNode:
     def __init__(self, obj, inv):
         self.name = strip_nnn(obj.name)
         self.parts = self.name.split("_", 2)
+        ind = self.parts[1] == "stack" and 2 or 1
+        self.id = "_".join(self.parts[ind:])
         self.pos = swapyz((inv*obj.matrix_world.col[3])[:3])
         self.dir = swapyz((inv*obj.matrix_world.col[2])[:3])
         self.size = obj.muproperties.nodeSize
@@ -599,16 +685,28 @@ class AttachNode:
             return self.parts[1] > other.parts[1] and 1 or -1
     def __repr__(self):
         return self.name + self.pos.__repr__() + self.dir.__repr__()
+    def methodval(self):
+        for i, enum in enumerate(properties.method_items):
+            if enum[0] == self.method:
+                return i
+        return 0
     def cfgstring(self):
         pos = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.pos))
         dir = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.dir))
-        return "%g, %g, %g, %g, %g, %g, %d" % (pos + dir + (self.size,))
+        return "%g, %g, %g, %g, %g, %g, %d, %d, %d, %d" % (pos + dir + (self.size,self.methodval(), int(self.crossfeed), int(self.rigid)))
     def cfgnode(self):
         node = ConfigNode ()
-        node.AddValue ("name", self.name)
+        node.AddValue ("name", self.id)
         node.AddValue ("transform", self.name)
         node.AddValue ("size", self.size)
         node.AddValue ("method", self.method)
         node.AddValue ("crossfeed", self.crossfeed)
         node.AddValue ("rigid", self.rigid)
         return node
+    def keep_transform(self):
+        return self.parts[1] not in ["attach"]
+    def save(self, cfg):
+        if self.parts[1] in ["attach"]:
+            cfg.AddValue (self.name, self.cfgstring())
+        else:
+            cfg.AddNode("NODE", self.cfgnode())
