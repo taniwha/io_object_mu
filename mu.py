@@ -640,12 +640,12 @@ class MuCollider_Base:
 class MuColliderMesh(MuCollider_Base):
     def read(self, mu):
         #print("MuColliderMesh", self.type)
-        #print(self.isTrigger, self.convex)
         self.isTrigger = 0
         if self.type:
             self.isTrigger = mu.read_byte()
         self.convex = mu.read_byte()
         self.mesh = MuMesh().read(mu)
+        #print(self.isTrigger, self.convex)
         return self
     def write(self, mu):
         if self.type:
@@ -1012,6 +1012,24 @@ class Mu:
             return data[0]
         return data
 
+    def read_7int(self, count=1, force_list=False):
+        def readval():
+            val = 0
+            mult = 1
+            while True:
+                valb = self.read_byte()
+                val += (valb & 127) * mult
+                if valb < 128:
+                    break
+                mult *= 128
+            return val
+        if count == 1 and not force_list:
+            return readval()
+        vals = [None] * count
+        for i in range(count):
+            vals[i] = readval()
+        return vals
+
     def read_uint(self, count=1, force_list=False):
         size = 4 * count
         data = self.file.read(size)
@@ -1058,7 +1076,7 @@ class Mu:
         return data
 
     def read_string(self):
-        size = self.read_byte()
+        size = self.read_7int()
         data = self.file.read(size)
         if len(data) < size:
             raise EOFError
@@ -1078,6 +1096,20 @@ class Mu:
         if not hasattr(data, "__len__"):
             data = (data,)
         self.file.write(pack(("<%di" % len(data)), *data))
+
+    def write_7int(self, data):
+        def writeval(val):
+            if val < 0:
+                val += 1 << 32
+            val &= (1 << 32) - 1
+            while val > 127:
+                self.write_byte((val & 127) + 128)
+                val >>= 7
+            self.write_byte(val)
+        if not hasattr(data, "__len__"):
+            data = (data,)
+        for d in data:
+            writeval(d)
 
     def write_uint(self, data):
         if not hasattr(data, "__len__"):
@@ -1119,9 +1151,7 @@ class Mu:
     def write_string(self, data, size=-1):
         data = data.encode()
         size = len(data)
-        if size > 255:
-            size = 255  # just truncate for now (FIXME exception?)
-        self.write_byte(size)
+        self.write_7int(size)
         self.write_bytes(data, size)
 
     def __init__(self, name = "mu"):
