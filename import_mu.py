@@ -150,7 +150,7 @@ def create_action(mu, path, clip):
         if mu_path not in mu.object_paths:
             print("Unknown path: %s" % (mu_path))
             continue
-        obj = mu.object_paths[mu_path]
+        obj = mu.object_paths[mu_path].bobj
 
         if curve.property not in property_map:
             print("%s: Unknown property: %s" % (mu_path, curve.property))
@@ -250,6 +250,7 @@ def create_object(mu, muobj, parent, create_colliders):
         cobj = create_collider(mu, muobj)
         cobj.parent = obj
     obj.parent = parent
+    muobj.bobj = obj
     for child in muobj.children:
         create_object(mu, child, obj, create_colliders)
     if hasattr(muobj, "animation"):
