@@ -44,7 +44,9 @@ if "bpy" in locals():
         imp.reload(export_mu)
 
 
-import bpy
+import bpy, os
+from bpy.types import AddonPreferences, Menu
+from bpy.props import StringProperty, BoolProperty
 
 from . import collider, properties, shader
 from . import export_mu
@@ -52,6 +54,46 @@ from . import import_mu
 from . import import_craft
 from . import quickhull
 
+def install_presets(subdir):
+    presets=bpy.utils.script_paths("presets")
+    dst=presets[-1] + "/" + shader.IO_OBJECT_MU_MT_shader_presets.preset_subdir
+    src=os.path.dirname(os.path.abspath(__file__)) + "/presets/" + subdir
+    if not os.access(dst, os.F_OK):
+        os.makedirs(dst)
+    names = os.listdir(src)
+    for name in names:
+        s = src + "/" + name
+        d = dst + "/" + name
+        with open(s, "rb") as fsrc:
+            with open(d, "wb") as fdst:
+                while True:
+                    buf = fsrc.read(16*1024)
+                    if not buf:
+                        break
+                    fdst.write(buf)
+
+class InstallShaders(bpy.types.Operator):
+    bl_idname = 'io_object_mu_presets.shaders'
+    bl_label = 'Install KSP Shader Presets'
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        install_presets("shaders")
+        self.report({'INFO'}, 'Shader presets installed.')
+        return {'FINISHED'}
+
+class IOObjectMu_AddonPreferences(AddonPreferences):
+    bl_idname = __name__
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box ()
+        box.label(text="Shaders:")
+
+        box.operator(InstallShaders.bl_idname, InstallShaders.bl_label);
 
 def menu_func_import(self, context):
     self.layout.operator(import_mu.ImportMu.bl_idname, text="KSP Mu (.mu)")
