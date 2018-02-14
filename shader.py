@@ -378,5 +378,4 @@ def mu_shader_prop_remove(self, context, blendprop):
     return {'FINISHED'}
 
 def register():
-    print("preset_paths", bpy.utils.script_paths("presets"))
     bpy.types.Material.mumatprop = PointerProperty(type=MuMaterialProperties)
