@@ -52,7 +52,9 @@ from . import collider, properties, shader
 from . import export_mu
 from . import import_mu
 from . import import_craft
+from . import prop
 from . import quickhull
+from . import model
 
 def install_presets(subdir):
     presets=bpy.utils.script_paths("presets")
@@ -88,11 +90,17 @@ class InstallShaders(bpy.types.Operator):
 class IOObjectMu_AddonPreferences(AddonPreferences):
     bl_idname = __name__
 
+    GameData = StringProperty(
+        name="GameData Path",
+        description="Path to KSP GameData tree",
+        subtype='DIR_PATH')
+
     def draw(self, context):
         layout = self.layout
         box = layout.box ()
+        box.label(text="KSP:")
+        box.prop(self, "GameData")
         box.label(text="Shaders:")
-
         box.operator(InstallShaders.bl_idname, InstallShaders.bl_label);
 
 def menu_func_import(self, context):
@@ -102,6 +110,11 @@ def menu_func_import(self, context):
 def menu_func_export(self, context):
     self.layout.operator(export_mu.ExportMu.bl_idname, text="KSP Mu (.mu)")
 
+def Preferences():
+    user_preferences = bpy.context.user_preferences
+    addons = user_preferences.addons
+    return addons["io_object_mu"].preferences
+
 def register():
     bpy.utils.register_module(__name__)
 
@@ -109,6 +122,7 @@ def register():
     bpy.types.INFO_MT_file_export.append(menu_func_export)
     bpy.types.INFO_MT_mesh_add.append(quickhull.menu_func)
 
+    model.register()
     properties.register()
     collider.register()
     shader.register()
@@ -118,6 +132,7 @@ def unregister():
 
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    model.unregister()
     properties.unregister()
     collider.unregister()
 

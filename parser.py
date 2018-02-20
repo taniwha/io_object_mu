@@ -23,6 +23,8 @@ import sys, traceback, math
 from struct import unpack
 from pprint import pprint
 
+from mathutils import Vector, Quaternion
+
 def build_dictionary(mu, node):
     value_dict={
         "math":math,
@@ -64,3 +66,23 @@ def parse_node(mu, node):
 
     value_dict = build_dictionary(mu, node)
     recurse(value_dict, node)
+
+def parse_vector_string(string):
+    s = string.split(",")
+    if len(s) == 1:
+        s = string.split()
+    return map(lambda x: float(x), s)
+
+def parse_float(string):
+    #FIXME better parsing
+    return float(string)
+
+def parse_vector(string):
+    # blender is right-handed, KSP is left-handed
+    x, z, y = parse_vector_string(string)
+    return Vector((x, y, z))
+
+def parse_quaternion(string):
+    # blender is right-handed, KSP is left-handed
+    x, z, y, w = parse_vector_string(string)
+    return Quaternion((w, -x, -y, -z))
