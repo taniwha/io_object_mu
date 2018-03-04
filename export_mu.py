@@ -105,14 +105,18 @@ def make_transform(obj):
 def split_face(mesh, index):
     face = mesh.polygons[index]
     s, e = face.loop_start, face.loop_start + face.loop_total
-    uv = mesh.uv_layers.active.data[s:e]
-    uv = list(map(lambda a: a.uv, uv))
+    # extract up to two uv layers from the mesh
+    uv = list(map(lambda layer:
+                  list(map(lambda a:
+                           a.uv,
+                           layer.data[s:e])),
+                  mesh.uv_layers[:2]))
     fv = list(face.vertices)
     tris = []
     for i in range(1, len(fv) - 1):
-        tri = ((fv[0], tuple(uv[0])),
-               (fv[i], tuple(uv[i])),
-               (fv[i+1], tuple(uv[i+1])))
+        tri = ((fv[0], tuple(map(lambda l: tuple(l[0]), uv))),
+               (fv[i], tuple(map(lambda l: tuple(l[i]), uv))),
+               (fv[i+1], tuple(map(lambda l: tuple(l[i+1]), uv))))
         tris.append(tri)
     return tris
 
@@ -201,10 +205,14 @@ def make_mesh(mu, obj):
     submeshes = make_tris(mesh, submeshes)
     mumesh = MuMesh()
     vun = make_verts(mesh, submeshes)
-    mumesh.verts, mumesh.uvs, mumesh.normals = vun
-    mumesh.uv2s = mumesh.uvs#FIXME
+    mumesh.verts, uvs, mumesh.normals = vun
+    if uvs:
+        if len(uvs[0]) > 0:
+            mumesh.uvs = list(map(lambda uv: uv[0], uvs))
+        if len(uvs[0]) > 1:
+            mumesh.uv2s = list(map(lambda uv: uv[1], uvs))
     mumesh.submeshes = submeshes
-    if True or len(mesh.materials):
+    if mumesh.uvs:
         mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs,
                                         mumesh.normals, mumesh.submeshes)
     return mumesh
