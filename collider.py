@@ -238,7 +238,7 @@ def add_mesh_colliders(self, context, convex):
         context.scene.objects.link(col)
         col.muproperties.collider = 'MU_COL_MESH'
 
-    context.user_preferences.edit.use_global_undo = True
+    context.user_preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
 class ColliderFromMesh(bpy.types.Operator):
