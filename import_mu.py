@@ -156,7 +156,7 @@ def create_fcurve(action, curve, propmap):
     fc = action.fcurves.new(data_path = dp, index = ind)
     fc.keyframe_points.add(len(curve.keys))
     for i, key in enumerate(curve.keys):
-        x,y = key.time * fps, key.value * mult
+        x,y = key.time * fps + bpy.context.scene.frame_start, key.value * mult
         fc.keyframe_points[i].co = x, y
         fc.keyframe_points[i].handle_left_type = 'FREE'
         fc.keyframe_points[i].handle_right_type = 'FREE'
