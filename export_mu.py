@@ -417,32 +417,35 @@ def shader_animations(mat, path):
                 print("don't know how to export texture anims")
         if anims:
             animations[track.name] = anims
-    pprint(animations)
     return animations
+
+def object_animations(obj, path):
+    animations = {}
+    if obj.animation_data:
+        for track in obj.animation_data.nla_tracks:
+            if track.strips:
+                animations[track.name] = [(track, path, "obj")]
+    return animations
+
+def extend_animations(animations, anims):
+    for a in anims:
+        if a not in animations:
+            animations[a] = []
+        animations[a].extend(anims[a])
 
 def collect_animations(obj, path=""):
     animations = {}
     if path:
         path += "/"
     path += strip_nnn(obj.name)
-    if obj.animation_data:
-        for track in obj.animation_data.nla_tracks:
-            if track.strips:
-                animations[track.name] = [(track, path, "obj")]
-    if obj.data and type(obj.data) == bpy.types.Mesh:
+    extend_animations(animations, object_animations (obj, path))
+    if type(obj.data) == bpy.types.Mesh:
         for mat in obj.data.materials:
-            shader_anims = shader_animations(mat, path)
-            for sa in shader_anims:
-                if sa not in animations:
-                    animations[sa] = []
-                animations[sa].extend(shader_anims[sa])
+            extend_animations(animations, shader_animations(mat, path))
+    if type(obj.data) in light_types:
+        extend_animations(animations, object_animations (obj.data, path))
     for o in obj.children:
-        sub_animations = collect_animations(o, path)
-        for sa in sub_animations:
-            if sa not in animations:
-                animations[sa] = sub_animations[sa]
-            else:
-                animations[sa].extend(sub_animations[sa])
+        extend_animations(animations, collect_animations(o, path))
     return animations
 
 def find_path_root(animations):
@@ -501,6 +504,15 @@ property_map = {
         ("m_LocalScale.z", 1),
         ("m_LocalScale.y", 1),
     ),
+    "color":(
+        ("m_Color.r", 1),
+        ("m_Color.g", 1),
+        ("m_Color.b", 1),
+        ("m_Color.a", 1),#probably not used
+    ),
+    "energy":(
+        ("m_Intensity", 1),
+    ),
 }
 
 vector_map={
@@ -522,7 +534,6 @@ def make_curve(mu, curve, path, typ):
         mult = 1
         if dp[1] in ["color", "vector"]:
             property += vector_map[dp[1]][curve.array_index]
-        print(property)
     mucurve.property = property
     mucurve.type = 0
     mucurve.wrapMode = (8, 8)

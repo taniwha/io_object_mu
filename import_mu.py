@@ -113,6 +113,10 @@ property_map = {
     "m_LocalScale.y": ("obj", "scale", 2, 1),
     "m_LocalScale.z": ("obj", "scale", 1, 1),
     "m_Intensity": ("data", "energy", 0, 1),
+    "m_Color.r": ("data", "color", 0, 1),
+    "m_Color.g": ("data", "color", 1, 1),
+    "m_Color.b": ("data", "color", 2, 1),
+    "m_Color.a": ("data", "color", 3, 1),
 }
 
 vector_map = {
