@@ -399,6 +399,27 @@ def make_obj(mu, obj, path = ""):
             muobj.children.append(child)
     return muobj
 
+def shader_animations(mat, path):
+    animations = {}
+    if not mat.animation_data:
+        return animations
+    for track in mat.animation_data.nla_tracks:
+        if not track.strips:
+            continue
+        anims = []
+        strip = track.strips[0]
+        for curve in strip.action.fcurves:
+            dp = curve.data_path.split(".")
+            if dp[0] == "mumatprop" and dp[1] in ["color", "vector", "float2", "float3"]:
+                anims.append((track, path, mat))
+                break
+            elif dp[0] == "mumatprop" and dp[1] == "texture":
+                print("don't know how to export texture anims")
+        if anims:
+            animations[track.name] = anims
+    pprint(animations)
+    return animations
+
 def collect_animations(obj, path=""):
     animations = {}
     if path:
@@ -407,7 +428,14 @@ def collect_animations(obj, path=""):
     if obj.animation_data:
         for track in obj.animation_data.nla_tracks:
             if track.strips:
-                animations[track.name] = [(track, path)]
+                animations[track.name] = [(track, path, "obj")]
+    if obj.data and type(obj.data) == bpy.types.Mesh:
+        for mat in obj.data.materials:
+            shader_anims = shader_animations(mat, path)
+            for sa in shader_anims:
+                if sa not in animations:
+                    animations[sa] = []
+                animations[sa].extend(shader_anims[sa])
     for o in obj.children:
         sub_animations = collect_animations(o, path)
         for sa in sub_animations:
@@ -475,10 +503,26 @@ property_map = {
     ),
 }
 
-def make_curve(mu, curve, path):
+vector_map={
+    "color": (".r", ".g", ".b", ".a"),
+    "vector": (".x", ".y", ".z", ".w"),
+}
+
+def make_curve(mu, curve, path, typ):
     mucurve = MuCurve()
     mucurve.path = path
-    property, mult = property_map[curve.data_path][curve.array_index]
+    if typ == "obj":
+        property, mult = property_map[curve.data_path][curve.array_index]
+    elif type(typ) == bpy.types.Material:
+        dp = curve.data_path.split(".")
+        v = {}
+        str = "v['property'] = typ.%s.name" % (".".join(dp[:-1]))
+        exec (str, {}, locals())
+        property = v["property"]
+        mult = 1
+        if dp[1] in ["color", "vector"]:
+            property += vector_map[dp[1]][curve.array_index]
+        print(property)
     mucurve.property = property
     mucurve.type = 0
     mucurve.wrapMode = (8, 8)
@@ -498,11 +542,11 @@ def make_animations(mu, animations, anim_root):
         clip.lbSize = (0, 0, 0)
         clip.wrapMode = 0   #FIXME
         for data in animations[clip_name]:
-            track, path = data
+            track, path, typ = data
             path = path[len(anim_root) + 1:]
             strip = track.strips[0]
             for curve in strip.action.fcurves:
-                clip.curves.append(make_curve(mu, curve, path))
+                clip.curves.append(make_curve(mu, curve, path, typ))
         anim.clips.append(clip)
     return anim
 
