@@ -115,6 +115,41 @@ property_map = {
     "m_Intensity": ("data", "energy", 0, 1),
 }
 
+vector_map = {
+    "r": 0, "g": 1, "b": 2, "a":3,
+    "x": 0, "y": 1, "z": 2, "w":3,  # shader props not read as quaternions
+}
+
+def property_index(properties, prop):
+    for i, p in enumerate(properties):
+        if p.name == prop:
+            return i
+    return None
+
+def shader_property(obj, prop):
+    prop = prop.split(".")
+    if not obj or type(obj.data) != bpy.types.Mesh:
+        return None
+    if not obj.data.materials:
+        return None
+    for mat in obj.data.materials:
+        mumat = mat.mumatprop
+        for subpath in ["color", "vector", "float2", "float3", "texture"]:
+            propset = getattr(mumat, subpath)
+            if prop[0] in propset.properties:
+                if subpath == "texture":
+                    print("animated texture properties not yet supported")
+                    print(prop)
+                    return None
+                if subpath[:5] == "float":
+                    rnaIndex = 0
+                else:
+                    rnaIndex = vector_map[prop[1]]
+                propIndex = property_index(propset.properties, prop[0])
+                path = "mumatprop.%s.properties[%d].value" % (subpath, propIndex)
+                return mat, path, rnaIndex
+    return None
+
 def create_fcurve(action, curve, propmap):
     dp, ind, mult = propmap
     fps = bpy.context.scene.render.fps
@@ -153,10 +188,16 @@ def create_action(mu, path, clip):
         obj = mu.object_paths[mu_path].bobj
 
         if curve.property not in property_map:
-            print("%s: Unknown property: %s" % (mu_path, curve.property))
-            continue
-        propmap = property_map[curve.property]
-        subpath, propmap = propmap[0], propmap[1:]
+            sp = shader_property(obj, curve.property)
+            if not sp:
+                print("%s: Unknown property: %s" % (mu_path, curve.property))
+                continue
+            obj, dp, rnaIndex = sp
+            propmap = dp, rnaIndex, 1
+            subpath = "obj"
+        else:
+            propmap = property_map[curve.property]
+            subpath, propmap = propmap[0], propmap[1:]
 
         if subpath != "obj":
             obj = getattr (obj, subpath)
