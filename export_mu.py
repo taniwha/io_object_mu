@@ -770,6 +770,8 @@ class AttachNode:
         return self.parts[1] not in ["attach"]
     def save(self, cfg):
         if self.parts[1] in ["attach"]:
+            # currently, KSP fails to check for attach NODEs so must use the
+            # old format
             cfg.AddValue (self.name, self.cfgstring())
         else:
             cfg.AddNode("NODE", self.cfgnode())
