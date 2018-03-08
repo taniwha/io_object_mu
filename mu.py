@@ -248,18 +248,16 @@ def read_material3(self, mu):
         self.colorProperties["_EmissiveColor"] = mu.read_float(4)
     elif type == MuEnum.ST_ALPHA_CUTOFF:
         self.textureProperties["_MainTex"] = MuMatTex().read(mu)
-        #FIXME floatProperties2?
         self.floatProperties3["_Cutoff"] = mu.read_float()
     elif type == MuEnum.ST_ALPHA_CUTOFF_BUMPED:
         self.textureProperties["_MainTex"] = MuMatTex().read(mu)
         self.textureProperties["_BumpMap"] = MuMatTex().read(mu)
-        #FIXME floatProperties2?
         self.floatProperties3["_Cutoff"] = mu.read_float()
     elif type == MuEnum.ST_ALPHA:
         self.textureProperties["_MainTex"] = MuMatTex().read(mu)
     elif type == MuEnum.ST_ALPHA_SPECULAR:
         self.textureProperties["_MainTex"] = MuMatTex().read(mu)
-        #FIXME floatProperties2?
+        #FIXME bogus
         self.floatProperties3["_Gloss"] = mu.read_float()
         self.colorProperties["_SpecColor"] = mu.read_float(4)
         self.floatProperties3["_Shininess"] = mu.read_float()
@@ -269,18 +267,16 @@ def read_material3(self, mu):
     elif type == MuEnum.ST_UNLIT:
         self.textureProperties["_MainTex"] = MuMatTex().read(mu)
         self.colorProperties["_Color"] = mu.read_float(4)
-    elif type == MuEnum.ST_DIFFUSE:
-        self.textureProperties["_MainTex"] = MuMatTex().read(mu)
     elif type == MuEnum.ST_PARTICLES_ALPHA_BLENDED:
         self.textureProperties["_MainTex"] = MuMatTex().read(mu)
         self.colorProperties["_Color"] = mu.read_float(4)
-        #FIXME floatProperties3?
-        self.floatProperties2["_InvFade"] = mu.read_float()
+        self.floatProperties3["_InvFade"] = mu.read_float()
     elif type == MuEnum.ST_PARTICLES_ADDITIVE:
         self.textureProperties["_MainTex"] = MuMatTex().read(mu)
         self.colorProperties["_Color"] = mu.read_float(4)
-        #FIXME floatProperties3?
-        self.floatProperties2["_InvFade"] = mu.read_float()
+        self.floatProperties3["_InvFade"] = mu.read_float()
+    elif type == MuEnum.ST_DIFFUSE:
+        self.textureProperties["_MainTex"] = MuMatTex().read(mu)
     else:
         raise ValueError("MuMaterial %d" % self.type)
     return self

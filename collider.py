@@ -238,7 +238,24 @@ def add_mesh_colliders(self, context, convex):
         context.scene.objects.link(col)
         col.muproperties.collider = 'MU_COL_MESH'
 
-    context.user_preferences.edit.use_global_undo = True
+    context.user_preferences.edit.use_global_undo = undo
+    return {'FINISHED'}
+
+def make_mesh_colliders(self, context):
+    operator = self
+    undo = bpy.context.user_preferences.edit.use_global_undo
+    bpy.context.user_preferences.edit.use_global_undo = False
+
+    for obj in bpy.context.scene.objects:
+        if not obj.select:
+            continue
+        if obj.type != 'MESH':
+            continue
+        if obj.muproperties.collider != 'MU_COL_NONE':
+            continue
+        obj.muproperties.collider = 'MU_COL_MESH'
+
+    context.user_preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
 class ColliderFromMesh(bpy.types.Operator):
@@ -254,6 +271,16 @@ class ColliderFromMesh(bpy.types.Operator):
     def execute(self, context):
         keywords = self.as_keywords ()
         return add_mesh_colliders(self, context, **keywords)
+
+class MeshToCollidr(bpy.types.Operator):
+    """Change Selected Meshes to Add Mesh Colliders"""
+    bl_idname = "mucollider.mesh_to_collider"
+    bl_label = "Change Selected Meshes to Add Mesh Colliders"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        keywords = self.as_keywords ()
+        return make_mesh_colliders(self, context, **keywords)
 
 class ColliderMesh(bpy.types.Operator):
     """Add Mesh Collider"""
@@ -348,6 +375,7 @@ class VIEW3D_PT_tools_mu_collider(bpy.types.Panel):
         col = layout.column(align=True)
         col.label(text="Multiple Colliders:")
         layout.operator("mucollider.from_mesh", text = "Selected Meshes");
+        layout.operator("mucollider.mesh_to_collider", text = "Selected Meshes");
 
 def menu_func(self, context):
     self.layout.menu("INFO_MT_mucollider_add", icon='PLUGIN')

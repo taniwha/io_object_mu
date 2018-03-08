@@ -126,7 +126,7 @@ class MuProperties(bpy.types.PropertyGroup):
     forwardFriction = PointerProperty(type=MuFrictionProp, name = "Forward")
     sideFriction = PointerProperty(type=MuFrictionProp, name = "Sideways")
 
-    cullingMask = BoolVectorProperty(size=32, name = "Mask", subtype = 'LAYER')
+    cullingMask = BoolVectorProperty(size=32, name = "Culling Mask", subtype = 'LAYER')
 
 class MuAttachNodePanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -149,6 +149,29 @@ class MuAttachNodePanel(bpy.types.Panel):
         col.prop(muprops, "nodeCrossfeed")
         col.prop(muprops, "nodeRigid")
 
+class MuLightPanel(bpy.types.Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'data'
+    bl_label = 'Mu Properties'
+
+    @classmethod
+    def poll(cls, context):
+        if type(context.active_object.data) in [bpy.types.PointLamp,
+                                                bpy.types.SunLamp,
+                                                bpy.types.SpotLamp,
+                                                bpy.types.HemiLamp,
+                                                bpy.types.AreaLamp]:
+            return True
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+        muprops = context.active_object.muproperties
+        row = layout.row()
+        col = row.column()
+        col.prop(muprops, "cullingMask")
+
 class MuPropertiesPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -157,7 +180,7 @@ class MuPropertiesPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-            return True
+        return True
 
     def draw(self, context):
         layout = self.layout
@@ -166,12 +189,6 @@ class MuPropertiesPanel(bpy.types.Panel):
         col = row.column()
         col.prop(muprops, "tag")
         col.prop(muprops, "layer")
-        if type(context.active_object.data) in [bpy.types.PointLamp,
-                                                bpy.types.SunLamp,
-                                                bpy.types.SpotLamp,
-                                                bpy.types.HemiLamp,
-                                                bpy.types.AreaLamp]:
-            col.prop(muprops, "cullingMask")
 
 class MuColliderPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'

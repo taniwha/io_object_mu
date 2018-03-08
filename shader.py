@@ -24,6 +24,8 @@ from struct import unpack
 from pprint import pprint
 
 import bpy
+from bpy.types import Operator, Menu
+from bl_operators.presets import AddPresetBase
 from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
 from bpy.props import FloatVectorProperty, IntProperty
@@ -129,25 +131,6 @@ ksp_shaders = {
 "KSP/Particles/Alpha Blended":ksp_particles_alpha_blended,
 "KSP/Particles/Additive":ksp_particles_additive,
 }
-
-shader_items=(
-    ('', "", ""),
-    ('KSP/Specular', "KSP/Specular", ""),
-    ('KSP/Bumped', "KSP/Bumped", ""),
-    ('KSP/Bumped Specular', "KSP/Bumped Specular", ""),
-    ('KSP/Emissive/Diffuse', "KSP/Emissive/Diffuse", ""),
-    ('KSP/Emissive/Specular', "KSP/Emissive/Specular", ""),
-    ('KSP/Emissive/Bumped Specular', "KSP/Emissive/Bumped Specular", ""),
-    ('KSP/Alpha/Cutoff', "KSP/Alpha/Cutoff", ""),
-    ('KSP/Alpha/Cutoff Bumped', "KSP/Alpha/Cutoff Bumped", ""),
-    ('KSP/Alpha/Translucent', "KSP/Alpha/Translucent", ""),
-    ('KSP/Alpha/Translucent Specular', "KSP/Alpha/Translucent Specular", ""),
-    ('KSP/Alpha/Unlit Transparent', "KSP/Alpha/Unlit Transparent", ""),
-    ('KSP/Unlit', "KSP/Unlit", ""),
-    ('KSP/Diffuse', "KSP/Diffuse", ""),
-    ('KSP/Particles/Alpha Blended', "KSP/Particles/Alpha Blended", ""),
-    ('KSP/Particles/Additive', "KSP/Particles/Additive", ""),
-)
 
 def node_node(name, nodes, s):
     n = nodes.new(s[2])
@@ -271,6 +254,50 @@ def shader_update(prop):
                         node_settex(mat.name, mat.mumatprop, nodes, s)
     return updater
 
+def shader_items(self, context):
+    slist = list(shader_properties.keys())
+    slist.sort()
+    enum = (('', "", ""),)
+    enum += tuple(map(lambda s: (s, s, ""), slist))
+    return enum
+
+class IO_OBJECT_MU_MT_shader_presets(Menu):
+    bl_label = "Shader Presets"
+    bl_idname = "IO_OBJECT_MU_MT_shader_presets"
+    preset_subdir = "io_object_mu/shaders"
+    preset_operator = "script.execute_preset"
+    draw = Menu.draw_preset
+
+
+class IO_OBJECT_MU_OT_shader_presets(AddPresetBase, Operator):
+    bl_idname = "io_object_mu.shader_presets"
+    bl_label = "Shaders"
+    bl_description = "Mu Shader Presets"
+    preset_menu = "IO_OBJECT_MU_MT_shader_presets"
+    preset_subdir = "io_object_mu/shaders"
+
+    preset_defines = [
+        "mat = bpy.context.material.mumatprop"
+        ]
+    preset_values = [
+        "mat.name",
+        "mat.shaderName",
+        "mat.color",
+        "mat.vector",
+        "mat.float2",
+        "mat.float3",
+        "mat.texture",
+        ]
+
+# Draw into an existing panel
+def panel_func(self, context):
+    layout = self.layout
+
+    row = layout.row(align=True)
+    row.menu(OBJECT_MT_draw_presets.__name__, text=OBJECT_MT_draw_presets.bl_label)
+    row.operator(AddPresetObjectDraw.bl_idname, text="", icon='ZOOMIN')
+    row.operator(AddPresetObjectDraw.bl_idname, text="", icon='ZOOMOUT').remove_active = True
+
 class MuMaterialProperties(bpy.types.PropertyGroup):
     name = StringProperty(name="Name")
     shaderName = StringProperty(name="Shader")
@@ -331,6 +358,11 @@ class MuMaterialPanel(bpy.types.Panel):
         matprops = context.material.mumatprop
         row = layout.row()
         col = row.column()
+        r = col.row(align=True)
+        r.menu("IO_OBJECT_MU_MT_shader_presets",
+               text=bpy.types.IO_OBJECT_MU_OT_shader_presets.bl_label)
+        r.operator("io_object_mu.shader_presets", text="", icon='ZOOMIN')
+        r.operator("io_object_mu.shader_presets", text="", icon='ZOOMOUT').remove_active = True
         col.prop(matprops, "name")
         col.prop(matprops, "shaderName")
         draw_property_list(layout, matprops.texture, "texture")

@@ -105,14 +105,18 @@ def make_transform(obj):
 def split_face(mesh, index):
     face = mesh.polygons[index]
     s, e = face.loop_start, face.loop_start + face.loop_total
-    uv = mesh.uv_layers.active.data[s:e]
-    uv = list(map(lambda a: a.uv, uv))
+    # extract up to two uv layers from the mesh
+    uv = list(map(lambda layer:
+                  list(map(lambda a:
+                           a.uv,
+                           layer.data[s:e])),
+                  mesh.uv_layers[:2]))
     fv = list(face.vertices)
     tris = []
     for i in range(1, len(fv) - 1):
-        tri = ((fv[0], tuple(uv[0])),
-               (fv[i], tuple(uv[i])),
-               (fv[i+1], tuple(uv[i+1])))
+        tri = ((fv[0], tuple(map(lambda l: tuple(l[0]), uv))),
+               (fv[i], tuple(map(lambda l: tuple(l[i]), uv))),
+               (fv[i+1], tuple(map(lambda l: tuple(l[i+1]), uv))))
         tris.append(tri)
     return tris
 
@@ -201,10 +205,14 @@ def make_mesh(mu, obj):
     submeshes = make_tris(mesh, submeshes)
     mumesh = MuMesh()
     vun = make_verts(mesh, submeshes)
-    mumesh.verts, mumesh.uvs, mumesh.normals = vun
-    mumesh.uv2s = mumesh.uvs#FIXME
+    mumesh.verts, uvs, mumesh.normals = vun
+    if uvs:
+        if len(uvs[0]) > 0:
+            mumesh.uvs = list(map(lambda uv: uv[0], uvs))
+        if len(uvs[0]) > 1:
+            mumesh.uv2s = list(map(lambda uv: uv[1], uvs))
     mumesh.submeshes = submeshes
-    if True or len(mesh.materials):
+    if mumesh.uvs:
         mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs,
                                         mumesh.normals, mumesh.submeshes)
     return mumesh
@@ -391,22 +399,53 @@ def make_obj(mu, obj, path = ""):
             muobj.children.append(child)
     return muobj
 
+def shader_animations(mat, path):
+    animations = {}
+    if not mat.animation_data:
+        return animations
+    for track in mat.animation_data.nla_tracks:
+        if not track.strips:
+            continue
+        anims = []
+        strip = track.strips[0]
+        for curve in strip.action.fcurves:
+            dp = curve.data_path.split(".")
+            if dp[0] == "mumatprop" and dp[1] in ["color", "vector", "float2", "float3"]:
+                anims.append((track, path, mat))
+                break
+            elif dp[0] == "mumatprop" and dp[1] == "texture":
+                print("don't know how to export texture anims")
+        if anims:
+            animations[track.name] = anims
+    return animations
+
+def object_animations(obj, path):
+    animations = {}
+    if obj.animation_data:
+        for track in obj.animation_data.nla_tracks:
+            if track.strips:
+                animations[track.name] = [(track, path, "obj")]
+    return animations
+
+def extend_animations(animations, anims):
+    for a in anims:
+        if a not in animations:
+            animations[a] = []
+        animations[a].extend(anims[a])
+
 def collect_animations(obj, path=""):
     animations = {}
     if path:
         path += "/"
     path += strip_nnn(obj.name)
-    if obj.animation_data:
-        for track in obj.animation_data.nla_tracks:
-            if track.strips:
-                animations[track.name] = [(track, path)]
+    extend_animations(animations, object_animations (obj, path))
+    if type(obj.data) == bpy.types.Mesh:
+        for mat in obj.data.materials:
+            extend_animations(animations, shader_animations(mat, path))
+    if type(obj.data) in light_types:
+        extend_animations(animations, object_animations (obj.data, path))
     for o in obj.children:
-        sub_animations = collect_animations(o, path)
-        for sa in sub_animations:
-            if sa not in animations:
-                animations[sa] = sub_animations[sa]
-            else:
-                animations[sa].extend(sub_animations[sa])
+        extend_animations(animations, collect_animations(o, path))
     return animations
 
 def find_path_root(animations):
@@ -465,12 +504,36 @@ property_map = {
         ("m_LocalScale.z", 1),
         ("m_LocalScale.y", 1),
     ),
+    "color":(
+        ("m_Color.r", 1),
+        ("m_Color.g", 1),
+        ("m_Color.b", 1),
+        ("m_Color.a", 1),#probably not used
+    ),
+    "energy":(
+        ("m_Intensity", 1),
+    ),
 }
 
-def make_curve(mu, curve, path):
+vector_map={
+    "color": (".r", ".g", ".b", ".a"),
+    "vector": (".x", ".y", ".z", ".w"),
+}
+
+def make_curve(mu, curve, path, typ):
     mucurve = MuCurve()
     mucurve.path = path
-    property, mult = property_map[curve.data_path][curve.array_index]
+    if typ == "obj":
+        property, mult = property_map[curve.data_path][curve.array_index]
+    elif type(typ) == bpy.types.Material:
+        dp = curve.data_path.split(".")
+        v = {}
+        str = "v['property'] = typ.%s.name" % (".".join(dp[:-1]))
+        exec (str, {}, locals())
+        property = v["property"]
+        mult = 1
+        if dp[1] in ["color", "vector"]:
+            property += vector_map[dp[1]][curve.array_index]
     mucurve.property = property
     mucurve.type = 0
     mucurve.wrapMode = (8, 8)
@@ -490,11 +553,11 @@ def make_animations(mu, animations, anim_root):
         clip.lbSize = (0, 0, 0)
         clip.wrapMode = 0   #FIXME
         for data in animations[clip_name]:
-            track, path = data
+            track, path, typ = data
             path = path[len(anim_root) + 1:]
             strip = track.strips[0]
             for curve in strip.action.fcurves:
-                clip.curves.append(make_curve(mu, curve, path))
+                clip.curves.append(make_curve(mu, curve, path, typ))
         anim.clips.append(clip)
     return anim
 
@@ -707,6 +770,8 @@ class AttachNode:
         return self.parts[1] not in ["attach"]
     def save(self, cfg):
         if self.parts[1] in ["attach"]:
+            # currently, KSP fails to check for attach NODEs so must use the
+            # old format
             cfg.AddValue (self.name, self.cfgstring())
         else:
             cfg.AddNode("NODE", self.cfgnode())
