@@ -630,21 +630,21 @@ class MuSkinnedMeshRenderer:
         self.mesh.write(mu)
 
 class MuCollider_Base:
-    def __init__(self, type):
-        self.type = type
+    def __init__(self, has_trigger):
+        self.has_trigger = has_trigger
 
 class MuColliderMesh(MuCollider_Base):
     def read(self, mu):
-        #print("MuColliderMesh", self.type)
+        #print("MuColliderMesh", self.has_trigger)
         self.isTrigger = 0
-        if self.type:
+        if self.has_trigger:
             self.isTrigger = mu.read_byte()
         self.convex = mu.read_byte()
         self.mesh = MuMesh().read(mu)
         #print(self.isTrigger, self.convex)
         return self
     def write(self, mu):
-        if self.type:
+        if self.has_trigger:
             mu.write_int(MuEnum.ET_MESH_COLLIDER2)
             mu.write_byte(self.isTrigger)
         else:
@@ -654,16 +654,16 @@ class MuColliderMesh(MuCollider_Base):
 
 class MuColliderSphere(MuCollider_Base):
     def read(self, mu):
-        #print("MuColliderSphere", self.type)
+        #print("MuColliderSphere", self.has_trigger)
         self.isTrigger = 0
-        if self.type:
+        if self.has_trigger:
             self.isTrigger = mu.read_byte()
         self.radius = mu.read_float()
         self.center = mu.read_vector()
         #print(self.isTrigger, self.radius, self.center)
         return self
     def write(self, mu):
-        if self.type:
+        if self.has_trigger:
             mu.write_int(MuEnum.ET_SPHERE_COLLIDER2)
             mu.write_byte(self.isTrigger)
         else:
@@ -673,9 +673,9 @@ class MuColliderSphere(MuCollider_Base):
 
 class MuColliderCapsule(MuCollider_Base):
     def read(self, mu):
-        #print("MuColliderCapsule", self.type)
+        #print("MuColliderCapsule", self.has_trigger)
         self.isTrigger = 0
-        if self.type:
+        if self.has_trigger:
             self.isTrigger = mu.read_byte()
         self.radius = mu.read_float()
         self.height = mu.read_float()
@@ -683,7 +683,7 @@ class MuColliderCapsule(MuCollider_Base):
         self.center = mu.read_vector()
         return self
     def write(self, mu):
-        if self.type:
+        if self.has_trigger:
             mu.write_int(MuEnum.ET_CAPSULE_COLLIDER2)
             mu.write_byte(self.isTrigger)
         else:
@@ -695,16 +695,16 @@ class MuColliderCapsule(MuCollider_Base):
 
 class MuColliderBox(MuCollider_Base):
     def read(self, mu):
-        #print("MuColliderBox", self.type)
+        #print("MuColliderBox", self.has_trigger)
         self.isTrigger = 0
-        if self.type:
+        if self.has_trigger:
             self.isTrigger = mu.read_byte()
         self.size = mu.read_vector()
         self.center = mu.read_vector()
         #print(self.isTrigger, self.size, self.center)
         return self
     def write(self, mu):
-        if self.type:
+        if self.has_trigger:
             mu.write_int(MuEnum.ET_BOX_COLLIDER2)
             mu.write_byte(self.isTrigger)
         else:
