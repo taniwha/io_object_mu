@@ -26,8 +26,18 @@ def add_dict(thing, mu, node, add_funcs):
         n = attr.__class__.__name__
         if n in add_funcs:
             add_funcs[n](a, mu, attr, node)
+        elif type(attr) is float:
+            node.AddValue(a, "%.9g" % attr)
         else:
             node.AddValue(a, str(attr))
+
+def add_vector(name, mu, vec, node):
+    if len(vec) == 2:
+        node.AddValue(name, "%.9g, %.9g" % vec)
+    elif len(vec) == 3:
+        node.AddValue(name, "%.9g, %.9g, %.9g" % vec)
+    elif len(vec) == 4:
+        node.AddValue(name, "%.9g %.9g, %.9g, %.9g" % vec)
 
 def add_thing(thing, mu, node, exclude, add_funcs):
     for a in dir(thing):
@@ -37,8 +47,10 @@ def add_thing(thing, mu, node, exclude, add_funcs):
         n = attr.__class__.__name__
         if type(attr) is dict:
             if attr:
-                dn = node.AddNode(a)
+                dn = node.AddNewNode(a)
                 add_dict(attr, mu, dn, add_funcs)
+        elif type(attr) is float:
+            node.AddValue(a, "%.9g" % attr)
         else:
             if a in add_funcs:
                 add_funcs[a](a, mu, attr, node)
@@ -48,41 +60,25 @@ def add_thing(thing, mu, node, exclude, add_funcs):
                 node.AddValue(a, str(attr))
 
 def add_textures(mu, node):
-    texnode = node.AddNode("Textures")
+    texnode = node.AddNewNode("Textures")
     for tex in mu.textures:
-        texnode.AddValue("tex.name", tex.type)
+        texnode.AddValue(tex.name, tex.type)
 
 def add_mattex(name, mu, mt, node):
     node.AddValue("name", name);
     node.AddValue("index", mt.index)
-    add_tuple("scale", mu, mt.scale, node);
-    add_tuple("offset", mu, mt.offset, node);
-
-def add_tuple(name, mu, val, node):
-    s = ""
-    for v in val:
-        s = s + (", %.9g" % v)
-    node.AddValue(name, s[2:])
+    add_vector("scale", mu, mt.scale, node);
+    add_vector("offset", mu, mt.offset, node);
 
 mat_add_funcs = {
-    'tuple': add_tuple,
+    'tuple': add_vector,
     'MuMatTex': add_mattex
 }
 
 def add_materials(mu, cfg):
-    mat_node = cfg.AddNode("Materials")
+    mat_node = cfg.AddNewNode("Materials")
     for mat in enumerate(mu.materials):
         add_thing(mat[1], mu, mat_node, [], mat_add_funcs);
-
-def dump_renderer(name, mu, rend, level):
-    print("%s Renderer: %s = " % ("    " * level, name))
-    dump_thing(rend, mu, level, [], {})
-
-def add_list(name, mu, lst, node):
-    pass
-    print("%s[%d]" % (name, len(lst)))
-    #for l in lst:
-    #    print("%s  %s" % ("    " * (level + 1), str(l)))
 
 def add_bone_weight(name, mu, weight, node):
     weights = ""
@@ -92,47 +88,52 @@ def add_bone_weight(name, mu, weight, node):
     node.AddValue("weights", weights[2:])
 
 def add_bone_weights(name, mu, weights, node):
-    weights_node = node.AddNode(name)
+    weights_node = node.AddNewNode(name)
     for weight in weights:
         add_bone_weight(name, mu, weight, weights_node)
 
 def add_bind_poses(name, mu, poses, node):
-    poses_node = node.AddNode(name)
+    poses_node = node.AddNewNode(name)
     for pose in poses:
-        add_tuple("pose", mu, pose, poses_node)
+        add_vector("pose", mu, pose, poses_node)
 
 def add_uvs(name, mu, uvs, node):
-    uvs_node = node.AddNode(name)
+    uvs_node = node.AddNewNode(name)
     for uv in uvs:
-        add_tuple("uv", mu, uv, uvs_node)
+        add_vector("uv", mu, uv, uvs_node)
 
 def add_normals(name, mu, normals, node):
-    normals_node = node.AddNode(name)
+    normals_node = node.AddNewNode(name)
     for normal in normals:
-        add_tuple("norm", mu, normal, normals_node)
+        add_vector("norm", mu, normal, normals_node)
 
 def add_tangents(name, mu, tangents, node):
-    tangents_node = node.AddNode(name)
+    tangents_node = node.AddNewNode(name)
     for tangent in tangents:
-        add_tuple("tan", mu, tangent, tangents_node)
+        add_vector("tan", mu, tangent, tangents_node)
 
 def add_verts(name, mu, verts, node):
-    verts_node = node.AddNode(name)
+    verts_node = node.AddNewNode(name)
     for vert in verts:
-        add_tuple("vert", mu, vert, verts_node)
+        add_vector("vert", mu, vert, verts_node)
+
+def add_colors(name, mu, colors, node):
+    colors_node = node.AddNewNode(name)
+    for color in colors:
+        add_vector("color", mu, color, colors_node)
 
 def add_tris(name, mu, tris, node):
-    tris_node = node.AddNode("tris")
+    tris_node = node.AddNewNode("tris")
     for tri in tris:
         tris_node.AddValue("tri", "%d %d %d" % tri)
 
 def add_submeshes(name, mu, submeshes, node):
-    submeshes_node = node.AddNode(name)
+    submeshes_node = node.AddNewNode(name)
     for tris in submeshes:
         add_tris("submesh", mu, tris, submeshes_node)
 
-mesh_dump_funcs = {
-    "list": add_list,
+mesh_add_funcs = {
+    "colors": add_colors,
     "uvs": add_uvs,
     "uv2s": add_uvs,
     "normals": add_normals,
@@ -144,8 +145,8 @@ mesh_dump_funcs = {
 }
 
 def add_mesh(name, mu, mesh, node):
-    mesh_node = node.AddNode("Mesh")
-    add_thing(mesh, mu, mesh_node, [], mesh_dump_funcs)
+    mesh_node = node.AddNewNode("Mesh")
+    add_thing(mesh, mu, mesh_node, [], mesh_add_funcs)
 
 def add_bones(name, mu, bones, node):
     for b in bones:
@@ -155,12 +156,6 @@ def add_materials_sub(name, mu, materials, node):
     for m in materials:
         node.AddValue("material", m)
 
-def add_vector(name, mu, vec, node):
-    node.AddValue(name, "%.9g, %.9g, %.9g" % vec)
-
-def add_quaternion(name, mu, vec, node):
-    node.AddValue(name, "%.9g, %.9g, %.9g, %.9g" % vec)
-
 sharedmesh_add_funcs = {
     "center": add_vector,
     "size": add_vector,
@@ -169,82 +164,125 @@ sharedmesh_add_funcs = {
     "MuMesh": add_mesh,
 }
 
-def add_skinnedmeshrenderer(name, mu, mesh, node):
-    smr_node = node.AddNode("SkinnedMeshRenderer")
-    add_thing(mesh, mu, smr_node, [], sharedmesh_add_funcs)
-
-def dump_light(name, mu, mesh, level):
-    print("%s Light: %s" % ("    " * level, name))
-    dump_thing(mesh, mu, level, [], mesh_dump_funcs)
-
-def dump_friction(name, mu, col, level):
-    print("%s Friction: %s = " % ("    " * level, name))
-    dump_thing(col, mu, level + 1, [], {})
-
-def dump_spring(name, mu, col, level):
-    print("%s Spring: %s = " % ("    " * level, name))
-    dump_thing(col, mu, level + 1, [], {})
-
-collider_dump_funcs = {
-    "MuFriction": dump_friction,
-    "MuSpring": dump_spring,
+renderer_add_funcs = {
+    "materials": add_materials_sub,
 }
 
-def dump_collider(name, mu, col, level):
-    print("%s Collider: %s = " % ("    " * level, name))
-    dump_thing(col, mu, level + 1, [], collider_dump_funcs)
+def add_renderer(name, mu, mesh, node):
+    r_node = node.AddNewNode("Renderer")
+    add_thing(mesh, mu, r_node, [], renderer_add_funcs)
 
-def dump_key(name, mu, key, level):
-    print("%s Key: %s = " % ("    " * level, name))
-    dump_thing(key, mu, level, [], {})
-
-def dump_curve(name, mu, curve, level):
-    print("%s Curve: %s = " % ("    " * level, name))
-    dump_thing(curve, mu, level, ["keys"], {})
-    for i, key in enumerate(curve.keys):
-        dump_key("key", mu, key, level + 1)
-
-def dump_clip(name, mu, clip, level):
-    print("%s Clip: %s = " % ("    " * level, name))
-    dump_thing(clip, mu, level, ["curves", "name"], {})
-    for i, curve in enumerate(clip.curves):
-        dump_curve("curve", mu, curve, level + 1)
-
-def dump_animation(name, mu, ani, level):
-    print("%s Animation: %s = " % ("    " * level, name))
-    dump_thing(ani, mu, level, ["clips", "name"], {})
-    for i, clip in enumerate(ani.clips):
-        dump_clip(clip.name, mu, clip, level + 1)
+def add_skinnedmeshrenderer(name, mu, mesh, node):
+    smr_node = node.AddNewNode("SkinnedMeshRenderer")
+    add_thing(mesh, mu, smr_node, [], sharedmesh_add_funcs)
 
 def add_transform(name, mu, xform, node):
-    node = node.AddNode("Transform")
+    node = node.AddNewNode("Transform")
     node.AddValue("name", xform.name)
     add_vector("localPosition", mu, xform.localPosition, node);
-    add_quaternion("localRotation", mu, xform.localRotation, node);
+    add_vector("localRotation", mu, xform.localRotation, node);
     add_vector("localScale", mu, xform.localScale, node);
 
 def add_taglayer(name, mu, taglayer, node):
-    node = node.AddNode("TagLayer")
+    node = node.AddNewNode("TagLayer")
     node.AddValue("tag", taglayer.tag)
     node.AddValue("layer", str(taglayer.layer))
+
+def add_friction(name, mu, friction, node):
+    node = node.AddNewNode("Friction")
+    add_thing(friction, mu, node, [], {})
+
+def add_spring(name, mu, spring, node):
+    node = node.AddNewNode("Spring")
+    add_thing(spring, mu, node, [], {})
+
+collider_add_funcs = {
+    "center": add_vector,
+    "size": add_vector,
+    "MuMesh": add_mesh,
+    "MuFriction": add_friction,
+    "MuSpring": add_spring,
+}
+
+def add_collider(name, mu, collider, node):
+    n = collider.__class__.__name__
+    node = node.AddNewNode(n)
+    add_thing(collider, mu, node, [], collider_add_funcs)
+
+light_add_funcs = {
+    "color": add_vector,
+}
+
+def add_light(name, mu, light, node):
+    node = node.AddNewNode("Light")
+    add_thing(light, mu, node, [], light_add_funcs)
+
+key_add_funcs = {
+    "tuple": add_vector,
+}
+
+def add_key(name, mu, key, node):
+    key_node = node.AddNewNode("Key")
+    add_thing(key, mu, key_node, [], key_add_funcs)
+
+def add_keys(name, mu, keys, node):
+    keys_node = node.AddNewNode ("Keys")
+    for key in keys:
+        add_key ("", mu, key, keys_node)
+
+curve_add_funcs = {
+    "tuple": add_vector,
+    "keys": add_keys,
+}
+
+def add_curve(name, mu, curve, node):
+    curve_node = node.AddNewNode("Curve")
+    add_thing(curve, mu, curve_node, [], curve_add_funcs)
+
+def add_curves(name, mu, curves, node):
+    curves_node = node.AddNewNode ("Curves")
+    for curve in curves:
+        add_curve ("", mu, curve, curves_node)
+
+clip_add_funcs = {
+    "tuple": add_vector,
+    "curves": add_curves,
+}
+
+def add_clip(name, mu, clip, node):
+    clip_node = node.AddNewNode("Clip")
+    add_thing(clip, mu, clip_node, [], clip_add_funcs)
+
+def add_clips(name, mu, clips, node):
+    clips_node = node.AddNewNode("Clips")
+    for clip in clips:
+        add_clip ("", mu, clip, clips_node)
+
+animation_add_funcs = {
+    "clips": add_clips,
+}
+
+def add_animation(name, mu, anim, node):
+    anim_node = node.AddNewNode("Animation")
+    add_thing(anim, mu, anim_node, [], animation_add_funcs)
 
 object_add_funcs={
     "MuTransform": add_transform,
     "MuTagLayer": add_taglayer,
-#    "MuRenderer": add_renderer,
-#    "MuMesh": add_mesh,
+    "MuRenderer": add_renderer,
+    "MuMesh": add_mesh,
     "MuSkinnedMeshRenderer": add_skinnedmeshrenderer,
-#    "MuLight": add_light,
-#    "MuColliderMesh": add_collider,
-#    "MuColliderSphere": add_collider,
-#    "MuColliderCapsule": add_collider,
-#    "MuColliderBox": add_collider,
-#    "MuColliderWheel": add_collider,
-#    "MuAnimation": add_animation,
+    "MuLight": add_light,
+    "MuColliderMesh": add_collider,
+    "MuColliderSphere": add_collider,
+    "MuColliderCapsule": add_collider,
+    "MuColliderBox": add_collider,
+    "MuColliderWheel": add_collider,
+    "MuAnimation": add_animation,
 }
 
 def add_object(mu, obj, node):
-    obj_node = node.AddNode("Object")
+    obj_node = node.AddNewNode("Object")
     add_thing(obj, mu, obj_node, ["children"], object_add_funcs)
 
     for child in obj.children:
