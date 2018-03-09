@@ -177,24 +177,24 @@ def add_skinnedmeshrenderer(name, mu, mesh, node):
     add_thing(mesh, mu, smr_node, [], sharedmesh_add_funcs)
 
 def add_transform(name, mu, xform, node):
-    node = node.AddNewNode("Transform")
-    node.AddValue("name", xform.name)
-    add_vector("localPosition", mu, xform.localPosition, node);
-    add_vector("localRotation", mu, xform.localRotation, node);
-    add_vector("localScale", mu, xform.localScale, node);
+    xform_node = node.AddNewNode("Transform")
+    xform_node.AddValue("name", xform.name)
+    add_vector("localPosition", mu, xform.localPosition, xform_node);
+    add_vector("localRotation", mu, xform.localRotation, xform_node);
+    add_vector("localScale", mu, xform.localScale, xform_node);
 
 def add_taglayer(name, mu, taglayer, node):
-    node = node.AddNewNode("TagLayer")
-    node.AddValue("tag", taglayer.tag)
-    node.AddValue("layer", str(taglayer.layer))
+    tag_node = node.AddNewNode("TagLayer")
+    tag_node.AddValue("tag", taglayer.tag)
+    tag_node.AddValue("layer", str(taglayer.layer))
 
 def add_friction(name, mu, friction, node):
-    node = node.AddNewNode("Friction")
-    add_thing(friction, mu, node, [], {})
+    friction_node = node.AddNewNode("Friction")
+    add_thing(friction, mu, friction_node, [], {})
 
 def add_spring(name, mu, spring, node):
-    node = node.AddNewNode("Spring")
-    add_thing(spring, mu, node, [], {})
+    sprint_node = node.AddNewNode("Spring")
+    add_thing(spring, mu, sprint_node, [], {})
 
 collider_add_funcs = {
     "center": add_vector,
@@ -206,16 +206,17 @@ collider_add_funcs = {
 
 def add_collider(name, mu, collider, node):
     n = collider.__class__.__name__
-    node = node.AddNewNode(n)
-    add_thing(collider, mu, node, [], collider_add_funcs)
+    collider_node = node.AddNewNode("Collider")
+    collider_node.AddValue ("type", n[10:]) #strip leading "MuCollider"
+    add_thing(collider, mu, collider_node, ["has_trigger"], collider_add_funcs)
 
 light_add_funcs = {
     "color": add_vector,
 }
 
 def add_light(name, mu, light, node):
-    node = node.AddNewNode("Light")
-    add_thing(light, mu, node, [], light_add_funcs)
+    light_node = node.AddNewNode("Light")
+    add_thing(light, mu, light_node, [], light_add_funcs)
 
 key_add_funcs = {
     "tuple": add_vector,
