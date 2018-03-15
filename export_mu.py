@@ -659,7 +659,7 @@ class ExportMu_quick(bpy.types.Operator, ExportHelper):
 
     def invoke(self, context, event):
         if context.active_object != None:
-            self.filepath = context.active_object.name + self.filename_ext
+            self.filepath = strip_nnn(context.active_object.name) + self.filename_ext
         return ExportHelper.invoke(self, context, event)
 
 class MuVolume(bpy.types.Operator):
