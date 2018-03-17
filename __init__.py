@@ -54,7 +54,6 @@ from . import import_mu
 from . import import_craft
 from . import prop
 from . import quickhull
-from . import model
 
 def install_presets(subdir):
     presets=bpy.utils.script_paths("presets")
@@ -122,7 +121,6 @@ def register():
     bpy.types.INFO_MT_file_export.append(menu_func_export)
     bpy.types.INFO_MT_mesh_add.append(quickhull.menu_func)
 
-    model.register()
     properties.register()
     collider.register()
     shader.register()
@@ -132,7 +130,6 @@ def unregister():
 
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
-    model.unregister()
     properties.unregister()
     collider.unregister()
 

@@ -30,13 +30,6 @@ from bpy.props import PointerProperty, CollectionProperty
 from .cfgnode import ConfigNode, ConfigNodeError
 from .import_mu import import_mu
 
-class MuModelProperty(bpy.types.PropertyGroup):
-    model = PointerProperty(name="Model", type=bpy.types.Object)
-
-class MuModelPropertySet(bpy.types.PropertyGroup):
-    bl_label = "Models"
-    models = CollectionProperty(type=MuModelProperty, name="Models")
-
 loaded_models_object = None
 parts_object = None
 
@@ -106,9 +99,4 @@ def load_models(nodes):
         obj = objects[0]
     return obj
 
-def register():
-    print("model")
-    bpy.types.BlendData.mumodels = PointerProperty(type=MuModelPropertySet)
 
-def unregister():
-    pass
