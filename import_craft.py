@@ -49,18 +49,19 @@ def import_craft(filepath):
     except ConfigNodeError as e:
         print(filepath+e.message)
         return
+    scene = bpy.context.scene
     vessel = bpy.data.objects.new(craft.GetValue("ship"), None)
-    vessel.hide = True
     vessel.location = Vector((0, 0, 0))
     vessel.rotation_mode = 'QUATERNION'
     vessel.rotation_quaternion = Quaternion((1,0,0,0))
     vessel.scale = Vector((1, 1, 1))
-    bpy.context.scene.objects.link(vessel)
+    scene.objects.link(vessel)
     for p in craft.GetNodes("PART"):
         pname = p.GetValue("part").split("_")[0]
         pos = parse_vector(p.GetValue("pos"))
         rot = parse_quaternion(p.GetValue("rot"))
         part = gamedata.parts[pname].get_model()
+        scene.objects.link(part)
         part.location = pos
         part.rotation_mode = 'QUATERNION'
         part.rotation_quaternion = rot
@@ -76,7 +77,6 @@ def import_craft_op(self, context, filepath):
         obj.select = False
 
     obj = import_craft(filepath)
-    show_objects(obj)
     select_objects(obj)
     bpy.context.scene.objects.active = obj
 
