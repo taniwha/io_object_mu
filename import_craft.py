@@ -34,11 +34,6 @@ def select_objects(obj):
     for o in obj.children:
         select_objects(o)
 
-def show_objects(obj):
-    obj.hide = False
-    for o in obj.children:
-        show_objects(o)
-
 def import_craft(filepath):
     global gamedata
     if not gamedata:
