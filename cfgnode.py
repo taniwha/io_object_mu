@@ -83,6 +83,11 @@ class ConfigNode:
             return nodes[0]
         else:
             return nodes
+    @classmethod
+    def loadfile(cls, path):
+        bytes = open(path, "rb").read()
+        text = "".join(map(lambda b: chr(b), bytes))
+        return cls.load(text)
     def GetNode(self, key):
         for n in self.nodes:
             if n[0] == key:
