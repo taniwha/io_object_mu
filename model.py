@@ -99,4 +99,55 @@ def load_models(nodes):
         obj = objects[0]
     return obj
 
+def loaded_models_scene():
+    if "loaded_models" not in bpy.data.scenes:
+        return bpy.data.scenes.new("loaded_models")
+    return bpy.data.scenes["loaded_models"]
 
+def group_objects(name, obj):
+    def add_to_group(group, obj):
+        group.objects.link (obj)
+        for child in obj.children:
+            add_to_group(group, child)
+    group = bpy.data.groups.new(name)
+    add_to_group(group, obj)
+    return group
+
+class Model:
+    @classmethod
+    def Preloaded(cls):
+        preloaded = {}
+        for g in bpy.data.groups:
+            if g.name[:6] == "model:":
+                url = g.name[6:]
+                preloaded[url] = Model(None, url)
+        return preloaded
+    def __init__(self, path, url):
+        groupname = "model:" + url
+        if groupname in bpy.data.groups:
+            group = bpy.data.groups["model:" + url]
+        else:
+            scene = loaded_models_scene()
+            obj = import_mu(scene, path, False)
+            obj.location = Vector((0, 0, 0))
+            obj.rotation_quaternion = Quaternion((1,0,0,0))
+            obj.scale = Vector((1,1,1))
+            group = group_objects("model:" + url, obj)
+        self.model = group
+    def instantiate(self, name, loc, rot, scale):
+        obj = bpy.data.objects.new(name, None)
+        obj.dupli_type='GROUP'
+        obj.dupli_group=self.model
+        obj.location = loc
+        obj.scale = scale
+        if type(rot) == Vector:
+            # blender is right-handed, KSP is left-handed
+            # FIXME: it might be better to convert the given euler rotation
+            # to a quaternion (for consistency)
+            # this assumes the rot vector came straight from a ksp cfg file
+            obj.rotation_mode = 'XZY'
+            obj.rotation_euler = -rot
+        else:
+            obj.rotation_mode = 'QUATERNION'
+            obj.rotation_quaternion = rot
+        return obj

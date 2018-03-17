@@ -65,7 +65,6 @@ def create_mesh_object(name, mesh, transform):
         obj.location = Vector((0, 0, 0))
         obj.rotation_quaternion = Quaternion((1,0,0,0))
         obj.scale = Vector((1,1,1))
-    bpy.context.scene.objects.link(obj)
     return obj
 
 def copy_spring(dst, src):
@@ -98,7 +97,6 @@ def create_light(mu, mulight, transform):
     obj.rotation_quaternion = rot * Quaternion(transform.localRotation)
     obj.scale = Vector(transform.localScale)
     properties.SetPropMask(obj.muproperties.cullingMask, mulight.cullingMask)
-    bpy.context.scene.objects.link(obj)
     return obj
 
 property_map = {
@@ -262,7 +260,7 @@ def create_collider(mu, muobj):
         collider.build_collider(obj)
     return obj
 
-def create_object(mu, muobj, parent, create_colliders):
+def create_object(scene, mu, muobj, parent, create_colliders):
     obj = None
     mesh = None
     if hasattr(muobj, "shared_mesh"):
@@ -288,6 +286,7 @@ def create_object(mu, muobj, parent, create_colliders):
             obj = create_light(mu, muobj.light, muobj.transform)
     if not obj:
         obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
+    scene.objects.link(obj)
     if hasattr(muobj, "tag_and_layer"):
         obj.muproperties.tag = muobj.tag_and_layer.tag
         obj.muproperties.layer = muobj.tag_and_layer.layer
@@ -297,7 +296,7 @@ def create_object(mu, muobj, parent, create_colliders):
     obj.parent = parent
     muobj.bobj = obj
     for child in muobj.children:
-        create_object(mu, child, obj, create_colliders)
+        create_object(scene, mu, child, obj, create_colliders)
     if hasattr(muobj, "animation"):
         for clip in muobj.animation.clips:
             create_action(mu, muobj.path, clip)
@@ -413,18 +412,18 @@ def create_object_paths(mu, obj=None, parents=None):
         create_object_paths(mu, child, parents)
     parents.pop()
 
-def process_mu(mu, mudir, create_colliders):
+def process_mu(scene, mu, mudir, create_colliders):
     create_textures(mu, mudir)
     create_materials(mu)
     create_object_paths(mu)
-    return create_object(mu, mu.obj, None, create_colliders)
+    return create_object(scene, mu, mu.obj, None, create_colliders)
 
-def import_mu(filepath, create_colliders):
+def import_mu(scene, filepath, create_colliders):
     mu = Mu()
     if not mu.read(filepath):
         return None
 
-    return process_mu(mu, os.path.dirname(filepath), create_colliders)
+    return process_mu(scene, mu, os.path.dirname(filepath), create_colliders)
 
 def import_mu_op(self, context, filepath, create_colliders):
     operator = self
@@ -441,7 +440,8 @@ def import_mu_op(self, context, filepath, create_colliders):
             "Unrecognized format: %s %d" % (mu.magic, mu.version))
         return {'CANCELLED'}
 
-    obj = process_mu(mu, os.path.dirname(filepath), create_colliders)
+    scene = bpy.context.scene
+    obj = process_mu(scene, mu, os.path.dirname(filepath), create_colliders)
     bpy.context.scene.objects.active = obj
     obj.select = True
 

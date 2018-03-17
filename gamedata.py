@@ -28,6 +28,8 @@ from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 
 from .cfgnode import ConfigNode, ConfigNodeError
 from .parser import parse_float
+from .model import Model
+from .part import Part
 
 def recurse_tree(path, func):
     files = os.listdir(path)
@@ -41,58 +43,45 @@ def recurse_tree(path, func):
         else:
             func(p)
 
-class Part:
-    def __init__(self, path, cfg):
-        self.cfg = cfg
-        self.path = os.path.dirname(path)
-        self.name = cfg.GetValue("name").replace("_", ".")
-        self.model = None
-        self.scale = 1.0
-        self.rescaleFactor = 1.25
-        if cfg.HasValue("scale"):
-            self.scale = parse_float(cfg.GetValue("scale"))
-        if cfg.HasValue("rescaleFactor"):
-            self.rescaleFactor = parse_float(cfg.GetValue("rescaleFactor"))
-    def get_model(self):
-        if not self.model:
-            cfg = self.cfg
-            if cfg.HasNode("MODEL"):
-                self.model = load_models (cfg.GetNodes("MODEL"))
-            else:
-                mesh = model_by_path[self.path][0]
-                #if cfg.HasValue("mesh"):
-                #    mesh = cfg.GetValue("mesh")
-                #    if mesh[-3:] == '.mu':
-                #        mesh = mesh[:-3]
-                model = os.path.join(self.path, mesh)
-                node = ConfigNode()
-                node.AddValue("model", model)
-                node.AddValue("position", "0, 0, 0")
-                node.AddValue("rotation", "0, 0, 0")
-                node.AddValue("scale", "1, 1, 1")
-                self.model = load_models ([node])
-            global parts_object
-            if not parts_object:
-                parts_object = bpy.data.objects.new("parts", None)
-                bpy.context.scene.objects.link(parts_object)
-                parts_object.hide = True
-            self.model.parent = parts_object
-        model = copy_objects(self.model)
-        model.location = Vector((0, 0, 0))
-        model.rotation_mode = 'QUATERNION'
-        model.rotation_quaternion = Quaternion((1,0,0,0))
-        model.scale *= self.rescaleFactor
-        return model
+class Prop(Part):
+    pass
+
+class Internal(Part):
+    pass
 
 class GameData:
+    ModuleManager = "ModuleManager.ConfigCache"
     def process_mu(self, path):
-        gdpath = path[len(self.root) + 1:]
+        gdpath = path[len(self.root):]
         directory, model = os.path.split(gdpath)
         if directory not in self.model_by_path:
             self.model_by_path[directory] = []
         self.model_by_path[directory].append(model[:-3])
+        url = gdpath[:-3]
+        if url not in self.models:
+            self.models[url] = path
+
+    def process_cfgnode(self, path, node):
+        if node[0] == "PART":
+            part = Part(path, node[1])
+            part.db = self
+            self.parts[part.name] = part
+        elif node[0] == "PROP":
+            prop = Prop(path, node[1])
+            prop.db = self
+            self.props[prop.name] = prop
+        elif node[0] == "INTERNAL":
+            internal = Internal(path, node[1])
+            internal.db = self
+            self.internals[internal.name] = internal
+        elif node[0] == "RESOURCE_DEFINITION":
+            res = node[1]
+            resname = res.GetValue("name")
+            self.resources[resname] = res
 
     def process_cfg(self, path):
+        if self.use_module_manager:
+            return
         bytes = open(path, "rb").read()
         text = "".join(map(lambda b: chr(b), bytes))
         try:
@@ -103,14 +92,8 @@ class GameData:
         if not cfg:
             return
         for node in cfg.nodes:
-            if node[0] == "PART":
-                gdpath = path[len(self.root) + 1:]
-                part = Part(gdpath, node[1])
-                self.parts[part.name] = part
-            elif node[0] == "RESOURCE_DEFINITION":
-                res = node[1]
-                resname = res.GetValue("name")
-                self.resources[resname] = res
+            gdpath = os.path.dirname(path[len(self.root):])
+            self.process_cfgnode(gdpath, node)
 
     def build_db(self, path):
         if path[-4:].lower() == ".cfg":
@@ -120,14 +103,45 @@ class GameData:
             self.process_mu(path)
             return
 
+    def parse_module_manager(self, mmcache):
+        try:
+            cfg = ConfigNode.loadfile(mmcache)
+        except ConfigNodeError as e:
+            print(mmcache+e.message)
+            return False
+        for name, node, line in cfg.nodes:
+            if name != "UrlConfig":
+                continue
+            type = node.GetValue("type")
+            path = node.GetValue("parentUrl")
+            if type in {"PART", "PROP", "INTERNAL", "RESOURCE_DEFINITION"}:
+                self.process_cfgnode(path, (type, node.GetNode(type)))
+
     def create_db(self):
+        mmcache = os.path.join(self.root, self.ModuleManager)
+        if os.access(mmcache, os.F_OK):
+            if self.parse_module_manager(mmcache):
+                self.use_module_manager = True
         recurse_tree(self.root, self.build_db)
         for k in self.model_by_path:
             self.model_by_path[k].sort()
 
     def __init__(self, path):
+        self.use_module_manager = False
         self.root = path
         self.model_by_path = {}
+        self.models = Model.Preloaded()
         self.parts = {}
+        self.props = {}
+        self.internals = {}
         self.resources = {}
         self.create_db()
+
+    def model(self, url):
+        if url not in self.models:
+            return None
+        if type(self.models[url]) == type(""):
+            path = os.path.join(self.root, self.models[url])
+            self.models[url] = Model(path, url)
+        return self.models[url]
+        

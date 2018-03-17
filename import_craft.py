@@ -44,10 +44,8 @@ def import_craft(filepath):
     if not gamedata:
         from .__init__ import Preferences
         gamedata = GameData(Preferences().GameData)
-    bytes = open(filepath, "rb").read()
-    text = "".join(map(lambda b: chr(b), bytes))
     try:
-        craft = ConfigNode.load(text)
+        craft = ConfigNode.loadfile(filepath)
     except ConfigNodeError as e:
         print(filepath+e.message)
         return
