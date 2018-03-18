@@ -150,14 +150,25 @@ class ConfigNode:
                 return
         self.AddValue(key, value)
     def ToString(self, level = 0):
-        text = "{\n"
+        extra = 0
+        if level >= 0:
+            extra = 2
+        text=[None] * (len(self.values) + len(self.nodes) + extra)
+        index = 0
+        if level >= 0:
+            text[index] = "{\n"
+            index += 1
         for val in self.values:
-            text += "%s%s = %s\n" % ("    " * (level + 1), val[0], val[1])
+            text[index] = "%s%s = %s\n" % ("    " * (level + 1), val[0], val[1])
+            index += 1
         for node in self.nodes:
             ntext = node[1].ToString(level + 1)
-            text += "%s%s %s\n" % ("    " * (level + 1), node[0], ntext)
-        text += "%s}\n" % ("    " * (level))
-        return text
+            text[index] = "%s%s %s\n" % ("    " * (level + 1), node[0], ntext)
+            index += 1
+        if level >= 0:
+            text[index] = "%s}\n" % ("    " * (level))
+            index += 1
+        return "".join(text)
 
 if __name__ == "__main__":
     import sys
