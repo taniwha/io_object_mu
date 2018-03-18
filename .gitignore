@@ -3,3 +3,4 @@
 *.mbm
 *.pyc
 __pycache__/
+test/
