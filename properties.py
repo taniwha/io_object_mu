@@ -128,6 +128,11 @@ class MuProperties(bpy.types.PropertyGroup):
 
     cullingMask = BoolVectorProperty(size=32, name = "Culling Mask", subtype = 'LAYER')
 
+class MuModelProperties(bpy.types.PropertyGroup):
+    name = StringProperty(name = "Name", default="")
+    type = StringProperty(name = "Type", default="")
+    config = StringProperty(name = "Config", default="")
+
 class MuAttachNodePanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -242,6 +247,7 @@ class MuColliderPanel(bpy.types.Panel):
 
 def register():
     bpy.types.Object.muproperties = PointerProperty(type=MuProperties)
+    bpy.types.Group.mumodelprops = PointerProperty(type=MuModelProperties)
 
 def unregister():
     pass

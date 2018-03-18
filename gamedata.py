@@ -20,6 +20,7 @@
 # <pep8 compliant>
 import sys
 import os
+from pprint import pprint
 
 import bpy
 from mathutils import Vector,Matrix,Quaternion
@@ -30,6 +31,7 @@ from .cfgnode import ConfigNode, ConfigNodeError
 from .parser import parse_float
 from .model import Model
 from .part import Part
+from .prop import Prop
 
 def recurse_tree(path, func):
     files = os.listdir(path)
@@ -42,9 +44,6 @@ def recurse_tree(path, func):
             recurse_tree(p, func)
         else:
             func(p)
-
-class Prop(Part):
-    pass
 
 class Internal(Part):
     pass
@@ -64,10 +63,14 @@ class GameData:
     def process_cfgnode(self, path, node):
         if node[0] == "PART":
             part = Part(path, node[1])
-            part.db = self
+            if part.name in self.parts:
+                part = self.parts[part.name]
             self.parts[part.name] = part
+            part.db = self
         elif node[0] == "PROP":
             prop = Prop(path, node[1])
+            if prop.name in self.props:
+                prop = self.props[prop.name]
             prop.db = self
             self.props[prop.name] = prop
         elif node[0] == "INTERNAL":
@@ -131,8 +134,8 @@ class GameData:
         self.root = path
         self.model_by_path = {}
         self.models = Model.Preloaded()
-        self.parts = {}
-        self.props = {}
+        self.parts = Part.Preloaded()
+        self.props = Prop.Preloaded()
         self.internals = {}
         self.resources = {}
         self.create_db()

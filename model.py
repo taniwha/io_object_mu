@@ -30,11 +30,6 @@ from bpy.props import PointerProperty, CollectionProperty
 from .cfgnode import ConfigNode, ConfigNodeError
 from .import_mu import import_mu
 
-def loaded_models_scene():
-    if "loaded_models" not in bpy.data.scenes:
-        return bpy.data.scenes.new("loaded_models")
-    return bpy.data.scenes["loaded_models"]
-
 def group_objects(name, obj):
     def add_to_group(group, obj):
         group.objects.link (obj)
@@ -43,6 +38,45 @@ def group_objects(name, obj):
     group = bpy.data.groups.new(name)
     add_to_group(group, obj)
     return group
+
+def compile_model(db, path, type, name, cfg, scene):
+    nodes = cfg.GetNodes("MODEL")
+    if nodes:
+        root = bpy.data.objects.new(name+":model", None)
+        scene.objects.link(root)
+        for n in nodes:
+            model = n.GetValue("model")
+            position = Vector((0, 0, 0))
+            rotation = Vector((0, 0, 0))
+            scale = Vector((1, 1, 1))
+            if n.HasValue("position"):
+                position = parse_vector(n.GetValue("position"))
+            if n.HasValue("rotation"):
+                rotation = parse_vector(n.GetValue("rotation"))
+            if n.HasValue("scale"):
+                scale = parse_vector(n.GetValue("scale"))
+            mdl = db.model(model)
+            obj = mdl.instantiate(name+":submodel", position, rotation, scale)
+            scene.objects.link(obj)
+            obj.parent = root
+    else:
+        mesh = db.model_by_path[path][0]
+        url = os.path.join(path, mesh)
+        model = db.model(url)
+        position = Vector((0, 0, 0))
+        rotation = Vector((0, 0, 0))
+        scale = Vector((1, 1, 1))
+        root = model.instantiate(name+":model", position, rotation, scale)
+        scene.objects.link(root)
+    group = group_objects(type + ":" + name, root)
+    group.mumodelprops.name = name
+    group.mumodelprops.type = type
+    return group
+
+def loaded_models_scene():
+    if "loaded_models" not in bpy.data.scenes:
+        return bpy.data.scenes.new("loaded_models")
+    return bpy.data.scenes["loaded_models"]
 
 class Model:
     @classmethod

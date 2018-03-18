@@ -36,6 +36,45 @@ from .cfgnode import ConfigNode, ConfigNodeError
 from .import_mu import import_mu
 from .export_mu import strip_nnn
 
+def loaded_props_scene():
+    if "loaded_props" not in bpy.data.scenes:
+        return bpy.data.scenes.new("loaded_props")
+    return bpy.data.scenes["loaded_props"]
+
+class Prop:
+    @classmethod
+    def Preloaded(cls):
+        preloaded = {}
+        for g in bpy.data.groups:
+            if g.name[:5] == "prop:":
+                url = g.name[5:]
+                prop = Prop("", ConfigNode.load(g.mumodelprops.config))
+                prop.model = g
+                preloaded[url] = prop
+        return preloaded
+    def __init__(self, path, cfg):
+        self.cfg = cfg
+        self.path = os.path.dirname(path)
+        self.name = cfg.GetValue("name")
+        self.model = None
+    def get_model(self):
+        if not self.model:
+            self.model = compile_model(self.db, self.path, "prop", self.name,
+                                       self.cfg, loaded_props_scene())
+            props = self.model.mumodelprops
+            props.config = self.cfg.ToString(-1)
+        model = self.instantiate(Vector((0, 0, 0)),
+                                 Quaternion((1,0,0,0)),
+                                 Vector((1, 1, 1)))
+        return model
+
+    def instantiate(self, loc, rot, scale):
+        obj = bpy.data.objects.new(self.name, None)
+        obj.dupli_type='GROUP'
+        obj.dupli_group=self.model
+        obj.location = loc
+        return obj
+
 def collect_objects(parent):
     objects = [parent]
     for obj in parent.children:
