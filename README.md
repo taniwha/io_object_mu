@@ -12,5 +12,5 @@ of blender and works with both versions 2 and 3 of python. Some notes on mu.py:
 load and back again when writing.
 * vertex tangents are broken (they are incorrectly treated as quaternions), but
 will be preserved if mu.py is used to copy a .mu file. This is a bug.
-* mu.py always writes version 2 .mu files.
+* mu.py always writes version 5 .mu files.
 * it may still break, back up your work.
