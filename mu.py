@@ -790,18 +790,18 @@ class MuCamera:
         self.fov = mu.read_float()
         self.near = mu.read_float()
         self.far = mu.read_float()
-        self.dept = mu.read_float()
+        self.depth = mu.read_float()
         return self
     def write(self, mu):
         mu.write_int(MuEnum.ET_CAMERA)
         mu.write_int(self.clearFlags)
         mu.write_float(self.backgroundColor)
         mu.write_uint(self.cullingMask)
-        mu.write_int(self.orthographic)
+        mu.write_byte(self.orthographic)
         mu.write_float(self.fov)
         mu.write_float(self.near)
         mu.write_float(self.far)
-        mu.write_float(self.dept)
+        mu.write_float(self.depth)
 
 class MuParticles:
     def __init__(self):
