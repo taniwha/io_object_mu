@@ -571,17 +571,16 @@ def find_template(mu, filepath):
 
     cfgin = base[0] + ".cfg.in"
     if os.path.isfile (cfgin):
-        return cfg, open(cfgin, "rt").read()
+        try:
+            return cfg, ConfigNode.loadfile(cfgin)
+        except ConfigNodeError as e:
+            print("Error reading", cfgin, e.message)
 
     return None, None
 
 def generate_cfg(mu, filepath):
-    cfg, template = find_template(mu, filepath)
-    if not template:
-        return
-    try:
-        node = ConfigNode.load(template)
-    except ConfigNodeError as e:
+    cfg, node = find_template(mu, filepath)
+    if not node:
         return
     part = node.GetNode("PART")
     if not part:

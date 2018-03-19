@@ -135,8 +135,7 @@ def main():
         raise
     find_wheels(mu.obj)
     if len(sys.argv) > 2:
-        text = open(sys.argv[2], "rt").read()
-        node = ConfigNode.load(text)
+        node = ConfigNode.loadfile(sys.argv[2])
         wheel = node.GetNode('Wheel')
         if not wheel:
             print("could not find Wheel")
