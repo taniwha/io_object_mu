@@ -221,12 +221,11 @@ def create_action(mu, path, clip):
 def create_collider(mu, muobj):
     col = muobj.collider
     name = muobj.transform.name
+    mesh = None
     if type(col) == MuColliderMesh:
         name = name + ".collider"
         mesh = create_mesh(mu, col.mesh, name)
-    else:
-        mesh = bpy.data.meshes.new(name)
-    obj = create_mesh_object(name, mesh, None)
+    obj, cobj = collider.create_collider_object(name, mesh)
 
     obj.muproperties.isTrigger = False
     if type(col) != MuColliderWheel:
@@ -257,7 +256,7 @@ def create_collider(mu, muobj):
         copy_friction(obj.muproperties.sideFriction, col.sidewaysFriction)
         obj.muproperties.collider = 'MU_COL_WHEEL'
     if type(col) != MuColliderMesh:
-        collider.build_collider(obj)
+        collider.build_collider(cobj, obj.muproperties)
     return obj
 
 def create_object(scene, mu, muobj, parent, create_colliders):

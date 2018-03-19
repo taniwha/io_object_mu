@@ -31,6 +31,11 @@ from .mu import MuEnum
 from .quickhull import quickhull
 from . import properties
 
+def collider_scene():
+    if "collider" not in bpy.data.scenes:
+        return bpy.data.scenes.new("collider")
+    return bpy.data.scenes["collider"]
+
 collider_sphere_ve = (
     [(-1.000, 0.000, 0.000), (-0.866, 0.000, 0.500), (-0.500, 0.000, 0.866),
      ( 0.000, 0.000, 1.000), ( 0.500, 0.000, 0.866), ( 0.866, 0.000, 0.500),
@@ -161,8 +166,7 @@ def wheel(mesh, center, radius):
     col = (collider_wheel_ve + (m,)),
     make_collider_mesh(mesh, col)
 
-def build_collider(obj):
-    muprops = obj.muproperties
+def build_collider(obj, muprops):
     mesh = obj.data
     if muprops.collider == "MU_COL_MESH":
         box(mesh, (0, 0, 0), (1, 1, 1))
@@ -181,17 +185,40 @@ def update_collider(obj):
     muprops = obj.muproperties
     if not muprops.collider:
         return
-    build_collider(obj)
+    if muprops.collider != 'MU_COL_MESH':
+        build_collider(obj.dupli_group.objects[0], obj.muproperties)
+
+def create_collider_object(name, mesh):
+    pref = "" if mesh else "mesh:"
+    if not mesh:
+        mesh = bpy.data.meshes.new(name)
+    cobj = obj = bpy.data.objects.new(pref+name, mesh)
+    bpy.context.scene.objects.link(obj)
+    # pref acts as an "is mesh collider" bool
+    if pref:
+        bpy.context.scene.objects.unlink(obj)
+        cobj = obj
+        scene = collider_scene ()
+        scene.objects.link(obj)
+        group = bpy.data.groups.new(name)
+        group.objects.link(obj)
+        obj = bpy.data.objects.new(name, None)
+        obj.empty_draw_size = 0.3
+        obj.dupli_type = 'GROUP'
+        obj.dupli_group = group
+        bpy.context.scene.objects.link(obj)
+    return obj, cobj
 
 def add_collider(self, context):
     context.user_preferences.edit.use_global_undo = False
-    name = "collider"
-    mesh = bpy.data.meshes.new(name)
-    obj = bpy.data.objects.new(name, mesh)
+    for obj in context.scene.objects:
+        obj.select = False
+    mesh = None
+    if type(self) == ColliderMesh:
+        mesh = bpy.data.meshes.new("collider")
+    obj, cobj = create_collider_object("collider", mesh)
     obj.location = context.scene.cursor_location
     obj.select = True
-    context.scene.objects.link(obj)
-    bpy.context.scene.objects.active=obj
     if type(self) == ColliderMesh:
         obj.muproperties.collider = 'MU_COL_MESH'
     elif type(self) == ColliderSphere:
@@ -213,7 +240,9 @@ def add_collider(self, context):
         obj.muproperties.center = self.center
         obj.muproperties.collider = 'MU_COL_WHEEL'
 
-    build_collider(obj)
+    build_collider(cobj, obj.muproperties)
+    context.scene.objects.active=obj
+
     context.user_preferences.edit.use_global_undo = True
     return {'FINISHED'}
 
