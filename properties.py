@@ -113,7 +113,7 @@ class MuProperties(bpy.types.PropertyGroup):
     layer = IntProperty(name = "Layer")
 
     collider = EnumProperty(items = collider_items, name = "Collider")
-    isTrigger = BoolProperty(name = "Trigger", update=collider_update)
+    isTrigger = BoolProperty(name = "Trigger")
     center = FloatVectorProperty(name = "Center", subtype = 'XYZ', update=collider_update)
     radius = FloatProperty(name = "Radius", update=collider_update)
     height = FloatProperty(name = "Height", update=collider_update)
