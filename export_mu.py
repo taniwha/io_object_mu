@@ -32,6 +32,7 @@ from bpy.props import FloatVectorProperty, PointerProperty
 
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer, MuLight
+from .mu import MuCamera
 from .mu import MuColliderBox, MuColliderWheel, MuMaterial, MuTexture, MuMatTex
 from .mu import MuSpring, MuFriction
 from .mu import MuAnimation, MuClip, MuCurve, MuKey
@@ -343,6 +344,20 @@ def make_light(mu, light, obj):
         mulight.spotAngle = light.spot_size * 180 / pi
     return mulight
 
+def make_camera(mu, camera, obj):
+    mucamera = MuCamera()
+    clear = obj.muproperties.clearFlags
+    flags = ('SKYBOX', 'COLOR', 'DEPTH', 'NOTHING').index(clear)
+    mucamera.clearFlags = flags + 1
+    mucamera.backgroundColor = obj.muproperties.backgroundColor
+    mucamera.cullingMask = properties.GetPropMask(obj.muproperties.cullingMask)
+    mucamera.orthographic = camera.type == 'ORTHO'
+    mucamera.fov = camera.angle * 180 / pi
+    mucamera.near = camera.clip_start
+    mucamera.far = camera.clip_end
+    mucamera.depth = obj.muproperties.depth
+    return mucamera
+
 light_types = {
     bpy.types.PointLamp,
     bpy.types.SunLamp,
@@ -351,7 +366,7 @@ light_types = {
     bpy.types.AreaLamp
 }
 
-exportable_types = {bpy.types.Mesh} | light_types
+exportable_types = {bpy.types.Mesh, bpy.types.Camera} | light_types
 
 def make_obj(mu, obj, path = ""):
     muobj = MuObject()
@@ -383,6 +398,13 @@ def make_obj(mu, obj, path = ""):
         elif type(obj.data) in light_types:
             muobj.light = make_light(mu, obj.data, obj)
             # Blender points spotlights along local -Z, unity along local +Z
+            # which is Blender's +Y, so rotate -90 degrees around local X to
+            # go from Blender to Unity
+            rot = Quaternion((0.5**0.5,-0.5**0.5,0,0))
+            muobj.transform.localRotation = muobj.transform.localRotation * rot
+        elif type(obj.data) == bpy.types.Camera:
+            muobj.camera = make_camera(mu, obj.data, obj)
+            # Blender points camera along local -Z, unity along local +Z
             # which is Blender's +Y, so rotate -90 degrees around local X to
             # go from Blender to Unity
             rot = Quaternion((0.5**0.5,-0.5**0.5,0,0))
