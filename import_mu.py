@@ -102,14 +102,12 @@ def create_light(mu, mulight, transform):
 def create_camera(mu, mucamera, transform):
     camera = bpy.data.cameras.new(transform.name)
     #mucamera.clearFlags
-    #mucamera.backgroundColor
     camera.type = ['PERSP', 'ORTHO'][mucamera.orthographic]
     camera.lens_unit = 'FOV'
     # blender's fov is in radians, unity's in degrees
     camera.angle = mucamera.fov * pi / 180
     camera.clip_start = mucamera.near
     camera.clip_end = mucamera.far
-    #mucamera.depth
     obj = bpy.data.objects.new(transform.name, camera)
     obj.rotation_mode = 'QUATERNION'
     obj.location = Vector(transform.localPosition)
@@ -120,6 +118,11 @@ def create_camera(mu, mucamera, transform):
     obj.rotation_quaternion = Quaternion(transform.localRotation) * rot
     obj.scale = Vector(transform.localScale)
     properties.SetPropMask(obj.muproperties.cullingMask, mucamera.cullingMask)
+    obj.muproperties.backgroundColor = mucamera.backgroundColor
+    obj.muproperties.depth = mucamera.depth
+    if mucamera.clearFlags > 0:
+        flags = mucamera.clearFlags - 1
+        obj.muproperties.clearFlags = properties.clearflag_items[flags][0]
     return obj
 
 property_map = {

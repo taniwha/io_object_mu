@@ -87,6 +87,12 @@ method_items = (
     ('NO_PHYSICS', "No Physics", ""),
     ('NONE', "None", ""),
 )
+clearflag_items = (
+    ('SKYBOX', "Skybox", ""),
+    ('COLOR', "Solid Color", ""),
+    ('DEPTH', "Depth", ""),
+    ('NOTHING', "Nothing", ""),
+)
 
 def SetPropMask(prop, mask):
     for i in range(32):
@@ -127,6 +133,9 @@ class MuProperties(bpy.types.PropertyGroup):
     sideFriction = PointerProperty(type=MuFrictionProp, name = "Sideways")
 
     cullingMask = BoolVectorProperty(size=32, name = "Culling Mask", subtype = 'LAYER')
+    backgroundColor = FloatVectorProperty(name="Background Color", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (0.0, 0.0, 0.0, 1.0))
+    depth = FloatProperty(name = "Depth")
+    clearFlags = EnumProperty(items = clearflag_items, name = "Clear Flags", default = 'SKYBOX')
 
 class MuModelProperties(bpy.types.PropertyGroup):
     name = StringProperty(name = "Name", default="")
@@ -176,6 +185,28 @@ class MuLightPanel(bpy.types.Panel):
         row = layout.row()
         col = row.column()
         col.prop(muprops, "cullingMask")
+
+class MuCameraPanel(bpy.types.Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'data'
+    bl_label = 'Mu Properties'
+
+    @classmethod
+    def poll(cls, context):
+        if type(context.active_object.data) in [bpy.types.Camera]:
+            return True
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+        muprops = context.active_object.muproperties
+        row = layout.row()
+        col = row.column()
+        col.prop(muprops, "clearFlags")
+        col.prop(muprops, "backgroundColor")
+        col.prop(muprops, "cullingMask")
+        col.prop(muprops, "depth")
 
 class MuPropertiesPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
