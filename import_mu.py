@@ -94,7 +94,7 @@ def create_light(mu, mulight, transform):
     # which is Blender's +Y, so rotate 90 degrees around local X to
     # go from Unity to Blender
     rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
-    obj.rotation_quaternion = rot * Quaternion(transform.localRotation)
+    obj.rotation_quaternion = Quaternion(transform.localRotation) * rot
     obj.scale = Vector(transform.localScale)
     properties.SetPropMask(obj.muproperties.cullingMask, mulight.cullingMask)
     return obj
