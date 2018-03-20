@@ -386,7 +386,7 @@ def make_obj(mu, obj, path = ""):
             # which is Blender's +Y, so rotate -90 degrees around local X to
             # go from Blender to Unity
             rot = Quaternion((0.5**0.5,-0.5**0.5,0,0))
-            muobj.transform.localRotation = rot * muobj.transform.localRotation
+            muobj.transform.localRotation = muobj.transform.localRotation * rot
     for o in obj.children:
         muprops = o.muproperties
         if muprops.collider and muprops.collider != 'MU_COL_NONE':
