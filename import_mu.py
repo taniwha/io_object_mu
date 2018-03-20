@@ -99,6 +99,29 @@ def create_light(mu, mulight, transform):
     properties.SetPropMask(obj.muproperties.cullingMask, mulight.cullingMask)
     return obj
 
+def create_camera(mu, mucamera, transform):
+    camera = bpy.data.cameras.new(transform.name)
+    #mucamera.clearFlags
+    #mucamera.backgroundColor
+    camera.type = ['PERSP', 'ORTHO'][mucamera.orthographic]
+    camera.lens_unit = 'FOV'
+    # blender's fov is in radians, unity's in degrees
+    camera.angle = mucamera.fov * pi / 180
+    camera.clip_start = mucamera.near
+    camera.clip_end = mucamera.far
+    #mucamera.depth
+    obj = bpy.data.objects.new(transform.name, camera)
+    obj.rotation_mode = 'QUATERNION'
+    obj.location = Vector(transform.localPosition)
+    # Blender points cameras along local -Z, unity along local +Z
+    # which is Blender's +Y, so rotate 90 degrees around local X to
+    # go from Unity to Blender
+    rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
+    obj.rotation_quaternion = Quaternion(transform.localRotation) * rot
+    obj.scale = Vector(transform.localScale)
+    properties.SetPropMask(obj.muproperties.cullingMask, mucamera.cullingMask)
+    return obj
+
 property_map = {
     "m_LocalPosition.x": ("obj", "location", 0, 1),
     "m_LocalPosition.y": ("obj", "location", 2, 1),
@@ -283,6 +306,8 @@ def create_object(scene, mu, muobj, parent, create_colliders):
     if not obj:
         if hasattr(muobj, "light"):
             obj = create_light(mu, muobj.light, muobj.transform)
+        if hasattr(muobj, "camera"):
+            obj = create_camera(mu, muobj.camera, muobj.transform)
     if not obj:
         obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
     scene.objects.link(obj)
