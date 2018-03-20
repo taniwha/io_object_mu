@@ -267,6 +267,14 @@ def add_animation(name, mu, anim, node):
     anim_node = node.AddNewNode("Animation")
     add_thing(anim, mu, anim_node, [], animation_add_funcs)
 
+camera_add_funcs = {
+    "backgroundColor": add_vector,
+}
+
+def add_camera(name, mu, anim, node):
+    anim_node = node.AddNewNode("Camera")
+    add_thing(anim, mu, anim_node, [], camera_add_funcs)
+
 object_add_funcs={
     "MuTransform": add_transform,
     "MuTagLayer": add_taglayer,
@@ -280,6 +288,7 @@ object_add_funcs={
     "MuColliderBox": add_collider,
     "MuColliderWheel": add_collider,
     "MuAnimation": add_animation,
+    "MuCamera": add_camera,
 }
 
 def add_object(mu, obj, node):
