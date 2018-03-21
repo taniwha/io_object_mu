@@ -76,8 +76,9 @@ mat_add_funcs = {
 }
 
 def add_materials(mu, cfg):
-    mat_node = cfg.AddNewNode("Materials")
+    materials_node = cfg.AddNewNode("Materials")
     for mat in enumerate(mu.materials):
+        mat_node = materials_node.AddNewNode("Material")
         add_thing(mat[1], mu, mat_node, [], mat_add_funcs);
 
 def add_bone_weight(name, mu, weight, node):
