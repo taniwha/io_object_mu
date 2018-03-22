@@ -589,7 +589,7 @@ def find_template(mu, filepath):
 
     cfgin = mu.name + ".cfg.in"
     if cfgin in bpy.data.texts:
-        return cfg, bpy.data.texts[cfgin].as_string()
+        return cfg, ConfigNode.load(bpy.data.texts[cfgin].as_string())
 
     cfgin = base[0] + ".cfg.in"
     if os.path.isfile (cfgin):
