@@ -93,7 +93,7 @@ class GameData:
         if not cfg:
             return
         for node in cfg.nodes:
-            gdpath = os.path.dirname(path[len(self.root):])
+            gdpath = path[len(self.root):]
             self.process_cfgnode(gdpath, node)
 
     def build_db(self, path):
