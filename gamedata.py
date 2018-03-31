@@ -117,6 +117,7 @@ class GameData:
             path = node.GetValue("parentUrl")
             if type in {"PART", "PROP", "INTERNAL", "RESOURCE_DEFINITION"}:
                 self.process_cfgnode(path, (type, node.GetNode(type)))
+        return True
 
     def create_db(self):
         mmcache = os.path.join(self.root, self.ModuleManager)
