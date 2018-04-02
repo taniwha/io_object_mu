@@ -376,7 +376,7 @@ def make_obj(mu, obj, path = ""):
     path += muobj.transform.name
     mu.object_paths[path] = muobj
     muobj.tag_and_layer = make_tag_and_layer(obj)
-    if not obj.data and obj.name[:4] == "node":
+    if not obj.data and obj.name[:5] == "node_":
         n = AttachNode(obj, mu.inverse)
         mu.nodes.append(n)
         if not n.keep_transform():

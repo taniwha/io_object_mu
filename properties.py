@@ -151,7 +151,7 @@ class MuAttachNodePanel(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        return obj and obj.type == 'EMPTY' and obj.name[:4] == "node"
+        return obj and obj.type == 'EMPTY' and obj.name[:5] == "node_"
 
     def draw(self, context):
         layout = self.layout
