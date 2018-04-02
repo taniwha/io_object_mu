@@ -109,6 +109,19 @@ def menu_func_import(self, context):
 def menu_func_export(self, context):
     self.layout.operator(export_mu.ExportMu.bl_idname, text="KSP Mu (.mu)")
 
+class TEXT_MT_templates_kspcfg(Menu):
+    bl_label = "KSP config"
+
+    def draw (self, context):
+        self.path_menu(
+            bpy.utils.script_paths("templates_kspcfg"),
+            "text.open",
+            props_default={"internal": True},
+        )
+
+def text_func_templates(self, context):
+    self.layout.menu("TEXT_MT_templates_kspcfg");
+
 def Preferences():
     user_preferences = bpy.context.user_preferences
     addons = user_preferences.addons
@@ -120,6 +133,7 @@ def register():
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
     bpy.types.INFO_MT_mesh_add.append(quickhull.menu_func)
+    bpy.types.TEXT_MT_templates.append(text_func_templates)
 
     properties.register()
     collider.register()
