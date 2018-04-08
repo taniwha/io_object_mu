@@ -48,7 +48,7 @@ import bpy, os
 from bpy.types import AddonPreferences, Menu
 from bpy.props import StringProperty, BoolProperty
 
-from . import collider, properties, shader
+from . import collider, properties, shader, colorpalettes
 from . import export_mu
 from . import import_mu
 from . import import_craft
@@ -86,6 +86,19 @@ class InstallShaders(bpy.types.Operator):
         self.report({'INFO'}, 'Shader presets installed.')
         return {'FINISHED'}
 
+class CreateColorPalettes(bpy.types.Operator):
+    bl_idname = 'io_object_mu_presets.color_palettes'
+    bl_label = 'Create Community Color Palettes'
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        colorpalettes.install()
+        self.report({'INFO'}, 'Color palettes created.')
+        return {'FINISHED'}
+
 class IOObjectMu_AddonPreferences(AddonPreferences):
     bl_idname = __name__
 
@@ -101,6 +114,11 @@ class IOObjectMu_AddonPreferences(AddonPreferences):
         box.prop(self, "GameData")
         box.label(text="Shaders:")
         box.operator(InstallShaders.bl_idname, InstallShaders.bl_label);
+        box.label(text="Color Paletes:")
+        cbox = box.box()
+        cbox.operator(CreateColorPalettes.bl_idname, CreateColorPalettes.bl_label);
+        cbox.label(text="NOTE: this must be done for each new blend file or saved to your startup file.", icon="LAYER_USED")
+        cbox.label(text="NOTE2: overwrites existing palettes that have the same names", icon="LAYER_USED")
 
 def menu_func_import(self, context):
     self.layout.operator(import_mu.ImportMu.bl_idname, text="KSP Mu (.mu)")
