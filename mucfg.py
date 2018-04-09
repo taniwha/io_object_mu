@@ -65,10 +65,10 @@ def add_textures(mu, node):
         texnode.AddValue(tex.name, tex.type)
 
 def add_mattex(name, mu, mt, node):
-    node.AddValue("name", name);
-    node.AddValue("index", mt.index)
-    add_vector("scale", mu, mt.scale, node);
-    add_vector("offset", mu, mt.offset, node);
+    mattex_node = node.AddNewNode(name)
+    mattex_node.AddValue("index", mt.index)
+    add_vector("scale", mu, mt.scale, mattex_node);
+    add_vector("offset", mu, mt.offset, mattex_node);
 
 mat_add_funcs = {
     'tuple': add_vector,
