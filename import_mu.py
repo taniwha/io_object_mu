@@ -363,7 +363,7 @@ def load_mbm(mbmpath):
         pixels = convert_bump(pixels, width, height)
     return width, height, pixels
 
-def load_image(name, path):
+def load_image(name, path, type):
     if name[-4:].lower() in [".dds", ".png", ".tga"]:
         img = bpy.data.images.load(os.path.join(path, name))
         if name[-4:].lower() == ".dds":
@@ -376,7 +376,8 @@ def load_image(name, path):
                 t = pixels[ind1 : ind1 + rowlen]
                 pixels[ind1:ind1+rowlen] = pixels[ind2:ind2+rowlen]
                 pixels[ind2:ind2+rowlen] = t
-            if name[-6:-4] == "_n":
+            if type == 1 or name[-6:-4].lower() == "_n":
+                type = 1
                 pixels = convert_bump(pixels, img.size[0], height)
             img.pixels = pixels[:]
             img.pack(True)
@@ -385,6 +386,9 @@ def load_image(name, path):
         img = bpy.data.images.new(name, w, h)
         img.pixels[:] = map(lambda x: x / 255.0, pixels)
         img.pack(True)
+    img.alpha_mode = 'STRAIGHT'
+    if type == 1:
+        img.colorspace_settings.name = 'Non-Color'
 
 def create_textures(mu, path):
     extensions = [".dds", ".mbm", ".tga", ".png"]
@@ -398,7 +402,7 @@ def create_textures(mu, path):
         for e in lst:
             try:
                 name = base+e
-                load_image(name, path)
+                load_image(name, path, tex.type)
                 tx = bpy.data.textures.new(tex.name, 'IMAGE')
                 tx.use_preview_alpha = True
                 tx.image = bpy.data.images[name]
