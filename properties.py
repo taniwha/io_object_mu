@@ -156,6 +156,21 @@ class MuSceneProperties(bpy.types.PropertyGroup):
         description="Root object of the KSP internal model. Used for prop placement.",
         type = bpy.types.Object)
 
+class MuScenePropertyPanel(bpy.types.Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'scene'
+    bl_label = "Mu Scene"
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        muprops = scene.musceneprops
+
+        col = layout.column()
+        col.prop(muprops, "modelType")
+        col.prop(muprops, "internal")
+
 class MuScenePanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
