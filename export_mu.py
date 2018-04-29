@@ -41,7 +41,7 @@ from . import properties
 from .cfgnode import ConfigNode, ConfigNodeError
 from .parser import parse_node
 from .attachnode import AttachNode
-from .utils import strip_nnn, swapyz, swizzleq
+from .utils import strip_nnn, swapyz, swizzleq, vector_str
 
 def calcVolume(mesh):
     terms=[]
@@ -431,7 +431,7 @@ def make_obj(mu, obj, special, path = ""):
     for o in obj.children:
         muprops = o.muproperties
         if muprops.modelType in special:
-            if special[muprops.modelType](mu, obj):
+            if special[muprops.modelType](mu, o):
                 continue
         if muprops.collider and muprops.collider != 'MU_COL_NONE':
             muobj.collider = make_collider(mu, o)

@@ -24,7 +24,7 @@ def swapyz(vec):
 
 def swizzleq(quaternion):
     # this works only for blender to unity
-    return quaternion[1], quaterion[3], quaterion[2], -quaterion[0]
+    return quaternion[1], quaternion[3], quaternion[2], -quaternion[0]
 
 def strip_nnn(name):
     ind = name.rfind(".")
