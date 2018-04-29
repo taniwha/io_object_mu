@@ -20,14 +20,11 @@
 # <pep8 compliant>
 
 from .cfgnode import ConfigNode, ConfigNodeError
-
-def swapyz(vec):
-    return vec[0], vec[2], vec[1]
+from .utils import strip_nnn, swapyz
 
 class AttachNode:
     node_types = ["stack", "attach"]
     def __init__(self, obj, inv):
-        from .export_mu import strip_nnn    # cyclic import, so must be here
         self.name = strip_nnn(obj.name)
         self.parts = self.name.split("_", 2)
         ind = self.parts[1] == "stack" and 2 or 1

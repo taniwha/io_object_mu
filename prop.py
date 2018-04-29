@@ -34,7 +34,7 @@ from bpy.props import FloatVectorProperty, PointerProperty
 from .__init__ import Preferences
 from .cfgnode import ConfigNode, ConfigNodeError
 from .import_mu import import_mu
-from .export_mu import strip_nnn
+from .utils import strip_nnn
 
 def loaded_props_scene():
     if "loaded_props" not in bpy.data.scenes:

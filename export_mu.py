@@ -41,6 +41,7 @@ from . import properties
 from .cfgnode import ConfigNode, ConfigNodeError
 from .parser import parse_node
 from .attachnode import AttachNode
+from .utils import strip_nnn, swapyz, swizzleq
 
 def calcVolume(mesh):
     terms=[]
@@ -84,14 +85,6 @@ def model_volume(obj):
     for e in sorted(evols, key=abs):
         extvol += e
     return skinvol, extvol
-
-def strip_nnn(name):
-    ind = name.rfind(".")
-    if ind < 0 or len(name) - ind != 4:
-        return name
-    if not name[ind+1:].isdigit():
-        return name
-    return name[:ind]
 
 def make_transform(obj):
     transform = MuTransform()
