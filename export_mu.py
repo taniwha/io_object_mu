@@ -622,7 +622,7 @@ def generate_cfg(mu, filepath):
         return
     ntype = mu.type
     if ntype == 'NONE':
-        ntype = 'PART'  #FIXME have a default type (scene?)
+        ntype = bpy.context.scene.musceneprops.modelType
     node = cfgnode.GetNode(ntype)
     if not node:
         return
