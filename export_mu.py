@@ -362,6 +362,15 @@ light_types = {
 
 exportable_types = {bpy.types.Mesh, bpy.types.Camera} | light_types
 
+def is_group_root(obj, group):
+    print(obj.name)
+    while obj.parent:
+        obj = obj.parent
+        print(obj.name, obj.users_group)
+        if group.name not in obj.users_group:
+            return False
+    return True
+
 def make_obj(mu, obj, special, path = ""):
     muobj = MuObject()
     muobj.transform = make_transform (obj)
@@ -381,6 +390,22 @@ def make_obj(mu, obj, special, path = ""):
         # rotate 90 degrees around local X to go from Blender to KSP
         rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
         muobj.transform.localRotation = muobj.transform.localRotation * rot
+    if not obj.data and obj.dupli_group:
+        group = obj.dupli_group
+        for o in group.objects:
+            # while KSP models (part/prop/internal) will have only one root
+            # object, grouping might be used for other purposes (eg, greeble)
+            # so support multiple group root objects
+            if not is_group_root(o, group):
+                continue
+            #easiest way to deal with dupli_offset is to temporarily shift
+            #the object by the offset and then restor the object's location
+            loc = o.location
+            o.location -= group.dupli_offset
+            child = make_obj(mu, o, special, path)
+            o.location = loc
+            if child:
+                muobj.children.append(child)
     elif obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
         # colliders are children of the object representing the transform so
         # they are never exported directly.
