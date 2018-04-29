@@ -28,7 +28,7 @@ from mathutils import Vector, Quaternion
 def build_dictionary(mu, node):
     value_dict={
         "math":math,
-        "model":mu.name + ".mu",
+        "model":mu.name,
         "modelSkinVolume":mu.skin_volume,
         "modelExtVolume":mu.ext_volume,
     }
