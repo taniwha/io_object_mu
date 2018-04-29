@@ -149,6 +149,27 @@ class MuModelProperties(bpy.types.PropertyGroup):
     type = StringProperty(name = "Type", default="")
     config = StringProperty(name = "Config", default="")
 
+class MuSceneProperties(bpy.types.PropertyGroup):
+    modelType = EnumProperty(items = modelType_items[1:], name = "Model Type",
+        description="Type of exported models when unspecified by root object.")
+    internal = PointerProperty(name="Internal root",
+        description="Root object of the KSP internal model. Used for prop placement.",
+        type = bpy.types.Object)
+
+class MuScenePanel(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Mu Scene"
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        muprops = scene.musceneprops
+
+        col = layout.column()
+        col.prop(muprops, "modelType")
+        col.prop(muprops, "internal")
+
 class MuAttachNodePanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -287,6 +308,7 @@ class MuColliderPanel(bpy.types.Panel):
 def register():
     bpy.types.Object.muproperties = PointerProperty(type=MuProperties)
     bpy.types.Group.mumodelprops = PointerProperty(type=MuModelProperties)
+    bpy.types.Scene.musceneprops = PointerProperty(type=MuSceneProperties)
 
 def unregister():
     pass

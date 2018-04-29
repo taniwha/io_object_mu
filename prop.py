@@ -202,10 +202,16 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
         prop = self.find_prop(context)
         self._enum_item_cache.clear()
         if prop:
+            loc = context.scene.cursor_location
+            muscene = context.scene.musceneprops
+            if muscene.internal:
+                loc = muscene.internal.matrix_world.inverted() * loc
+            rot = Vector((0, 0, 0))
+            scale = Vector((1, 1, 1))
             obj = instantiate_model(prop, prop.mumodelprops.name,
-                                    context.scene.cursor_location,
-                                    Vector((0, 0, 0)), Vector((1, 1, 1)))
+                                    loc, rot, scale)
             obj.muproperties.modelType = 'PROP'
+            obj.parent = muscene.internal
             context.scene.objects.link(obj)
             return {'FINISHED'}
         else:
@@ -229,7 +235,7 @@ class VIEW3D_PT_tools_mu_props(bpy.types.Panel):
         layout.operator(ImportProp.bl_idname, text = ImportProp.bl_description);
         layout.operator(MakeProps.bl_idname, text = MakeProps.bl_description);
 
-def menu_func(self, context):
+def add_prop_menu_func(self, context):
     layout = self.layout
     if len(OBJECT_OT_add_ksp_prop._enum_item_cache) > 10:
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -241,7 +247,7 @@ def menu_func(self, context):
                                   icon='OUTLINER_OB_GROUP_INSTANCE')
 
 def register():
-    bpy.types.INFO_MT_add.append(menu_func)
+    bpy.types.INFO_MT_add.append(add_prop_menu_func)
 
 def unregister():
     pass
