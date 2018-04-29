@@ -153,6 +153,7 @@ def register():
     bpy.types.INFO_MT_mesh_add.append(quickhull.menu_func)
     bpy.types.TEXT_MT_templates.append(text_func_templates)
 
+    prop.register()
     properties.register()
     collider.register()
     shader.register()
@@ -162,6 +163,7 @@ def unregister():
 
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    prop.unregister()
     properties.unregister()
     collider.unregister()
 

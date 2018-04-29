@@ -71,6 +71,12 @@ dir_items = (
     ('MU_Y', "Y", ""),
     ('MU_Z', "Z", ""),
 )
+modelType_items = (
+    ('NONE', "None", "Nothing is assumed about the object and its descendants unless specified otherwise by an ancestral object."),
+    ('PART', "Part", "The object and its descendants form a KSP part model. Only the first \"Internal Space\" descendant object is special."),
+    ('PROP', "Prop", "The object and its descendants form a KSP prop model. No descendant objects are special."),
+    ('INTERNAL', "Internal Space", "The object and its descendants form a KSP internal space model. Only \"Prop\" descendant objects are special."),
+)
 collider_items = (
     ('MU_COL_NONE', "", ""),
     ('MU_COL_MESH', "Mesh", ""),
@@ -110,6 +116,7 @@ def collider_update(self, context):
     update_collider(obj)
 
 class MuProperties(bpy.types.PropertyGroup):
+    modelType = EnumProperty(items = modelType_items, name = "Model Type")
     nodeSize = IntProperty(name = "Size", default = 1)
     nodeMethod = EnumProperty(items = method_items, name = "Method")
     nodeCrossfeed = BoolProperty(name = "Crossfeed", default = True)
@@ -223,6 +230,7 @@ class MuPropertiesPanel(bpy.types.Panel):
         muprops = context.active_object.muproperties
         row = layout.row()
         col = row.column()
+        col.prop(muprops, "modelType")
         col.prop(muprops, "tag")
         col.prop(muprops, "layer")
 

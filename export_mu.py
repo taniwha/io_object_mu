@@ -362,7 +362,7 @@ light_types = {
 
 exportable_types = {bpy.types.Mesh, bpy.types.Camera} | light_types
 
-def make_obj(mu, obj, path = ""):
+def make_obj(mu, obj, special, path = ""):
     muobj = MuObject()
     muobj.transform = make_transform (obj)
     if path:
@@ -405,12 +405,15 @@ def make_obj(mu, obj, path = ""):
             muobj.transform.localRotation = muobj.transform.localRotation * rot
     for o in obj.children:
         muprops = o.muproperties
+        if muprops.modelType in special:
+            if special[muprops.modelType](mu, obj):
+                continue
         if muprops.collider and muprops.collider != 'MU_COL_NONE':
             muobj.collider = make_collider(mu, o)
             continue
         if (o.data and type(o.data) not in exportable_types):
             continue
-        child = make_obj(mu, o, path)
+        child = make_obj(mu, o, special, path)
         if child:
             muobj.children.append(child)
     return muobj
@@ -593,20 +596,66 @@ def find_template(mu, filepath):
 
     return None, None
 
+def add_internal_node(node, internal):
+    # NOTE this assumes the internal is the direct child of the part's root
+    # also, it assumes the internal is correctly oriented relative to the part
+    # (FIXME?)
+    inode = node.AddNewNode('INTERNAL')
+    inode.AddValue("name", strip_nnn(internal.name))
+    if internal.location:
+        inode.AddValue("offset", vector_str(swapyz(internal.location)))
+    # not really a good idea IMHO, but it's there...
+    if internal.scale != Vector((1, 1, 1)):
+        inode.AddValue("scale", vector_str(swapyz(internal.scale)))
+
+def add_prop_node(node, prop):
+    # NOTE this assumes the prop is the direct child of the internal's root
+    pnode = node.AddNewNode('PROP')
+    pnode.AddValue("name", strip_nnn(prop.name))
+    pnode.AddValue("position", vector_str(swapyz(prop.location)))
+    pnode.AddValue("position", vector_str(swizzleq(prop.rotation_quaternion)))
+    pnode.AddValue("scale", vector_str(swapyz(prop.scale)))
+
 def generate_cfg(mu, filepath):
-    cfg, node = find_template(mu, filepath)
+    cfgfile, cfgnode = find_template(mu, filepath)
+    if not cfgnode:
+        return
+    ntype = mu.type
+    if ntype == 'NONE':
+        ntype = 'PART'  #FIXME have a default type (scene?)
+    node = cfgnode.GetNode(ntype)
     if not node:
         return
-    part = node.GetNode("PART")
-    if not part:
-        return
-    parse_node(mu, node)
-    mu.nodes.sort()
-    for n in mu.nodes:
-        n.save(part)
-    of = open(cfg, "wt")
-    for n in node.nodes:
+    parse_node(mu, cfgnode)
+    if ntype == 'PART':
+        if mu.internal:
+            add_internal_node(node, mu.internal)
+        mu.nodes.sort()
+        for n in mu.nodes:
+            n.save(node)
+    elif ntype == 'INTERNAL':
+        for prop in mu.props:
+            add_prop_node(node, prop)
+    # nothing meaningful for PROP
+    of = open(cfgfile, "wt")
+    for n in cfgnode.nodes:
         of.write(n[0] + " " + n[1].ToString())
+
+def add_internal(mu, obj):
+    if not mu.internal:
+        mu.internal = obj
+    return True
+
+def add_prop(mu, obj):
+    mu.props.append(obj)
+    return True
+
+special_modelTypes = {
+    'NONE': {},
+    'PART': {'INTERNAL':add_internal},
+    'PROP': {},
+    'INTERNAL': {'PROP':add_prop},
+}
 
 def export_object(obj, filepath):
     animations = collect_animations(obj)
@@ -617,8 +666,11 @@ def export_object(obj, filepath):
     mu.materials = {}
     mu.textures = {}
     mu.nodes = []
+    mu.props = []
+    mu.internal = None
+    mu.type = obj.muproperties.modelType
     mu.inverse = obj.matrix_world.inverted()
-    mu.obj = make_obj(mu, obj)
+    mu.obj = make_obj(mu, obj, special_modelTypes[mu.type])
     mu.materials = list(mu.materials.values())
     mu.materials.sort(key=lambda x: x.index)
     mu.textures = list(mu.textures.values())

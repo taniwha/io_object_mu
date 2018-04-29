@@ -413,4 +413,5 @@ def register():
     bpy.types.INFO_MT_add.append(menu_func)
 
 def unregister():
-    bpy.types.INFO_MT_add.append(menu_func)
+    #bpy.types.INFO_MT_add.remove(menu_func)
+    pass
