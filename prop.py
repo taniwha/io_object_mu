@@ -33,9 +33,8 @@ from bpy.props import FloatVectorProperty, PointerProperty
 
 from .__init__ import Preferences
 from .cfgnode import ConfigNode, ConfigNodeError
-from .import_mu import import_mu
 from .utils import strip_nnn
-from .model import group_objects, instantiate_model
+from .model import group_objects, instantiate_model, compile_model
 
 def loaded_props_scene():
     if "loaded_props" not in bpy.data.scenes:
@@ -76,33 +75,37 @@ class Prop:
         obj.location = loc
         return obj
 
-def collect_objects(parent):
-    objects = [parent]
-    for obj in parent.children:
-        objects.append(collect_objects(obj))
-    return objects
+gamedata = None
+def import_prop(filepath):
+    global gamedata
+    if not gamedata:
+        from .__init__ import Preferences
+        from .gamedata import GameData
+        gamedata = GameData(Preferences().GameData)
+    try:
+        propcfg = ConfigNode.loadfile(filepath)
+    except ConfigNodeError as e:
+        print(filepath+e.message)
+        return
+    if filepath[:len(gamedata.root)] == gamedata.root:
+        #the prop is in GameData
+        propnode = propcfg.GetNode("PROP")
+        name = propnode.GetValue("name")
+        return gamedata.props[name]
+    # load it directly
+    return Prop(path, propcfg)
 
-def process_prop(prop):
-    prop.location = Vector((0, 0, 0))
-    prop.rotation_quaternion = Quaternion((1,0,0,0))
-    prop.scale = Vector((1,1,1))
-    prop_objects = collect_objects(prop)
-
-def import_mu_prop(self, context, filepath):
+def import_prop_op(self, context, filepath):
     operator = self
     undo = bpy.context.user_preferences.edit.use_global_undo
     bpy.context.user_preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
         obj.select = False
-
-    print(Preferences().GameData)
-    prop = import_mu(filepath, False)
-    if not prop:
-        bpy.context.user_preferences.edit.use_global_undo = undo
-        operator.report({'ERROR'}, "Could not load prop")
-        return {'CANCELLED'}
-    process_prop(prop)
+    prop = import_prop(filepath).get_model()
+    prop.location = context.scene.cursor_location
+    prop.select = True
+    context.scene.objects.link(prop)
 
     bpy.context.user_preferences.edit.use_global_undo = undo
     return {'FINISHED'}
@@ -159,7 +162,7 @@ class ImportProp(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         keywords = self.as_keywords (ignore=("filter_glob",))
-        return import_mu_prop(self, context, **keywords)
+        return import_prop_op(self, context, **keywords)
 
 class MakeProps(bpy.types.Operator):
     bl_idname = "object.make_ksp_props"
