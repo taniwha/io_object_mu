@@ -49,9 +49,9 @@ def create_mesh(mu, mumesh, name):
         faces.extend(sm)
     mesh.from_pydata(mumesh.verts, [], faces)
     if mumesh.uvs:
-        create_uvs(mu, mumesh.uvs, mesh, name + ".UV")
+        create_uvs(mu, mumesh.uvs, mesh, "UV")
     if mumesh.uv2s:
-        create_uvs(mu, mumesh.uv2s, mesh, name + ".UV2")
+        create_uvs(mu, mumesh.uv2s, mesh, "UV2")
     return mesh
 
 def create_mesh_object(name, mesh, transform):
