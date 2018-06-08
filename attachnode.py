@@ -21,6 +21,7 @@
 
 from .cfgnode import ConfigNode, ConfigNodeError
 from .utils import strip_nnn, swapyz
+from . import properties
 
 class AttachNode:
     node_types = ["stack", "attach"]
