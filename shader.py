@@ -307,7 +307,7 @@ class MuMaterialProperties(bpy.types.PropertyGroup):
     float3 = PointerProperty(type = MuMaterialFloat3PropertySet)
     texture = PointerProperty(type = MuMaterialTexturePropertySet)
 
-class Property_list(bpy.types.UIList):
+class OBJECT_UL_Property_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data,
                   active_propname, index):
         if item:
@@ -337,7 +337,7 @@ def draw_property_list(layout, propset, propsetname):
         if len(propset.properties) > propset.index >= 0:
             propset.draw_item(box)
 
-class MuMaterialPanel(bpy.types.Panel):
+class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'material'

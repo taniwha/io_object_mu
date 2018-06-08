@@ -156,7 +156,7 @@ class MuSceneProperties(bpy.types.PropertyGroup):
         description="Root object of the KSP internal model. Used for prop placement.",
         type = bpy.types.Object)
 
-class MuScenePropertyPanel(bpy.types.Panel):
+class OBJECT_PT_MuScenePropertyPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'scene'
@@ -171,7 +171,7 @@ class MuScenePropertyPanel(bpy.types.Panel):
         col.prop(muprops, "modelType")
         col.prop(muprops, "internal")
 
-class MuScenePanel(bpy.types.Panel):
+class VIEW3D_PT_MuScenePanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Mu Scene"
@@ -185,7 +185,7 @@ class MuScenePanel(bpy.types.Panel):
         col.prop(muprops, "modelType")
         col.prop(muprops, "internal")
 
-class MuAttachNodePanel(bpy.types.Panel):
+class OBJECT_PT_MuAttachNodePanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'data'
@@ -206,7 +206,7 @@ class MuAttachNodePanel(bpy.types.Panel):
         col.prop(muprops, "nodeCrossfeed")
         col.prop(muprops, "nodeRigid")
 
-class MuLightPanel(bpy.types.Panel):
+class OBJECT_PT_MuLightPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'data'
@@ -229,7 +229,7 @@ class MuLightPanel(bpy.types.Panel):
         col = row.column()
         col.prop(muprops, "cullingMask")
 
-class MuCameraPanel(bpy.types.Panel):
+class OBJECT_PT_MuCameraPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'data'
@@ -251,7 +251,7 @@ class MuCameraPanel(bpy.types.Panel):
         col.prop(muprops, "cullingMask")
         col.prop(muprops, "depth")
 
-class MuPropertiesPanel(bpy.types.Panel):
+class OBJECT_PT_MuPropertiesPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'object'
@@ -270,7 +270,7 @@ class MuPropertiesPanel(bpy.types.Panel):
         col.prop(muprops, "tag")
         col.prop(muprops, "layer")
 
-class MuColliderPanel(bpy.types.Panel):
+class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'object'
