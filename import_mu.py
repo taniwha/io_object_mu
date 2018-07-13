@@ -335,10 +335,13 @@ def convert_bump(pixels, width, height):
         for x in range(1, width - 1):
             index = (y * width + x) * 4
             p = pixels[index:index + 4]
-            nx = (p[3]-128) / 127.
-            nz = (p[2]-128) / 127.
-            #n = [p[3],p[2],int(sqrt(1-nx**2-nz**2)*127 + 128),255]
-            n = [p[3],p[2],255,255]
+            px, py = p[3], p[1]
+            nx = px * 2 - 1;
+            ny = py * 2 - 1;
+            xy = nx**2 + ny**2
+            #print(px, py, nx, ny, xy)
+            n = [px,py,(sqrt(1-xy)+1)/2,1]
+            #n = [px,py,255,255]
             outp[index:index + 4] = n
     return outp
 
