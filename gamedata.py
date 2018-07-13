@@ -146,4 +146,5 @@ class GameData:
             path = os.path.join(self.root, self.models[url])
             self.models[url] = Model(path, url)
         return self.models[url]
-        
+
+gamedata = None

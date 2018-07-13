@@ -25,10 +25,8 @@ from bpy.props import StringProperty
 
 from .importerror import MuImportError
 from .cfgnode import ConfigNode, ConfigNodeError
-from .gamedata import GameData
+from .gamedata import GameData, gamedata
 from .parser import parse_vector, parse_quaternion
-
-gamedata = None
 
 def select_objects(obj):
     obj.select = True
