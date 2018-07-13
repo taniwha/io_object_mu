@@ -45,7 +45,6 @@ if "bpy" in locals():
     imp.reload(colorpalettes)
     imp.reload(export_mu)
     imp.reload(import_mu)
-    imp.reload(import_part)
     imp.reload(import_craft)
     imp.reload(prop)
     imp.reload(quickhull)
@@ -57,7 +56,6 @@ else:
     from . import colorpalettes
     from . import export_mu
     from . import import_mu
-    from . import import_part
     from . import import_craft
     from . import prop
     from . import quickhull
