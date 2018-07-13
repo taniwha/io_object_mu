@@ -68,7 +68,7 @@ class Part:
                                        self.cfg, loaded_parts_scene())
             props = self.model.mumodelprops
             props.config = self.cfg.ToString(-1)
-        scale = self.scale * self.rescaleFactor
+        scale = self.rescaleFactor
         model = self.instantiate(Vector((0, 0, 0)),
                                  Quaternion((1,0,0,0)),
                                  Vector((1, 1, 1)) * scale)
