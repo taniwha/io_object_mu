@@ -23,6 +23,7 @@ from mathutils import Vector,Quaternion
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty
 
+from .importerror import MuImportError
 from .cfgnode import ConfigNode, ConfigNodeError
 from .gamedata import GameData
 from .parser import parse_vector, parse_quaternion
@@ -42,8 +43,7 @@ def import_craft(filepath):
     try:
         craft = ConfigNode.loadfile(filepath)
     except ConfigNodeError as e:
-        print(filepath+e.message)
-        return
+        raise MuImportError("Craft", e.message)
     scene = bpy.context.scene
     vessel = bpy.data.objects.new(craft.GetValue("ship"), None)
     vessel.location = Vector((0, 0, 0))
@@ -68,15 +68,19 @@ def import_craft_op(self, context, filepath):
     undo = bpy.context.user_preferences.edit.use_global_undo
     bpy.context.user_preferences.edit.use_global_undo = False
 
-    for obj in bpy.context.scene.objects:
-        obj.select = False
-
-    obj = import_craft(filepath)
-    select_objects(obj)
-    bpy.context.scene.objects.active = obj
-
-    bpy.context.user_preferences.edit.use_global_undo = undo
-    return {'FINISHED'}
+    try:
+        obj = import_craft(filepath)
+    except MuImportError as e:
+        operator.report({'ERROR'}, e.message)
+        return {'CANCELLED'}
+    else:
+        for o in bpy.context.scene.objects:
+            o.select = False
+        select_objects(obj)
+        bpy.context.scene.objects.active = obj
+        return {'FINISHED'}
+    finally:
+        bpy.context.user_preferences.edit.use_global_undo = undo
 
 class ImportCraft(bpy.types.Operator, ImportHelper):
     '''Load a KSP craft file'''

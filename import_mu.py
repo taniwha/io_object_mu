@@ -30,6 +30,7 @@ from bpy_extras.io_utils import ImportHelper
 from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import FloatVectorProperty, PointerProperty
 
+from .importerror import MuImportError
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuColliderBox, MuColliderWheel
 from .shader import make_shader
@@ -455,7 +456,8 @@ def process_mu(scene, mu, mudir, create_colliders):
 def import_mu(scene, filepath, create_colliders):
     mu = Mu()
     if not mu.read(filepath):
-        return None
+        raise MuImportError("Mu", "Unrecognized format: magic %x version %d"
+                                  % (mu.magic, mu.version))
 
     return process_mu(scene, mu, os.path.dirname(filepath), create_colliders)
 
@@ -464,23 +466,20 @@ def import_mu_op(self, context, filepath, create_colliders):
     undo = bpy.context.user_preferences.edit.use_global_undo
     bpy.context.user_preferences.edit.use_global_undo = False
 
-    for obj in bpy.context.scene.objects:
-        obj.select = False
-
-    mu = Mu()
-    if not mu.read(filepath):
-        bpy.context.user_preferences.edit.use_global_undo = undo
-        operator.report({'ERROR'},
-            "Unrecognized format: %s %d" % (mu.magic, mu.version))
-        return {'CANCELLED'}
-
     scene = bpy.context.scene
-    obj = process_mu(scene, mu, os.path.dirname(filepath), create_colliders)
-    bpy.context.scene.objects.active = obj
-    obj.select = True
-
-    bpy.context.user_preferences.edit.use_global_undo = undo
-    return {'FINISHED'}
+    try:
+        obj = import_mu(scene, filepath, create_colliders)
+    except MuImportError as e:
+        operator.report({'ERROR'}, e.message)
+        return {'CANCELLED'}
+    else:
+        for o in bpy.context.scene.objects:
+            o.select = False
+        scene.objects.active = obj
+        obj.select = True
+        return {'FINISHED'}
+    finally:
+        bpy.context.user_preferences.edit.use_global_undo = undo
 
 class ImportMu(bpy.types.Operator, ImportHelper):
     '''Load a KSP Mu (.mu) File'''
