@@ -31,7 +31,7 @@ from bpy_extras.io_utils import ExportHelper
 from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import FloatVectorProperty, PointerProperty
 
-from .__init__ import Preferences
+from .preferences import Preferences
 from .cfgnode import ConfigNode, ConfigNodeError
 from .utils import strip_nnn
 from .model import group_objects, instantiate_model, compile_model
@@ -79,7 +79,6 @@ gamedata = None
 def import_prop(filepath):
     global gamedata
     if not gamedata:
-        from .__init__ import Preferences
         from .gamedata import GameData
         gamedata = GameData(Preferences().GameData)
     try:

@@ -27,6 +27,7 @@ from .importerror import MuImportError
 from .cfgnode import ConfigNode, ConfigNodeError
 from .gamedata import GameData, gamedata
 from .parser import parse_vector, parse_quaternion
+from .preferences import Preferences
 
 def select_objects(obj):
     obj.select = True
@@ -36,7 +37,6 @@ def select_objects(obj):
 def import_craft(filepath):
     global gamedata
     if not gamedata:
-        from .__init__ import Preferences
         gamedata = GameData(Preferences().GameData)
     try:
         craft = ConfigNode.loadfile(filepath)
