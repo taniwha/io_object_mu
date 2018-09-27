@@ -19,15 +19,10 @@
 
 # <pep8 compliant>
 
-import sys, traceback
-from struct import unpack
-from pprint import pprint
-
 import bpy
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
+from bpy.props import BoolProperty
+from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
-from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum, MuMaterial
 
@@ -49,3 +44,9 @@ class MuMaterialVectorPropertySet(bpy.types.PropertyGroup):
         col = row.column()
         col.prop(item, "name", "Name")
         col.prop(item, "value", "")
+
+classes = (
+    MuVectorProp,
+    MuMaterialVectorPropertySet,
+)
+register, unregister = bpy.utils.register_classes_factory(classes)

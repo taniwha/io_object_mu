@@ -74,7 +74,7 @@ def quickhull_op(self, context):
     bpy.context.user_preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
-class QuickHull(bpy.types.Operator):
+class KSPMU_OT_QuickHull(bpy.types.Operator):
     '''Create a convex hull from an object.'''
     bl_idname = "mesh.quickhull"
     bl_label = "Convex Hull"

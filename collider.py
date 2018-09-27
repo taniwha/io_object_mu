@@ -22,9 +22,8 @@
 import bpy
 import bmesh
 from bpy_extras.object_utils import object_data_add
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
-from bpy.props import FloatVectorProperty, IntProperty
+from bpy.props import BoolProperty, FloatProperty, EnumProperty
+from bpy.props import FloatVectorProperty
 from mathutils import Vector,Matrix,Quaternion
 
 from .mu import MuEnum
@@ -287,13 +286,13 @@ def make_mesh_colliders(self, context):
     context.user_preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
-class ColliderFromMesh(bpy.types.Operator):
+class KSPMU_OT_ColliderFromMesh(bpy.types.Operator):
     """Add Mesh Collider to Selected Meshes"""
     bl_idname = "mucollider.from_mesh"
     bl_label = "Add Mesh Collideri to Selected Meshes"
     bl_options = {'REGISTER', 'UNDO'}
 
-    convex = BoolProperty(name="Make Convex",
+    convex: BoolProperty(name="Make Convex",
                     description="Create a convex hull from the raw mesh.",
                     default=True)
 
@@ -301,7 +300,7 @@ class ColliderFromMesh(bpy.types.Operator):
         keywords = self.as_keywords ()
         return add_mesh_colliders(self, context, **keywords)
 
-class MeshToCollidr(bpy.types.Operator):
+class KSPMU_OT_MeshToCollider(bpy.types.Operator):
     """Change Selected Meshes to Add Mesh Colliders"""
     bl_idname = "mucollider.mesh_to_collider"
     bl_label = "Change Selected Meshes to Add Mesh Colliders"
@@ -311,7 +310,7 @@ class MeshToCollidr(bpy.types.Operator):
         keywords = self.as_keywords ()
         return make_mesh_colliders(self, context, **keywords)
 
-class ColliderMesh(bpy.types.Operator):
+class KSPMU_OT_ColliderMesh(bpy.types.Operator):
     """Add Mesh Collider"""
     bl_idname = "mucollider.mesh"
     bl_label = "Add Mesh Collider"
@@ -320,53 +319,53 @@ class ColliderMesh(bpy.types.Operator):
     def execute(self, context):
         return add_collider(self, context)
 
-class ColliderSphere(bpy.types.Operator):
+class KSPMU_OT_ColliderSphere(bpy.types.Operator):
     """Add Sphere Collider"""
     bl_idname = "mucollider.sphere"
     bl_label = "Add Sphere Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
-    radius = FloatProperty(name = "Radius", min = 0.0, default = 0.5)
-    center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
+    radius: FloatProperty(name = "Radius", min = 0.0, default = 0.5)
+    center: FloatVectorProperty(name = "Center", subtype = 'XYZ')
 
     def execute(self, context):
         return add_collider(self, context)
 
-class ColliderCapsule(bpy.types.Operator):
+class KSPMU_OT_ColliderCapsule(bpy.types.Operator):
     """Add Capsule Collider"""
     bl_idname = "mucollider.capsule"
     bl_label = "Add Capsule Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
-    radius = FloatProperty(name = "Radius", min = 0.0, default = 0.5)
-    height = FloatProperty(name = "Height", min = 0.0, default = 1.0)
-    direction = EnumProperty(items = properties.dir_items, name = "Direction")
-    center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
+    radius: FloatProperty(name = "Radius", min = 0.0, default = 0.5)
+    height: FloatProperty(name = "Height", min = 0.0, default = 1.0)
+    direction: EnumProperty(items = properties.dir_items, name = "Direction")
+    center: FloatVectorProperty(name = "Center", subtype = 'XYZ')
 
     def execute(self, context):
         return add_collider(self, context)
 
-class ColliderBox(bpy.types.Operator):
+class KSPMU_OT_ColliderBox(bpy.types.Operator):
     """Add Box Collider"""
     bl_idname = "mucollider.box"
     bl_label = "Add Box Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
-    size = FloatVectorProperty(name = "Size", size = 3, subtype = 'XYZ',
+    size: FloatVectorProperty(name = "Size", size = 3, subtype = 'XYZ',
                                min = 0.0, default = (1.0,1.0,1.0))
-    center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
+    center: FloatVectorProperty(name = "Center", subtype = 'XYZ')
 
     def execute(self, context):
         return add_collider(self, context)
 
-class ColliderWheel(bpy.types.Operator):
+class KSPMU_OT_ColliderWheel(bpy.types.Operator):
     """Add Wheel Collider"""
     bl_idname = "mucollider.wheel"
     bl_label = "Add Wheel Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
-    radius = FloatProperty(name = "Radius", min = 0.0, default = 0.5)
-    center = FloatVectorProperty(name = "Center", subtype = 'XYZ')
+    radius: FloatProperty(name = "Radius", min = 0.0, default = 0.5)
+    center: FloatVectorProperty(name = "Center", subtype = 'XYZ')
 
     def execute(self, context):
         return add_collider(self, context)
@@ -409,9 +408,28 @@ class VIEW3D_PT_tools_mu_collider(bpy.types.Panel):
 def menu_func(self, context):
     self.layout.menu("INFO_MT_mucollider_add", icon='PLUGIN')
 
+classes = (
+    KSPMU_OT_ColliderFromMesh,
+    KSPMU_OT_MeshToCollider,
+    KSPMU_OT_ColliderMesh,
+    KSPMU_OT_ColliderSphere,
+    KSPMU_OT_ColliderCapsule,
+    KSPMU_OT_ColliderBox,
+    KSPMU_OT_ColliderWheel,
+    INFO_MT_mucollider_add,
+    VIEW3D_PT_tools_mu_collider,
+)
+
 def register():
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+
     bpy.types.VIEW3D_MT_add.append(menu_func)
 
 def unregister():
-    #bpy.types.INFO_MT_add.remove(menu_func)
-    pass
+    bpy.types.INFO_MT_add.remove(menu_func)
+
+    from bpy.utils import unregister_class
+    for cls in reversed(classes):
+        unregister_class(cls)

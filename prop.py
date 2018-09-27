@@ -28,8 +28,7 @@ from mathutils import Vector,Matrix,Quaternion
 from pprint import pprint
 from math import pi
 from bpy_extras.io_utils import ExportHelper
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy.props import FloatVectorProperty, PointerProperty
+from bpy.props import StringProperty, EnumProperty
 
 from .preferences import Preferences
 from .cfgnode import ConfigNode, ConfigNodeError
@@ -149,7 +148,7 @@ def make_props(self, context):
     bpy.context.user_preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
-class ImportProp(bpy.types.Operator, ImportHelper):
+class KSPMU_OT_ImportProp(bpy.types.Operator, ImportHelper):
     '''Load a KSP Mu (.mu) File as a Prop'''
     bl_idname = "import_object.ksp_mu_prop"
     bl_label = "Import Mu Prop"
@@ -163,7 +162,7 @@ class ImportProp(bpy.types.Operator, ImportHelper):
         keywords = self.as_keywords (ignore=("filter_glob",))
         return import_prop_op(self, context, **keywords)
 
-class MakeProps(bpy.types.Operator):
+class KSPMU_OT_MakeProps(bpy.types.Operator):
     bl_idname = "object.make_ksp_props"
     bl_label = "Make KSP Props"
     bl_description = """Make KSP props from selected objects."""
@@ -248,8 +247,20 @@ def add_prop_menu_func(self, context):
                                   "prop_item", text="KSP Prop",
                                   icon='OUTLINER_OB_GROUP_INSTANCE')
 
+classes = (
+    VIEW3D_PT_tools_mu_props,
+)
+
 def register():
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+
     bpy.types.VIEW3D_MT_add.append(add_prop_menu_func)
 
 def unregister():
-    pass
+    bpy.types.INFO_MT_add.remove(add_prop_menu_func)
+
+    from bpy.utils import unregister_class
+    for cls in reversed(classes):
+        unregister_class(cls)

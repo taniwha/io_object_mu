@@ -27,8 +27,7 @@ from mathutils import Vector,Matrix,Quaternion
 from pprint import pprint
 from math import pi
 from bpy_extras.io_utils import ExportHelper
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy.props import FloatVectorProperty, PointerProperty
+from bpy.props import StringProperty
 
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer, MuLight
@@ -712,13 +711,13 @@ def export_mu(operator, context, filepath):
     export_object (context.active_object, filepath)
     return {'FINISHED'}
 
-class ExportMu(bpy.types.Operator, ExportHelper):
+class KSPMU_OT_ExportMu(bpy.types.Operator, ExportHelper):
     '''Save a KSP Mu (.mu) File'''
     bl_idname = "export_object.ksp_mu"
     bl_label = "Export Mu"
 
     filename_ext = ".mu"
-    filter_glob = StringProperty(default="*.mu", options={'HIDDEN'})
+    filter_glob: StringProperty(default="*.mu", options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
@@ -730,13 +729,13 @@ class ExportMu(bpy.types.Operator, ExportHelper):
         keywords = self.as_keywords (ignore=("check_existing", "filter_glob"))
         return export_mu(self, context, **keywords)
 
-class ExportMu_quick(bpy.types.Operator, ExportHelper):
+class KSPMU_OT_ExportMu_quick(bpy.types.Operator, ExportHelper):
     '''Save a KSP Mu (.mu) File, defaulting name to selected object'''
     bl_idname = "export_object.ksp_mu_quick"
     bl_label = "Export Mu (quick)"
 
     filename_ext = ".mu"
-    filter_glob = StringProperty(default="*.mu", options={'HIDDEN'})
+    filter_glob: StringProperty(default="*.mu", options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
@@ -753,7 +752,7 @@ class ExportMu_quick(bpy.types.Operator, ExportHelper):
             self.filepath = strip_nnn(context.active_object.name) + self.filename_ext
         return ExportHelper.invoke(self, context, event)
 
-class MuVolume(bpy.types.Operator):
+class KSPMU_OT_MuVolume(bpy.types.Operator):
     bl_idname = 'object.mu_volume'
     bl_label = 'Mu Volume'
 
@@ -784,3 +783,27 @@ class VIEW3D_PT_tools_mu_export(bpy.types.Panel):
         #col = layout.column(align=True)
         layout.operator("export_object.ksp_mu_quick", text = "Export Mu Model");
         layout.operator("object.mu_volume", text = "Calc Mu Volume");
+
+def menu_func_export(self, context):
+    self.layout.operator(KSPMU_OT_ExportMu.bl_idname, text="KSP Mu (.mu)")
+
+classes = (
+    KSPMU_OT_ExportMu,
+    KSPMU_OT_ExportMu_quick,
+    KSPMU_OT_MuVolume,
+    VIEW3D_PT_tools_mu_export,
+)
+
+def register():
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+
+    bpy.types.VIEW3D_MT_add.append(menu_func_export)
+
+def unregister():
+    bpy.types.INFO_MT_add.remove(menu_func_export)
+
+    from bpy.utils import unregister_class
+    for cls in reversed(classes):
+        unregister_class(cls)

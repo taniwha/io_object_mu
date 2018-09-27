@@ -19,19 +19,12 @@
 
 # <pep8 compliant>
 
-import sys, traceback
-from struct import unpack
-from pprint import pprint
-
 import bpy
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
-from bpy.props import FloatVectorProperty, IntProperty
-from mathutils import Vector,Matrix,Quaternion
+from bpy.props import StringProperty
 
 from .mu import MuEnum, MuMaterial
 
-class MuShaderPropExpand(bpy.types.Operator):
+class KSPMU_OT_MuShaderPropExpand(bpy.types.Operator):
     '''Expand/collapse mu shader property set'''
     bl_idname = "object.mushaderprop_expand"
     bl_label = "Mu shader prop expand"
@@ -43,7 +36,7 @@ class MuShaderPropExpand(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class MuShaderPropAdd(bpy.types.Operator):
+class KSPMU_OT_MuShaderPropAdd(bpy.types.Operator):
     '''Add a mu shader property'''
     bl_idname = "object.mushaderprop_add"
     bl_label = "Mu shader prop Add"
@@ -54,7 +47,7 @@ class MuShaderPropAdd(bpy.types.Operator):
         propset.properties.add()
         return {'FINISHED'}
 
-class MuShaderPropRemove(bpy.types.Operator):
+class KSPMU_OT_MuShaderPropRemove(bpy.types.Operator):
     '''Remove a mu shader property'''
     bl_idname = "object.mushaderprop_remove"
     bl_label = "Mu shader prop Remove"

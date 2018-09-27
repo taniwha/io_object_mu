@@ -27,8 +27,7 @@ import bpy
 from bpy_extras.object_utils import object_data_add
 from mathutils import Vector,Matrix,Quaternion
 from bpy_extras.io_utils import ImportHelper
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy.props import FloatVectorProperty, PointerProperty
+from bpy.props import BoolProperty, StringProperty
 
 from .importerror import MuImportError
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
@@ -481,7 +480,7 @@ def import_mu_op(self, context, filepath, create_colliders):
     finally:
         bpy.context.user_preferences.edit.use_global_undo = undo
 
-class ImportMu(bpy.types.Operator, ImportHelper):
+class KSPMU_OT_ImportMu(bpy.types.Operator, ImportHelper):
     '''Load a KSP Mu (.mu) File'''
     bl_idname = "import_object.ksp_mu"
     bl_label = "Import Mu"
@@ -489,12 +488,33 @@ class ImportMu(bpy.types.Operator, ImportHelper):
     bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = ".mu"
-    filter_glob = StringProperty(default="*.mu", options={'HIDDEN'})
+    filter_glob: StringProperty(default="*.mu", options={'HIDDEN'})
 
-    create_colliders = BoolProperty(name="Create Colliders",
+    create_colliders: BoolProperty(name="Create Colliders",
             description="Disable to import only visual and hierarchy elements",
                                     default=True)
 
     def execute(self, context):
         keywords = self.as_keywords (ignore=("filter_glob",))
         return import_mu_op(self, context, **keywords)
+
+def menu_func_import(self, context):
+    self.layout.operator(KSPMU_OT_ImportMu.bl_idname, text="KSP Mu (.mu)")
+
+classes = (
+    KSPMU_OT_ImportMu,
+)
+
+def register():
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+
+    bpy.types.VIEW3D_MT_add.append(menu_func_import)
+
+def unregister():
+    bpy.types.INFO_MT_add.remove(menu_func_import)
+
+    from bpy.utils import unregister_class
+    for cls in reversed(classes):
+        unregister_class(cls)

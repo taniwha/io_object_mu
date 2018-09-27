@@ -80,7 +80,7 @@ def import_craft_op(self, context, filepath):
     finally:
         bpy.context.user_preferences.edit.use_global_undo = undo
 
-class ImportCraft(bpy.types.Operator, ImportHelper):
+class KSPMU_OT_ImportCraft(bpy.types.Operator, ImportHelper):
     '''Load a KSP craft file'''
     bl_idname = "import_object.ksp_craft"
     bl_label = "Import Craft"
@@ -88,8 +88,29 @@ class ImportCraft(bpy.types.Operator, ImportHelper):
     bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = ".craft"
-    filter_glob = StringProperty(default="*.craft", options={'HIDDEN'})
+    filter_glob: StringProperty(default="*.craft", options={'HIDDEN'})
 
     def execute(self, context):
         keywords = self.as_keywords(ignore=("filter_glob",))
         return import_craft_op(self, context, **keywords)
+
+def menu_func_import(self, context):
+    self.layout.operator(KSPMU_OT_ImportCraft.bl_idname, text="KSP Craft (.craft)")
+
+classes = (
+    KSPMU_OT_ImportCraft,
+)
+
+def register():
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+
+    bpy.types.VIEW3D_MT_add.append(menu_func_import)
+
+def unregister():
+    bpy.types.INFO_MT_add.remove(menu_func_import)
+
+    from bpy.utils import unregister_class
+    for cls in reversed(classes):
+        unregister_class(cls)

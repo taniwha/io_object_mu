@@ -19,17 +19,10 @@
 
 # <pep8 compliant>
 
-import sys, traceback
-from struct import unpack
-from pprint import pprint
-
 import bpy
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
+from bpy.props import BoolProperty
+from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
-from mathutils import Vector,Matrix,Quaternion
-
-from .mu import MuEnum, MuMaterial
 
 def color_update(self, context):
     pass
@@ -49,3 +42,9 @@ class MuMaterialColorPropertySet(bpy.types.PropertyGroup):
         col = row.column()
         col.prop(item, "name", "Name")
         col.prop(item, "value", "")
+
+classes = (
+    MuColorProp,
+    MuMaterialColorPropertySet,
+)
+register, unregister = bpy.utils.register_classes_factory(classes)

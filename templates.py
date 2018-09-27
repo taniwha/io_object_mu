@@ -17,34 +17,40 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# copied from io_scene_obj
+
 # <pep8 compliant>
 
 import bpy
-from bpy.props import BoolProperty, FloatProperty
-from bpy.props import CollectionProperty
-from bpy.props import IntProperty
+from bpy.types import Menu
 
-def float3_update(self, context):
-    pass
+class TEXT_MT_templates_kspcfg(Menu):
+    bl_label = "KSP config"
 
-class MuFloat3Prop(bpy.types.PropertyGroup):
-    value: FloatProperty(name="", update=float3_update)
+    def draw (self, context):
+        self.path_menu(
+            bpy.utils.script_paths("templates_kspcfg"),
+            "text.open",
+            props_default={"internal": True},
+        )
 
-class MuMaterialFloat3PropertySet(bpy.types.PropertyGroup):
-    bl_label = "Floal3"
-    properties: CollectionProperty(type=MuFloat3Prop, name="Float3")
-    index: IntProperty()
-    expanded: BoolProperty()
-
-    def draw_item(self, layout):
-        item = self.properties[self.index]
-        row = layout.row()
-        col = row.column()
-        col.prop(item, "name", "Name")
-        col.prop(item, "value", "")
+def text_func_templates(self, context):
+    self.layout.menu("TEXT_MT_templates_kspcfg");
 
 classes = (
-    MuFloat3Prop,
-    MuMaterialFloat3PropertySet,
+    TEXT_MT_templates_kspcfg,
 )
-register, unregister = bpy.utils.register_classes_factory(classes)
+
+def register():
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+
+    bpy.types.VIEW3D_MT_add.append(text_func_templates)
+
+def unregister():
+    bpy.types.INFO_MT_add.remove(text_func_templates)
+
+    from bpy.utils import unregister_class
+    for cls in reversed(classes):
+        unregister_class(cls)

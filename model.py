@@ -23,9 +23,6 @@ import os
 
 import bpy
 from mathutils import Vector,Matrix,Quaternion
-from bpy_extras.io_utils import ImportHelper
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy.props import PointerProperty, CollectionProperty
 
 from .cfgnode import ConfigNode, ConfigNodeError
 from .import_mu import import_mu

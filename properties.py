@@ -320,10 +320,23 @@ class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
             box.label("Side Friction")
             muprops.sideFriction.draw(context, box.box())
 
-def register():
-    bpy.types.Object.muproperties = PointerProperty(type=MuProperties)
-    #bpy.types.Group.mumodelprops = PointerProperty(type=MuModelProperties)
-    bpy.types.Scene.musceneprops = PointerProperty(type=MuSceneProperties)
+#def register():
+#    bpy.types.Object.muproperties = PointerProperty(type=MuProperties)
+#    #bpy.types.Group.mumodelprops = PointerProperty(type=MuModelProperties)
+#    bpy.types.Scene.musceneprops = PointerProperty(type=MuSceneProperties)
 
-def unregister():
-    pass
+classes = (
+    MuSpringProp,
+    MuFrictionProp,
+    MuProperties,
+    MuModelProperties,
+    MuSceneProperties,
+    OBJECT_PT_MuScenePropertyPanel,
+    VIEW3D_PT_MuScenePanel,
+    OBJECT_PT_MuAttachNodePanel,
+    OBJECT_PT_MuLightPanel,
+    OBJECT_PT_MuCameraPanel,
+    OBJECT_PT_MuPropertiesPanel,
+    OBJECT_PT_MuColliderPanel,
+)
+register, unregister = bpy.utils.register_classes_factory(classes)

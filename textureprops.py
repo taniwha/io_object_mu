@@ -24,12 +24,9 @@ from struct import unpack
 from pprint import pprint
 
 import bpy
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
+from bpy.props import BoolProperty, StringProperty
+from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
-from mathutils import Vector,Matrix,Quaternion
-
-from .mu import MuEnum, MuMaterial
 
 def texture_update(self, context):
     pass
@@ -56,3 +53,9 @@ class MuMaterialTexturePropertySet(bpy.types.PropertyGroup):
         r.prop(item, "type", "")
         col.prop(item, "scale", "")
         col.prop(item, "offset", "")
+
+classes = (
+    MuTextureProperties,
+    MuMaterialTexturePropertySet,
+)
+register, unregister = bpy.utils.register_classes_factory(classes)

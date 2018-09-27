@@ -43,7 +43,7 @@ def install_presets(subdir):
                         break
                     fdst.write(buf)
 
-class InstallShaders(bpy.types.Operator):
+class KSPMU_OT_InstallShaders(bpy.types.Operator):
     bl_idname = 'io_object_mu_presets.shaders'
     bl_label = 'Install KSP Shader Presets'
 
@@ -56,7 +56,7 @@ class InstallShaders(bpy.types.Operator):
         self.report({'INFO'}, 'Shader presets installed.')
         return {'FINISHED'}
 
-class CreateColorPalettes(bpy.types.Operator):
+class KSPMU_OT_CreateColorPalettes(bpy.types.Operator):
     bl_idname = 'io_object_mu_presets.color_palettes'
     bl_label = 'Create Community Color Palettes'
 
@@ -94,3 +94,8 @@ def Preferences():
     user_preferences = bpy.context.user_preferences
     addons = user_preferences.addons
     return addons[__package__].preferences
+
+classes = (
+    IOObjectMu_AddonPreferences,
+)
+register, unregister = bpy.utils.register_classes_factory(classes)

@@ -34,79 +34,26 @@ bl_info = {
 #    "support": 'OFFICIAL',
     "category": "Import-Export"}
 
-# To support reload properly, try to access a package var, if it's there,
-# reload everything
-if "bpy" in locals():
-    import importlib as imp
-    imp.reload(collider)
-    imp.reload(preferences)
-    imp.reload(properties)
-    imp.reload(shader)
-    imp.reload(colorpalettes)
-    imp.reload(export_mu)
-    imp.reload(import_mu)
-    imp.reload(import_craft)
-    imp.reload(prop)
-    imp.reload(quickhull)
-else:
-    from . import collider
-    from . import preferences
-    from . import properties
-    from . import shader
-    from . import colorpalettes
-    from . import export_mu
-    from . import import_mu
-    from . import import_craft
-    from . import prop
-    from . import quickhull
+submodules = (
+    "colorprops",
+    "float2props",
+    "float3props",
+    "textureprops",
+    "vectorprops",
 
-import bpy, os
-from bpy.types import Menu
-from bpy.props import StringProperty, BoolProperty
+    "collider",
+    "export_mu",
+    "import_craft",
+    "import_mu",
+    "preferences",
+    "prop",
+    "properties",
+    "shader",
+)
 
+from bpy.utils import register_submodule_factory
 
-def menu_func_import(self, context):
-    self.layout.operator(import_mu.ImportMu.bl_idname, text="KSP Mu (.mu)")
-    self.layout.operator(import_craft.ImportCraft.bl_idname, text="KSP Craft (.craft)")
-
-def menu_func_export(self, context):
-    self.layout.operator(export_mu.ExportMu.bl_idname, text="KSP Mu (.mu)")
-
-class TEXT_MT_templates_kspcfg(Menu):
-    bl_label = "KSP config"
-
-    def draw (self, context):
-        self.path_menu(
-            bpy.utils.script_paths("templates_kspcfg"),
-            "text.open",
-            props_default={"internal": True},
-        )
-
-def text_func_templates(self, context):
-    self.layout.menu("TEXT_MT_templates_kspcfg");
-
-def register():
-    bpy.utils.register_module(__name__)
-
-    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
-    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
-    bpy.types.VIEW3D_MT_mesh_add.append(quickhull.menu_func)
-    bpy.types.TEXT_MT_templates.append(text_func_templates)
-
-    prop.register()
-    properties.register()
-    collider.register()
-    shader.register()
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
-    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
-    bpy.types.VIEW3D_MT_mesh_add.remove(quickhull.menu_func)
-    prop.unregister()
-    properties.unregister()
-    collider.unregister()
+register, unregister = register_submodule_factory(__name__, submodules)
 
 if __name__ == "__main__":
     register()
