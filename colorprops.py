@@ -35,13 +35,13 @@ def color_update(self, context):
     pass
 
 class MuColorProp(bpy.types.PropertyGroup):
-    value=FloatVectorProperty(name="", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=color_update)
+    value: FloatVectorProperty(name="", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=color_update)
 
 class MuMaterialColorPropertySet(bpy.types.PropertyGroup):
     bl_label = "Colors"
-    properties = CollectionProperty(type=MuColorProp, name="Colors")
-    index = IntProperty()
-    expanded = BoolProperty()
+    properties: CollectionProperty(type=MuColorProp, name="Colors")
+    index: IntProperty()
+    expanded: BoolProperty()
 
     def draw_item(self, layout):
         item = self.properties[self.index]

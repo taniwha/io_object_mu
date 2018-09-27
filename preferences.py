@@ -72,7 +72,7 @@ class CreateColorPalettes(bpy.types.Operator):
 class IOObjectMu_AddonPreferences(AddonPreferences):
     bl_idname = __package__
 
-    GameData = StringProperty(
+    GameData: StringProperty(
         name="GameData Path",
         description="Path to KSP GameData tree",
         subtype='DIR_PATH')

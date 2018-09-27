@@ -35,16 +35,16 @@ def texture_update(self, context):
     pass
 
 class MuTextureProperties(bpy.types.PropertyGroup):
-    tex = StringProperty(name="tex", update=texture_update)
-    type = BoolProperty(name="type", description="Texture is a normal map", default = False)
-    scale = FloatVectorProperty(name="scale", size = 2, subtype='XYZ', default = (1.0, 1.0), update=texture_update)
-    offset = FloatVectorProperty(name="offset", size = 2, subtype='XYZ', default = (0.0, 0.0), update=texture_update)
+    tex: StringProperty(name="tex", update=texture_update)
+    type: BoolProperty(name="type", description="Texture is a normal map", default = False)
+    scale: FloatVectorProperty(name="scale", size = 2, subtype='XYZ', default = (1.0, 1.0), update=texture_update)
+    offset: FloatVectorProperty(name="offset", size = 2, subtype='XYZ', default = (0.0, 0.0), update=texture_update)
 
 class MuMaterialTexturePropertySet(bpy.types.PropertyGroup):
     bl_label = "Textures"
-    properties = CollectionProperty(type=MuTextureProperties, name="Textures")
-    index = IntProperty()
-    expanded = BoolProperty()
+    properties: CollectionProperty(type=MuTextureProperties, name="Textures")
+    index: IntProperty()
+    expanded: BoolProperty()
 
     def draw_item(self, layout):
         item = self.properties[self.index]

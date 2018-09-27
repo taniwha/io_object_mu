@@ -35,13 +35,13 @@ def float2_update(self, context):
     pass
 
 class MuFloat2Prop(bpy.types.PropertyGroup):
-    value=FloatProperty(name="", update=float2_update)
+    value: FloatProperty(name="", update=float2_update)
 
 class MuMaterialFloat2PropertySet(bpy.types.PropertyGroup):
-    bl_label = "Float2"
-    properties = CollectionProperty(type=MuFloat2Prop, name="Float2")
-    index = IntProperty()
-    expanded = BoolProperty()
+    bl_label: "Float2"
+    properties: CollectionProperty(type=MuFloat2Prop, name="Float2")
+    index: IntProperty()
+    expanded: BoolProperty()
 
     def draw_item(self, layout):
         item = self.properties[self.index]

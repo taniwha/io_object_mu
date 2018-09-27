@@ -299,13 +299,13 @@ def panel_func(self, context):
     row.operator(AddPresetObjectDraw.bl_idname, text="", icon='ZOOMOUT').remove_active = True
 
 class MuMaterialProperties(bpy.types.PropertyGroup):
-    name = StringProperty(name="Name")
-    shaderName = StringProperty(name="Shader")
-    color = PointerProperty(type = MuMaterialColorPropertySet)
-    vector = PointerProperty(type = MuMaterialVectorPropertySet)
-    float2 = PointerProperty(type = MuMaterialFloat2PropertySet)
-    float3 = PointerProperty(type = MuMaterialFloat3PropertySet)
-    texture = PointerProperty(type = MuMaterialTexturePropertySet)
+    name: StringProperty(name="Name")
+    shaderName: StringProperty(name="Shader")
+    color: PointerProperty(type = MuMaterialColorPropertySet)
+    vector: PointerProperty(type = MuMaterialVectorPropertySet)
+    float2: PointerProperty(type = MuMaterialFloat2PropertySet)
+    float3: PointerProperty(type = MuMaterialFloat3PropertySet)
+    texture: PointerProperty(type = MuMaterialTexturePropertySet)
 
 class OBJECT_UL_Property_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data,

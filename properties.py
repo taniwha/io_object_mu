@@ -28,9 +28,9 @@ from mathutils import Vector,Matrix,Quaternion
 from .mu import MuEnum
 
 class MuSpringProp(bpy.types.PropertyGroup):
-    spring = FloatProperty(name = "Spring")
-    damper = FloatProperty(name = "Damper")
-    targetPosition = FloatProperty(name = "Target")
+    spring: FloatProperty(name = "Spring")
+    damper: FloatProperty(name = "Damper")
+    targetPosition: FloatProperty(name = "Target")
 
     def draw(self, context, layout):
         row = layout.row()
@@ -40,11 +40,11 @@ class MuSpringProp(bpy.types.PropertyGroup):
         col.prop(self, "targetPosition")
 
 class MuFrictionProp(bpy.types.PropertyGroup):
-    extremumSlip = FloatProperty(name = "Slip")
-    extremumValue = FloatProperty(name = "Value")
-    asymptoteSlip = FloatProperty(name = "Slip")
-    asymptoteValue = FloatProperty(name = "Value")
-    stiffness = FloatProperty(name = "Stiffness")
+    extremumSlip: FloatProperty(name = "Slip")
+    extremumValue: FloatProperty(name = "Value")
+    asymptoteSlip: FloatProperty(name = "Slip")
+    asymptoteValue: FloatProperty(name = "Value")
+    stiffness: FloatProperty(name = "Stiffness")
 
     def draw(self, context, layout):
         row = layout.row()
@@ -116,43 +116,43 @@ def collider_update(self, context):
     update_collider(obj)
 
 class MuProperties(bpy.types.PropertyGroup):
-    modelType = EnumProperty(items = modelType_items, name = "Model Type")
-    nodeSize = IntProperty(name = "Size", default = 1)
-    nodeMethod = EnumProperty(items = method_items, name = "Method")
-    nodeCrossfeed = BoolProperty(name = "Crossfeed", default = True)
-    nodeRigid = BoolProperty(name = "Rigid", default = False)
+    modelType: EnumProperty(items = modelType_items, name = "Model Type")
+    nodeSize: IntProperty(name = "Size", default = 1)
+    nodeMethod: EnumProperty(items = method_items, name = "Method")
+    nodeCrossfeed: BoolProperty(name = "Crossfeed", default = True)
+    nodeRigid: BoolProperty(name = "Rigid", default = False)
 
-    tag = StringProperty(name = "Tag", default="Untagged")
-    layer = IntProperty(name = "Layer")
+    tag: StringProperty(name = "Tag", default="Untagged")
+    layer: IntProperty(name = "Layer")
 
-    collider = EnumProperty(items = collider_items, name = "Collider")
-    isTrigger = BoolProperty(name = "Trigger")
-    center = FloatVectorProperty(name = "Center", subtype = 'XYZ', update=collider_update)
-    radius = FloatProperty(name = "Radius", update=collider_update)
-    height = FloatProperty(name = "Height", update=collider_update)
-    direction = EnumProperty(items = dir_items, name = "Direction", update=collider_update)
-    size = FloatVectorProperty(name = "Size", subtype = 'XYZ', update=collider_update)
+    collider: EnumProperty(items = collider_items, name = "Collider")
+    isTrigger: BoolProperty(name = "Trigger")
+    center: FloatVectorProperty(name = "Center", subtype = 'XYZ', update=collider_update)
+    radius: FloatProperty(name = "Radius", update=collider_update)
+    height: FloatProperty(name = "Height", update=collider_update)
+    direction: EnumProperty(items = dir_items, name = "Direction", update=collider_update)
+    size: FloatVectorProperty(name = "Size", subtype = 'XYZ', update=collider_update)
 
-    mass = FloatProperty(name = "Mass")
-    suspensionDistance = FloatProperty(name = "Distance")
-    suspensionSpring = PointerProperty(type=MuSpringProp, name = "Spring")
-    forwardFriction = PointerProperty(type=MuFrictionProp, name = "Forward")
-    sideFriction = PointerProperty(type=MuFrictionProp, name = "Sideways")
+    mass: FloatProperty(name = "Mass")
+    suspensionDistance: FloatProperty(name = "Distance")
+    suspensionSpring: PointerProperty(type=MuSpringProp, name = "Spring")
+    forwardFriction: PointerProperty(type=MuFrictionProp, name = "Forward")
+    sideFriction: PointerProperty(type=MuFrictionProp, name = "Sideways")
 
-    cullingMask = BoolVectorProperty(size=32, name = "Culling Mask", subtype = 'LAYER')
-    backgroundColor = FloatVectorProperty(name="Background Color", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (0.0, 0.0, 0.0, 1.0))
-    depth = FloatProperty(name = "Depth")
-    clearFlags = EnumProperty(items = clearflag_items, name = "Clear Flags", default = 'SKYBOX')
+    cullingMask: BoolVectorProperty(size=32, name = "Culling Mask", subtype = 'LAYER')
+    backgroundColor: FloatVectorProperty(name="Background Color", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (0.0, 0.0, 0.0, 1.0))
+    depth: FloatProperty(name = "Depth")
+    clearFlags: EnumProperty(items = clearflag_items, name = "Clear Flags", default = 'SKYBOX')
 
 class MuModelProperties(bpy.types.PropertyGroup):
-    name = StringProperty(name = "Name", default="")
-    type = StringProperty(name = "Type", default="")
-    config = StringProperty(name = "Config", default="")
+    name: StringProperty(name = "Name", default="")
+    type: StringProperty(name = "Type", default="")
+    config: StringProperty(name = "Config", default="")
 
 class MuSceneProperties(bpy.types.PropertyGroup):
-    modelType = EnumProperty(items = modelType_items[1:], name = "Model Type",
+    modelType: EnumProperty(items = modelType_items[1:], name = "Model Type",
         description="Type of exported models when unspecified by root object.")
-    internal = PointerProperty(name="Internal root",
+    internal: PointerProperty(name="Internal root",
         description="Root object of the KSP internal model. Used for prop placement.",
         type = bpy.types.Object)
 

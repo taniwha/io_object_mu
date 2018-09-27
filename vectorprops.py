@@ -35,13 +35,13 @@ def vector_update(self, context):
     pass
 
 class MuVectorProp(bpy.types.PropertyGroup):
-    value=FloatVectorProperty(name="", size = 4, subtype='XYZ', min = 0.0, max = 1.0, default = (0.0, 0.0, 0.0, 0.0), update=vector_update)
+    value: FloatVectorProperty(name="", size = 4, subtype='XYZ', min = 0.0, max = 1.0, default = (0.0, 0.0, 0.0, 0.0), update=vector_update)
 
 class MuMaterialVectorPropertySet(bpy.types.PropertyGroup):
     bl_label = "Vectors"
-    properties = CollectionProperty(type=MuVectorProp, name="Vectors")
-    index = IntProperty()
-    expanded = BoolProperty()
+    properties: CollectionProperty(type=MuVectorProp, name="Vectors")
+    index: IntProperty()
+    expanded: BoolProperty()
 
     def draw_item(self, layout):
         item = self.properties[self.index]
