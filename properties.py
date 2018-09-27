@@ -322,7 +322,7 @@ class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
 
 def register():
     bpy.types.Object.muproperties = PointerProperty(type=MuProperties)
-    bpy.types.Group.mumodelprops = PointerProperty(type=MuModelProperties)
+    #bpy.types.Group.mumodelprops = PointerProperty(type=MuModelProperties)
     bpy.types.Scene.musceneprops = PointerProperty(type=MuSceneProperties)
 
 def unregister():

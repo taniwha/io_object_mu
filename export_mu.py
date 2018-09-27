@@ -353,11 +353,11 @@ def make_camera(mu, camera, obj):
     return mucamera
 
 light_types = {
-    bpy.types.PointLamp,
-    bpy.types.SunLamp,
-    bpy.types.SpotLamp,
-    bpy.types.HemiLamp,
-    bpy.types.AreaLamp
+    bpy.types.PointLight,
+    bpy.types.SunLight,
+    bpy.types.SpotLight,
+    bpy.types.HemiLight,
+    bpy.types.AreaLight
 }
 
 exportable_types = {bpy.types.Mesh, bpy.types.Camera} | light_types

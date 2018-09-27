@@ -249,7 +249,7 @@ def add_prop_menu_func(self, context):
                                   icon='OUTLINER_OB_GROUP_INSTANCE')
 
 def register():
-    bpy.types.INFO_MT_add.append(add_prop_menu_func)
+    bpy.types.VIEW3D_MT_add.append(add_prop_menu_func)
 
 def unregister():
     pass

@@ -410,7 +410,7 @@ def menu_func(self, context):
     self.layout.menu("INFO_MT_mucollider_add", icon='PLUGIN')
 
 def register():
-    bpy.types.INFO_MT_add.append(menu_func)
+    bpy.types.VIEW3D_MT_add.append(menu_func)
 
 def unregister():
     #bpy.types.INFO_MT_add.remove(menu_func)

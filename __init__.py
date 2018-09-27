@@ -24,7 +24,7 @@
 bl_info = {
     "name": "Mu model format (KSP)",
     "author": "Bill Currie",
-    "blender": (2, 7, 0),
+    "blender": (2, 80, 0),
     "api": 35622,
     "location": "File > Import-Export",
     "description": "Import-Export KSP Mu format files. (.mu)",
@@ -88,9 +88,9 @@ def text_func_templates(self, context):
 def register():
     bpy.utils.register_module(__name__)
 
-    bpy.types.INFO_MT_file_import.append(menu_func_import)
-    bpy.types.INFO_MT_file_export.append(menu_func_export)
-    bpy.types.INFO_MT_mesh_add.append(quickhull.menu_func)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
+    bpy.types.VIEW3D_MT_mesh_add.append(quickhull.menu_func)
     bpy.types.TEXT_MT_templates.append(text_func_templates)
 
     prop.register()
@@ -101,8 +101,9 @@ def register():
 def unregister():
     bpy.utils.unregister_module(__name__)
 
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
-    bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
+    bpy.types.VIEW3D_MT_mesh_add.remove(quickhull.menu_func)
     prop.unregister()
     properties.unregister()
     collider.unregister()
