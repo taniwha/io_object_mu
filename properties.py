@@ -214,11 +214,11 @@ class OBJECT_PT_MuLightPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        if type(context.active_object.data) in [bpy.types.PointLamp,
-                                                bpy.types.SunLamp,
-                                                bpy.types.SpotLamp,
-                                                bpy.types.HemiLamp,
-                                                bpy.types.AreaLamp]:
+        if type(context.active_object.data) in [bpy.types.PointLight,
+                                                bpy.types.SunLight,
+                                                bpy.types.SpotLight,
+                                                bpy.types.HemiLight,
+                                                bpy.types.AreaLight]:
             return True
         return False
 
