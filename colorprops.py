@@ -47,4 +47,3 @@ classes = (
     MuColorProp,
     MuMaterialColorPropertySet,
 )
-register, unregister = bpy.utils.register_classes_factory(classes)

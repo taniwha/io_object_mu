@@ -98,4 +98,3 @@ def Preferences():
 classes = (
     IOObjectMu_AddonPreferences,
 )
-register, unregister = bpy.utils.register_classes_factory(classes)

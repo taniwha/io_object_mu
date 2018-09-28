@@ -405,7 +405,7 @@ class VIEW3D_PT_tools_mu_collider(bpy.types.Panel):
         layout.operator("mucollider.from_mesh", text = "Selected Meshes");
         layout.operator("mucollider.mesh_to_collider", text = "Selected Meshes");
 
-def menu_func(self, context):
+def add_collider_menu_func(self, context):
     self.layout.menu("INFO_MT_mucollider_add", icon='PLUGIN')
 
 classes = (
@@ -420,16 +420,6 @@ classes = (
     VIEW3D_PT_tools_mu_collider,
 )
 
-def register():
-    from bpy.utils import register_class
-    for cls in classes:
-        register_class(cls)
-
-    bpy.types.VIEW3D_MT_add.append(menu_func)
-
-def unregister():
-    bpy.types.INFO_MT_add.remove(menu_func)
-
-    from bpy.utils import unregister_class
-    for cls in reversed(classes):
-        unregister_class(cls)
+menus = (
+    (bpy.types.VIEW3D_MT_add, add_collider_menu_func),
+)

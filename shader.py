@@ -380,4 +380,3 @@ classes = (
     OBJECT_UL_Property_list,
     OBJECT_PT_MuMaterialPanel,
 )
-register, unregister = bpy.utils.register_classes_factory(classes)

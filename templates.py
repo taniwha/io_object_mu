@@ -41,16 +41,6 @@ classes = (
     TEXT_MT_templates_kspcfg,
 )
 
-def register():
-    from bpy.utils import register_class
-    for cls in classes:
-        register_class(cls)
-
-    bpy.types.VIEW3D_MT_add.append(text_func_templates)
-
-def unregister():
-    bpy.types.INFO_MT_add.remove(text_func_templates)
-
-    from bpy.utils import unregister_class
-    for cls in reversed(classes):
-        unregister_class(cls)
+menus = (
+    (bpy.types.TEXT_MT_templates, text_func_templates),
+)

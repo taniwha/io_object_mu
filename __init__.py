@@ -34,7 +34,7 @@ bl_info = {
 #    "support": 'OFFICIAL',
     "category": "Import-Export"}
 
-submodules = (
+submodule_names = (
     "colorprops",
     "float2props",
     "float3props",
@@ -42,18 +42,50 @@ submodules = (
     "vectorprops",
 
     "collider",
+    "colorpalettes",
     "export_mu",
+    "gamedata",
     "import_craft",
     "import_mu",
+    "model",
+    "part",
     "preferences",
     "prop",
     "properties",
+    "quickhull",
     "shader",
+    "shaderprops",
+    "templates",
 )
 
-from bpy.utils import register_submodule_factory
+from bpy.utils import register_class, unregister_class
 
-register, unregister = register_submodule_factory(__name__, submodules)
+module = None
+submodules = []
+def register():
+    global module
+    module = __import__(name=__name__, fromlist=submodule_names)
+    submodules[:] = [getattr(module, name) for name in submodule_names]
+    for mod in submodules:
+        m = [(),()]
+        if hasattr(mod, "classes"):
+            m[0] = mod.classes
+            for cls in mod.classes:
+                register_class(cls)
+        if hasattr(mod, "menus"):
+            m[1] = mod.menus
+            for menu in mod.menus:
+                menu[0].append(menu[1])
+        if m[0] or m[1]:
+            submodules.append(m)
+
+
+def unregister():
+    for mod in reversed(submodules):
+        for menu in reversed(mod[1]):
+            menu[0].remove(menu[1])
+        for cls in reversed(mod[0]):
+            unregister_class(cls)
 
 if __name__ == "__main__":
     register()

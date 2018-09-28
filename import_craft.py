@@ -94,23 +94,13 @@ class KSPMU_OT_ImportCraft(bpy.types.Operator, ImportHelper):
         keywords = self.as_keywords(ignore=("filter_glob",))
         return import_craft_op(self, context, **keywords)
 
-def menu_func_import(self, context):
+def import_craft_menu_func(self, context):
     self.layout.operator(KSPMU_OT_ImportCraft.bl_idname, text="KSP Craft (.craft)")
 
 classes = (
     KSPMU_OT_ImportCraft,
 )
 
-def register():
-    from bpy.utils import register_class
-    for cls in classes:
-        register_class(cls)
-
-    bpy.types.VIEW3D_MT_add.append(menu_func_import)
-
-def unregister():
-    bpy.types.INFO_MT_add.remove(menu_func_import)
-
-    from bpy.utils import unregister_class
-    for cls in reversed(classes):
-        unregister_class(cls)
+menus = (
+    (bpy.types.TOPBAR_MT_file_import, import_craft_menu_func),
+)

@@ -28,7 +28,7 @@ class KSPMU_OT_MuShaderPropExpand(bpy.types.Operator):
     '''Expand/collapse mu shader property set'''
     bl_idname = "object.mushaderprop_expand"
     bl_label = "Mu shader prop expand"
-    propertyset = StringProperty()
+    propertyset: StringProperty()
     def execute(self, context):
         matprops = context.material.mumatprop
         propset = getattr(matprops, self.propertyset)
@@ -40,7 +40,7 @@ class KSPMU_OT_MuShaderPropAdd(bpy.types.Operator):
     '''Add a mu shader property'''
     bl_idname = "object.mushaderprop_add"
     bl_label = "Mu shader prop Add"
-    propertyset = StringProperty()
+    propertyset: StringProperty()
     def execute(self, context):
         matprops = context.material.mumatprop
         propset = getattr(matprops, self.propertyset)
@@ -51,10 +51,16 @@ class KSPMU_OT_MuShaderPropRemove(bpy.types.Operator):
     '''Remove a mu shader property'''
     bl_idname = "object.mushaderprop_remove"
     bl_label = "Mu shader prop Remove"
-    propertyset = StringProperty()
+    propertyset: StringProperty()
     def execute(self, context):
         matprops = context.material.mumatprop
         propset = getattr(matprops, self.propertyset)
         if propset.index >= 0:
             propset.properties.remove(propset.index)
         return {'FINISHED'}
+
+classes = (
+    KSPMU_OT_MuShaderPropExpand,
+    KSPMU_OT_MuShaderPropAdd,
+    KSPMU_OT_MuShaderPropRemove,
+)

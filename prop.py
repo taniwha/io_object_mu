@@ -156,7 +156,7 @@ class KSPMU_OT_ImportProp(bpy.types.Operator, ImportHelper):
     bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = ".cfg"
-    filter_glob = StringProperty(default="*.cfg", options={'HIDDEN'})
+    filter_glob: StringProperty(default="*.cfg", options={'HIDDEN'})
 
     def execute(self, context):
         keywords = self.as_keywords (ignore=("filter_glob",))
@@ -188,8 +188,8 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
             enum_items.append((str(index), item.mumodelprops.name, '', index))
         return enum_items
 
-    prop_item = EnumProperty(name="Prop", description="KSP internal prop",
-                             items=prop_enum_items)
+    prop_item: EnumProperty(name="Prop", description="KSP internal prop",
+                            items=prop_enum_items)
 
     def find_prop(self, context):
         prop_item = int(self.prop_item)
@@ -248,19 +248,12 @@ def add_prop_menu_func(self, context):
                                   icon='OUTLINER_OB_GROUP_INSTANCE')
 
 classes = (
+    KSPMU_OT_ImportProp,
+    KSPMU_OT_MakeProps,
+    OBJECT_OT_add_ksp_prop,
     VIEW3D_PT_tools_mu_props,
 )
 
-def register():
-    from bpy.utils import register_class
-    for cls in classes:
-        register_class(cls)
-
-    bpy.types.VIEW3D_MT_add.append(add_prop_menu_func)
-
-def unregister():
-    bpy.types.INFO_MT_add.remove(add_prop_menu_func)
-
-    from bpy.utils import unregister_class
-    for cls in reversed(classes):
-        unregister_class(cls)
+menus = (
+    (bpy.types.VIEW3D_MT_add, add_prop_menu_func),
+)

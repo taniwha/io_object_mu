@@ -339,4 +339,3 @@ classes = (
     OBJECT_PT_MuPropertiesPanel,
     OBJECT_PT_MuColliderPanel,
 )
-register, unregister = bpy.utils.register_classes_factory(classes)

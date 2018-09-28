@@ -47,4 +47,3 @@ classes = (
     MuFloat3Prop,
     MuMaterialFloat3PropertySet,
 )
-register, unregister = bpy.utils.register_classes_factory(classes)

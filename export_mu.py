@@ -784,7 +784,7 @@ class VIEW3D_PT_tools_mu_export(bpy.types.Panel):
         layout.operator("export_object.ksp_mu_quick", text = "Export Mu Model");
         layout.operator("object.mu_volume", text = "Calc Mu Volume");
 
-def menu_func_export(self, context):
+def export_mu_menu_func(self, context):
     self.layout.operator(KSPMU_OT_ExportMu.bl_idname, text="KSP Mu (.mu)")
 
 classes = (
@@ -794,16 +794,6 @@ classes = (
     VIEW3D_PT_tools_mu_export,
 )
 
-def register():
-    from bpy.utils import register_class
-    for cls in classes:
-        register_class(cls)
-
-    bpy.types.VIEW3D_MT_add.append(menu_func_export)
-
-def unregister():
-    bpy.types.INFO_MT_add.remove(menu_func_export)
-
-    from bpy.utils import unregister_class
-    for cls in reversed(classes):
-        unregister_class(cls)
+menus = (
+    (bpy.types.TOPBAR_MT_file_export, export_mu_menu_func),
+)

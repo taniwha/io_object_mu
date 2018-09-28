@@ -49,4 +49,3 @@ classes = (
     MuVectorProp,
     MuMaterialVectorPropertySet,
 )
-register, unregister = bpy.utils.register_classes_factory(classes)

@@ -58,4 +58,3 @@ classes = (
     MuTextureProperties,
     MuMaterialTexturePropertySet,
 )
-register, unregister = bpy.utils.register_classes_factory(classes)
