@@ -25,6 +25,8 @@ import bpy, os
 from bpy.types import AddonPreferences, Menu
 from bpy.props import StringProperty, BoolProperty
 
+from . import colorpalettes, shader
+
 def install_presets(subdir):
     presets=bpy.utils.script_paths("presets")
     dst=presets[-1] + "/" + shader.IO_OBJECT_MU_MT_shader_presets.preset_subdir
@@ -83,10 +85,10 @@ class IOObjectMu_AddonPreferences(AddonPreferences):
         box.label(text="KSP:")
         box.prop(self, "GameData")
         box.label(text="Shaders:")
-        box.operator(InstallShaders.bl_idname, InstallShaders.bl_label);
+        box.operator(KSPMU_OT_InstallShaders.bl_idname, text=KSPMU_OT_InstallShaders.bl_label);
         box.label(text="Color Paletes:")
         cbox = box.box()
-        cbox.operator(CreateColorPalettes.bl_idname, CreateColorPalettes.bl_label);
+        cbox.operator(KSPMU_OT_CreateColorPalettes.bl_idname, text=KSPMU_OT_CreateColorPalettes.bl_label);
         cbox.label(text="NOTE: this must be done for each new blend file or saved to your startup file.", icon="LAYER_USED")
         cbox.label(text="NOTE2: overwrites existing palettes that have the same names", icon="LAYER_USED")
 
@@ -97,4 +99,6 @@ def Preferences():
 
 classes = (
     IOObjectMu_AddonPreferences,
+    KSPMU_OT_InstallShaders,
+    KSPMU_OT_CreateColorPalettes,
 )
