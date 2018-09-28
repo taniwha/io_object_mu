@@ -320,11 +320,6 @@ class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
             box.label("Side Friction")
             muprops.sideFriction.draw(context, box.box())
 
-#def register():
-#    bpy.types.Object.muproperties = PointerProperty(type=MuProperties)
-#    #bpy.types.Group.mumodelprops = PointerProperty(type=MuModelProperties)
-#    bpy.types.Scene.musceneprops = PointerProperty(type=MuSceneProperties)
-
 classes = (
     MuSpringProp,
     MuFrictionProp,
@@ -338,4 +333,9 @@ classes = (
     OBJECT_PT_MuCameraPanel,
     OBJECT_PT_MuPropertiesPanel,
     OBJECT_PT_MuColliderPanel,
+)
+custom_properties = (
+    (bpy.types.Object, "muproperties", MuProperties),
+    #(bpy.types.Group, "mumodelprops", MuModelProperties),
+    (bpy.types.Scene, "musceneprops", MuSceneProperties),
 )

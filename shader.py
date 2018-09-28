@@ -371,12 +371,12 @@ class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
         draw_property_list(layout, matprops.float2, "float2")
         draw_property_list(layout, matprops.float3, "float3")
 
-#def register():
-#    bpy.types.Material.mumatprop = PointerProperty(type=MuMaterialProperties)
-
 classes = (
     IO_OBJECT_MU_MT_shader_presets,
     MuMaterialProperties,
     OBJECT_UL_Property_list,
     OBJECT_PT_MuMaterialPanel,
+)
+custom_properties = (
+    (bpy.types.Material, "mumatprop", MuMaterialProperties),
 )

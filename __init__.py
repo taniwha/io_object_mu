@@ -58,6 +58,7 @@ submodule_names = (
     "templates",
 )
 
+from bpy.props import PointerProperty
 from bpy.utils import register_class, unregister_class
 
 module = None
@@ -76,6 +77,9 @@ def register():
             m[1] = mod.menus
             for menu in mod.menus:
                 menu[0].append(menu[1])
+        if hasattr(mod, "custom_properties"):
+            for prop in mod.custom_properties:
+                setattr(prop[0], prop[1], PointerProperty(type=prop[2]))
         if m[0] or m[1]:
             submodules.append(m)
 
