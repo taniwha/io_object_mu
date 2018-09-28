@@ -31,7 +31,7 @@ class MuFloat2Prop(bpy.types.PropertyGroup):
     value: FloatProperty(name="", update=float2_update)
 
 class MuMaterialFloat2PropertySet(bpy.types.PropertyGroup):
-    bl_label: "Float2"
+    bl_label = "Float2"
     properties: CollectionProperty(type=MuFloat2Prop, name="Float2")
     index: IntProperty()
     expanded: BoolProperty()
@@ -40,8 +40,8 @@ class MuMaterialFloat2PropertySet(bpy.types.PropertyGroup):
         item = self.properties[self.index]
         row = layout.row()
         col = row.column()
-        col.prop(item, "name", "Name")
-        col.prop(item, "value", "")
+        col.prop(item, "name", text="Name")
+        col.prop(item, "value", text="")
 
 classes = (
     MuFloat2Prop,

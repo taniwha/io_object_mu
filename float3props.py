@@ -40,8 +40,8 @@ class MuMaterialFloat3PropertySet(bpy.types.PropertyGroup):
         item = self.properties[self.index]
         row = layout.row()
         col = row.column()
-        col.prop(item, "name", "Name")
-        col.prop(item, "value", "")
+        col.prop(item, "name", text="Name")
+        col.prop(item, "value", text="")
 
 classes = (
     MuFloat3Prop,

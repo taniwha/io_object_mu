@@ -328,7 +328,7 @@ def draw_property_list(layout, propset, propsetname):
         box.separator()
         row = box.row()
         col = row.column()
-        col.template_list("Property_list", "", propset, "properties", propset, "index")
+        col.template_list("OBJECT_UL_Property_list", "", propset, "properties", propset, "index")
         col = row.column(align=True)
         add_op = "object.mushaderprop_add"
         rem_op = "object.mushaderprop_remove"
@@ -360,7 +360,7 @@ class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
         col = row.column()
         r = col.row(align=True)
         r.menu("IO_OBJECT_MU_MT_shader_presets",
-               text=bpy.types.IO_OBJECT_MU_OT_shader_presets.bl_label)
+               text=IO_OBJECT_MU_OT_shader_presets.bl_label)
         r.operator("io_object_mu.shader_presets", text="", icon='ZOOMIN')
         r.operator("io_object_mu.shader_presets", text="", icon='ZOOMOUT').remove_active = True
         col.prop(matprops, "name")
@@ -373,6 +373,7 @@ class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
 
 classes = (
     IO_OBJECT_MU_MT_shader_presets,
+    IO_OBJECT_MU_OT_shader_presets,
     MuMaterialProperties,
     OBJECT_UL_Property_list,
     OBJECT_PT_MuMaterialPanel,

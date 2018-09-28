@@ -47,12 +47,12 @@ class MuMaterialTexturePropertySet(bpy.types.PropertyGroup):
         item = self.properties[self.index]
         row = layout.row()
         col = row.column()
-        col.prop(item, "name", "Name")
+        col.prop(item, "name", text="Name")
         r = col.row()
-        r.prop(item, "tex", "")
-        r.prop(item, "type", "")
-        col.prop(item, "scale", "")
-        col.prop(item, "offset", "")
+        r.prop(item, "tex", text="")
+        r.prop(item, "type", text="")
+        col.prop(item, "scale", text="")
+        col.prop(item, "offset", text="")
 
 classes = (
     MuTextureProperties,
