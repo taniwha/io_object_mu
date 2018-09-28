@@ -394,16 +394,16 @@ class VIEW3D_PT_tools_mu_collider(bpy.types.Panel):
         layout = self.layout
         col = layout.column(align=True)
         col.label(text="Single Collider:")
-        layout.operator("mucollider.mesh", text = "Mesh");
-        layout.operator("mucollider.sphere", text = "Sphere");
-        layout.operator("mucollider.capsule", text = "Capsule");
-        layout.operator("mucollider.box", text = "Box");
-        layout.operator("mucollider.wheel", text = "Wheel");
+        layout.operator("mucollider.mesh", text = "Mesh")
+        layout.operator("mucollider.sphere", text = "Sphere")
+        layout.operator("mucollider.capsule", text = "Capsule")
+        layout.operator("mucollider.box", text = "Box")
+        layout.operator("mucollider.wheel", text = "Wheel")
 
         col = layout.column(align=True)
         col.label(text="Multiple Colliders:")
-        layout.operator("mucollider.from_mesh", text = "Selected Meshes");
-        layout.operator("mucollider.mesh_to_collider", text = "Selected Meshes");
+        layout.operator("mucollider.from_mesh", text = "Selected Meshes")
+        layout.operator("mucollider.mesh_to_collider", text = "Selected Meshes")
 
 def add_collider_menu_func(self, context):
     self.layout.menu("INFO_MT_mucollider_add", icon='PLUGIN')
