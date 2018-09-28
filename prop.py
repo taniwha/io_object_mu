@@ -233,8 +233,8 @@ class VIEW3D_PT_tools_mu_props(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         #col = layout.column(align=True)
-        layout.operator(ImportProp.bl_idname, text = ImportProp.bl_description);
-        layout.operator(MakeProps.bl_idname, text = MakeProps.bl_description);
+        layout.operator(KSPMU_OT_ImportProp.bl_idname, text = KSPMU_OT_ImportProp.bl_description);
+        layout.operator(KSPMU_OT_MakeProps.bl_idname, text = KSPMU_OT_MakeProps.bl_description);
 
 def add_prop_menu_func(self, context):
     layout = self.layout
