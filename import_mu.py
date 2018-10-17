@@ -24,6 +24,7 @@ import os.path
 from math import pi, sqrt
 
 import bpy
+import bmesh
 from bpy_extras.object_utils import object_data_add
 from mathutils import Vector,Matrix,Quaternion
 from bpy_extras.io_utils import ImportHelper
@@ -47,12 +48,21 @@ def create_mesh(mu, mumesh, name):
     faces = []
     for sm in mumesh.submeshes:
         faces.extend(sm)
-    mesh.from_pydata(mumesh.verts, [], faces)
-    if mumesh.uvs:
-        create_uvs(mu, mumesh.uvs, mesh, "UV")
-    if mumesh.uv2s:
-        create_uvs(mu, mumesh.uv2s, mesh, "UV2")
-    mesh.update()
+    bm = bmesh.new()
+    bv = [None] * len(mumesh.verts)
+    for i, v in enumerate(mumesh.verts):
+        bv[i] = bm.verts.new(v)
+    bm.verts.index_update()
+    bm.verts.ensure_lookup_table()
+    for f in faces:
+        bm.faces.new([bv[i] for i in f])
+    bm.faces.index_update()
+    bm.faces.ensure_lookup_table()
+    #if mumesh.uvs:
+    #    create_uvs(mu, mumesh.uvs, mesh, "UV")
+    #if mumesh.uv2s:
+    #    create_uvs(mu, mumesh.uv2s, mesh, "UV2")
+    bm.to_mesh(mesh)
     return mesh
 
 def create_mesh_object(name, mesh, transform):
@@ -286,7 +296,7 @@ def create_collider(mu, muobj):
         collider.build_collider(cobj, obj.muproperties)
     return obj
 
-def create_object(scene, mu, muobj, parent, create_colliders):
+def create_object(collection, mu, muobj, parent, create_colliders):
     obj = None
     mesh = None
     if hasattr(muobj, "shared_mesh"):
@@ -314,7 +324,7 @@ def create_object(scene, mu, muobj, parent, create_colliders):
             obj = create_camera(mu, muobj.camera, muobj.transform)
     if not obj:
         obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
-    scene.collection.objects.link(obj)
+    collection.objects.link(obj)
     if hasattr(muobj, "tag_and_layer"):
         obj.muproperties.tag = muobj.tag_and_layer.tag
         obj.muproperties.layer = muobj.tag_and_layer.layer
@@ -324,7 +334,7 @@ def create_object(scene, mu, muobj, parent, create_colliders):
     obj.parent = parent
     muobj.bobj = obj
     for child in muobj.children:
-        create_object(scene, mu, child, obj, create_colliders)
+        create_object(collection, mu, child, obj, create_colliders)
     if hasattr(muobj, "animation"):
         for clip in muobj.animation.clips:
             create_action(mu, muobj.path, clip)
@@ -384,7 +394,7 @@ def load_image(name, path, type):
                 type = 1
                 pixels = convert_bump(pixels, img.size[0], height)
             img.pixels = pixels[:]
-            img.pack(True)
+            img.pack(as_png=True)
     elif name[-4:].lower() == ".mbm":
         w,h, pixels = load_mbm(os.path.join(path, name))
         img = bpy.data.images.new(name, w, h)
@@ -447,28 +457,28 @@ def create_object_paths(mu, obj=None, parents=None):
         create_object_paths(mu, child, parents)
     parents.pop()
 
-def process_mu(scene, mu, mudir, create_colliders):
+def process_mu(collection, mu, mudir, create_colliders):
     create_textures(mu, mudir)
     create_materials(mu)
     create_object_paths(mu)
-    return create_object(scene, mu, mu.obj, None, create_colliders)
+    return create_object(collection, mu, mu.obj, None, create_colliders)
 
-def import_mu(scene, filepath, create_colliders):
+def import_mu(collection, filepath, create_colliders):
     mu = Mu()
     if not mu.read(filepath):
         raise MuImportError("Mu", "Unrecognized format: magic %x version %d"
                                   % (mu.magic, mu.version))
 
-    return process_mu(scene, mu, os.path.dirname(filepath), create_colliders)
+    return process_mu(collection, mu, os.path.dirname(filepath), create_colliders)
 
 def import_mu_op(self, context, filepath, create_colliders):
     operator = self
     undo = bpy.context.user_preferences.edit.use_global_undo
     bpy.context.user_preferences.edit.use_global_undo = False
 
-    scene = bpy.context.scene
+    collection = bpy.context.layer_collection.collection
     try:
-        obj = import_mu(scene, filepath, create_colliders)
+        obj = import_mu(collection, filepath, create_colliders)
     except MuImportError as e:
         operator.report({'ERROR'}, e.message)
         return {'CANCELLED'}
