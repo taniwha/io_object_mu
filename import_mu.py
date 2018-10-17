@@ -51,6 +51,13 @@ def create_mesh(mu, mumesh, name):
     bv = [None] * len(mumesh.verts)
     for i, v in enumerate(mumesh.verts):
         bv[i] = bm.verts.new(v)
+    if mumesh.normals:
+        for i, n in enumerate(mumesh.normals):
+            bv[i].normal = n
+    #FIXME how to set tangents?
+    #if mumesh.tangents:
+    #    for i, t in enumerate(mumesh.tangents):
+    #        bv[i].tangent = t
     bm.verts.index_update()
     bm.verts.ensure_lookup_table()
     for f in faces:
