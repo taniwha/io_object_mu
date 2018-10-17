@@ -30,7 +30,7 @@ from .parser import parse_vector, parse_quaternion
 from .preferences import Preferences
 
 def select_objects(obj):
-    obj.select = True
+    obj.select_set('SELECT')
     for o in obj.children:
         select_objects(o)
 
@@ -48,13 +48,13 @@ def import_craft(filepath):
     vessel.rotation_mode = 'QUATERNION'
     vessel.rotation_quaternion = Quaternion((1,0,0,0))
     vessel.scale = Vector((1, 1, 1))
-    scene.objects.link(vessel)
+    scene.collection.objects.link(vessel)
     for p in craft.GetNodes("PART"):
         pname = p.GetValue("part").split("_")[0]
         pos = parse_vector(p.GetValue("pos"))
         rot = parse_quaternion(p.GetValue("rot"))
         part = gamedata.parts[pname].get_model()
-        scene.objects.link(part)
+        scene.collection.objects.link(part)
         part.location = pos
         part.rotation_mode = 'QUATERNION'
         part.rotation_quaternion = rot
@@ -73,9 +73,9 @@ def import_craft_op(self, context, filepath):
         return {'CANCELLED'}
     else:
         for o in bpy.context.scene.objects:
-            o.select = False
+            o.select_set('DESELECT')
         select_objects(obj)
-        bpy.context.scene.objects.active = obj
+        bpy.context.view_layer.objects.active = obj
         return {'FINISHED'}
     finally:
         bpy.context.user_preferences.edit.use_global_undo = undo

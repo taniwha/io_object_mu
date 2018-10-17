@@ -99,11 +99,11 @@ def import_prop_op(self, context, filepath):
     bpy.context.user_preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
-        obj.select = False
+        obj.select_set('DESELECT')
     prop = import_prop(filepath).get_model()
     prop.location = context.scene.cursor_location
-    prop.select = True
-    context.scene.objects.link(prop)
+    prop.select_set('SELECT')
+    context.scene.collection.objects.link(prop)
 
     bpy.context.user_preferences.edit.use_global_undo = undo
     return {'FINISHED'}
@@ -138,7 +138,7 @@ def make_props(self, context):
 
     selected = set()
     for obj in bpy.context.scene.objects:
-        if obj.select:
+        if obj.select_get():
             selected.add(obj)
     clean_selected(selected)
 
@@ -213,7 +213,7 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
                                     loc, rot, scale)
             obj.muproperties.modelType = 'PROP'
             obj.parent = muscene.internal
-            context.scene.objects.link(obj)
+            context.scene.collection.objects.link(obj)
             return {'FINISHED'}
         else:
             return {'CANCELLED'}

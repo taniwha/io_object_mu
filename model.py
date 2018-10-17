@@ -40,7 +40,7 @@ def compile_model(db, path, type, name, cfg, scene):
     nodes = cfg.GetNodes("MODEL")
     if nodes:
         root = bpy.data.objects.new(name+":model", None)
-        scene.objects.link(root)
+        scene.collection.objects.link(root)
         for n in nodes:
             model = n.GetValue("model")
             position = Vector((0, 0, 0))
@@ -54,7 +54,7 @@ def compile_model(db, path, type, name, cfg, scene):
                 scale = parse_vector(n.GetValue("scale"))
             mdl = db.model(model)
             obj = mdl.instantiate(name+":submodel", position, rotation, scale)
-            scene.objects.link(obj)
+            scene.collection.objects.link(obj)
             obj.parent = root
     else:
         mesh = db.model_by_path[path][0]
@@ -64,7 +64,7 @@ def compile_model(db, path, type, name, cfg, scene):
         rotation = Vector((0, 0, 0))
         scale = Vector((1, 1, 1))
         root = model.instantiate(name+":model", position, rotation, scale)
-        scene.objects.link(root)
+        scene.collection.objects.link(root)
     group = group_objects(type + ":" + name, root)
     group.mumodelprops.name = name
     group.mumodelprops.type = type

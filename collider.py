@@ -30,10 +30,8 @@ from .mu import MuEnum
 from .quickhull import quickhull
 from . import properties
 
-def collider_scene():
-    if "collider" not in bpy.data.scenes:
-        return bpy.data.scenes.new("collider")
-    return bpy.data.scenes["collider"]
+def collider_collection(name):
+    return bpy.data.collections.new("collider:"+name)
 
 collider_sphere_ve = (
     [(-1.000, 0.000, 0.000), (-0.866, 0.000, 0.500), (-0.500, 0.000, 0.866),
@@ -99,18 +97,15 @@ def make_collider_mesh(mesh, vex_list):
     for vex in vex_list:
         v, e, m = vex
         base = len(verts)
-        verts.extend(list(map(lambda x: m * Vector(x), v)))
+        verts.extend(list(map(lambda x: m @ Vector(x), v)))
         edges.extend(list(map(lambda x: (x[0] + base, x[1] + base), e)))
-    if mesh.vertices:
-        bm = bmesh.new()
-        bv = [None] * len(verts)
-        for i, v in enumerate(verts):
-            bv[i] = bm.verts.new (v)
-        for e in edges:
-            bm.edges.new((bv[e[0]], bv[e[1]]))
-        bm.to_mesh(mesh)
-    else:
-        mesh.from_pydata(verts, edges, [])
+    bm = bmesh.new()
+    bv = [None] * len(verts)
+    for i, v in enumerate(verts):
+        bv[i] = bm.verts.new (v)
+    for e in edges:
+        bm.edges.new((bv[e[0]], bv[e[1]]))
+    bm.to_mesh(mesh)
     return mesh
 
 def translate(d):
@@ -127,7 +122,7 @@ def rotate(r):
     return Quaternion(r).normalized().to_matrix().to_4x4()
 
 def sphere(mesh, center, radius):
-    m = translate(center) * scale((radius,)*3)
+    m = translate(center) @ scale((radius,)*3)
     col = (collider_sphere_ve + (m,)),
     make_collider_mesh(mesh, col)
 
@@ -142,26 +137,26 @@ def capsule(mesh, center, radius, height, direction):
     elif direction == 1 or direction == 'MU_Z':
         # the mesh is setup for running along Z (Unity Y), so don't rotate
         r = rotate((1, 0, 0, 0))
-    r = translate(center) * r
+    r = translate(center) @ r
     m = (Matrix.Translation(Vector((0, 0, height/2)))
-         * Matrix.Scale(radius, 4))
-    col = (collider_capsule_end_ve + (r * m,)),
-    m = Matrix.Scale(-1,4) * m
-    col = col + ((collider_capsule_end_ve + (r * m,)),)
+         @ Matrix.Scale(radius, 4))
+    col = (collider_capsule_end_ve + (r @ m,)),
+    m = Matrix.Scale(-1,4) @ m
+    col = col + ((collider_capsule_end_ve + (r @ m,)),)
     m = Matrix(((radius,      0,        0, 0),
                 (     0, radius,        0, 0),
                 (     0,      0, height/2, 0),
                 (     0,      0,        0, 1)))
-    col = col + ((collider_capsule_cyl_ve + (r * m,)),)
+    col = col + ((collider_capsule_cyl_ve + (r @ m,)),)
     make_collider_mesh(mesh, col)
 
 def box(mesh, center, size):
-    m = translate(center) * scale(size)
+    m = translate(center) @ scale(size)
     col = (collider_box_ve + (m,)),
     make_collider_mesh(mesh, col)
 
 def wheel(mesh, center, radius):
-    m = translate(center) * scale((radius,)*3)
+    m = translate(center) @ scale((radius,)*3)
     col = (collider_wheel_ve + (m,)),
     make_collider_mesh(mesh, col)
 
@@ -192,55 +187,53 @@ def create_collider_object(name, mesh):
     if not mesh:
         mesh = bpy.data.meshes.new(name)
     cobj = obj = bpy.data.objects.new(pref+name, mesh)
-    bpy.context.scene.objects.link(obj)
     # pref acts as an "is mesh collider" bool
     if pref:
-        bpy.context.scene.objects.unlink(obj)
         cobj = obj
-        scene = collider_scene ()
-        scene.objects.link(obj)
-        group = bpy.data.groups.new(name)
-        group.objects.link(obj)
+        collection = collider_collection (name)
+        collection.objects.link(obj)
         obj = bpy.data.objects.new(name, None)
-        obj.empty_draw_size = 0.3
-        obj.dupli_type = 'GROUP'
-        obj.dupli_group = group
-        bpy.context.scene.objects.link(obj)
+        obj.empty_display_size = 0.3
+        obj.dupli_type = 'COLLECTION'
+        obj.dupli_group = collection
+        bpy.context.layer_collection.collection.objects.link(obj)
+    else:
+        bpy.context.layer_collection.collection.objects.link(obj)
     return obj, cobj
 
 def add_collider(self, context):
     context.user_preferences.edit.use_global_undo = False
     for obj in context.scene.objects:
-        obj.select = False
+        obj.select_set('DESELECT')
     mesh = None
-    if type(self) == ColliderMesh:
+    if type(self) == KSPMU_OT_ColliderMesh:
         mesh = bpy.data.meshes.new("collider")
     obj, cobj = create_collider_object("collider", mesh)
     obj.location = context.scene.cursor_location
-    obj.select = True
-    if type(self) == ColliderMesh:
+    obj.select_set('SELECT')
+    if type(self) == KSPMU_OT_ColliderMesh:
         obj.muproperties.collider = 'MU_COL_MESH'
-    elif type(self) == ColliderSphere:
+    elif type(self) == KSPMU_OT_ColliderSphere:
         obj.muproperties.radius = self.radius
         obj.muproperties.center = self.center
         obj.muproperties.collider = 'MU_COL_SPHERE'
-    elif type(self) == ColliderCapsule:
+    elif type(self) == KSPMU_OT_ColliderCapsule:
         obj.muproperties.radius = self.radius
         obj.muproperties.height = self.height
         obj.muproperties.direction = self.direction
         obj.muproperties.center = self.center
         obj.muproperties.collider = 'MU_COL_CAPSULE'
-    elif type(self) == ColliderBox:
+    elif type(self) == KSPMU_OT_ColliderBox:
         obj.muproperties.size = self.size
         obj.muproperties.center = self.center
         obj.muproperties.collider = 'MU_COL_BOX'
-    elif type(self) == ColliderWheel:
+    elif type(self) == KSPMU_OT_ColliderWheel:
         obj.muproperties.radius = self.radius
         obj.muproperties.center = self.center
         obj.muproperties.collider = 'MU_COL_WHEEL'
 
     build_collider(cobj, obj.muproperties)
-    context.scene.objects.active=obj
+    context.view_layer.objects.active=obj
 
     context.user_preferences.edit.use_global_undo = True
     return {'FINISHED'}
@@ -251,9 +244,9 @@ def add_mesh_colliders(self, context, convex):
     bpy.context.user_preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
-        if not obj.select:
+        if not obj.select_get():
             continue
-        obj.select = False
+        obj.select_set('DESELECT')
         if obj.type != 'MESH':
             continue
         name = obj.name + ".collider"
@@ -262,8 +255,8 @@ def add_mesh_colliders(self, context, convex):
             mesh = quickhull(mesh)
         col = bpy.data.objects.new(name, mesh)
         col.parent = obj
-        col.select = True
-        context.scene.objects.link(col)
+        col.select_set('SELECT')
+        context.scene.collection.objects.link(col)
         col.muproperties.collider = 'MU_COL_MESH'
 
     context.user_preferences.edit.use_global_undo = undo
@@ -275,7 +268,7 @@ def make_mesh_colliders(self, context):
     bpy.context.user_preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
-        if not obj.select:
+        if not obj.select_get():
             continue
         if obj.type != 'MESH':
             continue

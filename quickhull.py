@@ -58,18 +58,18 @@ def quickhull_op(self, context):
     bpy.context.user_preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
-        if not obj.select:
+        if not obj.select_get():
             continue
-        obj.select = False
+        obj.select_set('DESELECT')
         mesh = obj.to_mesh(context.scene, True, 'PREVIEW')
         if not mesh or not mesh.vertices:
             continue
         mesh = quickhull(mesh)
         hullobj = bpy.data.objects.new("ConvexHull", mesh)
-        bpy.context.scene.objects.link(hullobj)
-        hullobj.select = True
+        bpy.context.scene.collection.objects.link(hullobj)
+        hullobj.select_set('SELECT')
         hullobj.location = obj.location
-        bpy.context.scene.objects.active = hullobj
+        bpy.context.view_layer.objects.active = hullobj
 
     bpy.context.user_preferences.edit.use_global_undo = undo
     return {'FINISHED'}

@@ -49,10 +49,10 @@ class MuFrictionProp(bpy.types.PropertyGroup):
     def draw(self, context, layout):
         row = layout.row()
         col = row.column()
-        col.label("Extremum")
+        col.label(text="Extremum")
         col.prop(self, "extremumSlip")
         col.prop(self, "extremumValue")
-        col.label("Asymptote")
+        col.label(text="Asymptote")
         col.prop(self, "asymptoteSlip")
         col.prop(self, "asymptoteValue")
         col.separator()
@@ -298,7 +298,7 @@ class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
             col.prop(muprops, "isTrigger")
             col.prop(muprops, "radius")
             col.prop(muprops, "height")
-            col.prop(muprops, "direction")
+            col.row().prop(muprops, "direction", expand=True)
             col.prop(muprops, "center")
         elif muprops.collider == 'MU_COL_BOX':
             col.prop(muprops, "isTrigger")
@@ -311,13 +311,13 @@ class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
             col.prop(muprops, "mass")
             col.prop(muprops, "suspensionDistance")
             box = col.box()
-            box.label("Suspension")
+            box.label(text="Suspension")
             muprops.suspensionSpring.draw(context, box)
             box = col.box()
-            box.label("Forward Friction")
+            box.label(text="Forward Friction")
             muprops.forwardFriction.draw(context, box.box())
             box = col.box()
-            box.label("Side Friction")
+            box.label(text="Side Friction")
             muprops.sideFriction.draw(context, box.box())
 
 classes = (

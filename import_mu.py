@@ -52,6 +52,7 @@ def create_mesh(mu, mumesh, name):
         create_uvs(mu, mumesh.uvs, mesh, "UV")
     if mumesh.uv2s:
         create_uvs(mu, mumesh.uv2s, mesh, "UV2")
+    mesh.update()
     return mesh
 
 def create_mesh_object(name, mesh, transform):
@@ -313,7 +314,7 @@ def create_object(scene, mu, muobj, parent, create_colliders):
             obj = create_camera(mu, muobj.camera, muobj.transform)
     if not obj:
         obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
-    scene.objects.link(obj)
+    scene.collection.objects.link(obj)
     if hasattr(muobj, "tag_and_layer"):
         obj.muproperties.tag = muobj.tag_and_layer.tag
         obj.muproperties.layer = muobj.tag_and_layer.layer
@@ -473,9 +474,9 @@ def import_mu_op(self, context, filepath, create_colliders):
         return {'CANCELLED'}
     else:
         for o in bpy.context.scene.objects:
-            o.select = False
-        scene.objects.active = obj
-        obj.select = True
+            o.select_set('DESELECT')
+        bpy.context.view_layer.objects.active = obj
+        obj.select_set('SELECT')
         return {'FINISHED'}
     finally:
         bpy.context.user_preferences.edit.use_global_undo = undo
