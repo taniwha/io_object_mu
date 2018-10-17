@@ -73,6 +73,7 @@ def create_mesh(mu, mumesh, name):
 
 def create_mesh_object(name, mesh, transform):
     obj = bpy.data.objects.new(name, mesh)
+    bpy.context.view_layer.objects.active = obj
     obj.rotation_mode = 'QUATERNION'
     if transform:
         obj.location = Vector(transform.localPosition)
@@ -105,6 +106,7 @@ def create_light(mu, mulight, transform):
     if ltype == 'SPOT' and hasattr(mulight, "spotAngle"):
         light.spot_size = mulight.spotAngle * pi / 180
     obj = bpy.data.objects.new(transform.name, light)
+    bpy.context.view_layer.objects.active = obj
     obj.rotation_mode = 'QUATERNION'
     obj.location = Vector(transform.localPosition)
     # Blender points spotlights along local -Z, unity along local +Z
@@ -126,6 +128,7 @@ def create_camera(mu, mucamera, transform):
     camera.clip_start = mucamera.near
     camera.clip_end = mucamera.far
     obj = bpy.data.objects.new(transform.name, camera)
+    bpy.context.view_layer.objects.active = obj
     obj.rotation_mode = 'QUATERNION'
     obj.location = Vector(transform.localPosition)
     # Blender points cameras along local -Z, unity along local +Z
