@@ -36,12 +36,11 @@ from .mu import MuColliderBox, MuColliderWheel
 from .shader import make_shader
 from . import collider, properties
 
-def create_uvs(mu, uvs, mesh, name):
-    uvlay = mesh.uv_textures.new(name)
-    uvloop = mesh.uv_layers[name]
-    for i, uvl in enumerate(uvloop.data):
-        v = mesh.loops[i].vertex_index
-        uvl.uv = uvs[v]
+def create_uvs(mu, uvs, bm, name):
+    layer = bm.loops.layers.uv.new(name)
+    for face in bm.faces:
+        for loop in face.loops:
+            loop[layer].uv = uvs[loop.vert.index]
 
 def create_mesh(mu, mumesh, name):
     mesh = bpy.data.meshes.new(name)
@@ -58,10 +57,10 @@ def create_mesh(mu, mumesh, name):
         bm.faces.new([bv[i] for i in f])
     bm.faces.index_update()
     bm.faces.ensure_lookup_table()
-    #if mumesh.uvs:
-    #    create_uvs(mu, mumesh.uvs, mesh, "UV")
-    #if mumesh.uv2s:
-    #    create_uvs(mu, mumesh.uv2s, mesh, "UV2")
+    if mumesh.uvs:
+        create_uvs(mu, mumesh.uvs, bm, "UV")
+    if mumesh.uv2s:
+        create_uvs(mu, mumesh.uv2s, bm, "UV2")
     bm.to_mesh(mesh)
     return mesh
 
@@ -380,6 +379,7 @@ def load_mbm(mbmpath):
 def load_image(name, path, type):
     if name[-4:].lower() in [".dds", ".png", ".tga"]:
         img = bpy.data.images.load(os.path.join(path, name))
+        img.name = img.name[:-4]
         if name[-4:].lower() == ".dds":
             pixels = list(img.pixels[:])
             rowlen = img.size[0] * 4
@@ -397,7 +397,7 @@ def load_image(name, path, type):
             img.pack(as_png=True)
     elif name[-4:].lower() == ".mbm":
         w,h, pixels = load_mbm(os.path.join(path, name))
-        img = bpy.data.images.new(name, w, h)
+        img = bpy.data.images.new(name[:-4], w, h)
         img.pixels[:] = map(lambda x: x / 255.0, pixels)
         img.pack(True)
     img.alpha_mode = 'STRAIGHT'
@@ -419,7 +419,7 @@ def create_textures(mu, path):
                 load_image(name, path, tex.type)
                 tx = bpy.data.textures.new(tex.name, 'IMAGE')
                 tx.use_preview_alpha = True
-                tx.image = bpy.data.images[name]
+                tx.image = bpy.data.images[base]
                 break
             except FileNotFoundError:
                 continue

@@ -40,27 +40,33 @@ from .textureprops import MuMaterialTexturePropertySet
 from .vectorprops import MuMaterialVectorPropertySet
 
 mainTex_block = (
-    ("node", "Output", 'ShaderNodeOutput', (630, 730)),
-    ("node", "mainMaterial", 'ShaderNodeMaterial', (70, 680)),
-    ("node", "geometry", 'ShaderNodeGeometry', (-590, 260)),
-    ("node", "mainTex", 'ShaderNodeTexture', (-380, 480)),
-    ("link", "geometry", "UV", "mainTex", "Vector"),
-    ("link", "mainTex", "Color", "mainMaterial", "Color"),
-    ("settex", "mainTex", "texture", "_MainTex"),
-    ("link", "mainMaterial", "Color", "Output", "Color"),
+    ("node", "mainTex", 'ShaderNodeTexImage', (-460, 300)),
+    ("node", "uv", 'ShaderNodeUVMap', (-640, 120)),
+    ("link", "uv", "UV", "mainTex", "Vector"),
+    ("settex", "mainTex", "image", "_MainTex"),
+)
+
+specularity_block = (
+    ("node", "specular", 'ShaderNodeEeveeSpecular', (60, 320)),
+    ("node", "shininess", 'ShaderNodeMath', (-140, 240)),
+    ("link", "mainTex", "Color", "specular", "Base Color"),
+    ("link", "mainTex", "Alpha", "shininess", "inputs[1]"),
+    ("link", "shininess", "outputs[0]", "specular", "Roughness"),
+    ("set", "specular", "inputs['Specular'].default_value", "color.properties", "_SpecColor"),
+    ("setval", "shininess", "inputs[0].default_value", 1),
+    ("setval", "shininess", "hide", True),
 )
 
 specular_block = (
-    ("node", "specColor", 'ShaderNodeValToRGB', (-210, 410)),
-    ("link", "mainTex", "Value", "specColor", "Fac"),
-    ("link", "specColor", "Color", "mainMaterial", "Spec"),
-    ("set", "specColor", "color_ramp.elements[1].color", "color.properties", "_SpecColor"),
-    #FIXME shinines
+    ("node", "output", 'ShaderNodeOutputMaterial', (230, 320)),
+    ("node", "geometry", 'ShaderNodeNewGeometry', (-140, 200)),
+    ("link", "specular", "BSDF", "output", "Surface"),
+    ("link", "geometry", "Normal", "specular", "Normal"),
 )
 
 bumpmap_block = (
     ("node", "bumpMap", 'ShaderNodeMaterial', (-380, 480)),
-    ("link", "bumpMap", "Normal", "mainMaterial", "Normal"),
+    ("link", "bumpMap", "Normal", "diffuseShader", "Normal"),
     ("call", "bumpMap", "material.texture_slots.add()"),
     ("settex", "bumpMap", "material.texture_slots[0].texture", "_BumpMap"),
     ("setval", "bumpMap", "material.texture_slots[0].texture.use_normal_map", True),
@@ -83,7 +89,7 @@ emissive_block = (
     ("setval", "emissiveMaterial", "use_specular", False),
     ("setval", "emissiveMaterial", "material.emit", 1.0),
     ("node", "mix", 'ShaderNodeMixRGB', (430, 610)),
-    ("link", "mainMaterial", "Color", "mix", "Color1"),
+    ("link", "diffuseShader", "Color", "mix", "Color1"),
     ("link", "emissiveMaterial", "Color", "mix", "Color2"),
     ("link", "mix", "Color", "Output", "Color"),
     ("setval", "mix", "blend_type", 'ADD'),
@@ -97,13 +103,13 @@ alpha_cutoff_block = (
     ("set", "alphaCutoff", "inputs[1].default_value", "float3.properties", "_Cutoff"),
 )
 
-ksp_specular = mainTex_block + specular_block
+ksp_specular = mainTex_block + specularity_block + specular_block
 ksp_bumped = mainTex_block + bumpmap_block
-ksp_bumped_specular = mainTex_block + specular_block + bumpmap_block
+ksp_bumped_specular = mainTex_block + specularity_block + bumpmap_block
 ksp_emissive_diffuse = mainTex_block + emissive_block
-ksp_emissive_specular = mainTex_block + emissive_block + specular_block
+ksp_emissive_specular = mainTex_block + emissive_block + specularity_block
 ksp_emissive_bumped_specular = (mainTex_block + emissive_block
-                                + specular_block + bumpmap_block)
+                                + specularity_block + bumpmap_block)
 ksp_alpha_cutoff = mainTex_block + alpha_cutoff_block
 ksp_alpha_cutoff_bumped = mainTex_block + alpha_cutoff_block + bumpmap_block
 ksp_alpha_translucent = ()
@@ -134,6 +140,11 @@ ksp_shaders = {
 
 def node_node(name, nodes, s):
     n = nodes.new(s[2])
+    #print(s[2])
+    #for i in n.inputs:
+    #    print(i.name)
+    #for o in n.outputs:
+    #    print(o.name)
     n.name = "%s.%s" % (name, s[1])
     n.label = s[1]
     n.location = s[3]
@@ -143,7 +154,15 @@ def node_node(name, nodes, s):
 def node_link(name, nodes, links, s):
     n1 = nodes["%s.%s" % (name, s[1])]
     n2 = nodes["%s.%s" % (name, s[3])]
-    links.new(n1.outputs[s[2]], n2.inputs[s[4]])
+    if s[2][:7] == "outputs":
+        op = eval("n1.%s" % s[2])
+    else:
+        op = n1.outputs[s[2]]
+    if s[4][:6] == "inputs":
+        ip = eval("n2.%s" % s[4])
+    else:
+        ip = n2.inputs[s[4]]
+    links.new(op, ip)
 
 def node_set(name, matprops, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
@@ -153,12 +172,17 @@ def node_set(name, matprops, nodes, s):
 def node_settex(name, matprops, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
     tex = matprops.texture.properties[s[3]]
-    if tex.tex in bpy.data.textures:
-        tex = bpy.data.textures[tex.tex]
+    img = tex.tex
+    if img[-4:-3] == ".":
+        img = img[:-4]
+    print("img =", img)
+    if img in bpy.data.images:
+        tex = bpy.data.images[img]
         exec("n.%s = tex" % s[2], {}, locals())
 
 def node_setval(name, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
+    #print(s)
     exec("n.%s = %s" % (s[2], repr(s[3])), {}, locals())
 
 def node_call(name, nodes, s):
@@ -177,6 +201,7 @@ def create_nodes(mat):
         print("Unknown shader: '%s'" % mat.mumatprop.shaderName)
         return
     shader = ksp_shaders[mat.mumatprop.shaderName]
+    print(mat.mumatprop.shaderName)
     for s in shader:
         #print(s)
         try :
@@ -361,8 +386,8 @@ class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
         r = col.row(align=True)
         r.menu("IO_OBJECT_MU_MT_shader_presets",
                text=IO_OBJECT_MU_OT_shader_presets.bl_label)
-        r.operator("io_object_mu.shader_presets", text="", icon='ZOOMIN')
-        r.operator("io_object_mu.shader_presets", text="", icon='ZOOMOUT').remove_active = True
+        r.operator("io_object_mu.shader_presets", text="", icon='ADD')
+        r.operator("io_object_mu.shader_presets", text="", icon='REMOVE').remove_active = True
         col.prop(matprops, "name")
         col.prop(matprops, "shaderName")
         draw_property_list(layout, matprops.texture, "texture")
