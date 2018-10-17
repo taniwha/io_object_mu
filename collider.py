@@ -376,11 +376,11 @@ class INFO_MT_mucollider_add(bpy.types.Menu):
         layout.operator("mucollider.box", text = "Box");
         layout.operator("mucollider.wheel", text = "Wheel");
 
-class VIEW3D_PT_tools_mu_collider(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+class WORKSPACE_PT_tools_mu_collider(bpy.types.Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
     bl_category = "Mu Tools"
-    bl_context = "objectmode"
+    bl_context = ".workspace"
     bl_label = "Add Mu Collider"
 
     def draw(self, context):
@@ -410,7 +410,7 @@ classes = (
     KSPMU_OT_ColliderBox,
     KSPMU_OT_ColliderWheel,
     INFO_MT_mucollider_add,
-    VIEW3D_PT_tools_mu_collider,
+    WORKSPACE_PT_tools_mu_collider,
 )
 
 menus = (

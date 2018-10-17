@@ -223,11 +223,11 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
         context.window_manager.invoke_search_popup(self)
         return {'CANCELLED'}
 
-class VIEW3D_PT_tools_mu_props(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+class WORKSPACE_PT_tools_mu_props(bpy.types.Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
     bl_category = "Mu Tools"
-    bl_context = "objectmode"
+    bl_context = ".workspace"
     bl_label = "Prop Tools"
 
     def draw(self, context):
@@ -251,7 +251,7 @@ classes = (
     KSPMU_OT_ImportProp,
     KSPMU_OT_MakeProps,
     OBJECT_OT_add_ksp_prop,
-    VIEW3D_PT_tools_mu_props,
+    WORKSPACE_PT_tools_mu_props,
 )
 
 menus = (
