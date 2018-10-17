@@ -99,7 +99,7 @@ def copy_friction(dst, src):
 
 def create_light(mu, mulight, transform):
     ltype = ('SPOT', 'SUN', 'POINT', 'AREA')[mulight.type]
-    light = bpy.data.lamps.new(transform.name, ltype)
+    light = bpy.data.lights.new(transform.name, ltype)
     light.color = mulight.color[:3]
     light.distance = mulight.range
     light.energy = mulight.intensity
@@ -113,7 +113,7 @@ def create_light(mu, mulight, transform):
     # which is Blender's +Y, so rotate 90 degrees around local X to
     # go from Unity to Blender
     rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
-    obj.rotation_quaternion = Quaternion(transform.localRotation) * rot
+    obj.rotation_quaternion = Quaternion(transform.localRotation) @ rot
     obj.scale = Vector(transform.localScale)
     properties.SetPropMask(obj.muproperties.cullingMask, mulight.cullingMask)
     return obj
@@ -135,7 +135,7 @@ def create_camera(mu, mucamera, transform):
     # which is Blender's +Y, so rotate 90 degrees around local X to
     # go from Unity to Blender
     rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
-    obj.rotation_quaternion = Quaternion(transform.localRotation) * rot
+    obj.rotation_quaternion = Quaternion(transform.localRotation) @ rot
     obj.scale = Vector(transform.localScale)
     properties.SetPropMask(obj.muproperties.cullingMask, mucamera.cullingMask)
     obj.muproperties.backgroundColor = mucamera.backgroundColor

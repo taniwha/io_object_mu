@@ -76,24 +76,16 @@ bumpmap_block = (
 )
 
 emissive_block = (
-    ("node", "emissive", 'ShaderNodeTexture', (-400, 40)),
-    ("node", "emissiveConvert", 'ShaderNodeRGBToBW', (-230, 30)),
-    ("node", "emissiveColor", 'ShaderNodeValToRGB', (-50, 180)),
-    ("node", "emissiveMaterial", 'ShaderNodeMaterial', (230, 400)),
-    ("link", "geometry", "UV", "emissive", "Vector"),
-    ("link", "emissive", "Color", "emissiveConvert", "Color"),
-    ("link", "emissiveConvert", "Val", "emissiveColor", "Fac"),
-    ("link", "emissiveColor", "Color", "emissiveMaterial", "Color"),
-    ("settex", "emissive", "texture", "_Emissive"),
-    ("set", "emissiveColor", "color_ramp.elements[1].color", "color.properties", "_EmissiveColor"),
-    ("setval", "emissiveMaterial", "use_specular", False),
-    ("setval", "emissiveMaterial", "material.emit", 1.0),
-    ("node", "mix", 'ShaderNodeMixRGB', (430, 610)),
-    ("link", "diffuseShader", "Color", "mix", "Color1"),
-    ("link", "emissiveMaterial", "Color", "mix", "Color2"),
-    ("link", "mix", "Color", "Output", "Color"),
-    ("setval", "mix", "blend_type", 'ADD'),
-    ("setval", "mix", "inputs['Fac'].default_value", 1.0),
+    ("node", "emissive", 'ShaderNodeTexImage', (-460, -20)),
+    ("node", "emissiveColor", 'ShaderNodeRGB', (-460, -300)),
+    ("node", "emissiveMult", 'ShaderNodeMixRGB', (-140, -20)),
+    ("set", "emissiveColor", "outputs[0].default_value", "color.properties", "_EmissiveColor"),
+    ("setval", "emissiveMult", "blend_type", 'MULTIPLY'),
+    ("link", "uv", "UV", "emissive", "Vector"),
+    ("link", "emissive", "Color", "emissiveMult", "inputs[1]"),
+    ("link", "emissiveColor", "Color", "emissiveMult", "inputs[2]"),
+    ("link", "emissiveMult", "Color", "specular", "Emissive Color"),
+    ("settex", "emissive", "image", "_Emissive"),
 )
 
 alpha_cutoff_block = (
@@ -107,7 +99,8 @@ ksp_specular = mainTex_block + specularity_block + specular_block
 ksp_bumped = mainTex_block + bumpmap_block
 ksp_bumped_specular = mainTex_block + specularity_block + bumpmap_block
 ksp_emissive_diffuse = mainTex_block + emissive_block
-ksp_emissive_specular = mainTex_block + emissive_block + specularity_block
+ksp_emissive_specular = ksp_specular + emissive_block
+ksp_emissive_specular = mainTex_block + specularity_block + specular_block + emissive_block
 ksp_emissive_bumped_specular = (mainTex_block + emissive_block
                                 + specularity_block + bumpmap_block)
 ksp_alpha_cutoff = mainTex_block + alpha_cutoff_block
@@ -320,8 +313,8 @@ def panel_func(self, context):
 
     row = layout.row(align=True)
     row.menu(OBJECT_MT_draw_presets.__name__, text=OBJECT_MT_draw_presets.bl_label)
-    row.operator(AddPresetObjectDraw.bl_idname, text="", icon='ZOOMIN')
-    row.operator(AddPresetObjectDraw.bl_idname, text="", icon='ZOOMOUT').remove_active = True
+    row.operator(AddPresetObjectDraw.bl_idname, text="", icon='ADD')
+    row.operator(AddPresetObjectDraw.bl_idname, text="", icon='REMOVE').remove_active = True
 
 class MuMaterialProperties(bpy.types.PropertyGroup):
     name: StringProperty(name="Name")
@@ -357,8 +350,8 @@ def draw_property_list(layout, propset, propsetname):
         col = row.column(align=True)
         add_op = "object.mushaderprop_add"
         rem_op = "object.mushaderprop_remove"
-        col.operator(add_op, icon='ZOOMIN', text="").propertyset = propsetname
-        col.operator(rem_op, icon='ZOOMOUT', text="").propertyset = propsetname
+        col.operator(add_op, icon='ADD', text="").propertyset = propsetname
+        col.operator(rem_op, icon='REMOVE', text="").propertyset = propsetname
         if len(propset.properties) > propset.index >= 0:
             propset.draw_item(box)
 
