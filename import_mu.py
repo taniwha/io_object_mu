@@ -382,7 +382,8 @@ def load_image(name, path, type):
                 pixels[ind2:ind2+rowlen] = t
             if type == 1 or name[-6:-4].lower() == "_n":
                 type = 1
-                pixels = convert_bump(pixels, img.size[0], height)
+                if name[-7:-4].lower() != "nrm":
+                    pixels = convert_bump(pixels, img.size[0], height)
             img.pixels = pixels[:]
             img.pack(True)
     elif name[-4:].lower() == ".mbm":
