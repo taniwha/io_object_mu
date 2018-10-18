@@ -39,79 +39,142 @@ from .float3props import MuMaterialFloat3PropertySet
 from .textureprops import MuMaterialTexturePropertySet
 from .vectorprops import MuMaterialVectorPropertySet
 
-mainTex_block = (
-    ("node", "mainTex", 'ShaderNodeTexImage', (-460, 300)),
-    ("node", "uv", 'ShaderNodeUVMap', (-640, 120)),
-    ("link", "uv", "UV", "mainTex", "Vector"),
-    ("settex", "mainTex", "image", "_MainTex"),
+main_block = (
+    ("node", "UV Map", 'ShaderNodeUVMap', (-920, -80)),
+    ("setval", "UV Map", "label", ""),
+    ("node", "Principled BSDF", 'ShaderNodeBsdfPrincipled', (-100, 280)),
+    ("setval", "Principled BSDF", "label", ""),
+    ("node", "Emission", 'ShaderNodeEmission', (-100, -280)),
+    ("setval", "Emission", "label", ""),
+    ("setval", "Emission", "inputs[0].default_value", (0,0,0,1)),
+    ("node", "Reroute0", 'NodeReroute', (180, -320)),
+    ("setval", "Reroute0", "label", ""),
+    ("node", "Reroute1", 'NodeReroute', (180, 220)),
+    ("setval", "Reroute1", "label", ""),
+    ("node", "Add Shader", 'ShaderNodeAddShader', (200, 260)),
+    ("setval", "Add Shader", "label", ""),
+    ("setval", "Add Shader", "hide", True),
+    ("node", "Material Output", 'ShaderNodeOutputMaterial', (320, 260)),
+    ("setval", "Material Output", "label", ""),
+    ("setval", "Material Output", "hide", True),
+    ("link", "Principled BSDF", "BSDF", "Add Shader", "inputs[0]"),
+    ("link", "Add Shader", "Shader", "Material Output", "Surface"),
+    ("link", "Emission", "Emission", "Reroute0", "Input"),
+    ("link", "Reroute0", "Output", "Reroute1", "Input"),
+    ("link", "Reroute1", "Output", "Add Shader", "inputs[1]"),
+)
+
+transparency_block = (
+    ("link", "_MainTex:invertAlpha", "Value", "Principled BSDF", "Transmission"),
 )
 
 specularity_block = (
-    ("node", "specular", 'ShaderNodeEeveeSpecular', (60, 320)),
-    ("node", "shininess", 'ShaderNodeMath', (-140, 240)),
-    ("link", "mainTex", "Color", "specular", "Base Color"),
-    ("link", "mainTex", "Alpha", "shininess", "inputs[1]"),
-    ("link", "shininess", "outputs[0]", "specular", "Roughness"),
-    ("set", "specular", "inputs['Specular'].default_value", "color.properties", "_SpecColor"),
-    ("setval", "shininess", "inputs[0].default_value", 1),
-    ("setval", "shininess", "hide", True),
+    ("link", "_MainTex:invertAlpha", "Value", "Principled BSDF", "Roughness"),
 )
 
-specular_block = (
-    ("node", "output", 'ShaderNodeOutputMaterial', (230, 320)),
-    ("node", "geometry", 'ShaderNodeNewGeometry', (-140, 200)),
-    ("link", "specular", "BSDF", "output", "Surface"),
-    ("link", "geometry", "Normal", "specular", "Normal"),
+mainTex_block = (
+    ("node", "_MainTex:frame", 'NodeFrame', (-820, 200)),
+    ("setval", "_MainTex:frame", "label", "_MainTex"),
+    ("setval", "_MainTex:frame", "hide", True),
+    ("node", "_MainTex:texture", 'ShaderNodeTexImage', (120, 60)),
+    ("setval", "_MainTex:texture", "label", "Texture"),
+    ("setval", "_MainTex:texture", "hide", True),
+    ("settex", "_MainTex:texture", "image", "_MainTex"),
+    ("setparent", "_MainTex:texture", "_MainTex:frame"),
+    ("node", "_MainTex:mapping", 'ShaderNodeMapping', (0, 60)),
+    ("setval", "_MainTex:mapping", "label", "Mapping"),
+    ("setval", "_MainTex:mapping", "hide", True),
+    ("setparent", "_MainTex:mapping", "_MainTex:frame"),
+    ("node", "_Color", 'ShaderNodeRGB', (120, 0)),
+    ("setval", "_Color", "label", "_Color"),
+    ("setval", "_Color", "hide", True),
+    ("setval", "_Color", "outputs[0].default_value", (1,1,1,1)),
+    ("setparent", "_Color", "_MainTex:frame"),
+    ("node", "_MainTex:invertAlpha", 'ShaderNodeMath', (240, 0)),
+    ("setval", "_MainTex:invertAlpha", "label", "Invert Alpha"),
+    ("setval", "_MainTex:invertAlpha", "hide", True),
+    ("setval", "_MainTex:invertAlpha", "operation", 'SUBTRACT'),
+    ("setparent", "_MainTex:invertAlpha", "_MainTex:frame"),
+    ("node", "_MainTex:multiply", 'ShaderNodeMixRGB', (240, 60)),
+    ("setval", "_MainTex:multiply", "label", ""),
+    ("setval", "_MainTex:multiply", "hide", True),
+    ("setval", "_MainTex:multiply", "blend_type", 'MULTIPLY'),
+    ("setparent", "_MainTex:multiply", "_MainTex:frame"),
+    ("link", "UV Map", "UV", "_MainTex:mapping", "Vector"),
+    ("link", "_MainTex:mapping", "Vector", "_MainTex:texture", "Vector"),
+    ("link", "_MainTex:texture", "Color", "_MainTex:multiply", "Color1"),
+    ("link", "_Color", "Color", "_MainTex:multiply", "Color2"),
+    ("link", "_MainTex:texture", "Alpha", "_MainTex:invertAlpha", "inputs[1]"),
+    ("link", "_MainTex:multiply", "Color", "Principled BSDF", "Base Color"),
 )
 
 bumpmap_block = (
-    ("node", "bumpMap", 'ShaderNodeMaterial', (-380, 480)),
-    ("link", "bumpMap", "Normal", "diffuseShader", "Normal"),
-    ("call", "bumpMap", "material.texture_slots.add()"),
-    ("settex", "bumpMap", "material.texture_slots[0].texture", "_BumpMap"),
-    ("setval", "bumpMap", "material.texture_slots[0].texture.use_normal_map", True),
-    ("setval", "bumpMap", "material.texture_slots[0].texture_coords", 'UV'),
-    ("setval", "bumpMap", "material.texture_slots[0].use_map_color_diffuse", False),
-    ("setval", "bumpMap", "material.texture_slots[0].use_map_normal", True),
+    ("node", "_BumpMap:frame", 'NodeFrame', (-800, -40)),
+    ("setval", "_BumpMap:frame", "label", "_BumpMap"),
+    ("settex", "_BumpMap:texture", "image", "_BumpMap"),
+    ("node", "_BumpMap:mapping", 'ShaderNodeMapping', (0, 0)),
+    ("setval", "_BumpMap:mapping", "label", "Mapping"),
+    ("setval", "_BumpMap:mapping", "hide", True),
+    ("setparent", "_BumpMap:mapping", "_BumpMap:frame"),
+    ("node", "_BumpMap:texture", 'ShaderNodeTexImage', (120, 0)),
+    ("setval", "_BumpMap:texture", "label", "Normal Map"),
+    ("setval", "_BumpMap:texture", "hide", True),
+    ("setparent", "_BumpMap:texture", "_BumpMap:frame"),
+    ("node", "_BumpMap:normal", 'ShaderNodeNormalMap', (240, 0)),
+    ("setval", "_BumpMap:normal", "label", ""),
+    ("setval", "_BumpMap:normal", "hide", True),
+    ("setparent", "_BumpMap:normal", "_BumpMap:frame"),
+    ("link", "UV Map", "UV", "_BumpMap:mapping", "Vector"),
+    ("link", "_BumpMap:mapping", "Vector", "_BumpMap:texture", "Vector"),
+    ("link", "_BumpMap:texture", "Color", "_BumpMap:normal", "Color"),
+    ("link", "_BumpMap:normal", "Normal", "Principled BSDF", "Normal"),
 )
 
 emissive_block = (
-    ("node", "emissive", 'ShaderNodeTexImage', (-460, -20)),
-    ("node", "emissiveColor", 'ShaderNodeRGB', (-460, -300)),
-    ("node", "emissiveMult", 'ShaderNodeMixRGB', (-140, -20)),
-    ("set", "emissiveColor", "outputs[0].default_value", "color.properties", "_EmissiveColor"),
-    ("setval", "emissiveMult", "blend_type", 'MULTIPLY'),
-    ("link", "uv", "UV", "emissive", "Vector"),
-    ("link", "emissive", "Color", "emissiveMult", "inputs[1]"),
-    ("link", "emissiveColor", "Color", "emissiveMult", "inputs[2]"),
-    ("link", "emissiveMult", "Color", "specular", "Emissive Color"),
-    ("settex", "emissive", "image", "_Emissive"),
+    ("node", "_Emissive:frame", 'NodeFrame', (-800, -180)),
+    ("setval", "_Emissive:frame", "label", "_Emissive"),
+    ("node", "_EmissiveColor", 'ShaderNodeRGB', (120, 0)),
+    ("setval", "_EmissiveColor", "label", "_EmissiveColor"),
+    ("setval", "_EmissiveColor", "hide", True),
+    ("setparent", "_EmissiveColor", "_Emissive:frame"),
+    ("node", "_Emissive:mapping", 'ShaderNodeMapping', (0, 60)),
+    ("setval", "_Emissive:mapping", "label", "Mapping"),
+    ("setval", "_Emissive:mapping", "hide", True),
+    ("setparent", "_Emissive:mapping", "_Emissive:frame"),
+    ("node", "_Emissive:texture", 'ShaderNodeTexImage', (120, 60)),
+    ("setval", "_Emissive:texture", "label", "Emission Map"),
+    ("setval", "_Emissive:texture", "hide", True),
+    ("settex", "_Emissive:texture", "image", "_Emissive"),
+    ("setparent", "_Emissive:texture", "_Emissive:frame"),
+    ("node", "_Emissive:multiply", 'ShaderNodeMixRGB', (240, 60)),
+    ("setval", "_Emissive:multiply", "label", "Multiply"),
+    ("setval", "_Emissive:multiply", "hide", True),
+    ("setval", "_Emissive:multiply", "blend_type", 'MULTIPLY'),
+    ("setparent", "_Emissive:multiply", "_Emissive:frame"),
+    ("link", "_Emissive:mapping", "Vector", "_Emissive:texture", "Vector"),
+    ("link", "_EmissiveColor", "Color", "_Emissive:multiply", "Color2"),
+    ("link", "_Emissive:texture", "Color", "_Emissive:multiply", "Color1"),
+    ("link", "UV Map", "UV", "_Emissive:mapping", "Vector"),
+    ("link", "_Emissive:multiply", "Color", "Emission", "Color"),
 )
 
-alpha_cutoff_block = (
-    ("node", "alphaCutoff", 'ShaderNodeMath', (-230, 30)),
-    ("link", "mainTex", "Value", "alphaCutoff", 0),
-    ("link", "alphaCutoff", "Value", "Output", "Alpha"),
-    ("set", "alphaCutoff", "inputs[1].default_value", "float3.properties", "_Cutoff"),
-)
-
-ksp_specular = mainTex_block + specularity_block + specular_block
-ksp_bumped = mainTex_block + bumpmap_block
-ksp_bumped_specular = mainTex_block + specularity_block + bumpmap_block
-ksp_emissive_diffuse = mainTex_block + emissive_block
-ksp_emissive_specular = ksp_specular + emissive_block
-ksp_emissive_specular = mainTex_block + specularity_block + specular_block + emissive_block
-ksp_emissive_bumped_specular = (mainTex_block + emissive_block
+ksp_specular = main_block + mainTex_block + specularity_block
+ksp_bumped = main_block + mainTex_block + bumpmap_block
+ksp_bumped_specular = main_block + mainTex_block + specularity_block + bumpmap_block
+ksp_emissive_diffuse = main_block + mainTex_block + emissive_block
+ksp_emissive_specular = (main_block + mainTex_block + emissive_block
+                         + specularity_block)
+ksp_emissive_bumped_specular = (main_block + mainTex_block + emissive_block
                                 + specularity_block + bumpmap_block)
-ksp_alpha_cutoff = mainTex_block + alpha_cutoff_block
-ksp_alpha_cutoff_bumped = mainTex_block + alpha_cutoff_block + bumpmap_block
+ksp_alpha_cutoff = ()
+ksp_alpha_cutoff_bumped = ()
 ksp_alpha_translucent = ()
 ksp_alpha_translucent_specular = ()
 ksp_unlit_transparent = ()
 ksp_unlit = ()
-ksp_diffuse = mainTex_block
-ksp_particles_alpha_blended = mainTex_block
-ksp_particles_additive = mainTex_block
+ksp_diffuse = main_block + mainTex_block
+ksp_particles_alpha_blended = main_block + mainTex_block + transparency_block
+ksp_particles_additive = main_block + mainTex_block
 
 ksp_shaders = {
 "KSP/Specular":ksp_specular,
@@ -178,6 +241,12 @@ def node_setval(name, nodes, s):
     #print(s)
     exec("n.%s = %s" % (s[2], repr(s[3])), {}, locals())
 
+def node_setparent(name, nodes, s):
+    n = nodes["%s.%s" % (name, s[1])]
+    p = "%s.%s" % (name, s[2])
+    #print("n.parent = nodes['%s']" % (p,))
+    exec("n.parent = nodes['%s']" % (p,), {}, locals())
+
 def node_call(name, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
     exec("n.%s" % s[2], {}, locals())
@@ -208,8 +277,12 @@ def create_nodes(mat):
                 node_settex(mat.name, mat.mumatprop, nodes, s)
             elif s[0] == "setval":
                 node_setval(mat.name, nodes, s)
+            elif s[0] == "setparent":
+                node_setparent(mat.name, nodes, s)
             elif s[0] == "call":
                 node_call(mat.name, nodes, s)
+            else:
+                print("unknown shader command", s[0])
         except:
            print("Exception in node setup code:")
            traceback.print_exc(file=sys.stdout)
@@ -336,7 +409,7 @@ class OBJECT_UL_Property_list(bpy.types.UIList):
 def draw_property_list(layout, propset, propsetname):
     box = layout.box()
     row = box.row()
-    row.operator("object.mushaderprop_expand",
+    row.operator("object.mushaderprop_expand", text="",
                  icon='TRIA_DOWN' if propset.expanded else 'TRIA_RIGHT',
                  emboss=False).propertyset = propsetname
     row.label(text = propset.bl_label)
