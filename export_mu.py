@@ -63,9 +63,10 @@ def obj_volume(obj):
         return 0, 0
     if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
         return 0, 0
-    skin_mesh = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
-    ext_mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
-    return calcVolume(skin_mesh), calcVolume(ext_mesh)
+    #FIXME skin_mesh = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+    #FIXME ext_mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
+    #FIXME return calcVolume(skin_mesh), calcVolume(ext_mesh)
+    return 0, 0
 
 def model_volume(obj):
     svols = []
@@ -194,7 +195,8 @@ def make_tangents(verts, uvs, normals, submeshes):
     return tangents
 
 def make_mesh(mu, obj):
-    mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
+    #FIXME mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
+    mesh = obj.to_mesh(bpy.context.depsgraph, True)
     submeshes = build_submeshes(mesh)
     submeshes = make_tris(mesh, submeshes)
     mumesh = MuMesh()
@@ -388,7 +390,7 @@ def make_obj(mu, obj, special, path = ""):
         # uses the transform's +Z (Unity) axis which is Blender's +Y, so
         # rotate 90 degrees around local X to go from Blender to KSP
         rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
-        muobj.transform.localRotation = muobj.transform.localRotation * rot
+        muobj.transform.localRotation = muobj.transform.localRotation @ rot
     if not obj.data and obj.dupli_group:
         group = obj.dupli_group
         for o in group.objects:
@@ -419,14 +421,14 @@ def make_obj(mu, obj, special, path = ""):
             # which is Blender's +Y, so rotate -90 degrees around local X to
             # go from Blender to Unity
             rot = Quaternion((0.5**0.5,-0.5**0.5,0,0))
-            muobj.transform.localRotation = muobj.transform.localRotation * rot
+            muobj.transform.localRotation = muobj.transform.localRotation @ rot
         elif type(obj.data) == bpy.types.Camera:
             muobj.camera = make_camera(mu, obj.data, obj)
             # Blender points camera along local -Z, unity along local +Z
             # which is Blender's +Y, so rotate -90 degrees around local X to
             # go from Blender to Unity
             rot = Quaternion((0.5**0.5,-0.5**0.5,0,0))
-            muobj.transform.localRotation = muobj.transform.localRotation * rot
+            muobj.transform.localRotation = muobj.transform.localRotation @ rot
     for o in obj.children:
         muprops = o.muproperties
         if muprops.modelType in special:

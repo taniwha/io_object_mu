@@ -30,8 +30,8 @@ class AttachNode:
         self.parts = self.name.split("_", 2)
         ind = self.parts[1] == "stack" and 2 or 1
         self.id = "_".join(self.parts[ind:])
-        self.pos = swapyz((inv*obj.matrix_world.col[3])[:3])
-        self.dir = swapyz((inv*obj.matrix_world.col[2])[:3])
+        self.pos = swapyz((inv @ obj.matrix_world.col[3])[:3])
+        self.dir = swapyz((inv @ obj.matrix_world.col[2])[:3])
         self.size = obj.muproperties.nodeSize
         self.method = obj.muproperties.nodeMethod
         self.crossfeed = obj.muproperties.nodeCrossfeed
