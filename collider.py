@@ -31,7 +31,15 @@ from .quickhull import quickhull
 from . import properties
 
 def collider_collection(name):
-    return bpy.data.collections.new("collider:"+name)
+    if "colliders" not in bpy.data.collections:
+        cc = bpy.data.collections.new("colliders")
+        cc.hide_viewport = True
+        cc.hide_render = True
+        cc.hide_select = True
+        bpy.context.scene.collection.children.link(cc)
+    cc = bpy.data.collections.new("collider:"+name)
+    bpy.data.collections["colliders"].children.link(cc)
+    return cc
 
 collider_sphere_ve = (
     [(-1.000, 0.000, 0.000), (-0.866, 0.000, 0.500), (-0.500, 0.000, 0.866),

@@ -308,6 +308,10 @@ def create_collider(mu, muobj):
 def create_object(collection, mu, muobj, parent, create_colliders):
     obj = None
     mesh = None
+    if (not create_colliders and (hasattr(muobj, "shared_mesh")
+                                  or hasattr(muobj, "skinned_mesh_renderer"))
+        and not hasattr(muobj, "renderer")):
+        return None
     if hasattr(muobj, "shared_mesh"):
         mesh = create_mesh(mu, muobj.shared_mesh, muobj.transform.name)
         for poly in mesh.polygons:

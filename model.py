@@ -36,11 +36,11 @@ def collect_objects(name, obj):
     add_to_collection(collection, obj)
     return collection
 
-def compile_model(db, path, type, name, cfg, scene):
+def compile_model(db, path, type, name, cfg, collection):
     nodes = cfg.GetNodes("MODEL")
     if nodes:
         root = bpy.data.objects.new(name+":model", None)
-        scene.collection.objects.link(root)
+        collection.objects.link(root)
         for n in nodes:
             model = n.GetValue("model")
             position = Vector((0, 0, 0))
@@ -54,7 +54,7 @@ def compile_model(db, path, type, name, cfg, scene):
                 scale = parse_vector(n.GetValue("scale"))
             mdl = db.model(model)
             obj = mdl.instantiate(name+":submodel", position, rotation, scale)
-            scene.collection.objects.link(obj)
+            collection.objects.link(obj)
             obj.parent = root
     else:
         mesh = db.model_by_path[path][0]
@@ -64,7 +64,7 @@ def compile_model(db, path, type, name, cfg, scene):
         rotation = Vector((0, 0, 0))
         scale = Vector((1, 1, 1))
         root = model.instantiate(name+":model", position, rotation, scale)
-        scene.collection.objects.link(root)
+        collection.objects.link(root)
     collection = collect_objects(type + ":" + name, root)
     collection.mumodelprops.name = name
     collection.mumodelprops.type = type
@@ -72,7 +72,11 @@ def compile_model(db, path, type, name, cfg, scene):
 
 def loaded_models_collection():
     if "loaded_models" not in bpy.data.collections:
-        return bpy.data.collections.new("loaded_models")
+        lm = bpy.data.collections.new("loaded_models")
+        lm.hide_viewport = True
+        lm.hide_render = True
+        lm.hide_select = True
+        bpy.context.scene.collection.children.link(lm)
     return bpy.data.collections["loaded_models"]
 
 def instantiate_model(model, name, loc, rot, scale):

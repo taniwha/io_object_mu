@@ -30,10 +30,14 @@ from .cfgnode import ConfigNode, ConfigNodeError
 from .parser import parse_float, parse_vector
 from .model import compile_model
 
-def loaded_parts_scene():
-    if "loaded_parts" not in bpy.data.scenes:
-        return bpy.data.scenes.new("loaded_parts")
-    return bpy.data.scenes["loaded_parts"]
+def loaded_parts_collection():
+    if "loaded_parts" not in bpy.data.collections:
+        lp = bpy.data.collections.new("loaded_parts")
+        lp.hide_viewport = True
+        lp.hide_render = True
+        lp.hide_select = True
+        bpy.context.scene.collection.children.link(lp)
+    return bpy.data.collections["loaded_parts"]
 
 class Part:
     @classmethod
@@ -65,7 +69,7 @@ class Part:
     def get_model(self):
         if not self.model:
             self.model = compile_model(self.db, self.path, "part", self.name,
-                                       self.cfg, loaded_parts_scene())
+                                       self.cfg, loaded_parts_collection())
             props = self.model.mumodelprops
             props.config = self.cfg.ToString(-1)
         scale = self.rescaleFactor
