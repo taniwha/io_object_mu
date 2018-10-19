@@ -83,7 +83,7 @@ mainTex_block = (
     ("node", "_MainTex:mapping", 'ShaderNodeMapping', (-600, 140)),
     ("setval", "_MainTex:mapping", "label", "Mapping"),
     ("setval", "_MainTex:mapping", "hide", True),
-    ("setval", "_MainTex:mapping", "vector_type", 'VECTOR'),
+    ("setval", "_MainTex:mapping", "vector_type", 'POINT'),
     ("setparent", "_MainTex:mapping", "_MainTex:frame"),
     ("node", "_Color", 'ShaderNodeRGB', (-480, 80)),
     ("setval", "_Color", "label", "_Color"),
@@ -120,7 +120,7 @@ bumpmap_block = (
     ("node", "_BumpMap:mapping", 'ShaderNodeMapping', (-600, -80)),
     ("setval", "_BumpMap:mapping", "label", "Mapping"),
     ("setval", "_BumpMap:mapping", "hide", True),
-    ("setval", "_BumpMap:mapping", "vector_type", 'VECTOR'),
+    ("setval", "_BumpMap:mapping", "vector_type", 'POINT'),
     ("setparent", "_BumpMap:mapping", "_BumpMap:frame"),
     ("node", "_BumpMap:texture", 'ShaderNodeTexImage', (-480, -80)),
     ("setval", "_BumpMap:texture", "label", "Normal Map"),
@@ -150,7 +150,7 @@ emissive_block = (
     ("node", "_Emissive:mapping", 'ShaderNodeMapping', (-600, -240)),
     ("setval", "_Emissive:mapping", "label", "Mapping"),
     ("setval", "_Emissive:mapping", "hide", True),
-    ("setval", "_Emissive:mapping", "vector_type", 'VECTOR'),
+    ("setval", "_Emissive:mapping", "vector_type", 'POINT'),
     ("setparent", "_Emissive:mapping", "_Emissive:frame"),
     ("node", "_Emissive:texture", 'ShaderNodeTexImage', (-480, -240)),
     ("setval", "_Emissive:texture", "label", "EmissiveShader Map"),
@@ -251,7 +251,8 @@ def node_settex(name, matprops, nodes, s):
         img = img[:-4]
     #FIXME doesn't work
     #offset = tex.offset / tex.scale
-    offset = Vector((tex.offset.x/tex.scale.x, tex.offset.y / tex.scale.y))
+    #offset = Vector((tex.offset.x/tex.scale.x, tex.offset.y / tex.scale.y))
+    offset = tex.offset
     scale = tex.scale
     #print("img =", img)
     if img in bpy.data.images:
