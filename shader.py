@@ -69,6 +69,12 @@ transparency_block = (
     ("matset", "blend_method", 'ADD'), #FIXME should be alpha blend, but...
 )
 
+additive_block = (
+    ("matset", "blend_method", 'ADD'),
+    ("setval", "BaseShader", "inputs[5].default_value", 0),
+    ("setval", "BaseShader", "inputs[7].default_value", 1),
+)
+
 opaque_block = (
     ("matset", "blend_method", 'OPAQUE'),
 )
@@ -192,6 +198,7 @@ ksp_alpha_cutoff = ()
 ksp_alpha_cutoff_bumped = ()
 ksp_alpha_translucent = ()
 ksp_alpha_translucent_specular = main_block + mainTex_block + specularity_block + transparency_block
+ksp_alpha_translucent_additive = main_block + mainTex_block + additive_block
 ksp_unlit_transparent = ()
 ksp_unlit = ()
 ksp_diffuse = main_block + mainTex_block + opaque_block
@@ -209,6 +216,7 @@ ksp_shaders = {
 "KSP/Alpha/Cutoff Bumped":ksp_alpha_cutoff_bumped,
 "KSP/Alpha/Translucent":ksp_alpha_translucent,
 "KSP/Alpha/Translucent Specular":ksp_alpha_translucent_specular,
+"KSP/Alpha/Translucent Additive":ksp_alpha_translucent_additive,
 "KSP/Alpha/Unlit Transparent":ksp_unlit_transparent,
 "KSP/Unlit":ksp_unlit,
 "KSP/Diffuse":ksp_diffuse,
