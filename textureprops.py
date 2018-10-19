@@ -24,18 +24,37 @@ from struct import unpack
 from pprint import pprint
 
 import bpy
+from mathutils import Vector
 from bpy.props import BoolProperty, StringProperty
 from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
 
-def texture_update(self, context):
-    pass
+def texture_update_mapping(self, context):
+    if not hasattr(context, "material"):
+        return
+    mat = context.material
+    node_name = "%s.%s:mapping" % (mat.name, self.name)
+    nodes = mat.node_tree.nodes
+    scale = self.scale
+    offset = self.offset
+    if node_name in nodes:
+        nodes[node_name].translation.xy = offset
+        nodes[node_name].scale.xy = scale
+
+def texture_update_tex(self, context):
+    if not hasattr(context, "material"):
+        return
+    mat = context.material
+    node_name = "%s.%s:texture" % (mat.name, self.name)
+    nodes = mat.node_tree.nodes
+    if node_name in nodes:
+        nodes[node_name].image = self.tex
 
 class MuTextureProperties(bpy.types.PropertyGroup):
-    tex: StringProperty(name="tex", update=texture_update)
+    tex: StringProperty(name="tex", update=texture_update_tex)
     type: BoolProperty(name="type", description="Texture is a normal map", default = False)
-    scale: FloatVectorProperty(name="scale", size = 2, subtype='XYZ', default = (1.0, 1.0), update=texture_update)
-    offset: FloatVectorProperty(name="offset", size = 2, subtype='XYZ', default = (0.0, 0.0), update=texture_update)
+    scale: FloatVectorProperty(name="scale", size = 2, subtype='XYZ', default = (1.0, 1.0), update=texture_update_mapping)
+    offset: FloatVectorProperty(name="offset", size = 2, subtype='XYZ', default = (0.0, 0.0), update=texture_update_mapping)
 
 class MuMaterialTexturePropertySet(bpy.types.PropertyGroup):
     bl_label = "Textures"
