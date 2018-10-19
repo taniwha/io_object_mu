@@ -42,11 +42,11 @@ from .vectorprops import MuMaterialVectorPropertySet
 main_block = (
     ("node", "UV Map", 'ShaderNodeUVMap', (-920, -80)),
     ("setval", "UV Map", "label", ""),
-    ("node", "Principled BSDF", 'ShaderNodeBsdfPrincipled', (-100, 280)),
-    ("setval", "Principled BSDF", "label", ""),
-    ("node", "Emission", 'ShaderNodeEmission', (-100, -280)),
-    ("setval", "Emission", "label", ""),
-    ("setval", "Emission", "inputs[0].default_value", (0,0,0,1)),
+    ("node", "BaseShader", 'ShaderNodeBsdfPrincipled', (-100, 280)),
+    ("setval", "BaseShader", "label", ""),
+    ("node", "EmissiveShader", 'ShaderNodeEmission', (-100, -280)),
+    ("setval", "EmissiveShader", "label", ""),
+    ("setval", "EmissiveShader", "inputs[0].default_value", (0,0,0,1)),
     ("node", "Reroute0", 'NodeReroute', (180, -320)),
     ("setval", "Reroute0", "label", ""),
     ("node", "Reroute1", 'NodeReroute', (180, 220)),
@@ -57,19 +57,19 @@ main_block = (
     ("node", "Material Output", 'ShaderNodeOutputMaterial', (320, 260)),
     ("setval", "Material Output", "label", ""),
     ("setval", "Material Output", "hide", True),
-    ("link", "Principled BSDF", "BSDF", "Add Shader", "inputs[0]"),
+    ("link", "BaseShader", "BSDF", "Add Shader", "inputs[0]"),
     ("link", "Add Shader", "Shader", "Material Output", "Surface"),
-    ("link", "Emission", "Emission", "Reroute0", "Input"),
+    ("link", "EmissiveShader", "Emission", "Reroute0", "Input"),
     ("link", "Reroute0", "Output", "Reroute1", "Input"),
     ("link", "Reroute1", "Output", "Add Shader", "inputs[1]"),
 )
 
 transparency_block = (
-    ("link", "_MainTex:invertAlpha", "Value", "Principled BSDF", "Transmission"),
+    ("link", "_MainTex:invertAlpha", "Value", "BaseShader", "Transmission"),
 )
 
 specularity_block = (
-    ("link", "_MainTex:invertAlpha", "Value", "Principled BSDF", "Roughness"),
+    ("link", "_MainTex:invertAlpha", "Value", "BaseShader", "Roughness"),
 )
 
 mainTex_block = (
@@ -79,11 +79,11 @@ mainTex_block = (
     ("node", "_MainTex:texture", 'ShaderNodeTexImage', (120, 60)),
     ("setval", "_MainTex:texture", "label", "Texture"),
     ("setval", "_MainTex:texture", "hide", True),
-    ("settex", "_MainTex:texture", "image", "_MainTex"),
     ("setparent", "_MainTex:texture", "_MainTex:frame"),
     ("node", "_MainTex:mapping", 'ShaderNodeMapping', (0, 60)),
     ("setval", "_MainTex:mapping", "label", "Mapping"),
     ("setval", "_MainTex:mapping", "hide", True),
+    ("setval", "_MainTex:mapping", "vector_type", 'TEXTURE'),
     ("setparent", "_MainTex:mapping", "_MainTex:frame"),
     ("node", "_Color", 'ShaderNodeRGB', (120, 0)),
     ("setval", "_Color", "label", "_Color"),
@@ -99,26 +99,33 @@ mainTex_block = (
     ("setval", "_MainTex:multiply", "label", ""),
     ("setval", "_MainTex:multiply", "hide", True),
     ("setval", "_MainTex:multiply", "blend_type", 'MULTIPLY'),
+    ("setval", "_MainTex:multiply", "inputs[0].default_value", 1),
     ("setparent", "_MainTex:multiply", "_MainTex:frame"),
     ("link", "UV Map", "UV", "_MainTex:mapping", "Vector"),
     ("link", "_MainTex:mapping", "Vector", "_MainTex:texture", "Vector"),
     ("link", "_MainTex:texture", "Color", "_MainTex:multiply", "Color1"),
     ("link", "_Color", "Color", "_MainTex:multiply", "Color2"),
     ("link", "_MainTex:texture", "Alpha", "_MainTex:invertAlpha", "inputs[1]"),
-    ("link", "_MainTex:multiply", "Color", "Principled BSDF", "Base Color"),
+    ("link", "_MainTex:multiply", "Color", "BaseShader", "Base Color"),
+    ("settex", "_MainTex:texture", "image", "_MainTex", "tex"),
+    ("settex", "_MainTex:mapping", "translation.xy", "_MainTex", "offset"),
+    ("settex", "_MainTex:mapping", "scale.xy", "_MainTex", "scale"),
+    ("set", "_Color", "outputs[0].default_value",
+            "color.properties", "_Color"),
 )
 
 bumpmap_block = (
     ("node", "_BumpMap:frame", 'NodeFrame', (-800, -40)),
     ("setval", "_BumpMap:frame", "label", "_BumpMap"),
-    ("settex", "_BumpMap:texture", "image", "_BumpMap"),
     ("node", "_BumpMap:mapping", 'ShaderNodeMapping', (0, 0)),
     ("setval", "_BumpMap:mapping", "label", "Mapping"),
     ("setval", "_BumpMap:mapping", "hide", True),
+    ("setval", "_BumpMap:mapping", "vector_type", 'TEXTURE'),
     ("setparent", "_BumpMap:mapping", "_BumpMap:frame"),
     ("node", "_BumpMap:texture", 'ShaderNodeTexImage', (120, 0)),
     ("setval", "_BumpMap:texture", "label", "Normal Map"),
     ("setval", "_BumpMap:texture", "hide", True),
+    ("setval", "_BumpMap:texture", "color_space", 'NONE'),
     ("setparent", "_BumpMap:texture", "_BumpMap:frame"),
     ("node", "_BumpMap:normal", 'ShaderNodeNormalMap', (240, 0)),
     ("setval", "_BumpMap:normal", "label", ""),
@@ -127,7 +134,10 @@ bumpmap_block = (
     ("link", "UV Map", "UV", "_BumpMap:mapping", "Vector"),
     ("link", "_BumpMap:mapping", "Vector", "_BumpMap:texture", "Vector"),
     ("link", "_BumpMap:texture", "Color", "_BumpMap:normal", "Color"),
-    ("link", "_BumpMap:normal", "Normal", "Principled BSDF", "Normal"),
+    ("link", "_BumpMap:normal", "Normal", "BaseShader", "Normal"),
+    ("settex", "_BumpMap:texture", "image", "_BumpMap", "tex"),
+    ("settex", "_BumpMap:mapping", "translation.xy", "_BumpMap", "offset"),
+    ("settex", "_BumpMap:mapping", "scale.xy", "_BumpMap", "scale"),
 )
 
 emissive_block = (
@@ -140,22 +150,28 @@ emissive_block = (
     ("node", "_Emissive:mapping", 'ShaderNodeMapping', (0, 60)),
     ("setval", "_Emissive:mapping", "label", "Mapping"),
     ("setval", "_Emissive:mapping", "hide", True),
+    ("setval", "_Emissive:mapping", "vector_type", 'TEXTURE'),
     ("setparent", "_Emissive:mapping", "_Emissive:frame"),
     ("node", "_Emissive:texture", 'ShaderNodeTexImage', (120, 60)),
-    ("setval", "_Emissive:texture", "label", "Emission Map"),
+    ("setval", "_Emissive:texture", "label", "EmissiveShader Map"),
     ("setval", "_Emissive:texture", "hide", True),
-    ("settex", "_Emissive:texture", "image", "_Emissive"),
     ("setparent", "_Emissive:texture", "_Emissive:frame"),
     ("node", "_Emissive:multiply", 'ShaderNodeMixRGB', (240, 60)),
     ("setval", "_Emissive:multiply", "label", "Multiply"),
     ("setval", "_Emissive:multiply", "hide", True),
     ("setval", "_Emissive:multiply", "blend_type", 'MULTIPLY'),
+    ("setval", "_Emissive:multiply", "inputs[0].default_value", 1),
     ("setparent", "_Emissive:multiply", "_Emissive:frame"),
     ("link", "_Emissive:mapping", "Vector", "_Emissive:texture", "Vector"),
     ("link", "_EmissiveColor", "Color", "_Emissive:multiply", "Color2"),
     ("link", "_Emissive:texture", "Color", "_Emissive:multiply", "Color1"),
     ("link", "UV Map", "UV", "_Emissive:mapping", "Vector"),
-    ("link", "_Emissive:multiply", "Color", "Emission", "Color"),
+    ("link", "_Emissive:multiply", "Color", "EmissiveShader", "Color"),
+    ("settex", "_Emissive:texture", "image", "_Emissive", "tex"),
+    ("settex", "_Emissive:mapping", "translation.xy", "_Emissive", "offset"),
+    ("settex", "_Emissive:mapping", "scale.xy", "_Emissive", "scale"),
+    ("set", "_EmissiveColor", "outputs[0].default_value",
+            "color.properties", "_EmissiveColor"),
 )
 
 ksp_specular = main_block + mainTex_block + specularity_block
@@ -222,8 +238,10 @@ def node_link(name, nodes, links, s):
 
 def node_set(name, matprops, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
-    str="n.%s = matprops.%s['%s'].value" % (s[2], s[3], s[4])
-    exec(str, {}, locals())
+    str="'%s' in matprops.%s" % (s[4], s[3])
+    if eval(str, {}, locals()):
+        str="n.%s = matprops.%s['%s'].value" % (s[2], s[3], s[4])
+        exec(str, {}, locals())
 
 def node_settex(name, matprops, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
@@ -231,10 +249,12 @@ def node_settex(name, matprops, nodes, s):
     img = tex.tex
     if img[-4:-3] == ".":
         img = img[:-4]
-    print("img =", img)
+    offset = tex.offset
+    scale = tex.scale
+    #print("img =", img)
     if img in bpy.data.images:
         tex = bpy.data.images[img]
-        exec("n.%s = tex" % s[2], {}, locals())
+        exec("n.%s = %s" % (s[2], s[4]), {}, locals())
 
 def node_setval(name, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
