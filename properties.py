@@ -336,6 +336,6 @@ classes = (
 )
 custom_properties = (
     (bpy.types.Object, "muproperties", MuProperties),
-    #(bpy.types.Group, "mumodelprops", MuModelProperties),
+    (bpy.types.Collection, "mumodelprops", MuModelProperties),
     (bpy.types.Scene, "musceneprops", MuSceneProperties),
 )

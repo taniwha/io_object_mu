@@ -27,14 +27,14 @@ from mathutils import Vector,Matrix,Quaternion
 from .cfgnode import ConfigNode, ConfigNodeError
 from .import_mu import import_mu
 
-def group_objects(name, obj):
-    def add_to_group(group, obj):
-        group.objects.link (obj)
+def collect_objects(name, obj):
+    def add_to_collection(collection, obj):
+        collection.objects.link (obj)
         for child in obj.children:
-            add_to_group(group, child)
-    group = bpy.data.groups.new(name)
-    add_to_group(group, obj)
-    return group
+            add_to_collection(collection, child)
+    collection = bpy.data.collections.new(name)
+    add_to_collection(collection, obj)
+    return collection
 
 def compile_model(db, path, type, name, cfg, scene):
     nodes = cfg.GetNodes("MODEL")
@@ -65,19 +65,19 @@ def compile_model(db, path, type, name, cfg, scene):
         scale = Vector((1, 1, 1))
         root = model.instantiate(name+":model", position, rotation, scale)
         scene.collection.objects.link(root)
-    group = group_objects(type + ":" + name, root)
-    group.mumodelprops.name = name
-    group.mumodelprops.type = type
-    return group
+    collection = collect_objects(type + ":" + name, root)
+    collection.mumodelprops.name = name
+    collection.mumodelprops.type = type
+    return collection
 
-def loaded_models_scene():
-    if "loaded_models" not in bpy.data.scenes:
-        return bpy.data.scenes.new("loaded_models")
-    return bpy.data.scenes["loaded_models"]
+def loaded_models_collection():
+    if "loaded_models" not in bpy.data.collections:
+        return bpy.data.collections.new("loaded_models")
+    return bpy.data.collections["loaded_models"]
 
 def instantiate_model(model, name, loc, rot, scale):
     obj = bpy.data.objects.new(name, None)
-    obj.dupli_type='GROUP'
+    obj.dupli_type='COLLECTION'
     obj.dupli_group=model
     obj.location = loc
     obj.scale = scale
@@ -97,22 +97,22 @@ class Model:
     @classmethod
     def Preloaded(cls):
         preloaded = {}
-        for g in bpy.data.groups:
+        for g in bpy.data.collections:
             if g.name[:6] == "model:":
                 url = g.name[6:]
                 preloaded[url] = Model(None, url)
         return preloaded
     def __init__(self, path, url):
-        groupname = "model:" + url
-        if groupname in bpy.data.groups:
-            group = bpy.data.groups["model:" + url]
+        collectionname = "model:" + url
+        if collectionname in bpy.data.collections:
+            collection = bpy.data.collections["model:" + url]
         else:
-            scene = loaded_models_scene()
-            obj = import_mu(scene, path, False)
+            collection = loaded_models_collection()
+            obj = import_mu(collection, path, False)
             obj.location = Vector((0, 0, 0))
             obj.rotation_quaternion = Quaternion((1,0,0,0))
             obj.scale = Vector((1,1,1))
-            group = group_objects("model:" + url, obj)
-        self.model = group
+            collection = collect_objects("model:" + url, obj)
+        self.model = collection
     def instantiate(self, name, loc, rot, scale):
         return instantiate_model(self.model, name, loc, rot, scale)

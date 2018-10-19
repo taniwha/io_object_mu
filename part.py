@@ -39,11 +39,11 @@ class Part:
     @classmethod
     def Preloaded(cls):
         preloaded = {}
-        for g in bpy.data.groups:
+        for g in bpy.data.collections:
             if g.name[:5] == "part:":
                 url = g.name[5:]
                 part = Part("", ConfigNode.load(g.mumodelprops.config))
-                #part.model = bpy.data.groups[g.name]
+                #part.model = bpy.data.collections[g.name]
                 part.model = g
                 preloaded[part.name] = part
         return preloaded
@@ -76,7 +76,7 @@ class Part:
 
     def instantiate(self, loc, rot, scale):
         obj = bpy.data.objects.new(self.name, None)
-        obj.dupli_type='GROUP'
+        obj.dupli_type='COLLECTION'
         obj.dupli_group=self.model
         obj.location = loc
         obj.scale = scale

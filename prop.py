@@ -33,7 +33,7 @@ from bpy.props import StringProperty, EnumProperty
 from .preferences import Preferences
 from .cfgnode import ConfigNode, ConfigNodeError
 from .utils import strip_nnn
-from .model import group_objects, instantiate_model, compile_model
+from .model import collect_objects, instantiate_model, compile_model
 
 def loaded_props_scene():
     if "loaded_props" not in bpy.data.scenes:
@@ -44,7 +44,7 @@ class Prop:
     @classmethod
     def Preloaded(cls):
         preloaded = {}
-        for g in bpy.data.groups:
+        for g in bpy.data.collections:
             if g.name[:5] == "prop:":
                 url = g.name[5:]
                 prop = Prop("", ConfigNode.load(g.mumodelprops.config))
@@ -120,16 +120,16 @@ def clean_selected(selected):
 
 def make_prop(obj):
     name = strip_nnn(obj.name)
-    group = group_objects("prop:"+name, obj)
+    collection = collect_objects("prop:"+name, obj)
     obj.muproperties.modelType = 'PROP'
     #FIXME group instancing seems to work with the object's world location
     #rather than its local location
-    group.dupli_offset = obj.location #FIXME update if the prop is later moved
+    collection.dupli_offset = obj.location #FIXME update if the prop is later moved
     #necessary because groups don't support rotation or scale offsets
     obj.rotation_quaternion = Quaternion((1, 0, 0, 0))
     obj.scale = Vector((1, 1, 1))
-    group.mumodelprops.name = name
-    group.mumodelprops.type = "prop"
+    collection.mumodelprops.name = name
+    collection.mumodelprops.type = "prop"
 
 def make_props(self, context):
     operator = self
@@ -183,7 +183,7 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
     def prop_enum_items(self, context):
         enum_items = OBJECT_OT_add_ksp_prop._enum_item_cache
         enum_items.clear()
-        for index, item in enumerate([p for p in bpy.data.groups
+        for index, item in enumerate([p for p in bpy.data.collections
                                       if p.mumodelprops.type == 'prop']):
             enum_items.append((str(index), item.mumodelprops.name, '', index))
         return enum_items
@@ -193,7 +193,7 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
 
     def find_prop(self, context):
         prop_item = int(self.prop_item)
-        for index, item in enumerate([p for p in bpy.data.groups
+        for index, item in enumerate([p for p in bpy.data.collections
                                       if p.mumodelprops.type == 'prop']):
             if index == prop_item:
                 return item
