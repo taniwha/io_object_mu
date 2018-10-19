@@ -66,6 +66,11 @@ main_block = (
 
 transparency_block = (
     ("link", "_MainTex:invertAlpha", "Value", "BaseShader", "Transmission"),
+    ("matset", "blend_method", 'ADD'), #FIXME should be alpha blend, but...
+)
+
+opaque_block = (
+    ("matset", "blend_method", 'OPAQUE'),
 )
 
 specularity_block = (
@@ -174,21 +179,22 @@ emissive_block = (
             "color.properties", "_EmissiveColor"),
 )
 
-ksp_specular = main_block + mainTex_block + specularity_block
-ksp_bumped = main_block + mainTex_block + bumpmap_block
-ksp_bumped_specular = main_block + mainTex_block + specularity_block + bumpmap_block
-ksp_emissive_diffuse = main_block + mainTex_block + emissive_block
+ksp_specular = main_block + mainTex_block + specularity_block + opaque_block
+ksp_bumped = main_block + mainTex_block + bumpmap_block + opaque_block
+ksp_bumped_specular = main_block + mainTex_block + specularity_block + bumpmap_block + opaque_block
+ksp_emissive_diffuse = main_block + mainTex_block + emissive_block + opaque_block
 ksp_emissive_specular = (main_block + mainTex_block + emissive_block
-                         + specularity_block)
+                         + specularity_block + opaque_block)
 ksp_emissive_bumped_specular = (main_block + mainTex_block + emissive_block
-                                + specularity_block + bumpmap_block)
+                                + specularity_block + bumpmap_block
+                                + opaque_block)
 ksp_alpha_cutoff = ()
 ksp_alpha_cutoff_bumped = ()
 ksp_alpha_translucent = ()
-ksp_alpha_translucent_specular = ()
+ksp_alpha_translucent_specular = main_block + mainTex_block + specularity_block + transparency_block
 ksp_unlit_transparent = ()
 ksp_unlit = ()
-ksp_diffuse = main_block + mainTex_block
+ksp_diffuse = main_block + mainTex_block + opaque_block
 ksp_particles_alpha_blended = main_block + mainTex_block + transparency_block
 ksp_particles_additive = main_block + mainTex_block
 
@@ -243,6 +249,9 @@ def node_set(name, matprops, nodes, s):
         str="n.%s = matprops.%s['%s'].value" % (s[2], s[3], s[4])
         exec(str, {}, locals())
 
+def mat_set(mat, s):
+    setattr(mat, s[1], s[2])
+
 def node_settex(name, matprops, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
     tex = matprops.texture.properties[s[3]]
@@ -296,6 +305,8 @@ def create_nodes(mat):
                 node_link(mat.name, nodes, links, s)
             elif s[0] == "set":
                 node_set(mat.name, mat.mumatprop, nodes, s)
+            elif s[0] == "matset":
+                mat_set(mat, s)
             elif s[0] == "settex":
                 node_settex(mat.name, mat.mumatprop, nodes, s)
             elif s[0] == "setval":
