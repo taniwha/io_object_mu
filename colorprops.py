@@ -25,7 +25,13 @@ from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
 
 def color_update(self, context):
-    pass
+    if not hasattr(context, "material"):
+        return
+    mat = context.material
+    node_name = "%s.%s" % (mat.name, self.name)
+    nodes = mat.node_tree.nodes
+    if node_name in nodes:
+        nodes[node_name].outputs[0].default_value = self.value
 
 class MuColorProp(bpy.types.PropertyGroup):
     value: FloatVectorProperty(name="", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=color_update)
