@@ -44,7 +44,7 @@ from .utils import strip_nnn, swapyz, swizzleq, vector_str
 
 def calcVolume(mesh):
     terms=[]
-    for face in mesh.tessfaces:
+    for face in mesh.polygons:
         a = mesh.vertices[face.vertices[0]].co
         b = mesh.vertices[face.vertices[1]].co
         for i in range(2, len(face.vertices)):
@@ -58,6 +58,13 @@ def calcVolume(mesh):
         vol += t
     return vol / 6
 
+def collect_modifiers(obj):
+    modifiers = []
+    for mod in obj.modifiers:
+        if mod.show_viewport and not mod.show_render:
+            modifiers.append(mod)
+    return modifiers
+
 def obj_volume(obj):
     if type(obj.data) != bpy.types.Mesh:
         return 0, 0
@@ -65,7 +72,18 @@ def obj_volume(obj):
         return 0, 0
     #FIXME skin_mesh = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
     #FIXME ext_mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
-    #FIXME return calcVolume(skin_mesh), calcVolume(ext_mesh)
+
+    #FIXME horible hack to work around blender 2.8 not (yet) allowing control
+    # over render/preview when converting an object to a mesh
+    modifiers = collect_modifiers(obj)
+    skin_mesh = obj.to_mesh(bpy.context.depsgraph, True)
+    for mod in modifiers:
+        mod.show_viewport = False
+    ext_mesh = obj.to_mesh(bpy.context.depsgraph, True)
+    for mod in modifiers:
+        mod.show_viewport = True
+
+    return calcVolume(skin_mesh), calcVolume(ext_mesh)
     return 0, 0
 
 def model_volume(obj):
