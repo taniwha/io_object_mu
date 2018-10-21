@@ -398,17 +398,23 @@ def make_obj(mu, obj, special, path = ""):
     path += muobj.transform.name
     mu.object_paths[path] = muobj
     muobj.tag_and_layer = make_tag_and_layer(obj)
-    if not obj.data and obj.name[:5] == "node_":
-        n = AttachNode(obj, mu.inverse)
-        mu.nodes.append(n)
-        if not n.keep_transform():
-            return None
-        # Blender's empties use the +Z axis for single-arrow display, so that
-        # is the most natural orientation for nodes in blender. However, KSP
-        # uses the transform's +Z (Unity) axis which is Blender's +Y, so
-        # rotate 90 degrees around local X to go from Blender to KSP
-        rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
-        muobj.transform.localRotation = muobj.transform.localRotation @ rot
+    if not obj.data :
+        name = strip_nnn(obj.name)
+        if name[:5] == "node_":
+            n = AttachNode(obj, mu.inverse)
+            mu.nodes.append(n)
+            if not n.keep_transform():
+                return None
+            # Blender's empties use the +Z axis for single-arrow display, so
+            # that is the most natural orientation for nodes in blender.
+            # However, KSP uses the transform's +Z (Unity) axis which is
+            # Blender's +Y, so rotate 90 degrees around local X to go from
+            # Blender to KSP
+            rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
+            muobj.transform.localRotation = muobj.transform.localRotation @ rot
+        elif name in ["CoMOffset", "CoPOffset", "CoLOffset"]:
+            setattr(mu, name, (mu.inverse @ obj.matrix_world.col[3])[:3])
+        pass
     if not obj.data and obj.dupli_group:
         group = obj.dupli_group
         for o in group.objects:
@@ -672,6 +678,12 @@ def generate_cfg(mu, filepath):
         return
     parse_node(mu, cfgnode)
     if ntype == 'PART':
+        if mu.CoMOffset != None:
+            node.AddValue("CoMOffset", vector_str(swapyz(mu.CoMOffset)))
+        if mu.CoPOffset != None:
+            node.AddValue("CoPOffset", vector_str(swapyz(mu.CoPOffset)))
+        if mu.CoLOffset != None:
+            node.AddValue("CoLOffset", vector_str(swapyz(mu.CoLOffset)))
         if mu.internal:
             add_internal_node(node, mu.internal)
         mu.nodes.sort()
@@ -713,6 +725,9 @@ def export_object(obj, filepath):
     mu.props = []
     mu.internal = None
     mu.type = obj.muproperties.modelType
+    mu.CoMOffset = None
+    mu.CoPOffset = None
+    mu.CoLOffset = None
     mu.inverse = obj.matrix_world.inverted()
     mu.obj = make_obj(mu, obj, special_modelTypes[mu.type])
     mu.materials = list(mu.materials.values())
