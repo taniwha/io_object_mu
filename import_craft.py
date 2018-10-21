@@ -52,13 +52,16 @@ def import_craft(filepath):
     vessel.rotation_quaternion = Quaternion((1,0,0,0))
     vessel.scale = Vector((1, 1, 1))
     scene.collection.objects.link(vessel)
+    root_pos = None
     for p in craft.GetNodes("PART"):
         pname = p.GetValue("part").split("_")[0]
         pos = parse_vector(p.GetValue("pos"))
         rot = parse_quaternion(p.GetValue("rot"))
         part = gamedata.parts[pname].get_model()
+        if root_pos == None:
+            root_pos = pos
+        part.location = pos - root_pos
         scene.collection.objects.link(part)
-        part.location = pos
         part.rotation_mode = 'QUATERNION'
         part.rotation_quaternion = rot
         part.parent = vessel
