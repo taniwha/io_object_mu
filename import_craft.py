@@ -29,6 +29,15 @@ from .gamedata import GameData, gamedata
 from .parser import parse_vector, parse_quaternion
 from .preferences import Preferences
 
+def craft_collection():
+    if "craft_collection" not in bpy.data.collections:
+        cc = bpy.data.collections.new("craft_collection")
+        cc.hide_viewport = True
+        cc.hide_render = True
+        cc.hide_select = True
+        bpy.context.scene.collection.children.link(cc)
+    return bpy.data.collections["craft_collection"]
+
 def select_objects(obj):
     obj.select_set('SELECT')
     for o in obj.children:
@@ -46,12 +55,8 @@ def import_craft(filepath):
     craft_name = craft.GetValue("ship")
     if craft_name[:9] == "#autoLOC_" and craft_name in gamedata.localizations:
         craft_name = gamedata.localizations[craft_name].strip()
-    vessel = bpy.data.objects.new(craft_name, None)
-    vessel.location = Vector((0, 0, 0))
-    vessel.rotation_mode = 'QUATERNION'
-    vessel.rotation_quaternion = Quaternion((1,0,0,0))
-    vessel.scale = Vector((1, 1, 1))
-    scene.collection.objects.link(vessel)
+    vessel = bpy.data.collections.new(craft_name)
+    craft_collection().children.link(vessel)
     root_pos = None
     for p in craft.GetNodes("PART"):
         pname = p.GetValue("part").split("_")[0]
@@ -61,11 +66,15 @@ def import_craft(filepath):
         if root_pos == None:
             root_pos = pos
         part.location = pos - root_pos
-        scene.collection.objects.link(part)
         part.rotation_mode = 'QUATERNION'
         part.rotation_quaternion = rot
-        part.parent = vessel
-    return vessel
+        vessel.objects.link(part)
+    obj = bpy.data.objects.new(craft_name, None)
+    obj.dupli_type='COLLECTION'
+    obj.dupli_group=vessel
+    obj.location = bpy.context.scene.cursor_location
+    bpy.context.layer_collection.collection.objects.link(obj)
+    return obj
 
 def import_craft_op(self, context, filepath):
     operator = self
