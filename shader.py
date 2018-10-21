@@ -401,6 +401,17 @@ class IO_OBJECT_MU_MT_shader_presets(Menu):
     preset_operator = "script.execute_preset"
     draw = Menu.draw_preset
 
+    @classmethod
+    def reset_cb(cls, context):
+        mat = context.material
+        mat.node_tree.nodes.clear()
+        mat.node_tree.links.clear()
+
+    @classmethod
+    def post_cb(cls, context):
+        mat = context.material
+        create_nodes(mat)
+
 
 class IO_OBJECT_MU_OT_shader_presets(AddPresetBase, Operator):
     bl_idname = "io_object_mu.shader_presets"
