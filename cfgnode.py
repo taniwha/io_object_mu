@@ -47,7 +47,7 @@ class ConfigNode:
                 break
             if script.token == "\xef\xbb\xbf":
                 continue
-            if script.token in (top and ['{', '}', '='] or ['{', '=']):
+            if script.token in (['{', '}', '='] if top else ['{', '=']):
                 cfg_error(script, "unexpected " + script.token)
             if script.token == '}':
                 return
