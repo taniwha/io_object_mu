@@ -81,6 +81,10 @@ class GameData:
             res = node[1]
             resname = res.GetValue("name")
             self.resources[resname] = res
+        elif node[0] == "Localization":
+            locs = node[1].nodes[0][1]
+            for loc in locs.values:
+                self.localizations[loc[0]] = loc[1]
 
     def process_cfg(self, path):
         if self.use_module_manager:
@@ -115,7 +119,8 @@ class GameData:
                 continue
             type = node.GetValue("type")
             path = node.GetValue("parentUrl")
-            if type in {"PART", "PROP", "INTERNAL", "RESOURCE_DEFINITION"}:
+            if type in {"PART", "PROP", "INTERNAL", "RESOURCE_DEFINITION",
+                        "Localization"}:
                 self.process_cfgnode(path, (type, node.GetNode(type)))
         return True
 
@@ -136,6 +141,7 @@ class GameData:
         self.parts = Part.Preloaded()
         self.props = Prop.Preloaded()
         self.internals = {}
+        self.localizations = {}
         self.resources = {}
         self.create_db()
 

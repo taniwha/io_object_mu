@@ -43,7 +43,10 @@ def import_craft(filepath):
     except ConfigNodeError as e:
         raise MuImportError("Craft", e.message)
     scene = bpy.context.scene
-    vessel = bpy.data.objects.new(craft.GetValue("ship"), None)
+    craft_name = craft.GetValue("ship")
+    if craft_name[:9] == "#autoLOC_" and craft_name in gamedata.localizations:
+        craft_name = gamedata.localizations[craft_name].strip()
+    vessel = bpy.data.objects.new(craft_name, None)
     vessel.location = Vector((0, 0, 0))
     vessel.rotation_mode = 'QUATERNION'
     vessel.rotation_quaternion = Quaternion((1,0,0,0))
