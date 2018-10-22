@@ -54,19 +54,35 @@ main_block = (
     ("node", "Add Shader", 'ShaderNodeAddShader', (200, 260)),
     ("setval", "Add Shader", "label", ""),
     ("setval", "Add Shader", "hide", True),
-    ("node", "Material Output", 'ShaderNodeOutputMaterial', (320, 260)),
+    ("node", "Mix Shader", 'ShaderNodeMixShader', (340, 260)),
+    ("setval", "Mix Shader", "label", ""),
+    ("setval", "Mix Shader", "hide", True),
+    ("setval", "Mix Shader", "inputs[0].default_value", 0),
+    ("node", "TransparencyShader", 'ShaderNodeBsdfTransparent', (200, 200)),
+    ("setval", "TransparencyShader", "label", ""),
+    ("setval", "TransparencyShader", "hide", True),
+    ("setval", "TransparencyShader", "inputs[0].default_value", (1,1,1,1)),
+    ("node", "Material Output", 'ShaderNodeOutputMaterial', (480, 260)),
     ("setval", "Material Output", "label", ""),
     ("setval", "Material Output", "hide", True),
     ("link", "BaseShader", "BSDF", "Add Shader", "inputs[0]"),
-    ("link", "Add Shader", "Shader", "Material Output", "Surface"),
+    ("link", "Add Shader", "Shader", "Mix Shader", "inputs[1]"),
+    ("link", "Mix Shader", "Shader", "Material Output", "Surface"),
     ("link", "EmissiveShader", "Emission", "Reroute0", "Input"),
+    ("link", "TransparencyShader", "BSDF", "Mix Shader", "inputs[2]"),
     ("link", "Reroute0", "Output", "Reroute1", "Input"),
     ("link", "Reroute1", "Output", "Add Shader", "inputs[1]"),
 )
 
 transparency_block = (
-    ("link", "_MainTex:invertAlpha", "Value", "BaseShader", "Transmission"),
-    ("matset", "blend_method", 'ADD'), #FIXME should be alpha blend, but...
+    ("node", "Reroute2", 'NodeReroute', (-180, 300)),
+    ("setval", "Reroute2", "label", ""),
+    ("node", "Reroute3", 'NodeReroute', (300, 300)),
+    ("setval", "Reroute3", "label", ""),
+    ("link", "_MainTex:invertAlpha", "Value", "Reroute2", "Input"),
+    ("link", "Reroute2", "Output", "Reroute3", "Input"),
+    ("link", "Reroute3", "Output", "Mix Shader", "inputs[0]"),
+    ("matset", "blend_method", 'BLEND'),
 )
 
 additive_block = (
