@@ -105,6 +105,7 @@ mainTex_block = (
     ("setval", "_MainTex:invertAlpha", "label", "Invert Alpha"),
     ("setval", "_MainTex:invertAlpha", "hide", True),
     ("setval", "_MainTex:invertAlpha", "operation", 'SUBTRACT'),
+    ("setval", "_MainTex:invertAlpha", "inputs[0].default_value", 1),
     ("setparent", "_MainTex:invertAlpha", "_MainTex:frame"),
     ("node", "_MainTex:multiply", 'ShaderNodeMixRGB', (-360, 140)),
     ("setval", "_MainTex:multiply", "label", ""),
