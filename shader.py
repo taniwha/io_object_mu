@@ -39,6 +39,82 @@ from .float3props import MuMaterialFloat3PropertySet
 from .textureprops import MuMaterialTexturePropertySet
 from .vectorprops import MuMaterialVectorPropertySet
 
+dxtNormal_block = (
+    ("node", "dxtNormalInput", 'NodeGroupInput', (0, 60)),
+    ("node", "separateRGB", 'ShaderNodeSeparateRGB', (180, 60)),
+    ("setval", "separateRGB", "hide", True),
+    ("node", "scaleGreen", 'ShaderNodeMath', (300, 60)),
+    ("setval", "scaleGreen", "label", "Scale Green"),
+    ("setval", "scaleGreen", "hide", True),
+    ("setval", "scaleGreen", "operation", 'MULTIPLY'),
+    ("setval", "scaleGreen", "inputs[1].default_value", 2),
+    ("node", "scaleAlpha", 'ShaderNodeMath', (300, 20)),
+    ("setval", "scaleAlpha", "label", "Scale Alpha"),
+    ("setval", "scaleAlpha", "hide", True),
+    ("setval", "scaleAlpha", "operation", 'MULTIPLY'),
+    ("setval", "scaleAlpha", "inputs[1].default_value", 2),
+    ("node", "offsetGreenToY", 'ShaderNodeMath', (420, 60)),
+    ("setval", "offsetGreenToY", "label", "Offset Green to Y"),
+    ("setval", "offsetGreenToY", "hide", True),
+    ("setval", "offsetGreenToY", "operation", 'SUBTRACT'),
+    ("setval", "offsetGreenToY", "inputs[1].default_value", 1),
+    ("node", "offsetAlphaToX", 'ShaderNodeMath', (420, 20)),
+    ("setval", "offsetAlphaToX", "label", "Offset Alpha to X"),
+    ("setval", "offsetAlphaToX", "hide", True),
+    ("setval", "offsetAlphaToX", "operation", 'SUBTRACT'),
+    ("setval", "offsetAlphaToX", "inputs[1].default_value", 1),
+    ("node", "Reroute0", 'NodeReroute', (560, 80)),
+    ("setval", "Reroute0", "label", ""),
+    ("node", "Reroute1", 'NodeReroute', (540, 0)),
+    ("setval", "Reroute1", "label", ""),
+    ("node", "Reroute2", 'NodeReroute', (540, 100)),
+    ("setval", "Reroute2", "label", ""),
+    ("node", "squareX", 'ShaderNodeMath', (580, 20)),
+    ("setval", "squareX", "label", "Square X"),
+    ("setval", "squareX", "hide", True),
+    ("setval", "squareX", "operation", 'MULTIPLY'),
+    ("node", "squareY", 'ShaderNodeMath', (580, 60)),
+    ("setval", "squareY", "label", "Square Y"),
+    ("setval", "squareY", "hide", True),
+    ("setval", "squareY", "operation", 'MULTIPLY'),
+    ("node", "addX2Y2", 'ShaderNodeMath', (700, 60)),
+    ("setval", "addX2Y2", "label", "X^2 + Y^2"),
+    ("setval", "addX2Y2", "hide", True),
+    ("setval", "addX2Y2", "operation", 'ADD'),
+    ("node", "subXY", 'ShaderNodeMath', (820, 60)),
+    ("setval", "subXY", "label", "Z^2"),
+    ("setval", "subXY", "hide", True),
+    ("setval", "subXY", "operation", 'SUBTRACT'),
+    ("setval", "subXY", "inputs[0].default_value", 1),
+    ("node", "sqrtZ2", 'ShaderNodeMath', (940, 60)),
+    ("setval", "sqrtZ2", "label", "Z = sqrt(1-X^2-Y^2)"),
+    ("setval", "sqrtZ2", "hide", True),
+    ("setval", "sqrtZ2", "operation", 'SQRT'),
+    ("node", "combineXYZ", 'ShaderNodeCombineXYZ', (1040, 100)),
+    ("setval", "combineXYZ", "hide", True),
+    ("node", "dxtNormalOutput", 'NodeGroupOutput', (1160, 120)),
+    ("link", "dxtNormalInput", "outputs[0]", "separateRGB", "inputs[0]"),
+    ("link", "separateRGB", "G", "scaleGreen", "inputs[0]"),
+    ("link", "scaleGreen", "Value", "offsetGreenToY", "inputs[0]"),
+    ("link", "offsetGreenToY", "Value", "Reroute0", "Input"),
+    ("link", "Reroute0", "Output", "squareY", "inputs[0]"),
+    ("link", "Reroute0", "Output", "squareY", "inputs[1]"),
+    ("link", "Reroute0", "Output", "combineXYZ", "Y"),
+    ("link", "dxtNormalInput", "outputs[1]", "scaleAlpha", "inputs[0]"),
+    ("link", "scaleAlpha", "Value", "offsetAlphaToX", "inputs[0]"),
+    ("link", "offsetAlphaToX", "Value", "Reroute1", "Input"),
+    ("link", "Reroute1", "Output", "squareX", "inputs[0]"),
+    ("link", "Reroute1", "Output", "squareX", "inputs[1]"),
+    ("link", "Reroute1", "Output", "Reroute2", "Input"),
+    ("link", "Reroute2", "Output", "combineXYZ", "X"),
+    ("link", "squareY", "Value", "addX2Y2", "inputs[0]"),
+    ("link", "squareX", "Value", "addX2Y2", "inputs[1]"),
+    ("link", "addX2Y2", "Value", "subXY", "inputs[1]"),
+    ("link", "subXY", "Value", "sqrtZ2", "inputs[0]"),
+    ("link", "sqrtZ2", "Value", "combineXYZ", "Z"),
+    ("link", "combineXYZ", "Vector", "dxtNormalOutput", "inputs[0]"),
+)
+
 main_block = (
     ("node", "UV Map", 'ShaderNodeUVMap', (-920, -80)),
     ("setval", "UV Map", "label", ""),
@@ -308,7 +384,44 @@ def node_call(name, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
     exec("n.%s" % s[2], {}, locals())
 
+def build_shader(shader, mat, nodes, links):
+    if type(mat) is type(""):
+        name = mat
+    else:
+        name = mat.name
+    for s in shader:
+        #print(s)
+        try :
+            if s[0] == "node":
+                node_node(name, nodes, s)
+            elif s[0] == "link":
+                node_link(name, nodes, links, s)
+            elif s[0] == "set":
+                node_set(name, mat.mumatprop, nodes, s)
+            elif s[0] == "matset":
+                mat_set(mat, s)
+            elif s[0] == "settex":
+                node_settex(name, mat.mumatprop, nodes, s)
+            elif s[0] == "setval":
+                node_setval(name, nodes, s)
+            elif s[0] == "setparent":
+                node_setparent(name, nodes, s)
+            elif s[0] == "call":
+                node_call(name, nodes, s)
+            else:
+                print("unknown shader command", s[0])
+        except:
+           print("Exception in node setup code:")
+           traceback.print_exc(file=sys.stdout)
+
 def create_nodes(mat):
+    if "dxtNormal" not in bpy.data.node_groups:
+        dxtNormal = bpy.data.node_groups.new("dxtNormal", 'ShaderNodeTree')
+        build_shader (dxtNormal_block, "dxtNormal",
+                      dxtNormal.nodes, dxtNormal.links)
+        dxtNormal.inputs[0].name = "RGB"
+        dxtNormal.inputs[1].name = "Alpha"
+        dxtNormal.outputs[0].name = "Normal"
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
@@ -321,30 +434,7 @@ def create_nodes(mat):
         return
     shader = ksp_shaders[mat.mumatprop.shaderName]
     print(mat.mumatprop.shaderName)
-    for s in shader:
-        #print(s)
-        try :
-            if s[0] == "node":
-                node_node(mat.name, nodes, s)
-            elif s[0] == "link":
-                node_link(mat.name, nodes, links, s)
-            elif s[0] == "set":
-                node_set(mat.name, mat.mumatprop, nodes, s)
-            elif s[0] == "matset":
-                mat_set(mat, s)
-            elif s[0] == "settex":
-                node_settex(mat.name, mat.mumatprop, nodes, s)
-            elif s[0] == "setval":
-                node_setval(mat.name, nodes, s)
-            elif s[0] == "setparent":
-                node_setparent(mat.name, nodes, s)
-            elif s[0] == "call":
-                node_call(mat.name, nodes, s)
-            else:
-                print("unknown shader command", s[0])
-        except:
-           print("Exception in node setup code:")
-           traceback.print_exc(file=sys.stdout)
+    build_shader(shader, mat, nodes, links)
 
 def set_tex(mu, dst, src):
     try:
