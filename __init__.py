@@ -41,6 +41,8 @@ submodule_names = (
     "textureprops",
     "vectorprops",
 
+    "imageprops",
+
     "collider",
     "colorpalettes",
     "export_mu",

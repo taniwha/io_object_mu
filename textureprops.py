@@ -35,9 +35,14 @@ def texture_update_mapping(self, context):
     mat = context.material
     node_name = "%s.%s:mapping" % (mat.name, self.name)
     nodes = mat.node_tree.nodes
-    scale = self.scale
-    offset = self.offset
+    scale = Vector(self.scale)
+    offset = Vector(self.offset)
     if node_name in nodes:
+        if self.tex in bpy.data.images:
+            img = bpy.data.images[self.tex]
+            if img.muimageprop.invertY:
+                scale.y *= -1
+                offset.y = 1 - offset.y
         nodes[node_name].translation.xy = offset
         nodes[node_name].scale.xy = scale
 

@@ -356,17 +356,16 @@ def mat_set(mat, s):
 def node_settex(name, matprops, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
     tex = matprops.texture.properties[s[3]]
-    img = tex.tex
-    if img[-4:-3] == ".":
-        img = img[:-4]
     #FIXME doesn't work
     #offset = tex.offset / tex.scale
     #offset = Vector((tex.offset.x/tex.scale.x, tex.offset.y / tex.scale.y))
-    offset = tex.offset
-    scale = tex.scale
-    #print("img =", img)
-    if img in bpy.data.images:
-        tex = bpy.data.images[img]
+    offset = Vector(tex.offset)
+    scale = Vector(tex.scale)
+    if tex.tex in bpy.data.images:
+        tex = bpy.data.images[tex.tex]
+        if tex.muimageprop.invertY:
+            scale.y *= -1
+            offset.y = 1 - offset.y
         exec("n.%s = %s" % (s[2], s[4]), {}, locals())
 
 def node_setval(name, nodes, s):
@@ -439,7 +438,10 @@ def create_nodes(mat):
 def set_tex(mu, dst, src):
     try:
         tex = mu.textures[src.index]
-        dst.tex = tex.name
+        if tex.name[-4:] in [".dds", ".png", ".tga", ".mbm"]:
+            dst.tex = tex.name[:-4]
+        else:
+            dst.tex = tex.name
         dst.type = tex.type
     except IndexError:
         pass

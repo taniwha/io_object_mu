@@ -353,23 +353,6 @@ def create_object(collection, mu, muobj, parent, create_colliders):
             create_action(mu, muobj.path, clip)
     return obj
 
-def convert_bump(pixels, width, height):
-    outp = list(pixels)
-    for y in range(1, height - 1):
-        for x in range(1, width - 1):
-            index = (y * width + x) * 4
-            p = pixels[index:index + 4]
-            px, py = p[3], p[1]
-            nx = px * 2 - 1;
-            ny = py * 2 - 1;
-            xy = nx**2 + ny**2
-            #print(px, py, nx, ny, xy)
-            n = [px,py,(sqrt(1-xy)+1)/2,1]
-            #n = [px,py,255,255]
-            outp[index:index + 4] = n
-    return outp
-
-
 def load_mbm(mbmpath):
     mbmfile = open(mbmpath, "rb")
     header = mbmfile.read(20)
@@ -386,38 +369,33 @@ def load_mbm(mbmpath):
             pixels[l:l+3] = list(p)
     else:
         raise
-    if bump:
-        pixels = convert_bump(pixels, width, height)
     return width, height, pixels
 
-def load_image(name, path, type):
-    if name[-4:].lower() in [".dds", ".png", ".tga"]:
+def load_image(base, ext, path, type):
+    name = base + ext
+    if ext.lower() in [".dds", ".png", ".tga"]:
         img = bpy.data.images.load(os.path.join(path, name))
-        img.name = img.name[:-4]
-        if name[-4:].lower() == ".dds":
-            pixels = list(img.pixels[:])
-            rowlen = img.size[0] * 4
-            height = img.size[1]
-            for y in range(int(height/2)):
-                ind1 = y * rowlen
-                ind2 = (height - 1 - y) * rowlen
-                t = pixels[ind1 : ind1 + rowlen]
-                pixels[ind1:ind1+rowlen] = pixels[ind2:ind2+rowlen]
-                pixels[ind2:ind2+rowlen] = t
-            if type == 1 or name[-6:-4].lower() == "_n":
+        img.name = base
+        img.muimageprop.invertY = False
+        if ext.lower() == ".dds":
+            img.muimageprop.invertY = True
+            pixels = img.pixels[:1024]#256 pixels
+            if type == 1 or base[-2:].lower() == "_n" or base[-3:].lower() == "nrm":
                 type = 1
-                if name[-7:-4].lower() != "nrm":
-                    pixels = convert_bump(pixels, img.size[0], height)
-            img.pixels = pixels[:]
-            img.pack(as_png=True)
-    elif name[-4:].lower() == ".mbm":
+    elif ext.lower() == ".mbm":
         w,h, pixels = load_mbm(os.path.join(path, name))
-        img = bpy.data.images.new(name[:-4], w, h)
+        img = bpy.data.images.new(base, w, h)
         img.pixels[:] = map(lambda x: x / 255.0, pixels)
-        img.pack(True)
+        img.pack(as_png=True)
     img.alpha_mode = 'STRAIGHT'
+    img.muimageprop.invertY = (ext.lower() == ".dds")
+    img.muimageprop.convertNorm = False
     if type == 1:
         img.colorspace_settings.name = 'Non-Color'
+        for i in range(256):
+            c = 2*Vector(pixels[i*4:i*4+4])-Vector((1, 1, 1, 1))
+            if abs(c.x*c.x + c.y*c.y + c.z*c.z - 1) > 0.05:
+                img.muimageprop.convertNorm = True
 
 def create_textures(mu, path):
     extensions = [".dds", ".mbm", ".tga", ".png"]
@@ -430,11 +408,7 @@ def create_textures(mu, path):
         lst = extensions[ind:] + extensions[:ind]
         for e in lst:
             try:
-                name = base+e
-                load_image(name, path, tex.type)
-                tx = bpy.data.textures.new(tex.name, 'IMAGE')
-                tx.use_preview_alpha = True
-                tx.image = bpy.data.images[base]
+                load_image(base, e, path, tex.type)
                 break
             except FileNotFoundError:
                 continue
