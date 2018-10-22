@@ -393,7 +393,6 @@ def node_settex(name, matprops, nodes, s):
             scale.y *= -1
             offset.y = 1 - offset.y
         cmd = "n.%s = %s" % (s[2], val)
-        print(cmd)
         exec(cmd, {}, locals())
 
 def node_setval(name, nodes, s):
