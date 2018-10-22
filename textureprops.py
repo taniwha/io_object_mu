@@ -34,6 +34,7 @@ def texture_update_mapping(self, context):
         return
     mat = context.material
     node_name = "%s.%s:mapping" % (mat.name, self.name)
+    sel_name = "%s.%s:select" % (mat.name, self.name)
     nodes = mat.node_tree.nodes
     scale = Vector(self.scale)
     offset = Vector(self.offset)
@@ -45,6 +46,8 @@ def texture_update_mapping(self, context):
                 offset.y = 1 - offset.y
         nodes[node_name].translation.xy = offset
         nodes[node_name].scale.xy = scale
+    if sel_name in nodes:
+        nodes[sel_name].inputs[0].default_value = float(self.rgbNorm)
 
 def texture_update_tex(self, context):
     if not hasattr(context, "material"):
@@ -58,6 +61,7 @@ def texture_update_tex(self, context):
 class MuTextureProperties(bpy.types.PropertyGroup):
     tex: StringProperty(name="tex", update=texture_update_tex)
     type: BoolProperty(name="type", description="Texture is a normal map", default = False)
+    rgbNorm: BoolProperty(name="RGB Normal", description="Texture is RGB rather than GA (blender shader control, not exported)", update=texture_update_mapping)
     scale: FloatVectorProperty(name="scale", size = 2, subtype='XYZ', default = (1.0, 1.0), update=texture_update_mapping)
     offset: FloatVectorProperty(name="offset", size = 2, subtype='XYZ', default = (0.0, 0.0), update=texture_update_mapping)
 
@@ -75,6 +79,7 @@ class MuMaterialTexturePropertySet(bpy.types.PropertyGroup):
         r = col.row()
         r.prop(item, "tex", text="")
         r.prop(item, "type", text="")
+        r.prop(item, "rgbNorm", text="")
         col.prop(item, "scale", text="")
         col.prop(item, "offset", text="")
 

@@ -219,36 +219,45 @@ mainTex_block = (
 )
 
 bumpmap_block = (
-    ("node", "_BumpMap:frame", 'NodeFrame', (-800, 0)),
+    ("node", "_BumpMap:frame", 'NodeFrame', (-920, 0)),
     ("setval", "_BumpMap:frame", "label", "_BumpMap"),
-    ("node", "_BumpMap:mapping", 'ShaderNodeMapping', (-600, -20)),
+    ("node", "_BumpMap:mapping", 'ShaderNodeMapping', (-720, -20)),
     ("setval", "_BumpMap:mapping", "label", "Mapping"),
     ("setval", "_BumpMap:mapping", "hide", True),
     ("setval", "_BumpMap:mapping", "vector_type", 'POINT'),
     ("setparent", "_BumpMap:mapping", "_BumpMap:frame"),
-    ("node", "_BumpMap:texture", 'ShaderNodeTexImage', (-480, -20)),
+    ("node", "_BumpMap:texture", 'ShaderNodeTexImage', (-600, -20)),
     ("setval", "_BumpMap:texture", "label", "Normal Map"),
     ("setval", "_BumpMap:texture", "hide", True),
     ("setval", "_BumpMap:texture", "color_space", 'NONE'),
     ("setparent", "_BumpMap:texture", "_BumpMap:frame"),
-    ("node", "_BumpMap:dxtNormal", 'ShaderNodeGroup', (-360, -20)),
+    ("node", "_BumpMap:dxtNormal", 'ShaderNodeGroup', (-480, -20)),
     ("setval", "_BumpMap:dxtNormal", "label", "GA Normal"),
     ("setval", "_BumpMap:dxtNormal", "hide", True),
     ("setgrp", "_BumpMap:dxtNormal", "dxtNormal"),
     ("setparent", "_BumpMap:dxtNormal", "_BumpMap:frame"),
-    ("node", "_BumpMap:normal", 'ShaderNodeNormalMap', (-360, -100)),
+    ("node", "_BumpMap:normal", 'ShaderNodeNormalMap', (-480, -100)),
     ("setval", "_BumpMap:normal", "label", ""),
     ("setval", "_BumpMap:normal", "hide", True),
     ("setparent", "_BumpMap:normal", "_BumpMap:frame"),
+    ("node", "_BumpMap:select", 'ShaderNodeMixRGB', (-360, -60)),
+    ("setval", "_BumpMap:select", "label", ""),
+    ("setval", "_BumpMap:select", "hide", True),
+    ("setval", "_BumpMap:select", "blend_type", 'MIX'),
+    ("setval", "_BumpMap:select", "inputs[0].default_value", 1),
+    ("setparent", "_BumpMap:select", "_BumpMap:frame"),
     ("link", "UV Map", "UV", "_BumpMap:mapping", "Vector"),
     ("link", "_BumpMap:mapping", "Vector", "_BumpMap:texture", "Vector"),
     ("link", "_BumpMap:texture", "Color", "_BumpMap:normal", "Color"),
     ("link", "_BumpMap:texture", "Color", "_BumpMap:dxtNormal", "RGB"),
     ("link", "_BumpMap:texture", "Alpha", "_BumpMap:dxtNormal", "Alpha"),
-    ("link", "_BumpMap:normal", "Normal", "BaseShader", "Normal"),
+    ("link", "_BumpMap:dxtNormal", "Normal", "_BumpMap:select", "inputs[1]"),
+    ("link", "_BumpMap:normal", "Normal", "_BumpMap:select", "inputs[2]"),
+    ("link", "_BumpMap:select", "Color", "BaseShader", "Normal"),
     ("settex", "_BumpMap:texture", "image", "_BumpMap", "tex"),
     ("settex", "_BumpMap:mapping", "translation.xy", "_BumpMap", "offset"),
     ("settex", "_BumpMap:mapping", "scale.xy", "_BumpMap", "scale"),
+    ("settex", "_BumpMap:select", "inputs[0].default_value", "_BumpMap", "rgbNorm", "float"),
 )
 
 emissive_block = (
@@ -373,12 +382,19 @@ def node_settex(name, matprops, nodes, s):
     #offset = Vector((tex.offset.x/tex.scale.x, tex.offset.y / tex.scale.y))
     offset = Vector(tex.offset)
     scale = Vector(tex.scale)
+    rgbNorm = tex.rgbNorm
+    if len(s) > 5:
+        val = "%s(%s)" % (s[5], s[4])
+    else:
+        val = s[4]
     if tex.tex in bpy.data.images:
         tex = bpy.data.images[tex.tex]
         if tex.muimageprop.invertY:
             scale.y *= -1
             offset.y = 1 - offset.y
-        exec("n.%s = %s" % (s[2], s[4]), {}, locals())
+        cmd = "n.%s = %s" % (s[2], val)
+        print(cmd)
+        exec(cmd, {}, locals())
 
 def node_setval(name, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
@@ -459,6 +475,8 @@ def set_tex(mu, dst, src):
         dst.type = tex.type
     except IndexError:
         pass
+    if dst.tex in bpy.data.images:
+        dst.rgbNorm = not bpy.data.images[dst.tex].muimageprop.convertNorm
     dst.scale = src.scale
     dst.offset = src.offset
 
