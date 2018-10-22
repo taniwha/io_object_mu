@@ -219,25 +219,32 @@ mainTex_block = (
 )
 
 bumpmap_block = (
-    ("node", "_BumpMap:frame", 'NodeFrame', (-800, -40)),
+    ("node", "_BumpMap:frame", 'NodeFrame', (-800, 0)),
     ("setval", "_BumpMap:frame", "label", "_BumpMap"),
-    ("node", "_BumpMap:mapping", 'ShaderNodeMapping', (-600, -80)),
+    ("node", "_BumpMap:mapping", 'ShaderNodeMapping', (-600, -20)),
     ("setval", "_BumpMap:mapping", "label", "Mapping"),
     ("setval", "_BumpMap:mapping", "hide", True),
     ("setval", "_BumpMap:mapping", "vector_type", 'POINT'),
     ("setparent", "_BumpMap:mapping", "_BumpMap:frame"),
-    ("node", "_BumpMap:texture", 'ShaderNodeTexImage', (-480, -80)),
+    ("node", "_BumpMap:texture", 'ShaderNodeTexImage', (-480, -20)),
     ("setval", "_BumpMap:texture", "label", "Normal Map"),
     ("setval", "_BumpMap:texture", "hide", True),
     ("setval", "_BumpMap:texture", "color_space", 'NONE'),
     ("setparent", "_BumpMap:texture", "_BumpMap:frame"),
-    ("node", "_BumpMap:normal", 'ShaderNodeNormalMap', (-360, -80)),
+    ("node", "_BumpMap:dxtNormal", 'ShaderNodeGroup', (-360, -20)),
+    ("setval", "_BumpMap:dxtNormal", "label", "GA Normal"),
+    ("setval", "_BumpMap:dxtNormal", "hide", True),
+    ("setgrp", "_BumpMap:dxtNormal", "dxtNormal"),
+    ("setparent", "_BumpMap:dxtNormal", "_BumpMap:frame"),
+    ("node", "_BumpMap:normal", 'ShaderNodeNormalMap', (-360, -100)),
     ("setval", "_BumpMap:normal", "label", ""),
     ("setval", "_BumpMap:normal", "hide", True),
     ("setparent", "_BumpMap:normal", "_BumpMap:frame"),
     ("link", "UV Map", "UV", "_BumpMap:mapping", "Vector"),
     ("link", "_BumpMap:mapping", "Vector", "_BumpMap:texture", "Vector"),
     ("link", "_BumpMap:texture", "Color", "_BumpMap:normal", "Color"),
+    ("link", "_BumpMap:texture", "Color", "_BumpMap:dxtNormal", "RGB"),
+    ("link", "_BumpMap:texture", "Alpha", "_BumpMap:dxtNormal", "Alpha"),
     ("link", "_BumpMap:normal", "Normal", "BaseShader", "Normal"),
     ("settex", "_BumpMap:texture", "image", "_BumpMap", "tex"),
     ("settex", "_BumpMap:mapping", "translation.xy", "_BumpMap", "offset"),
@@ -353,6 +360,11 @@ def node_set(name, matprops, nodes, s):
 def mat_set(mat, s):
     setattr(mat, s[1], s[2])
 
+def node_setgrp(name, matprops, nodes, s):
+    n = nodes["%s.%s" % (name, s[1])]
+    tree = bpy.data.node_groups[s[2]]
+    exec("n.node_tree = tree", {}, locals())
+
 def node_settex(name, matprops, nodes, s):
     n = nodes["%s.%s" % (name, s[1])]
     tex = matprops.texture.properties[s[3]]
@@ -401,6 +413,8 @@ def build_shader(shader, mat, nodes, links):
                 mat_set(mat, s)
             elif s[0] == "settex":
                 node_settex(name, mat.mumatprop, nodes, s)
+            elif s[0] == "setgrp":
+                node_setgrp(name, mat.mumatprop, nodes, s)
             elif s[0] == "setval":
                 node_setval(name, nodes, s)
             elif s[0] == "setparent":
