@@ -306,7 +306,7 @@ def create_collider(mu, muobj):
         collider.build_collider(cobj, obj.muproperties)
     return obj
 
-def create_object(collection, mu, muobj, parent):
+def create_object(mu, muobj, parent):
     obj = None
     mesh = None
     if (not mu.create_colliders
@@ -340,7 +340,7 @@ def create_object(collection, mu, muobj, parent):
         return obj
     if not obj:
         obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
-    collection.objects.link(obj)
+    mu.collection.objects.link(obj)
     if hasattr(muobj, "tag_and_layer"):
         obj.muproperties.tag = muobj.tag_and_layer.tag
         obj.muproperties.layer = muobj.tag_and_layer.layer
@@ -350,7 +350,7 @@ def create_object(collection, mu, muobj, parent):
     obj.parent = parent
     muobj.bobj = obj
     for child in muobj.children:
-        create_object(collection, mu, child, obj)
+        create_object(mu, child, obj)
     if hasattr(muobj, "animation"):
         for clip in muobj.animation.clips:
             create_action(mu, muobj.path, clip)
@@ -477,30 +477,34 @@ def process_armature(mu, obj=None, position=None, rotation=None):
             if d.dot(d) < 1e-5:
                 child.bone.use_connect = True
 
-def create_armature(mu, obj=None):
-    if obj == None:
-        create_armature(mu, mu.obj)
-        if hasattr(mu, "armature_obj"):
-            process_armature(mu)
-            bpy.ops.object.mode_set(mode='OBJECT')
-        return
-    if hasattr(obj, "skinned_mesh_renderer"):
-        if not hasattr(mu, "armature"):
-            mu.armature = bpy.data.armatures.new("armature")
-            mu.armature_obj = bpy.data.objects.new("armature", mu.armature)
-            ctx = bpy.context
-            ctx.layer_collection.collection.objects.link(mu.armature_obj)
-            ctx.view_layer.objects.active = mu.armature_obj
-            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-        smr = obj.skinned_mesh_renderer
-        for bone_name in smr.bones:
-            bone_obj = mu.objects[bone_name]
-            if hasattr(bone_obj, "bone"):
-                #already done
-                continue
-            create_bone(bone_obj, mu.armature.edit_bones)
-    for child in obj.children:
-        create_armature(mu, child)
+def create_armature(mu):
+    def create_bone_hierarchy(mu, obj):
+        create_bone(obj, mu.armature.edit_bones)
+        for child in obj.children:
+            create_bone_hierarchy(mu, child)
+
+    mu.armature = bpy.data.armatures.new("armature")
+    mu.armature_obj = bpy.data.objects.new("armature", mu.armature)
+    ctx = bpy.context
+    ctx.layer_collection.collection.objects.link(mu.armature_obj)
+    #need to set the active object so edit mode can be entered
+    ctx.view_layer.objects.active = mu.armature_obj
+    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+
+    create_bone_hierarchy (mu, mu.obj)
+
+    process_armature(mu)
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+def needs_armature(mu):
+    def has_skinned_mesh(obj):
+        if hasattr(obj, "skinned_mesh_renderer"):
+            return True
+        for child in obj.children:
+            if has_skinned_mesh(child):
+                return True
+        return False
+    return has_skinned_mesh(mu.obj)
 
 def create_object_paths(mu, obj=None, parents=None):
     if obj == None:
@@ -517,30 +521,34 @@ def create_object_paths(mu, obj=None, parents=None):
         create_object_paths(mu, child, parents)
     parents.pop()
 
-def process_mu(collection, mu, mudir):
+def process_mu(mu, mudir):
     create_textures(mu, mudir)
     create_materials(mu)
     create_object_paths(mu)
-    create_armature(mu)
-    return create_object(collection, mu, mu.obj, None)
+    if mu.force_armature or needs_armature(mu):
+        create_armature(mu)
+        return mu.armature_obj
+    return create_object(mu, mu.obj, None)
 
-def import_mu(collection, filepath, create_colliders):
+def import_mu(collection, filepath, create_colliders, force_armature):
     mu = Mu()
     mu.create_colliders = create_colliders
+    mu.force_armature = force_armature
+    mu.collection = collection
     if not mu.read(filepath):
         raise MuImportError("Mu", "Unrecognized format: magic %x version %d"
                                   % (mu.magic, mu.version))
 
-    return process_mu(collection, mu, os.path.dirname(filepath))
+    return process_mu(mu, os.path.dirname(filepath))
 
-def import_mu_op(self, context, filepath, create_colliders):
+def import_mu_op(self, context, filepath, create_colliders, force_armature):
     operator = self
     undo = bpy.context.user_preferences.edit.use_global_undo
     bpy.context.user_preferences.edit.use_global_undo = False
 
     collection = bpy.context.layer_collection.collection
     try:
-        obj = import_mu(collection, filepath, create_colliders)
+        obj = import_mu(collection, filepath, create_colliders, force_armature)
     except MuImportError as e:
         operator.report({'ERROR'}, e.message)
         return {'CANCELLED'}
@@ -566,6 +574,9 @@ class KSPMU_OT_ImportMu(bpy.types.Operator, ImportHelper):
     create_colliders: BoolProperty(name="Create Colliders",
             description="Disable to import only visual and hierarchy elements",
                                     default=True)
+    force_armature: BoolProperty(name="Force Armature",
+            description="Enable to force use of an armature to hold the model"
+                        " hierarchy", default=False)
 
     def execute(self, context):
         keywords = self.as_keywords (ignore=("filter_glob",))
