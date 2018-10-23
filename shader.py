@@ -311,8 +311,8 @@ ksp_alpha_translucent_additive = main_block + mainTex_block + additive_block
 ksp_unlit_transparent = ()
 ksp_unlit = ()
 ksp_diffuse = main_block + mainTex_block + opaque_block
-ksp_particles_alpha_blended = main_block + mainTex_block + transparency_block
-ksp_particles_additive = main_block + mainTex_block
+ksp_particles_alpha_blended = ()
+ksp_particles_additive = ()
 
 ksp_shaders = {
 "KSP/Specular":ksp_specular,
@@ -321,16 +321,16 @@ ksp_shaders = {
 "KSP/Emissive/Diffuse":ksp_emissive_diffuse,
 "KSP/Emissive/Specular":ksp_emissive_specular,
 "KSP/Emissive/Bumped Specular":ksp_emissive_bumped_specular,
-"KSP/Alpha/Cutoff":ksp_alpha_cutoff,
-"KSP/Alpha/Cutoff Bumped":ksp_alpha_cutoff_bumped,
-"KSP/Alpha/Translucent":ksp_alpha_translucent,
+#"KSP/Alpha/Cutoff":ksp_alpha_cutoff,
+#"KSP/Alpha/Cutoff Bumped":ksp_alpha_cutoff_bumped,
+#"KSP/Alpha/Translucent":ksp_alpha_translucent,
 "KSP/Alpha/Translucent Specular":ksp_alpha_translucent_specular,
 "KSP/Alpha/Translucent Additive":ksp_alpha_translucent_additive,
-"KSP/Alpha/Unlit Transparent":ksp_unlit_transparent,
-"KSP/Unlit":ksp_unlit,
+#"KSP/Alpha/Unlit Transparent":ksp_unlit_transparent,
+#"KSP/Unlit":ksp_unlit,
 "KSP/Diffuse":ksp_diffuse,
-"KSP/Particles/Alpha Blended":ksp_particles_alpha_blended,
-"KSP/Particles/Additive":ksp_particles_additive,
+#"KSP/Particles/Alpha Blended":ksp_particles_alpha_blended,
+#"KSP/Particles/Additive":ksp_particles_additive,
 }
 
 def node_node(name, nodes, s):
@@ -461,7 +461,7 @@ def create_nodes(mat):
         print("Unknown shader: '%s'" % mat.mumatprop.shaderName)
         return
     shader = ksp_shaders[mat.mumatprop.shaderName]
-    print(mat.mumatprop.shaderName)
+    #print(mat.mumatprop.shaderName)
     build_shader(shader, mat, nodes, links)
 
 def set_tex(mu, dst, src):
