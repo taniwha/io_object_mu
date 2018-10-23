@@ -36,7 +36,7 @@ from .utils import strip_nnn
 from .model import collect_objects, instantiate_model, compile_model
 
 def loaded_props_collection():
-    if "loaded_props" not in bpy.data.scenes:
+    if "loaded_props" not in bpy.data.collections:
         lp = bpy.data.collections.new("loaded_props")
         lp.hide_viewport = True
         lp.hide_render = True
@@ -187,7 +187,7 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
     def prop_enum_items(self, context):
         enum_items = OBJECT_OT_add_ksp_prop._enum_item_cache
         enum_items.clear()
-        for index, item in enumerate([p for p in bpy.data.collections
+        for index, item in enumerate([p for p in loaded_props_collection().children
                                       if p.mumodelprops.type == 'prop']):
             enum_items.append((str(index), item.mumodelprops.name, '', index))
         return enum_items
@@ -217,7 +217,7 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
                                     loc, rot, scale)
             obj.muproperties.modelType = 'PROP'
             obj.parent = muscene.internal
-            context.scene.collection.objects.link(obj)
+            context.layer_collection.collection.objects.link(obj)
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
@@ -244,7 +244,8 @@ def add_prop_menu_func(self, context):
     layout = self.layout
     if len(OBJECT_OT_add_ksp_prop._enum_item_cache) > 10:
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator(OBJECT_OT_add_ksp_prop.bl_idname, text="KSP Prop...",
+        layout.operator(OBJECT_OT_add_ksp_prop.bl_idname,
+                        text="KSP Prop...",
                         icon='OUTLINER_OB_GROUP_INSTANCE')
     else:
         layout.operator_menu_enum(OBJECT_OT_add_ksp_prop.bl_idname,

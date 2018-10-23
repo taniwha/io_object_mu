@@ -67,6 +67,8 @@ def compile_model(db, path, type, name, cfg, collection):
         root = submodel.instantiate(f"{name}:submodel", position, rotation, scale)
         model.objects.link(root)
     collection.children.link(model)
+    model.mumodelprops.name = name
+    model.mumodelprops.type = type
     return model
 
 def loaded_models_collection():
