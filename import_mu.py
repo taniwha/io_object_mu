@@ -97,29 +97,19 @@ def copy_friction(dst, src):
     dst.extremumValue = src.extremumValue
     dst.stiffness = src.stiffness
 
-def create_light(mu, mulight, transform):
+def create_light(mu, mulight, name):
     ltype = ('SPOT', 'SUN', 'POINT', 'AREA')[mulight.type]
-    light = bpy.data.lights.new(transform.name, ltype)
+    light = bpy.data.lights.new(name, ltype)
     light.color = mulight.color[:3]
     light.distance = mulight.range
     light.energy = mulight.intensity
     if ltype == 'SPOT' and hasattr(mulight, "spotAngle"):
         light.spot_size = mulight.spotAngle * pi / 180
-    obj = bpy.data.objects.new(transform.name, light)
-    bpy.context.view_layer.objects.active = obj
-    obj.rotation_mode = 'QUATERNION'
-    obj.location = Vector(transform.localPosition)
-    # Blender points spotlights along local -Z, unity along local +Z
-    # which is Blender's +Y, so rotate 90 degrees around local X to
-    # go from Unity to Blender
-    rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
-    obj.rotation_quaternion = Quaternion(transform.localRotation) @ rot
-    obj.scale = Vector(transform.localScale)
-    properties.SetPropMask(obj.muproperties.cullingMask, mulight.cullingMask)
-    return obj
+    #properties.SetPropMask(obj.muproperties.cullingMask, mulight.cullingMask)
+    return light
 
-def create_camera(mu, mucamera, transform):
-    camera = bpy.data.cameras.new(transform.name)
+def create_camera(mu, mucamera, name):
+    camera = bpy.data.cameras.new(name)
     #mucamera.clearFlags
     camera.type = ['PERSP', 'ORTHO'][mucamera.orthographic]
     camera.lens_unit = 'FOV'
@@ -127,23 +117,13 @@ def create_camera(mu, mucamera, transform):
     camera.angle = mucamera.fov * pi / 180
     camera.clip_start = mucamera.near
     camera.clip_end = mucamera.far
-    obj = bpy.data.objects.new(transform.name, camera)
-    bpy.context.view_layer.objects.active = obj
-    obj.rotation_mode = 'QUATERNION'
-    obj.location = Vector(transform.localPosition)
-    # Blender points cameras along local -Z, unity along local +Z
-    # which is Blender's +Y, so rotate 90 degrees around local X to
-    # go from Unity to Blender
-    rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
-    obj.rotation_quaternion = Quaternion(transform.localRotation) @ rot
-    obj.scale = Vector(transform.localScale)
-    properties.SetPropMask(obj.muproperties.cullingMask, mucamera.cullingMask)
-    obj.muproperties.backgroundColor = mucamera.backgroundColor
-    obj.muproperties.depth = mucamera.depth
-    if mucamera.clearFlags > 0:
-        flags = mucamera.clearFlags - 1
-        obj.muproperties.clearFlags = properties.clearflag_items[flags][0]
-    return obj
+    #properties.SetPropMask(obj.muproperties.cullingMask, mucamera.cullingMask)
+    #obj.muproperties.backgroundColor = mucamera.backgroundColor
+    #obj.muproperties.depth = mucamera.depth
+    #if mucamera.clearFlags > 0:
+    #    flags = mucamera.clearFlags - 1
+    #    obj.muproperties.clearFlags = properties.clearflag_items[flags][0]
+    return camera
 
 property_map = {
     "m_LocalPosition.x": ("obj", "location", 0, 1),
@@ -320,25 +300,34 @@ def create_object(mu, muobj, parent):
         and not (hasattr(muobj, "shared_mesh") and hasattr(muobj, "renderer"))
         and not hasattr(muobj, "skinned_mesh_renderer")):
         return None
+    name = muobj.transform.name
     xform = None if hasattr(muobj, "bone") else muobj.transform
     if hasattr(muobj, "shared_mesh") and hasattr(muobj, "renderer"):
-        mesh = create_mesh(mu, muobj.shared_mesh, muobj.transform.name)
+        mesh = create_mesh(mu, muobj.shared_mesh, name)
         for poly in mesh.polygons:
             poly.use_smooth = True
-        obj = create_data_object(muobj.transform.name, mesh, xform)
+        obj = create_data_object(name, mesh, xform)
         attach_material(mesh, muobj.renderer, mu)
     elif hasattr(muobj, "skinned_mesh_renderer"):
         smr = muobj.skinned_mesh_renderer
-        mesh = create_mesh(mu, smr.mesh, muobj.transform.name)
+        mesh = create_mesh(mu, smr.mesh, name)
         for poly in mesh.polygons:
             poly.use_smooth = True
-        obj = create_data_object(muobj.transform.name, mesh, xform)
+        obj = create_data_object(name, mesh, xform)
         attach_material(mesh, smr, mu)
     if not obj:
+        data = None
         if hasattr(muobj, "light"):
-            obj = create_light(mu, muobj.light, muobj.transform)
-        if hasattr(muobj, "camera"):
-            obj = create_camera(mu, muobj.camera, muobj.transform)
+            data = create_light(mu, muobj.light, name)
+        elif hasattr(muobj, "camera"):
+            data = create_camera(mu, muobj.camera, name)
+        if data:
+            obj = create_data_object(name, data, xform)
+            # Blender points spotlights along local -Z, unity along local +Z
+            # which is Blender's +Y, so rotate 90 degrees around local X to
+            # go from Unity to Blender
+            rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
+            obj.rotation_quaternion @= rot
     if hasattr(muobj, "bone"):
         #FIXME skinned_mesh_renderer attach to armature
         if obj:
@@ -347,7 +336,7 @@ def create_object(mu, muobj, parent):
             obj.parent_bone = muobj.bone
     else:
         if not obj:
-            obj = create_data_object(muobj.transform.name, None, xform)
+            obj = create_data_object(name, None, xform)
         obj.parent = parent
     if obj:
         #FIXME will lose properties from any empty objects that have properties
