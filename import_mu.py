@@ -306,12 +306,12 @@ def create_collider(mu, muobj):
         collider.build_collider(cobj, obj.muproperties)
     return obj
 
-def create_object(collection, mu, muobj, parent, create_colliders):
+def create_object(collection, mu, muobj, parent):
     obj = None
     mesh = None
-    if (not create_colliders and (hasattr(muobj, "shared_mesh")
-                                  or hasattr(muobj, "skinned_mesh_renderer"))
-        and not hasattr(muobj, "renderer")):
+    if (not mu.create_colliders
+        and (hasattr(muobj, "shared_mesh") and not hasattr(muobj, "renderer"))
+        and not hasattr(muobj, "skinned_mesh_renderer")):
         return None
     if hasattr(muobj, "shared_mesh"):
         mesh = create_mesh(mu, muobj.shared_mesh, muobj.transform.name)
@@ -344,13 +344,13 @@ def create_object(collection, mu, muobj, parent, create_colliders):
     if hasattr(muobj, "tag_and_layer"):
         obj.muproperties.tag = muobj.tag_and_layer.tag
         obj.muproperties.layer = muobj.tag_and_layer.layer
-    if create_colliders and hasattr(muobj, "collider"):
+    if mu.create_colliders and hasattr(muobj, "collider"):
         cobj = create_collider(mu, muobj)
         cobj.parent = obj
     obj.parent = parent
     muobj.bobj = obj
     for child in muobj.children:
-        create_object(collection, mu, child, obj, create_colliders)
+        create_object(collection, mu, child, obj)
     if hasattr(muobj, "animation"):
         for clip in muobj.animation.clips:
             create_action(mu, muobj.path, clip)
@@ -517,20 +517,21 @@ def create_object_paths(mu, obj=None, parents=None):
         create_object_paths(mu, child, parents)
     parents.pop()
 
-def process_mu(collection, mu, mudir, create_colliders):
+def process_mu(collection, mu, mudir):
     create_textures(mu, mudir)
     create_materials(mu)
     create_object_paths(mu)
     create_armature(mu)
-    return create_object(collection, mu, mu.obj, None, create_colliders)
+    return create_object(collection, mu, mu.obj, None)
 
 def import_mu(collection, filepath, create_colliders):
     mu = Mu()
+    mu.create_colliders = create_colliders
     if not mu.read(filepath):
         raise MuImportError("Mu", "Unrecognized format: magic %x version %d"
                                   % (mu.magic, mu.version))
 
-    return process_mu(collection, mu, os.path.dirname(filepath), create_colliders)
+    return process_mu(collection, mu, os.path.dirname(filepath))
 
 def import_mu_op(self, context, filepath, create_colliders):
     operator = self
