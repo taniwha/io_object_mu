@@ -71,8 +71,8 @@ def create_mesh(mu, mumesh, name):
     bm.to_mesh(mesh)
     return mesh
 
-def create_mesh_object(name, mesh, transform):
-    obj = bpy.data.objects.new(name, mesh)
+def create_data_object(name, data, transform):
+    obj = bpy.data.objects.new(name, data)
     bpy.context.view_layer.objects.active = obj
     obj.rotation_mode = 'QUATERNION'
     if transform:
@@ -306,55 +306,66 @@ def create_collider(mu, muobj):
         collider.build_collider(cobj, obj.muproperties)
     return obj
 
+def attach_material(mesh, renderer, mu):
+    if mu.materials and renderer.materials:
+        #KSP supports only the first submesh and thus only the first
+        #material
+        mumat = mu.materials[renderer.materials[0]]
+        mesh.materials.append(mumat.material)
+
 def create_object(mu, muobj, parent):
     obj = None
     mesh = None
     if (not mu.create_colliders
-        and (hasattr(muobj, "shared_mesh") and not hasattr(muobj, "renderer"))
+        and not (hasattr(muobj, "shared_mesh") and hasattr(muobj, "renderer"))
         and not hasattr(muobj, "skinned_mesh_renderer")):
         return None
-    if hasattr(muobj, "shared_mesh"):
+    xform = None if hasattr(muobj, "bone") else muobj.transform
+    if hasattr(muobj, "shared_mesh") and hasattr(muobj, "renderer"):
         mesh = create_mesh(mu, muobj.shared_mesh, muobj.transform.name)
         for poly in mesh.polygons:
             poly.use_smooth = True
-        obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
+        obj = create_data_object(muobj.transform.name, mesh, xform)
+        attach_material(mesh, muobj.renderer, mu)
     elif hasattr(muobj, "skinned_mesh_renderer"):
         smr = muobj.skinned_mesh_renderer
         mesh = create_mesh(mu, smr.mesh, muobj.transform.name)
         for poly in mesh.polygons:
             poly.use_smooth = True
-        obj = create_mesh_object(muobj.transform.name, mesh, muobj.transform)
-        if len(mu.materials) > 0 and len(smr.materials) > 0:
-            mumat = mu.materials[smr.materials[0]]
-            mesh.materials.append(mumat.material)
-    if hasattr(muobj, "renderer") and len(mu.materials) > 0 and len(muobj.renderer.materials) > 0:
-        if mesh:
-            mumat = mu.materials[muobj.renderer.materials[0]]
-            mesh.materials.append(mumat.material)
+        obj = create_data_object(muobj.transform.name, mesh, xform)
+        attach_material(mesh, smr, mu)
     if not obj:
         if hasattr(muobj, "light"):
             obj = create_light(mu, muobj.light, muobj.transform)
         if hasattr(muobj, "camera"):
             obj = create_camera(mu, muobj.camera, muobj.transform)
     if hasattr(muobj, "bone"):
-        return obj
-    if not obj:
-        obj = create_mesh_object(muobj.transform.name, None, muobj.transform)
-    mu.collection.objects.link(obj)
-    if hasattr(muobj, "tag_and_layer"):
-        obj.muproperties.tag = muobj.tag_and_layer.tag
-        obj.muproperties.layer = muobj.tag_and_layer.layer
-    if mu.create_colliders and hasattr(muobj, "collider"):
-        cobj = create_collider(mu, muobj)
-        cobj.parent = obj
-    obj.parent = parent
-    muobj.bobj = obj
+        #FIXME skinned_mesh_renderer attach to armature
+        if obj:
+            obj.parent = mu.armature_obj
+            obj.parent_type = 'BONE'
+            obj.parent_bone = muobj.bone
+    else:
+        if not obj:
+            obj = create_data_object(muobj.transform.name, None, xform)
+        obj.parent = parent
+    if obj:
+        #FIXME will lose properties from any empty objects that have properties
+        #set when using an armature
+        mu.collection.objects.link(obj)
+        if hasattr(muobj, "tag_and_layer"):
+            obj.muproperties.tag = muobj.tag_and_layer.tag
+            obj.muproperties.layer = muobj.tag_and_layer.layer
+        if mu.create_colliders and hasattr(muobj, "collider"):
+            cobj = create_collider(mu, muobj)
+            cobj.parent = obj
+        muobj.bobj = obj
     for child in muobj.children:
         create_object(mu, child, obj)
     if hasattr(muobj, "animation"):
         for clip in muobj.animation.clips:
             create_action(mu, muobj.path, clip)
-    return obj
+    return obj if not hasattr(mu, "armature_obj") else mu.armature_obj
 
 def load_mbm(mbmpath):
     mbmfile = open(mbmpath, "rb")
@@ -437,61 +448,60 @@ def create_materials(mu):
 def create_bone(bone_obj, edit_bones):
     xform = bone_obj.transform
     bone_obj.bone = bone = edit_bones.new(xform.name)
-    print(bone.name)
-    # actual positions will be sorted out when building the hierarchy
-    bone.head = Vector((0, 0, 0))
-    bone.tail = bone.head + Vector((0.1, 0, 0))
+    # actual positions and orientations will be sorted out when building
+    # the hierarchy
+    bone.head = Vector((0, -0.1, 0))
+    bone.tail = bone.head + Vector((0, 0, 0))
+    bone.use_connect = False
+    bone.use_relative_parent = False
+    return bone
 
 def psgn(x):
     return x >= 0 and 1 or -1
 
-def process_armature(mu, obj=None, position=None, rotation=None):
-    if obj == None:
-        pos = Vector((0, 0, 0))
-        rot = Quaternion((1, 0, 0, 0))
-        process_armature(mu, mu.obj, pos, rot)
-        return
-    if not hasattr(obj, "bone"):
+def process_armature(mu):
+    def process_bone(mu, obj, position, rotation):
+        xform = obj.transform
+        obj.bone.tail = rotation @ Vector(xform.localPosition) + position
+        rot = Quaternion(xform.localRotation)
+        lrot = rotation @ rot
+        y = 0.1
+        obj.bone.head = obj.bone.tail - lrot @ Vector((0, y, 0))
+        obj.bone.align_roll(lrot @ Vector((0, 0, 1)))
         for child in obj.children:
-            process_armature(mu, child, position, rotation)
-        return
-    xform = obj.transform
-    obj.bone.head = rotation @ Vector(xform.localPosition) + position
-    rot = Quaternion(xform.localRotation)
-    lrot = rotation @ rot
-    x = 0.0
-    for child in obj.children:
-        if hasattr(child, "bone"):
-            cx = child.transform.localPosition[0]
-            if abs(cx) > x:
-                x = abs(cx)
-        process_armature(mu, child, obj.bone.head, lrot)
-    if x == 0:
-        x = 0.05
-    x *= psgn(obj.bone.head.x)
-    obj.bone.tail = obj.bone.head + lrot @ Vector((x, 0, 0))
-    for child in obj.children:
-        if hasattr(child, "bone"):
-            child.bone.parent = obj.bone
-            d = child.bone.head - obj.bone.tail
-            if d.dot(d) < 1e-5:
-                child.bone.use_connect = True
+            process_bone(mu, child, obj.bone.tail, lrot)
+        # must not keep references to bones when the armature leaves edit mode,
+        # so keep the bone's name instead (which is what's needed for bone
+        # parenting anway)
+        obj.bone = obj.bone.name
+
+    pos = Vector((0, 0, 0))
+    rot = Quaternion((1, 0, 0, 0))
+    #the root object has no bone
+    for child in mu.obj.children:
+        process_bone(mu, child, pos, rot)
 
 def create_armature(mu):
-    def create_bone_hierarchy(mu, obj):
-        create_bone(obj, mu.armature.edit_bones)
+    def create_bone_hierarchy(mu, obj, parent):
+        bone = create_bone(obj, mu.armature.edit_bones)
+        bone.parent = parent
         for child in obj.children:
-            create_bone_hierarchy(mu, child)
+            create_bone_hierarchy(mu, child, bone)
 
-    mu.armature = bpy.data.armatures.new("armature")
-    mu.armature_obj = bpy.data.objects.new("armature", mu.armature)
+    name = mu.obj.transform.name
+    mu.armature = bpy.data.armatures.new(name)
+    mu.armature.show_axes = True
+    mu.armature_obj = create_data_object(name, mu.armature, mu.obj.transform)
     ctx = bpy.context
     ctx.layer_collection.collection.objects.link(mu.armature_obj)
     #need to set the active object so edit mode can be entered
     ctx.view_layer.objects.active = mu.armature_obj
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
-    create_bone_hierarchy (mu, mu.obj)
+    # the armature itself is the root object
+    #FIXME any properties on the root object are lost
+    for child in mu.obj.children:
+        create_bone_hierarchy (mu, child, None)
 
     process_armature(mu)
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -527,7 +537,6 @@ def process_mu(mu, mudir):
     create_object_paths(mu)
     if mu.force_armature or needs_armature(mu):
         create_armature(mu)
-        return mu.armature_obj
     return create_object(mu, mu.obj, None)
 
 def import_mu(collection, filepath, create_colliders, force_armature):
@@ -576,7 +585,7 @@ class KSPMU_OT_ImportMu(bpy.types.Operator, ImportHelper):
                                     default=True)
     force_armature: BoolProperty(name="Force Armature",
             description="Enable to force use of an armature to hold the model"
-                        " hierarchy", default=False)
+                        " hierarchy", default=True)
 
     def execute(self, context):
         keywords = self.as_keywords (ignore=("filter_glob",))
