@@ -38,11 +38,12 @@ def collect_objects(name, obj):
 
 def compile_model(db, path, type, name, cfg, collection):
     nodes = cfg.GetNodes("MODEL")
+    model = bpy.data.collections.new(f"{name}:{type}model")
     if nodes:
         root = bpy.data.objects.new(name+":model", None)
-        collection.objects.link(root)
+        model.objects.link(root)
         for n in nodes:
-            model = n.GetValue("model")
+            submodelname = n.GetValue("model")
             position = Vector((0, 0, 0))
             rotation = Vector((0, 0, 0))
             scale = Vector((1, 1, 1))
@@ -52,23 +53,21 @@ def compile_model(db, path, type, name, cfg, collection):
                 rotation = parse_vector(n.GetValue("rotation"))
             if n.HasValue("scale"):
                 scale = parse_vector(n.GetValue("scale"))
-            mdl = db.model(model)
-            obj = mdl.instantiate(name+":submodel", position, rotation, scale)
-            collection.objects.link(obj)
+            mdl = db.model(submodelname)
+            obj = mdl.instantiate(f"{name}:submodel", position, rotation, scale)
+            model.objects.link(obj)
             obj.parent = root
     else:
         mesh = db.model_by_path[path][0]
         url = os.path.join(path, mesh)
-        model = db.model(url)
+        submodel = db.model(url)
         position = Vector((0, 0, 0))
         rotation = Vector((0, 0, 0))
         scale = Vector((1, 1, 1))
-        root = model.instantiate(name+":model", position, rotation, scale)
-        collection.objects.link(root)
-    collection = collect_objects(type + ":" + name, root)
-    collection.mumodelprops.name = name
-    collection.mumodelprops.type = type
-    return collection
+        root = submodel.instantiate(f"{name}:submodel", position, rotation, scale)
+        model.objects.link(root)
+    collection.children.link(model)
+    return model
 
 def loaded_models_collection():
     if "loaded_models" not in bpy.data.collections:
