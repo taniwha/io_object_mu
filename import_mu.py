@@ -365,7 +365,7 @@ def create_object(mu, muobj, parent):
     if hasattr(muobj, "animation"):
         for clip in muobj.animation.clips:
             create_action(mu, muobj.path, clip)
-    return obj if not hasattr(mu, "armature_obj") else mu.armature_obj
+    return obj
 
 def load_mbm(mbmpath):
     mbmfile = open(mbmpath, "rb")
@@ -537,7 +537,13 @@ def process_mu(mu, mudir):
     create_object_paths(mu)
     if mu.force_armature or needs_armature(mu):
         create_armature(mu)
-    return create_object(mu, mu.obj, None)
+        # The root object is the armature itself
+        for child in mu.obj.children:
+            create_object(mu, child, None)
+        obj = mu.armature_obj
+    else:
+        obj = create_object(mu, mu.obj, None)
+    return obj
 
 def import_mu(collection, filepath, create_colliders, force_armature):
     mu = Mu()
