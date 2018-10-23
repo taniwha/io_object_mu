@@ -35,10 +35,14 @@ from .cfgnode import ConfigNode, ConfigNodeError
 from .utils import strip_nnn
 from .model import collect_objects, instantiate_model, compile_model
 
-def loaded_props_scene():
+def loaded_props_collection():
     if "loaded_props" not in bpy.data.scenes:
-        return bpy.data.scenes.new("loaded_props")
-    return bpy.data.scenes["loaded_props"]
+        lp = bpy.data.collections.new("loaded_props")
+        lp.hide_viewport = True
+        lp.hide_render = True
+        lp.hide_select = True
+        bpy.context.scene.collection.children.link(lp)
+    return bpy.data.collections["loaded_props"]
 
 class Prop:
     @classmethod
@@ -59,7 +63,7 @@ class Prop:
     def get_model(self):
         if not self.model:
             self.model = compile_model(self.db, self.path, "prop", self.name,
-                                       self.cfg, loaded_props_scene())
+                                       self.cfg, loaded_props_collection())
             props = self.model.mumodelprops
             props.config = self.cfg.ToString(-1)
         model = self.instantiate(Vector((0, 0, 0)),
@@ -69,7 +73,7 @@ class Prop:
 
     def instantiate(self, loc, rot, scale):
         obj = bpy.data.objects.new(self.name, None)
-        obj.dupli_type='GROUP'
+        obj.dupli_type='COLLECTION'
         obj.dupli_group=self.model
         obj.location = loc
         return obj
@@ -101,9 +105,9 @@ def import_prop_op(self, context, filepath):
     for obj in bpy.context.scene.objects:
         obj.select_set('DESELECT')
     prop = import_prop(filepath).get_model()
+    context.layer_collection.collection.objects.link(prop)
     prop.location = context.scene.cursor_location
     prop.select_set('SELECT')
-    context.scene.collection.objects.link(prop)
 
     bpy.context.user_preferences.edit.use_global_undo = undo
     return {'FINISHED'}

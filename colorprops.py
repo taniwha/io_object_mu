@@ -25,7 +25,7 @@ from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
 
 def color_update(self, context):
-    if not hasattr(context, "material"):
+    if not hasattr(context, "material") or not context.material:
         return
     mat = context.material
     node_name = "%s.%s" % (mat.name, self.name)

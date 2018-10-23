@@ -30,7 +30,7 @@ from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
 
 def texture_update_mapping(self, context):
-    if not hasattr(context, "material"):
+    if not hasattr(context, "material") or not context.material:
         return
     mat = context.material
     node_name = "%s.%s:mapping" % (mat.name, self.name)
@@ -50,7 +50,7 @@ def texture_update_mapping(self, context):
         nodes[sel_name].inputs[0].default_value = float(self.rgbNorm)
 
 def texture_update_tex(self, context):
-    if not hasattr(context, "material"):
+    if not hasattr(context, "material") or not context.material:
         return
     mat = context.material
     node_name = "%s.%s:texture" % (mat.name, self.name)
