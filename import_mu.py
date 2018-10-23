@@ -580,7 +580,7 @@ class KSPMU_OT_ImportMu(bpy.types.Operator, ImportHelper):
                                     default=True)
     force_armature: BoolProperty(name="Force Armature",
             description="Enable to force use of an armature to hold the model"
-                        " hierarchy", default=True)
+                        " hierarchy", default=False)
 
     def execute(self, context):
         keywords = self.as_keywords (ignore=("filter_glob",))
