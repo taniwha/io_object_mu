@@ -107,16 +107,17 @@ class Model:
                 preloaded[url] = Model(None, url)
         return preloaded
     def __init__(self, path, url):
-        collectionname = "model:" + url
-        if collectionname in bpy.data.collections:
-            collection = bpy.data.collections["model:" + url]
+        modelname = "model:" + url
+        loaded_models = loaded_models_collection()
+        if modelname in loaded_models:
+            model = loaded_models[modelname]
         else:
-            collection = loaded_models_collection()
-            obj = import_mu(collection, path, False)
+            model = bpy.data.collections.new(modelname)
+            loaded_models.children.link(model)
+            obj = import_mu(model, path, False)
             obj.location = Vector((0, 0, 0))
             obj.rotation_quaternion = Quaternion((1,0,0,0))
             obj.scale = Vector((1,1,1))
-            collection = collect_objects("model:" + url, obj)
-        self.model = collection
+        self.model = model
     def instantiate(self, name, loc, rot, scale):
         return instantiate_model(self.model, name, loc, rot, scale)
