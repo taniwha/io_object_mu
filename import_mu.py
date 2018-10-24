@@ -339,6 +339,8 @@ def create_object(mu, muobj, parent):
             obj.parent_type = 'BONE'
             obj.parent_bone = muobj.bone
             obj.matrix_parent_inverse[1][3] = -BONE_LENGTH
+        pbone = mu.armature_obj.pose.bones[muobj.bone]
+        pbone.scale = muobj.transform.localScale
     else:
         if not obj:
             obj = create_data_object(name, None, xform)
@@ -447,6 +449,9 @@ def create_bone(bone_obj, edit_bones):
     bone.head = Vector((0, 0, 0))
     bone.tail = bone.head + Vector((0, BONE_LENGTH, 0))
     bone.use_connect = False
+    bone.use_inherit_rotation = True
+    bone.use_inherit_scale = True
+    bone.use_local_location = True
     bone.use_relative_parent = False
     return bone
 
