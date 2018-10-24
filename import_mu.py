@@ -410,9 +410,9 @@ def load_image(base, ext, path, type):
         img.muimageprop.invertY = False
         if ext.lower() == ".dds":
             img.muimageprop.invertY = True
-            pixels = img.pixels[:1024]#256 pixels
-            if type == 1 or base[-2:].lower() == "_n" or base[-3:].lower() == "nrm":
-                type = 1
+        pixels = img.pixels[:1024]#256 pixels
+        if base[-2:].lower() == "_n" or base[-3:].lower() == "nrm":
+            type = 1
     elif ext.lower() == ".mbm":
         w,h, pixels = load_mbm(os.path.join(path, name))
         img = bpy.data.images.new(base, w, h)
@@ -592,6 +592,8 @@ def import_mu_op(self, context, filepath, create_colliders, force_armature):
             o.select_set('DESELECT')
         bpy.context.view_layer.objects.active = obj
         obj.location = context.scene.cursor_location
+        obj.rotation_quaternion = Quaternion((1, 0, 0, 0))
+        obj.scale = Vector((1, 1, 1))
         obj.select_set('SELECT')
         return {'FINISHED'}
     finally:
