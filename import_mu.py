@@ -591,6 +591,7 @@ def import_mu_op(self, context, filepath, create_colliders, force_armature):
         for o in bpy.context.scene.objects:
             o.select_set('DESELECT')
         bpy.context.view_layer.objects.active = obj
+        obj.location = context.scene.cursor_location
         obj.select_set('SELECT')
         return {'FINISHED'}
     finally:
