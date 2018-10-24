@@ -83,6 +83,15 @@ def create_vertex_groups(obj, bones, weights):
             if bweight != 0:
                 obj.vertex_groups[bind].add((vind,), bweight, 'ADD')
 
+def create_armature_modifier(obj, mu):
+    mod = obj.modifiers.new(name='Armature', type='ARMATURE')
+    mod.use_apply_on_spline = False
+    mod.use_bone_envelopes = False
+    mod.use_deform_preserve_volume = False # silly Unity :P
+    mod.use_multi_modifier = False
+    mod.use_vertex_groups = True
+    mod.object = mu.armature_obj
+
 def create_data_object(name, data, transform):
     obj = bpy.data.objects.new(name, data)
     bpy.context.view_layer.objects.active = obj
@@ -329,6 +338,7 @@ def create_object(mu, muobj, parent):
             poly.use_smooth = True
         obj = create_data_object(name, mesh, xform)
         create_vertex_groups(obj, smr.bones, smr.mesh.boneWeights)
+        create_armature_modifier(obj, mu)
         attach_material(mesh, smr, mu)
     if not obj:
         data = None
@@ -344,7 +354,7 @@ def create_object(mu, muobj, parent):
             rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
             obj.rotation_quaternion @= rot
     if hasattr(muobj, "bone"):
-        #FIXME skinned_mesh_renderer attach to armature
+        #FIXME skinned_mesh_renderer double transforms
         if obj:
             obj.parent = mu.armature_obj
             obj.parent_type = 'BONE'
