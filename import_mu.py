@@ -36,6 +36,8 @@ from .mu import MuColliderBox, MuColliderWheel
 from .shader import make_shader
 from . import collider, properties, cameraprops
 
+BONE_LENGTH = 0.1
+
 def create_uvs(mu, uvs, bm, name):
     layer = bm.loops.layers.uv.new(name)
     for face in bm.faces:
@@ -336,6 +338,7 @@ def create_object(mu, muobj, parent):
             obj.parent = mu.armature_obj
             obj.parent_type = 'BONE'
             obj.parent_bone = muobj.bone
+            obj.matrix_parent_inverse[1][3] = -BONE_LENGTH
     else:
         if not obj:
             obj = create_data_object(name, None, xform)
@@ -441,8 +444,8 @@ def create_bone(bone_obj, edit_bones):
     bone_obj.bone = bone = edit_bones.new(xform.name)
     # actual positions and orientations will be sorted out when building
     # the hierarchy
-    bone.head = Vector((0, -0.1, 0))
-    bone.tail = bone.head + Vector((0, 0, 0))
+    bone.head = Vector((0, 0, 0))
+    bone.tail = bone.head + Vector((0, BONE_LENGTH, 0))
     bone.use_connect = False
     bone.use_relative_parent = False
     return bone
@@ -453,14 +456,14 @@ def psgn(x):
 def process_armature(mu):
     def process_bone(mu, obj, position, rotation):
         xform = obj.transform
-        obj.bone.tail = rotation @ Vector(xform.localPosition) + position
+        obj.bone.head = rotation @ Vector(xform.localPosition) + position
         rot = Quaternion(xform.localRotation)
         lrot = rotation @ rot
-        y = 0.1
-        obj.bone.head = obj.bone.tail - lrot @ Vector((0, y, 0))
+        y = BONE_LENGTH
+        obj.bone.tail = obj.bone.head + lrot @ Vector((0, y, 0))
         obj.bone.align_roll(lrot @ Vector((0, 0, 1)))
         for child in obj.children:
-            process_bone(mu, child, obj.bone.tail, lrot)
+            process_bone(mu, child, obj.bone.head, lrot)
         # must not keep references to bones when the armature leaves edit mode,
         # so keep the bone's name instead (which is what's needed for bone
         # parenting anway)
