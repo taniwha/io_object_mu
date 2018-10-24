@@ -73,6 +73,16 @@ def create_mesh(mu, mumesh, name):
     bm.to_mesh(mesh)
     return mesh
 
+def create_vertex_groups(obj, bones, weights):
+    mesh = obj.data
+    for bone in bones:
+        obj.vertex_groups.new(name=bone)
+    for vind, weight in enumerate(weights):
+        for i in range(4):
+            bind, bweight = weight.indices[i], weight.weights[i]
+            if bweight != 0:
+                obj.vertex_groups[bind].add((vind,), bweight, 'ADD')
+
 def create_data_object(name, data, transform):
     obj = bpy.data.objects.new(name, data)
     bpy.context.view_layer.objects.active = obj
@@ -318,6 +328,7 @@ def create_object(mu, muobj, parent):
         for poly in mesh.polygons:
             poly.use_smooth = True
         obj = create_data_object(name, mesh, xform)
+        create_vertex_groups(obj, smr.bones, smr.mesh.boneWeights)
         attach_material(mesh, smr, mu)
     if not obj:
         data = None
