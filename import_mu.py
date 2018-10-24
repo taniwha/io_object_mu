@@ -34,7 +34,7 @@ from .importerror import MuImportError
 from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from .mu import MuColliderBox, MuColliderWheel
 from .shader import make_shader
-from . import collider, properties
+from . import collider, properties, cameraprops
 
 def create_uvs(mu, uvs, bm, name):
     layer = bm.loops.layers.uv.new(name)
@@ -105,7 +105,8 @@ def create_light(mu, mulight, name):
     light.energy = mulight.intensity
     if ltype == 'SPOT' and hasattr(mulight, "spotAngle"):
         light.spot_size = mulight.spotAngle * pi / 180
-    #properties.SetPropMask(obj.muproperties.cullingMask, mulight.cullingMask)
+    muprops = light.mulightprop
+    properties.SetPropMask(muprops.cullingMask, mulight.cullingMask)
     return light
 
 def create_camera(mu, mucamera, name):
@@ -117,12 +118,13 @@ def create_camera(mu, mucamera, name):
     camera.angle = mucamera.fov * pi / 180
     camera.clip_start = mucamera.near
     camera.clip_end = mucamera.far
-    #properties.SetPropMask(obj.muproperties.cullingMask, mucamera.cullingMask)
-    #obj.muproperties.backgroundColor = mucamera.backgroundColor
-    #obj.muproperties.depth = mucamera.depth
-    #if mucamera.clearFlags > 0:
-    #    flags = mucamera.clearFlags - 1
-    #    obj.muproperties.clearFlags = properties.clearflag_items[flags][0]
+    muprops = camera.mucameraprop
+    properties.SetPropMask(muprops.cullingMask, mucamera.cullingMask)
+    muprops.backgroundColor = mucamera.backgroundColor
+    muprops.depth = mucamera.depth
+    if mucamera.clearFlags > 0:
+        flags = mucamera.clearFlags - 1
+        muprops.clearFlags = cameraprops.clearflag_items[flags][0]
     return camera
 
 property_map = {

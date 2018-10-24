@@ -41,7 +41,9 @@ submodule_names = (
     "textureprops",
     "vectorprops",
 
+    "cameraprops",
     "imageprops",
+    "lightprops",
 
     "collider",
     "colorpalettes",
