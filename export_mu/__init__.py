@@ -41,13 +41,13 @@ from ..cfgnode import ConfigNode, ConfigNodeError
 from ..parser import parse_node
 from ..attachnode import AttachNode
 from ..utils import strip_nnn, swapyz, swizzleq, vector_str
-from ..volume import model_volume
 
 from .mesh import make_mesh
 from .collider import make_collider
 from .animation import collect_animations, find_path_root, make_animations
 from .material import make_material
 from .cfgfile import generate_cfg
+from .volume import model_volume, KSPMU_OT_MuVolume
 
 def make_transform(obj):
     transform = MuTransform()
@@ -312,6 +312,7 @@ classes = (
     KSPMU_OT_ExportMu,
     KSPMU_OT_ExportMu_quick,
     WORKSPACE_PT_tools_mu_export,
+    KSPMU_OT_MuVolume,
 )
 
 menus = (

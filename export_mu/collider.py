@@ -41,7 +41,6 @@ from ..cfgnode import ConfigNode, ConfigNodeError
 from ..parser import parse_node
 from ..attachnode import AttachNode
 from ..utils import strip_nnn, swapyz, swizzleq, vector_str
-from ..volume import model_volume
 
 from .mesh import make_mesh
 

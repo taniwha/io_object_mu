@@ -60,7 +60,6 @@ submodule_names = (
     "shader",
     "shaderprops",
     "templates",
-    "volume",
 )
 
 from bpy.props import PointerProperty

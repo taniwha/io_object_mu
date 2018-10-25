@@ -101,7 +101,3 @@ class KSPMU_OT_MuVolume(bpy.types.Operator):
             vol = model_volume(obj)
         self.report({'INFO'}, 'Skin Volume = %g m^3, Ext Volume = %g m^3' % vol)
         return {'FINISHED'}
-
-classes = (
-    KSPMU_OT_MuVolume,
-)
