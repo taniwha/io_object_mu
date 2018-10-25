@@ -29,19 +29,19 @@ from math import pi
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty
 
-from io_object_mu.mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
-from io_object_mu.mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer, MuLight
-from io_object_mu.mu import MuCamera
-from io_object_mu.mu import MuColliderBox, MuColliderWheel, MuMaterial, MuTexture, MuMatTex
-from io_object_mu.mu import MuSpring, MuFriction
-from io_object_mu.mu import MuAnimation, MuClip, MuCurve, MuKey
-from io_object_mu.shader import make_shader
-from io_object_mu import properties
-from io_object_mu.cfgnode import ConfigNode, ConfigNodeError
-from io_object_mu.parser import parse_node
-from io_object_mu.attachnode import AttachNode
-from io_object_mu.utils import strip_nnn, swapyz, swizzleq, vector_str
-from io_object_mu.volume import model_volume
+from ..mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
+from ..mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer, MuLight
+from ..mu import MuCamera
+from ..mu import MuColliderBox, MuColliderWheel, MuMaterial, MuTexture, MuMatTex
+from ..mu import MuSpring, MuFriction
+from ..mu import MuAnimation, MuClip, MuCurve, MuKey
+from ..shader import make_shader
+from .. import properties
+from ..cfgnode import ConfigNode, ConfigNodeError
+from ..parser import parse_node
+from ..attachnode import AttachNode
+from ..utils import strip_nnn, swapyz, swizzleq, vector_str
+from ..volume import model_volume
 
 def make_transform(obj):
     transform = MuTransform()
