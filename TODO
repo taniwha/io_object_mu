@@ -1,0 +1,6 @@
+o  export armatures
+o  export skinned meshes
+o  ensure the inherit flags on bones are respected when exporting
+o  make parent inverse clearing unnecessary
+o  ???
+o  profit
