@@ -49,6 +49,7 @@ from .material import make_material
 from .cfgfile import generate_cfg
 from .volume import model_volume
 from .operators import KSPMU_OT_MuVolume, KSPMU_OT_ExportMu, KSPMU_OT_ExportMu_quick
+from .panels import WORKSPACE_PT_tools_mu_export
 
 def make_transform(obj):
     transform = MuTransform()
@@ -247,19 +248,6 @@ def export_object(obj, filepath):
     mu.skin_volume, mu.ext_volume = model_volume(obj)
     generate_cfg(mu, filepath)
     return mu
-
-class WORKSPACE_PT_tools_mu_export(bpy.types.Panel):
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_category = "Mu Tools"
-    bl_context = ".workspace"
-    bl_label = "Export Mu"
-
-    def draw(self, context):
-        layout = self.layout
-        #col = layout.column(align=True)
-        layout.operator("export_object.ksp_mu_quick", text = "Export Mu Model");
-        layout.operator("object.mu_volume", text = "Calc Mu Volume");
 
 def export_mu_menu_func(self, context):
     self.layout.operator(KSPMU_OT_ExportMu.bl_idname, text="KSP Mu (.mu)")
