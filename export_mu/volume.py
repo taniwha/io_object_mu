@@ -82,22 +82,3 @@ def model_volume(obj):
     for e in sorted(evols, key=abs):
         extvol += e
     return skinvol, extvol
-
-class KSPMU_OT_MuVolume(bpy.types.Operator):
-    bl_idname = 'object.mu_volume'
-    bl_label = 'Mu Volume'
-
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object != None
-                and (not context.active_object.data
-                     or type(context.active_object.data) == bpy.types.Mesh))
-
-    def execute(self, context):
-        obj = context.active_object
-        if obj.data and type(obj.data) == bpy.types.Mesh:
-            vol = obj_volume(obj)
-        else:
-            vol = model_volume(obj)
-        self.report({'INFO'}, 'Skin Volume = %g m^3, Ext Volume = %g m^3' % vol)
-        return {'FINISHED'}

@@ -47,7 +47,8 @@ from .collider import make_collider
 from .animation import collect_animations, find_path_root, make_animations
 from .material import make_material
 from .cfgfile import generate_cfg
-from .volume import model_volume, KSPMU_OT_MuVolume
+from .volume import model_volume
+from .operators import KSPMU_OT_MuVolume, KSPMU_OT_ExportMu, KSPMU_OT_ExportMu_quick
 
 def make_transform(obj):
     transform = MuTransform()
@@ -246,51 +247,6 @@ def export_object(obj, filepath):
     mu.skin_volume, mu.ext_volume = model_volume(obj)
     generate_cfg(mu, filepath)
     return mu
-
-def export_mu(operator, context, filepath):
-    export_object (context.active_object, filepath)
-    return {'FINISHED'}
-
-class KSPMU_OT_ExportMu(bpy.types.Operator, ExportHelper):
-    '''Save a KSP Mu (.mu) File'''
-    bl_idname = "export_object.ksp_mu"
-    bl_label = "Export Mu"
-
-    filename_ext = ".mu"
-    filter_glob: StringProperty(default="*.mu", options={'HIDDEN'})
-
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object != None
-                and (not context.active_object.data
-                     or type(context.active_object.data) == bpy.types.Mesh))
-
-    def execute(self, context):
-        keywords = self.as_keywords (ignore=("check_existing", "filter_glob"))
-        return export_mu(self, context, **keywords)
-
-class KSPMU_OT_ExportMu_quick(bpy.types.Operator, ExportHelper):
-    '''Save a KSP Mu (.mu) File, defaulting name to selected object'''
-    bl_idname = "export_object.ksp_mu_quick"
-    bl_label = "Export Mu (quick)"
-
-    filename_ext = ".mu"
-    filter_glob: StringProperty(default="*.mu", options={'HIDDEN'})
-
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object != None
-                and (not context.active_object.data
-                     or type(context.active_object.data) == bpy.types.Mesh))
-
-    def execute(self, context):
-        keywords = self.as_keywords (ignore=("check_existing", "filter_glob"))
-        return export_mu(self, context, **keywords)
-
-    def invoke(self, context, event):
-        if context.active_object != None:
-            self.filepath = strip_nnn(context.active_object.name) + self.filename_ext
-        return ExportHelper.invoke(self, context, event)
 
 class WORKSPACE_PT_tools_mu_export(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
