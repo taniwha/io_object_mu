@@ -46,6 +46,7 @@ from ..volume import model_volume
 from .mesh import make_mesh
 from .collider import make_collider
 from .animation import collect_animations, find_path_root, make_animations
+from .material import make_material
 
 def make_transform(obj):
     transform = MuTransform()
@@ -63,47 +64,6 @@ def make_tag_and_layer(obj):
     tl.tag = obj.muproperties.tag
     tl.layer = obj.muproperties.layer
     return tl
-
-def make_texture(mu, tex):
-    if tex.tex not in mu.textures:
-        mutex = MuTexture()
-        mutex.name = tex.tex
-        mutex.type = tex.type
-        mutex.index = len(mu.textures)
-        mu.textures[tex.tex] = mutex
-    mattex = MuMatTex()
-    mattex.index = mu.textures[tex.tex].index
-    mattex.scale = list(tex.scale)
-    mattex.offset = list(tex.offset)
-    return mattex
-
-def make_property(blendprop):
-    muprop = {}
-    for item in blendprop:
-        if type(item.value) is float:
-            muprop[item.name] = item.value
-        else:
-            muprop[item.name] = list(item.value)
-    return muprop
-
-def make_tex_property(mu, blendprop):
-    muprop = {}
-    for item in blendprop:
-        muprop[item.name] = make_texture(mu, item)
-    return muprop
-
-def make_material(mu, mat):
-    material = MuMaterial()
-    material.name = mat.name
-    material.index = len(mu.materials)
-    matprops = mat.mumatprop
-    material.shaderName = matprops.shaderName
-    material.colorProperties = make_property(matprops.color.properties)
-    material.vectorProperties = make_property(matprops.vector.properties)
-    material.floatProperties2 = make_property(matprops.float2.properties)
-    material.floatProperties3 = make_property(matprops.float3.properties)
-    material.textureProperties = make_tex_property(mu, matprops.texture.properties)
-    return material
 
 def make_renderer(mu, mesh):
     rend = MuRenderer()
