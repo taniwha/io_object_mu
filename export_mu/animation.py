@@ -19,31 +19,10 @@
 
 # <pep8 compliant>
 
-import os
+import bpy
 
-import bpy, bmesh
-from bpy_extras.object_utils import object_data_add
-from mathutils import Vector,Matrix,Quaternion
-from pprint import pprint
-from math import pi
-from bpy_extras.io_utils import ExportHelper
-from bpy.props import StringProperty
-
-from ..mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
-from ..mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer, MuLight
-from ..mu import MuCamera
-from ..mu import MuColliderBox, MuColliderWheel, MuMaterial, MuTexture, MuMatTex
-from ..mu import MuSpring, MuFriction
 from ..mu import MuAnimation, MuClip, MuCurve, MuKey
-from ..shader import make_shader
-from .. import properties
-from ..cfgnode import ConfigNode, ConfigNodeError
-from ..parser import parse_node
-from ..attachnode import AttachNode
-from ..utils import strip_nnn, swapyz, swizzleq, vector_str
-
-from .mesh import make_mesh
-from .collider import make_collider
+from ..utils import strip_nnn
 
 def shader_animations(mat, path):
     animations = {}
@@ -94,6 +73,7 @@ def collect_animations(obj, path=""):
     if type(obj.data) == bpy.types.Mesh:
         for mat in obj.data.materials:
             extend_animations(animations, shader_animations(mat, path))
+    #FIXME circular import
     from .export import light_types
     if type(obj.data) in light_types:
         extend_animations(animations, object_animations (obj.data, path))

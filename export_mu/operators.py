@@ -19,38 +19,16 @@
 
 # <pep8 compliant>
 
-import os
-
-import bpy, bmesh
-from bpy_extras.object_utils import object_data_add
-from mathutils import Vector,Matrix,Quaternion
-from pprint import pprint
-from math import pi
+import bpy
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty
 
-from ..mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
-from ..mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer, MuLight
-from ..mu import MuCamera
-from ..mu import MuColliderBox, MuColliderWheel, MuMaterial, MuTexture, MuMatTex
-from ..mu import MuSpring, MuFriction
-from ..mu import MuAnimation, MuClip, MuCurve, MuKey
-from ..shader import make_shader
-from .. import properties
-from ..cfgnode import ConfigNode, ConfigNodeError
-from ..parser import parse_node
-from ..attachnode import AttachNode
-from ..utils import strip_nnn, swapyz, swizzleq, vector_str
+from ..utils import strip_nnn
 
-from .mesh import make_mesh
-from .collider import make_collider
-from .animation import collect_animations, find_path_root, make_animations
-from .material import make_material
-from .cfgfile import generate_cfg
+from .export import export_object
 from .volume import model_volume
 
 def export_mu(operator, context, filepath):
-    from .export import export_object
     export_object (context.active_object, filepath)
     return {'FINISHED'}
 

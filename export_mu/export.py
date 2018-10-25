@@ -19,28 +19,16 @@
 
 # <pep8 compliant>
 
-import os
-
-import bpy, bmesh
-from bpy_extras.object_utils import object_data_add
-from mathutils import Vector,Matrix,Quaternion
-from pprint import pprint
+import bpy
+from mathutils import Quaternion
 from math import pi
-from bpy_extras.io_utils import ExportHelper
-from bpy.props import StringProperty
 
-from ..mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
-from ..mu import MuObject, MuTransform, MuMesh, MuTagLayer, MuRenderer, MuLight
-from ..mu import MuCamera
-from ..mu import MuColliderBox, MuColliderWheel, MuMaterial, MuTexture, MuMatTex
-from ..mu import MuSpring, MuFriction
-from ..mu import MuAnimation, MuClip, MuCurve, MuKey
-from ..shader import make_shader
 from .. import properties
-from ..cfgnode import ConfigNode, ConfigNodeError
-from ..parser import parse_node
+from ..mu import Mu
+from ..mu import MuObject, MuTransform, MuTagLayer, MuRenderer, MuLight
+from ..mu import MuCamera
 from ..attachnode import AttachNode
-from ..utils import strip_nnn, swapyz, swizzleq, vector_str
+from ..utils import strip_nnn
 
 from .mesh import make_mesh
 from .collider import make_collider
@@ -132,7 +120,7 @@ def make_obj(mu, obj, special, path = ""):
     path += muobj.transform.name
     mu.object_paths[path] = muobj
     muobj.tag_and_layer = make_tag_and_layer(obj)
-    if not obj.data :
+    if not obj.data:
         name = strip_nnn(obj.name)
         if name[:5] == "node_":
             n = AttachNode(obj, mu.inverse)
