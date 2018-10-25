@@ -357,7 +357,9 @@ def create_object(mu, muobj, parent):
             rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
             obj.rotation_quaternion @= rot
     if hasattr(muobj, "bone"):
-        #FIXME skinned_mesh_renderer double transforms
+        #FIXME skinned_mesh_renderer double transforms? Not yet sure this is a
+        #problem, but if so will need to not import the whole hierarchy as one
+        #armature.
         if obj:
             obj.parent = mu.armature_obj
             obj.parent_type = 'BONE'
@@ -371,7 +373,8 @@ def create_object(mu, muobj, parent):
         obj.parent = parent
     if obj:
         #FIXME will lose properties from any empty objects that have properties
-        #set when using an armature
+        #set when using an armature. Maybe create an empty? Put properties on
+        #bones?
         mu.collection.objects.link(obj)
         if hasattr(muobj, "tag_and_layer"):
             obj.muproperties.tag = muobj.tag_and_layer.tag
@@ -522,7 +525,8 @@ def create_armature(mu):
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
     # the armature itself is the root object
-    #FIXME any properties on the root object are lost
+    #FIXME any properties on the root object are lost, however, the root
+    #object is supposed to be an empty, so it may not matter
     for child in mu.obj.children:
         create_bone_hierarchy (mu, child, None)
 
