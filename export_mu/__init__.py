@@ -21,6 +21,7 @@
 
 import bpy
 
+from .export import export_object, strip_nnn
 from .operators import KSPMU_OT_MuVolume
 from .operators import KSPMU_OT_ExportMu
 from .operators import KSPMU_OT_ExportMu_quick
