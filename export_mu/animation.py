@@ -94,8 +94,7 @@ def collect_animations(obj, path=""):
     if type(obj.data) == bpy.types.Mesh:
         for mat in obj.data.materials:
             extend_animations(animations, shader_animations(mat, path))
-    #FIXME circular import
-    from . import light_types
+    from .export import light_types
     if type(obj.data) in light_types:
         extend_animations(animations, object_animations (obj.data, path))
     for o in obj.children:

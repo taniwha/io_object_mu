@@ -50,8 +50,7 @@ from .cfgfile import generate_cfg
 from .volume import model_volume
 
 def export_mu(operator, context, filepath):
-    #FIXME circular import
-    from . import export_object
+    from .export import export_object
     export_object (context.active_object, filepath)
     return {'FINISHED'}
 
