@@ -264,9 +264,12 @@ def create_action(mu, path, clip):
         act, obj = actions[name]
         if not obj.animation_data:
             obj.animation_data_create()
-        track = obj.animation_data.nla_tracks.new()
-        track.name = clip.name
-        track.strips.new(act.name, 1.0, act)
+        #FIXME blender 2.8 has a bug (? maybe a change I need to address)
+        #where scripted NLA tracks don't work.
+        obj.animation_data.action = act
+        #track = obj.animation_data.nla_tracks.new()
+        #track.name = clip.name
+        #track.strips.new(act.name, 1.0, act)
 
 def create_collider(mu, muobj):
     col = muobj.collider
