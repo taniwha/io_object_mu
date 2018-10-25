@@ -41,68 +41,7 @@ from .cfgnode import ConfigNode, ConfigNodeError
 from .parser import parse_node
 from .attachnode import AttachNode
 from .utils import strip_nnn, swapyz, swizzleq, vector_str
-
-def calcVolume(mesh):
-    terms=[]
-    for face in mesh.polygons:
-        a = mesh.vertices[face.vertices[0]].co
-        b = mesh.vertices[face.vertices[1]].co
-        for i in range(2, len(face.vertices)):
-            c = mesh.vertices[face.vertices[i]].co
-            vp =  a.y*b.z*c.x + a.z*b.x*c.y + a.x*b.y*c.z
-            vm = -a.z*b.y*c.x - a.x*b.z*c.y - a.y*b.x*c.z
-            terms.extend([vp, vm])
-            b = c
-    vol = 0
-    for t in sorted(terms, key=abs):
-        vol += t
-    return vol / 6
-
-def collect_modifiers(obj):
-    modifiers = []
-    for mod in obj.modifiers:
-        if mod.show_viewport and not mod.show_render:
-            modifiers.append(mod)
-    return modifiers
-
-def obj_volume(obj):
-    if type(obj.data) != bpy.types.Mesh:
-        return 0, 0
-    if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
-        return 0, 0
-    #FIXME skin_mesh = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
-    #FIXME ext_mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
-
-    #FIXME horible hack to work around blender 2.8 not (yet) allowing control
-    # over render/preview when converting an object to a mesh
-    modifiers = collect_modifiers(obj)
-    skin_mesh = obj.to_mesh(bpy.context.depsgraph, True)
-    for mod in modifiers:
-        mod.show_viewport = False
-    ext_mesh = obj.to_mesh(bpy.context.depsgraph, True)
-    for mod in modifiers:
-        mod.show_viewport = True
-
-    return calcVolume(skin_mesh), calcVolume(ext_mesh)
-    return 0, 0
-
-def model_volume(obj):
-    svols = []
-    evols = []
-    def recurse(o):
-        v = obj_volume(o)
-        svols.append(v[0])
-        evols.append(v[1])
-        for c in o.children:
-            recurse(c)
-    recurse(obj)
-    skinvol = 0
-    extvol = 0
-    for s in sorted(svols, key=abs):
-        skinvol += s
-    for e in sorted(evols, key=abs):
-        extvol += e
-    return skinvol, extvol
+from .volume import model_volume
 
 def make_transform(obj):
     transform = MuTransform()
@@ -787,25 +726,6 @@ class KSPMU_OT_ExportMu_quick(bpy.types.Operator, ExportHelper):
             self.filepath = strip_nnn(context.active_object.name) + self.filename_ext
         return ExportHelper.invoke(self, context, event)
 
-class KSPMU_OT_MuVolume(bpy.types.Operator):
-    bl_idname = 'object.mu_volume'
-    bl_label = 'Mu Volume'
-
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object != None
-                and (not context.active_object.data
-                     or type(context.active_object.data) == bpy.types.Mesh))
-
-    def execute(self, context):
-        obj = context.active_object
-        if obj.data and type(obj.data) == bpy.types.Mesh:
-            vol = obj_volume(obj)
-        else:
-            vol = model_volume(obj)
-        self.report({'INFO'}, 'Skin Volume = %g m^3, Ext Volume = %g m^3' % vol)
-        return {'FINISHED'}
-
 class WORKSPACE_PT_tools_mu_export(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -825,7 +745,6 @@ def export_mu_menu_func(self, context):
 classes = (
     KSPMU_OT_ExportMu,
     KSPMU_OT_ExportMu_quick,
-    KSPMU_OT_MuVolume,
     WORKSPACE_PT_tools_mu_export,
 )
 
