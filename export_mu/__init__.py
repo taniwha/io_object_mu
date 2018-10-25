@@ -44,6 +44,7 @@ from ..utils import strip_nnn, swapyz, swizzleq, vector_str
 from ..volume import model_volume
 
 from .mesh import make_mesh
+from .collider import make_collider
 
 def make_transform(obj):
     transform = MuTransform()
@@ -55,60 +56,6 @@ def make_transform(obj):
       transform.localRotation = obj.rotation_quaternion
     transform.localScale = obj.scale
     return transform
-
-def make_spring(spr):
-    spring = MuSpring()
-    spring.spring = spr.spring
-    spring.damper = spr.damper
-    spring.targetPosition = spr.targetPosition
-    return spring
-
-def make_friction(fric):
-    friction = MuFriction()
-    friction.extremumSlip = fric.extremumSlip
-    friction.extremumValue = fric.extremumValue
-    friction.asymptoteSlip = fric.asymptoteSlip
-    friction.asymptoteValue = fric.asymptoteValue
-    friction.stiffness = fric.stiffness
-    return friction
-
-def make_collider(mu, obj):
-    if (obj.muproperties.collider == 'MU_COL_MESH' and obj.data
-        and type (obj.data) == bpy.types.Mesh):
-        col = MuColliderMesh(True)
-        col.isTrigger = obj.muproperties.isTrigger
-        col.convex = True #FIXME calculate
-        col.mesh = make_mesh (mu, obj)
-    elif obj.muproperties.collider == 'MU_COL_SPHERE':
-        col = MuColliderSphere(True)
-        col.isTrigger = obj.muproperties.isTrigger
-        col.radius = obj.muproperties.radius
-        col.center = obj.muproperties.center
-    elif obj.muproperties.collider == 'MU_COL_CAPSULE':
-        col = MuColliderCapsule(True)
-        col.isTrigger = obj.muproperties.isTrigger
-        col.radius = obj.muproperties.radius
-        col.height = obj.muproperties.height
-        col.direction = obj.muproperties.direction
-        if type(col.direction) is not int:
-            col.direction = properties.dir_map[col.direction]
-        col.center = obj.muproperties.center
-    elif obj.muproperties.collider == 'MU_COL_BOX':
-        col = MuColliderBox(True)
-        col.isTrigger = obj.muproperties.isTrigger
-        col.size = obj.muproperties.size
-        col.center = obj.muproperties.center
-    elif obj.muproperties.collider == 'MU_COL_WHEEL':
-        col = MuColliderWheel()
-        col.isTrigger = obj.muproperties.isTrigger
-        col.mass = obj.muproperties.mass
-        col.radius = obj.muproperties.radius
-        col.suspensionDistance = obj.muproperties.suspensionDistance
-        col.center = obj.muproperties.center
-        col.suspensionSpring = make_spring(obj.muproperties.suspensionSpring)
-        col.forwardFriction = make_friction(obj.muproperties.forwardFriction)
-        col.sidewaysFriction = make_friction(obj.muproperties.sideFriction)
-    return col
 
 def make_tag_and_layer(obj):
     tl = MuTagLayer()
