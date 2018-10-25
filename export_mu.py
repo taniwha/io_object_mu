@@ -433,6 +433,12 @@ def object_animations(obj, path):
         for track in obj.animation_data.nla_tracks:
             if track.strips:
                 animations[track.name] = [(track, path, "obj")]
+        # if nla_tracks exist, then action will be an nla track that has been
+        # opened for tweaking, so export action only if there are no nla tracks
+        if not animations and obj.animation_data.action:
+            #FIXME not tested
+            action = obj.animation_data.action
+            animations[action.name] = [(action, path, "obj")]
     return animations
 
 def extend_animations(animations, anims):
