@@ -19,9 +19,11 @@
 
 # <pep8 compliant>
 
-from .cfgnode import ConfigNode, ConfigNodeError
-from .utils import strip_nnn, swapyz
-from . import properties
+from mathutils import Quaternion
+
+from ..cfgnode import ConfigNode, ConfigNodeError
+from ..utils import strip_nnn, swapyz
+from .. import properties
 
 class AttachNode:
     node_types = ["stack", "attach"]
@@ -101,3 +103,10 @@ class AttachNode:
             cfg.AddValue (self.name, self.cfgstring())
         else:
             cfg.AddNode("NODE", self.cfgnode())
+
+# Blender's empties use the +Z axis for single-arrow display, so
+# that is the most natural orientation for nodes in blender.
+# However, KSP uses the transform's +Z (Unity) axis which is
+# Blender's +Y, so rotate 90 degrees around local X to go from
+# Blender to KSP
+rotation_correction = Quaternion((0.5**0.5, 0.5**0.5, 0, 0))

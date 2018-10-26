@@ -20,22 +20,23 @@
 # <pep8 compliant>
 
 import bpy
-from mathutils import Quaternion
-from math import pi
 
 from .. import properties
 from ..mu import Mu
 from ..mu import MuObject, MuTransform, MuTagLayer, MuRenderer, MuLight
 from ..mu import MuCamera
-from ..attachnode import AttachNode
 from ..utils import strip_nnn
 
-from .mesh import make_mesh
-from .collider import make_collider
 from .animation import collect_animations, find_path_root, make_animations
-from .material import make_material
 from .cfgfile import generate_cfg
+from .collider import make_collider
+from .material import make_material
+from .mesh import make_mesh
 from .volume import model_volume
+
+from . import attachnode
+from . import camera
+from . import light
 
 def make_transform(obj):
     transform = MuTransform()
@@ -67,41 +68,7 @@ def make_renderer(mu, mesh):
         return None
     return rend
 
-def make_light(mu, light, obj):
-    mulight = MuLight()
-    mulight.type = ('SPOT', 'SUN', 'POINT', 'AREA').index(light.type)
-    mulight.color = tuple(light.color) + (1.0,)
-    mulight.range = light.distance
-    mulight.intensity = light.energy
-    mulight.spotAngle = 0.0
-    mulight.cullingMask = properties.GetPropMask(obj.muproperties.cullingMask)
-    if light.type == 'SPOT':
-        mulight.spotAngle = light.spot_size * 180 / pi
-    return mulight
-
-def make_camera(mu, camera, obj):
-    mucamera = MuCamera()
-    clear = obj.muproperties.clearFlags
-    flags = ('SKYBOX', 'COLOR', 'DEPTH', 'NOTHING').index(clear)
-    mucamera.clearFlags = flags + 1
-    mucamera.backgroundColor = obj.muproperties.backgroundColor
-    mucamera.cullingMask = properties.GetPropMask(obj.muproperties.cullingMask)
-    mucamera.orthographic = camera.type == 'ORTHO'
-    mucamera.fov = camera.angle * 180 / pi
-    mucamera.near = camera.clip_start
-    mucamera.far = camera.clip_end
-    mucamera.depth = obj.muproperties.depth
-    return mucamera
-
-light_types = {
-    bpy.types.PointLight,
-    bpy.types.SunLight,
-    bpy.types.SpotLight,
-    bpy.types.HemiLight,
-    bpy.types.AreaLight
-}
-
-exportable_types = {bpy.types.Mesh, bpy.types.Camera} | light_types
+exportable_types = {bpy.types.Mesh, bpy.types.Camera} | light.light_types
 
 def is_group_root(obj, group):
     print(obj.name)
@@ -123,17 +90,11 @@ def make_obj(mu, obj, special, path = ""):
     if not obj.data:
         name = strip_nnn(obj.name)
         if name[:5] == "node_":
-            n = AttachNode(obj, mu.inverse)
+            n = attachnode.AttachNode(obj, mu.inverse)
             mu.nodes.append(n)
             if not n.keep_transform():
                 return None
-            # Blender's empties use the +Z axis for single-arrow display, so
-            # that is the most natural orientation for nodes in blender.
-            # However, KSP uses the transform's +Z (Unity) axis which is
-            # Blender's +Y, so rotate 90 degrees around local X to go from
-            # Blender to KSP
-            rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
-            muobj.transform.localRotation = muobj.transform.localRotation @ rot
+            muobj.transform.localRotation @= attachnode.rotation_correction
         elif name in ["CoMOffset", "CoPOffset", "CoLOffset"]:
             setattr(mu, name, (mu.inverse @ obj.matrix_world.col[3])[:3])
         pass
@@ -162,19 +123,11 @@ def make_obj(mu, obj, special, path = ""):
             muobj.shared_mesh = make_mesh(mu, obj)
             muobj.renderer = make_renderer(mu, obj.data)
         elif type(obj.data) in light_types:
-            muobj.light = make_light(mu, obj.data, obj)
-            # Blender points spotlights along local -Z, unity along local +Z
-            # which is Blender's +Y, so rotate -90 degrees around local X to
-            # go from Blender to Unity
-            rot = Quaternion((0.5**0.5,-0.5**0.5,0,0))
-            muobj.transform.localRotation = muobj.transform.localRotation @ rot
+            muobj.light = light.make_light(mu, obj.data, obj)
+            muobj.transform.localRotation @= light.rotation_correction
         elif type(obj.data) == bpy.types.Camera:
-            muobj.camera = make_camera(mu, obj.data, obj)
-            # Blender points camera along local -Z, unity along local +Z
-            # which is Blender's +Y, so rotate -90 degrees around local X to
-            # go from Blender to Unity
-            rot = Quaternion((0.5**0.5,-0.5**0.5,0,0))
-            muobj.transform.localRotation = muobj.transform.localRotation @ rot
+            muobj.camera = camera.make_camera(mu, obj.data, obj)
+            muobj.transform.localRotation @= camera.rotation_correction
     for o in obj.children:
         muprops = o.muproperties
         if muprops.modelType in special:

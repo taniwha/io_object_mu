@@ -24,6 +24,8 @@ import bpy
 from ..mu import MuAnimation, MuClip, MuCurve, MuKey
 from ..utils import strip_nnn
 
+from .light import light_types
+
 def shader_animations(mat, path):
     animations = {}
     if not mat.animation_data:
@@ -73,8 +75,6 @@ def collect_animations(obj, path=""):
     if type(obj.data) == bpy.types.Mesh:
         for mat in obj.data.materials:
             extend_animations(animations, shader_animations(mat, path))
-    #FIXME circular import
-    from .export import light_types
     if type(obj.data) in light_types:
         extend_animations(animations, object_animations (obj.data, path))
     for o in obj.children:
