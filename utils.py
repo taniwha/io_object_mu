@@ -41,3 +41,10 @@ def vector_str(vec):
         return "%.9g, %.9g, %.9g" % vec
     elif len(vec) == 4:
         return "%.9g, %.9g, %.9g, %.9g" % vec
+
+def collect_modifiers(obj):
+    modifiers = []
+    for mod in obj.modifiers:
+        if mod.show_viewport and not mod.show_render:
+            modifiers.append(mod)
+    return modifiers

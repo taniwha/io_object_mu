@@ -21,6 +21,8 @@
 
 import bpy
 
+from ..utils import collect_modifiers
+
 def calcVolume(mesh):
     terms=[]
     for face in mesh.polygons:
@@ -36,13 +38,6 @@ def calcVolume(mesh):
     for t in sorted(terms, key=abs):
         vol += t
     return vol / 6
-
-def collect_modifiers(obj):
-    modifiers = []
-    for mod in obj.modifiers:
-        if mod.show_viewport and not mod.show_render:
-            modifiers.append(mod)
-    return modifiers
 
 def obj_volume(obj):
     if type(obj.data) != bpy.types.Mesh:
