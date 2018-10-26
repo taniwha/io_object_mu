@@ -27,6 +27,7 @@ from ..mu import MuObject, MuTransform, MuTagLayer
 from ..utils import strip_nnn
 
 from .animation import collect_animations, find_path_root, make_animations
+from .collider import make_collider
 from .cfgfile import generate_cfg
 from .volume import model_volume
 
@@ -73,8 +74,6 @@ def make_obj(mu, obj, special, path = ""):
             if special[muprops.modelType](mu, o):
                 continue
         if muprops.collider and muprops.collider != 'MU_COL_NONE':
-            #FIXME ugh, circular imports... again :/
-            from .collider import make_collider
             muobj.collider = make_collider(mu, o)
             continue
         child = make_obj(mu, o, special, path)

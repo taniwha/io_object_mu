@@ -58,5 +58,3 @@ type_handlers = {
 }
 
 light_types = set(type_handlers)
-
-export.type_handlers.update(type_handlers)

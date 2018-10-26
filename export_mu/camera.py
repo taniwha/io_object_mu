@@ -54,5 +54,3 @@ def handle_camera(obj, muobj, mu):
 type_handlers = {
     bpy.types.Camera: handle_camera,
 }
-
-export.type_handlers.update(type_handlers)

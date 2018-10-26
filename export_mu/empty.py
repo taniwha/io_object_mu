@@ -69,5 +69,3 @@ def handle_empty(obj, muobj, mu):
 type_handlers = {
     type(None): handle_empty
 }
-
-export.type_handlers.update(type_handlers)

@@ -165,5 +165,3 @@ def handle_mesh(obj, muobj, mu):
 type_handlers = {
     bpy.types.Mesh: handle_mesh,
 }
-
-export.type_handlers.update(type_handlers)

@@ -20,27 +20,19 @@
 # <pep8 compliant>
 
 import bpy
+from mathutils import Vector
 
-#modules for handling obj.data types
+from ..mu import MuMesh, MuRenderer
 
-from .export import export_object, strip_nnn
-from .operators import KSPMU_OT_MuVolume
-from .operators import KSPMU_OT_ExportMu
-from .operators import KSPMU_OT_ExportMu_quick
-from .panels import WORKSPACE_PT_tools_mu_export
+from .material import make_material
 
-from . import export_modules
+from . import export
+from . import camera
+from . import empty
+from . import light
+from . import mesh
 
-def export_mu_menu_func(self, context):
-    self.layout.operator(KSPMU_OT_ExportMu.bl_idname, text="KSP Mu (.mu)")
-
-classes = (
-    KSPMU_OT_ExportMu,
-    KSPMU_OT_ExportMu_quick,
-    WORKSPACE_PT_tools_mu_export,
-    KSPMU_OT_MuVolume,
-)
-
-menus = (
-    (bpy.types.TOPBAR_MT_file_export, export_mu_menu_func),
-)
+export.type_handlers.update(camera.type_handlers)
+export.type_handlers.update(empty.type_handlers)
+export.type_handlers.update(light.type_handlers)
+export.type_handlers.update(mesh.type_handlers)
