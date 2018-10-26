@@ -25,6 +25,8 @@ from mathutils import Quaternion
 
 from ..mu import MuCamera
 
+from . import export
+
 # Blender points camera along local -Z, unity along local +Z
 # which is Blender's +Y, so rotate -90 degrees around local X to
 # go from Blender to Unity
@@ -52,3 +54,5 @@ def handle_camera(obj, muobj, mu):
 type_handlers = {
     bpy.types.Camera: handle_camera,
 }
+
+export.type_handlers.update(type_handlers)

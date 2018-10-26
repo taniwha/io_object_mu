@@ -21,6 +21,12 @@
 
 import bpy
 
+#modules for handling obj.data types
+from . import camera
+from . import empty
+from . import light
+from . import mesh
+
 from .export import export_object, strip_nnn
 from .operators import KSPMU_OT_MuVolume
 from .operators import KSPMU_OT_ExportMu

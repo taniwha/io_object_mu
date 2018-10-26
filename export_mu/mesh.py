@@ -26,6 +26,8 @@ from ..mu import MuMesh, MuRenderer
 
 from .material import make_material
 
+from . import export
+
 def split_face(mesh, index):
     face = mesh.polygons[index]
     s, e = face.loop_start, face.loop_start + face.loop_total
@@ -163,3 +165,5 @@ def handle_mesh(obj, muobj, mu):
 type_handlers = {
     bpy.types.Mesh: handle_mesh,
 }
+
+export.type_handlers.update(type_handlers)

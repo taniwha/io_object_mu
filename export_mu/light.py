@@ -25,6 +25,8 @@ from mathutils import Quaternion
 
 from ..mu import MuLight
 
+from . import export
+
 # Blender points spotlights along local -Z, unity along local +Z
 # which is Blender's +Y, so rotate -90 degrees around local X to
 # go from Blender to Unity
@@ -56,3 +58,5 @@ type_handlers = {
 }
 
 light_types = set(type_handlers)
+
+export.type_handlers.update(type_handlers)

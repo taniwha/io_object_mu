@@ -28,13 +28,7 @@ from ..utils import strip_nnn
 
 from .animation import collect_animations, find_path_root, make_animations
 from .cfgfile import generate_cfg
-from .collider import make_collider
 from .volume import model_volume
-
-from . import attachnode
-from . import camera
-from . import light
-from . import mesh
 
 def make_transform(obj):
     transform = MuTransform()
@@ -53,54 +47,7 @@ def make_tag_and_layer(obj):
     tl.layer = obj.muproperties.layer
     return tl
 
-def is_group_root(obj, group):
-    print(obj.name)
-    while obj.parent:
-        obj = obj.parent
-        print(obj.name, obj.users_group)
-        if group.name not in obj.users_group:
-            return False
-    return True
-
-def handle_empty(obj, muobj, mu):
-    if obj.dupli_group:
-        if obj.dupli_type != 'COLLECTION':
-            #FIXME flag an error? figure out something else to do?
-            return None
-        group = obj.dupli_group
-        for o in group.objects:
-            # while KSP models (part/prop/internal) will have only one root
-            # object, grouping might be used for other purposes (eg, greeble)
-            # so support multiple group root objects
-            if not is_group_root(o, group):
-                continue
-            #easiest way to deal with dupli_offset is to temporarily shift
-            #the object by the offset and then restor the object's location
-            loc = o.location
-            o.location -= group.dupli_offset
-            child = make_obj(mu, o, special, path)
-            o.location = loc
-            if child:
-                muobj.children.append(child)
-    name = strip_nnn(obj.name)
-    if name[:5] == "node_":
-        n = attachnode.AttachNode(obj, mu.inverse)
-        mu.nodes.append(n)
-        if not n.keep_transform() and not obj.children:
-            return None
-        muobj.transform.localRotation @= attachnode.rotation_correction
-    elif name in ["CoMOffset", "CoPOffset", "CoLOffset"]:
-        setattr(mu, name, (mu.inverse @ obj.matrix_world.col[3])[:3])
-        if not obj.children:
-            return None
-    return muobj
-
-type_handlers = {
-    type(None): handle_empty
-}
-type_handlers.update(light.type_handlers)
-type_handlers.update(camera.type_handlers)
-type_handlers.update(mesh.type_handlers)
+type_handlers = {} # filled in by the modules that handle the obj.data types
 
 def make_obj(mu, obj, special, path = ""):
     if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
@@ -126,6 +73,8 @@ def make_obj(mu, obj, special, path = ""):
             if special[muprops.modelType](mu, o):
                 continue
         if muprops.collider and muprops.collider != 'MU_COL_NONE':
+            #FIXME ugh, circular imports... again :/
+            from .collider import make_collider
             muobj.collider = make_collider(mu, o)
             continue
         child = make_obj(mu, o, special, path)
