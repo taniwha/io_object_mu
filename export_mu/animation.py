@@ -55,7 +55,6 @@ def object_animations(obj, path):
         # if nla_tracks exist, then action will be an nla track that has been
         # opened for tweaking, so export action only if there are no nla tracks
         if not animations and obj.animation_data.action:
-            #FIXME not tested
             action = obj.animation_data.action
             animations[action.name] = [(action, path, "obj")]
     return animations
@@ -187,8 +186,11 @@ def make_animations(mu, animations, anim_root):
         for data in animations[clip_name]:
             track, path, typ = data
             path = path[len(anim_root) + 1:]
-            strip = track.strips[0]
-            for curve in strip.action.fcurves:
+            if type(track) is bpy.types.Action:
+                action = track
+            else:
+                action = track.strips[0].action
+            for curve in action.fcurves:
                 clip.curves.append(make_curve(mu, curve, path, typ))
         anim.clips.append(clip)
     return anim

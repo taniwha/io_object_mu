@@ -24,6 +24,7 @@ from math import pi
 from mathutils import Quaternion
 
 from ..mu import MuLight
+from .. import properties
 
 from . import export
 
@@ -39,7 +40,7 @@ def make_light(mu, light, obj):
     mulight.range = light.distance
     mulight.intensity = light.energy
     mulight.spotAngle = 0.0
-    mulight.cullingMask = properties.GetPropMask(obj.muproperties.cullingMask)
+    mulight.cullingMask = properties.GetPropMask(light.mulightprop.cullingMask)
     if light.type == 'SPOT':
         mulight.spotAngle = light.spot_size * 180 / pi
     return mulight
