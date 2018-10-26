@@ -23,6 +23,7 @@ import bpy
 from mathutils import Vector
 
 from ..mu import MuMesh, MuRenderer
+from ..utils import collect_modifiers
 
 from .material import make_material
 
@@ -127,7 +128,12 @@ def make_tangents(verts, uvs, normals, submeshes):
 
 def make_mesh(mu, obj):
     #FIXME mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
+    modifiers = collect_modifiers(obj)
+    for mod in modifiers:
+        mod.show_viewport = False
     mesh = obj.to_mesh(bpy.context.depsgraph, True)
+    for mod in modifiers:
+        mod.show_viewport = True
     submeshes = build_submeshes(mesh)
     submeshes = make_tris(mesh, submeshes)
     mumesh = MuMesh()
