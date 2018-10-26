@@ -19,10 +19,16 @@
 
 # <pep8 compliant>
 
+import bpy
 from math import pi
 from mathutils import Quaternion
 
 from ..mu import MuCamera
+
+# Blender points camera along local -Z, unity along local +Z
+# which is Blender's +Y, so rotate -90 degrees around local X to
+# go from Blender to Unity
+rotation_correction = Quaternion((0.5**0.5, -0.5**0.5, 0, 0))
 
 def make_camera(mu, camera, obj):
     mucamera = MuCamera()
@@ -38,7 +44,11 @@ def make_camera(mu, camera, obj):
     mucamera.depth = obj.muproperties.depth
     return mucamera
 
-# Blender points camera along local -Z, unity along local +Z
-# which is Blender's +Y, so rotate -90 degrees around local X to
-# go from Blender to Unity
-rotation_correction = Quaternion((0.5**0.5, -0.5**0.5, 0, 0))
+def handle_camera(obj, muobj, mu):
+    muobj.camera = make_camera(mu, obj.data, obj)
+    muobj.transform.localRotation @= rotation_correction
+    return muobj
+
+type_handlers = {
+    bpy.types.Camera: handle_camera,
+}

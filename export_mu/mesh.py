@@ -22,7 +22,9 @@
 import bpy
 from mathutils import Vector
 
-from ..mu import MuMesh
+from ..mu import MuMesh, MuRenderer
+
+from .material import make_material
 
 def split_face(mesh, index):
     face = mesh.polygons[index]
@@ -139,3 +141,25 @@ def make_mesh(mu, obj):
         mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs,
                                         mumesh.normals, mumesh.submeshes)
     return mumesh
+
+def make_renderer(mu, mesh):
+    rend = MuRenderer()
+    #FIXME shadows
+    rend.materials = []
+    for mat in mesh.materials:
+        if mat.mumatprop.shaderName:
+            if mat.name not in mu.materials:
+                mu.materials[mat.name] = make_material(mu, mat)
+            rend.materials.append(mu.materials[mat.name].index)
+    if not rend.materials:
+        return None
+    return rend
+
+def handle_mesh(obj, muobj, mu):
+    muobj.shared_mesh = make_mesh(mu, obj)
+    muobj.renderer = make_renderer(mu, obj.data)
+    return muobj
+
+type_handlers = {
+    bpy.types.Mesh: handle_mesh,
+}

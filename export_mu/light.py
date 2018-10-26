@@ -25,13 +25,10 @@ from mathutils import Quaternion
 
 from ..mu import MuLight
 
-light_types = {
-    bpy.types.PointLight,
-    bpy.types.SunLight,
-    bpy.types.SpotLight,
-    bpy.types.HemiLight,
-    bpy.types.AreaLight
-}
+# Blender points spotlights along local -Z, unity along local +Z
+# which is Blender's +Y, so rotate -90 degrees around local X to
+# go from Blender to Unity
+rotation_correction = Quaternion((0.5**0.5, -0.5**0.5, 0, 0))
 
 def make_light(mu, light, obj):
     mulight = MuLight()
@@ -45,7 +42,17 @@ def make_light(mu, light, obj):
         mulight.spotAngle = light.spot_size * 180 / pi
     return mulight
 
-# Blender points spotlights along local -Z, unity along local +Z
-# which is Blender's +Y, so rotate -90 degrees around local X to
-# go from Blender to Unity
-rotation_correction = Quaternion((0.5**0.5, -0.5**0.5, 0, 0))
+def handle_light(obj, muobj, mu):
+    muobj.light = make_light(mu, obj.data, obj)
+    muobj.transform.localRotation @= rotation_correction
+    return muobj
+
+type_handlers = {
+    bpy.types.PointLight: handle_light,
+    bpy.types.SunLight: handle_light,
+    bpy.types.SpotLight: handle_light,
+    bpy.types.HemiLight: handle_light,
+    bpy.types.AreaLight: handle_light,
+}
+
+light_types = set(type_handlers)

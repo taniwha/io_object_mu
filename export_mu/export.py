@@ -23,20 +23,18 @@ import bpy
 
 from .. import properties
 from ..mu import Mu
-from ..mu import MuObject, MuTransform, MuTagLayer, MuRenderer, MuLight
-from ..mu import MuCamera
+from ..mu import MuObject, MuTransform, MuTagLayer
 from ..utils import strip_nnn
 
 from .animation import collect_animations, find_path_root, make_animations
 from .cfgfile import generate_cfg
 from .collider import make_collider
-from .material import make_material
-from .mesh import make_mesh
 from .volume import model_volume
 
 from . import attachnode
 from . import camera
 from . import light
+from . import mesh
 
 def make_transform(obj):
     transform = MuTransform()
@@ -55,21 +53,6 @@ def make_tag_and_layer(obj):
     tl.layer = obj.muproperties.layer
     return tl
 
-def make_renderer(mu, mesh):
-    rend = MuRenderer()
-    #FIXME shadows
-    rend.materials = []
-    for mat in mesh.materials:
-        if mat.mumatprop.shaderName:
-            if mat.name not in mu.materials:
-                mu.materials[mat.name] = make_material(mu, mat)
-            rend.materials.append(mu.materials[mat.name].index)
-    if not rend.materials:
-        return None
-    return rend
-
-exportable_types = {bpy.types.Mesh, bpy.types.Camera} | light.light_types
-
 def is_group_root(obj, group):
     print(obj.name)
     while obj.parent:
@@ -79,26 +62,11 @@ def is_group_root(obj, group):
             return False
     return True
 
-def make_obj(mu, obj, special, path = ""):
-    muobj = MuObject()
-    muobj.transform = make_transform (obj)
-    if path:
-        path += "/"
-    path += muobj.transform.name
-    mu.object_paths[path] = muobj
-    muobj.tag_and_layer = make_tag_and_layer(obj)
-    if not obj.data:
-        name = strip_nnn(obj.name)
-        if name[:5] == "node_":
-            n = attachnode.AttachNode(obj, mu.inverse)
-            mu.nodes.append(n)
-            if not n.keep_transform():
-                return None
-            muobj.transform.localRotation @= attachnode.rotation_correction
-        elif name in ["CoMOffset", "CoPOffset", "CoLOffset"]:
-            setattr(mu, name, (mu.inverse @ obj.matrix_world.col[3])[:3])
-        pass
-    if not obj.data and obj.dupli_group:
+def handle_empty(obj, muobj, mu):
+    if obj.dupli_group:
+        if obj.dupli_type != 'COLLECTION':
+            #FIXME flag an error? figure out something else to do?
+            return None
         group = obj.dupli_group
         for o in group.objects:
             # while KSP models (part/prop/internal) will have only one root
@@ -114,20 +82,44 @@ def make_obj(mu, obj, special, path = ""):
             o.location = loc
             if child:
                 muobj.children.append(child)
-    elif obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
+    name = strip_nnn(obj.name)
+    if name[:5] == "node_":
+        n = attachnode.AttachNode(obj, mu.inverse)
+        mu.nodes.append(n)
+        if not n.keep_transform() and not obj.children:
+            return None
+        muobj.transform.localRotation @= attachnode.rotation_correction
+    elif name in ["CoMOffset", "CoPOffset", "CoLOffset"]:
+        setattr(mu, name, (mu.inverse @ obj.matrix_world.col[3])[:3])
+        if not obj.children:
+            return None
+    return muobj
+
+type_handlers = {
+    type(None): handle_empty
+}
+type_handlers.update(light.type_handlers)
+type_handlers.update(camera.type_handlers)
+type_handlers.update(mesh.type_handlers)
+
+def make_obj(mu, obj, special, path = ""):
+    if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
         # colliders are children of the object representing the transform so
-        # they are never exported directly.
-        pass
-    elif obj.data:
-        if type(obj.data) == bpy.types.Mesh:
-            muobj.shared_mesh = make_mesh(mu, obj)
-            muobj.renderer = make_renderer(mu, obj.data)
-        elif type(obj.data) in light_types:
-            muobj.light = light.make_light(mu, obj.data, obj)
-            muobj.transform.localRotation @= light.rotation_correction
-        elif type(obj.data) == bpy.types.Camera:
-            muobj.camera = camera.make_camera(mu, obj.data, obj)
-            muobj.transform.localRotation @= camera.rotation_correction
+        # they are never exported directly. Also, they should not have children
+        # since colliders are really components on game objects in Unity.
+        return None
+    muobj = MuObject()
+    muobj.transform = make_transform (obj)
+    if path:
+        path += "/"
+    path += muobj.transform.name
+    mu.object_paths[path] = muobj
+    muobj.tag_and_layer = make_tag_and_layer(obj)
+    if type(obj.data) in type_handlers:
+        muobj = type_handlers[type(obj.data)](obj, muobj, mu)
+        if not muobj:
+            # the handler decided the object should not be exported
+            return None
     for o in obj.children:
         muprops = o.muproperties
         if muprops.modelType in special:
@@ -135,8 +127,6 @@ def make_obj(mu, obj, special, path = ""):
                 continue
         if muprops.collider and muprops.collider != 'MU_COL_NONE':
             muobj.collider = make_collider(mu, o)
-            continue
-        if (o.data and type(o.data) not in exportable_types):
             continue
         child = make_obj(mu, o, special, path)
         if child:
