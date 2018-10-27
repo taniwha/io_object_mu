@@ -25,12 +25,18 @@ from bpy.props import StringProperty
 
 from ..utils import strip_nnn
 
-from .export import export_object
-from .volume import model_volume
+from . import export
+from . import volume
 
 def export_mu(operator, context, filepath):
-    export_object (context.active_object, filepath)
+    export.export_object (context.active_object, filepath)
     return {'FINISHED'}
+
+exportable_objects = {
+    type(None),
+    bpy.types.Mesh,
+    bpy.types.Armature,
+}
 
 class KSPMU_OT_ExportMu(bpy.types.Operator, ExportHelper):
     '''Save a KSP Mu (.mu) File'''
@@ -42,9 +48,8 @@ class KSPMU_OT_ExportMu(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context):
-        return (context.active_object != None
-                and (not context.active_object.data
-                     or type(context.active_object.data) == bpy.types.Mesh))
+        obj = context.active_object
+        return obj != None and type(obj.data) in exportable_objects
 
     def execute(self, context):
         keywords = self.as_keywords (ignore=("check_existing", "filter_glob"))
@@ -60,17 +65,17 @@ class KSPMU_OT_ExportMu_quick(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context):
-        return (context.active_object != None
-                and (not context.active_object.data
-                     or type(context.active_object.data) == bpy.types.Mesh))
+        obj = context.active_object
+        return obj != None and type(obj.data) in exportable_objects
 
     def execute(self, context):
         keywords = self.as_keywords (ignore=("check_existing", "filter_glob"))
         return export_mu(self, context, **keywords)
 
     def invoke(self, context, event):
-        if context.active_object != None:
-            self.filepath = strip_nnn(context.active_object.name) + self.filename_ext
+        obj = context.active_object
+        if obj != None:
+            self.filepath = strip_nnn(obj.name) + self.filename_ext
         return ExportHelper.invoke(self, context, event)
 
 class KSPMU_OT_MuVolume(bpy.types.Operator):
@@ -79,15 +84,14 @@ class KSPMU_OT_MuVolume(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return (context.active_object != None
-                and (not context.active_object.data
-                     or type(context.active_object.data) == bpy.types.Mesh))
+        obj = context.active_object
+        return obj != None and type(obj.data) in exportable_objects
 
     def execute(self, context):
         obj = context.active_object
         if obj.data and type(obj.data) == bpy.types.Mesh:
-            vol = obj_volume(obj)
+            vol = volume.obj_volume(obj)
         else:
-            vol = model_volume(obj)
+            vol = volume.model_volume(obj)
         self.report({'INFO'}, 'Skin Volume = %g m^3, Ext Volume = %g m^3' % vol)
         return {'FINISHED'}

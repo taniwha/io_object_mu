@@ -49,8 +49,38 @@ def make_tag_and_layer(obj):
     return tl
 
 type_handlers = {} # filled in by the modules that handle the obj.data types
+exported_objects = set()
 
-def make_obj(mu, obj, special, path = ""):
+def make_obj_core(mu, obj, path, muobj):
+    if path:
+        path += "/"
+    path += muobj.transform.name
+    mu.object_paths[path] = muobj
+    muobj.tag_and_layer = make_tag_and_layer(obj)
+    if type(obj.data) in type_handlers:
+        mu.path = path  #needs to be reset as a type handler might modify it
+        muobj = type_handlers[type(obj.data)](obj, muobj, mu)
+        if not muobj:
+            # the handler decided the object should not be exported
+            return None
+    exported_objects.add(obj)
+    for o in obj.children:
+        if o in exported_objects:
+            # the object has already been exported
+            continue
+        muprops = o.muproperties
+        if muprops.modelType in mu.special:
+            if mu.special[muprops.modelType](mu, o):
+                continue
+        if muprops.collider and muprops.collider != 'MU_COL_NONE':
+            muobj.collider = make_collider(mu, o)
+            continue
+        child = make_obj(mu, o, path)
+        if child:
+            muobj.children.append(child)
+    return muobj
+
+def make_obj(mu, obj, path):
     if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
         # colliders are children of the object representing the transform so
         # they are never exported directly. Also, they should not have children
@@ -58,28 +88,7 @@ def make_obj(mu, obj, special, path = ""):
         return None
     muobj = MuObject()
     muobj.transform = make_transform (obj)
-    if path:
-        path += "/"
-    path += muobj.transform.name
-    mu.object_paths[path] = muobj
-    muobj.tag_and_layer = make_tag_and_layer(obj)
-    if type(obj.data) in type_handlers:
-        muobj = type_handlers[type(obj.data)](obj, muobj, mu)
-        if not muobj:
-            # the handler decided the object should not be exported
-            return None
-    for o in obj.children:
-        muprops = o.muproperties
-        if muprops.modelType in special:
-            if special[muprops.modelType](mu, o):
-                continue
-        if muprops.collider and muprops.collider != 'MU_COL_NONE':
-            muobj.collider = make_collider(mu, o)
-            continue
-        child = make_obj(mu, o, special, path)
-        if child:
-            muobj.children.append(child)
-    return muobj
+    return make_obj_core(mu, obj, path, muobj)
 
 def add_internal(mu, obj):
     if not mu.internal:
@@ -98,6 +107,7 @@ special_modelTypes = {
 }
 
 def export_object(obj, filepath):
+    exported_objects.clear()
     animations = collect_animations(obj)
     anim_root = find_path_root(animations)
     mu = Mu()
@@ -113,7 +123,8 @@ def export_object(obj, filepath):
     mu.CoPOffset = None
     mu.CoLOffset = None
     mu.inverse = obj.matrix_world.inverted()
-    mu.obj = make_obj(mu, obj, special_modelTypes[mu.type])
+    mu.special = special_modelTypes[mu.type]
+    mu.obj = make_obj(mu, obj, "")
     mu.materials = list(mu.materials.values())
     mu.materials.sort(key=lambda x: x.index)
     mu.textures = list(mu.textures.values())

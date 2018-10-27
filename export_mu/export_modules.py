@@ -27,11 +27,14 @@ from ..mu import MuMesh, MuRenderer
 from .material import make_material
 
 from . import export
+
+from . import armature
 from . import camera
 from . import empty
 from . import light
 from . import mesh
 
+export.type_handlers.update(armature.type_handlers)
 export.type_handlers.update(camera.type_handlers)
 export.type_handlers.update(empty.type_handlers)
 export.type_handlers.update(light.type_handlers)
