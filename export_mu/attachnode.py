@@ -84,7 +84,9 @@ class AttachNode:
     def cfgstring(self):
         pos = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.pos))
         dir = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.dir))
-        return "%g, %g, %g, %g, %g, %g, %d, %d, %d, %d" % (pos + dir + (self.size,self.methodval(), int(self.crossfeed), int(self.rigid)))
+        flags = (self.size, self.methodval(), int(self.crossfeed),
+                 int(self.rigid))
+        return "%g, %g, %g, %g, %g, %g, %d, %d, %d, %d" % (pos + dir + flags)
     def cfgnode(self):
         node = ConfigNode ()
         node.AddValue ("name", self.id)
