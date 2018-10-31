@@ -26,6 +26,7 @@ from mathutils import Vector,Matrix,Quaternion
 
 from .cfgnode import ConfigNode, ConfigNodeError
 from .import_mu import import_mu
+from .parser import parse_vector
 
 def collect_objects(name, obj):
     def add_to_collection(collection, obj):
@@ -109,6 +110,7 @@ class Model:
         return preloaded
     def __init__(self, path, url):
         modelname = "model:" + url
+        print(modelname)
         loaded_models = loaded_models_collection()
         if modelname in loaded_models:
             model = loaded_models[modelname]
