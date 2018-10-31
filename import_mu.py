@@ -323,8 +323,8 @@ def create_object(mu, muobj, parent):
     obj = None
     mesh = None
     if (not mu.create_colliders
-        and not (hasattr(muobj, "shared_mesh") and hasattr(muobj, "renderer"))
-        and not hasattr(muobj, "skinned_mesh_renderer")):
+        and (hasattr(muobj, "shared_mesh")
+             and not hasattr(muobj, "renderer"))):
         return None
     name = muobj.transform.name
     xform = None if hasattr(muobj, "bone") else muobj.transform
