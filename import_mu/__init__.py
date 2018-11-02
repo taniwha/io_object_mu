@@ -28,10 +28,10 @@ from .exception import MuImportError
 def import_mu_menu_func(self, context):
     self.layout.operator(KSPMU_OT_ImportMu.bl_idname, text="KSP Mu (.mu)")
 
-classes = (
+classes_to_register = (
     KSPMU_OT_ImportMu,
 )
 
-menus = (
+menus_to_register = (
     (bpy.types.TOPBAR_MT_file_import, import_mu_menu_func),
 )

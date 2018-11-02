@@ -62,10 +62,10 @@ class OBJECT_PT_MuCameraPanel(bpy.types.Panel):
         col.prop(muprops, "cullingMask")
         col.prop(muprops, "depth")
 
-classes = (
+classes_to_register = (
     MuCameraProperties,
     OBJECT_PT_MuCameraPanel
 )
-custom_properties = (
+custom_properties_to_register = (
     (bpy.types.Camera, "mucameraprop", MuCameraProperties),
 )

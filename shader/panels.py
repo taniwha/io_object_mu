@@ -88,7 +88,7 @@ class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
         draw_property_list(layout, matprops.float2, "float2")
         draw_property_list(layout, matprops.float3, "float3")
 
-classes = (
+classes_to_register = (
     OBJECT_UL_Property_list,
     OBJECT_PT_MuMaterialPanel,
 )

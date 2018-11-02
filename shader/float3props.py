@@ -43,7 +43,7 @@ class MuMaterialFloat3PropertySet(bpy.types.PropertyGroup):
         col.prop(item, "name", text="Name")
         col.prop(item, "value", text="")
 
-classes = (
+classes_to_register = (
     MuFloat3Prop,
     MuMaterialFloat3PropertySet,
 )

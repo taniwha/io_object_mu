@@ -252,13 +252,13 @@ def add_prop_menu_func(self, context):
                                   "prop_item", text="KSP Prop",
                                   icon='OUTLINER_OB_GROUP_INSTANCE')
 
-classes = (
+classes_to_register = (
     KSPMU_OT_ImportProp,
     KSPMU_OT_MakeProps,
     OBJECT_OT_add_ksp_prop,
     WORKSPACE_PT_tools_mu_props,
 )
 
-menus = (
+menus_to_register = (
     (bpy.types.VIEW3D_MT_add, add_prop_menu_func),
 )

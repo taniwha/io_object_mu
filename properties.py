@@ -264,7 +264,7 @@ class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
             box.label(text="Side Friction")
             muprops.sideFriction.draw(context, box.box())
 
-classes = (
+classes_to_register = (
     MuSpringProp,
     MuFrictionProp,
     MuProperties,
@@ -276,7 +276,7 @@ classes = (
     OBJECT_PT_MuPropertiesPanel,
     OBJECT_PT_MuColliderPanel,
 )
-custom_properties = (
+custom_properties_to_register = (
     (bpy.types.Object, "muproperties", MuProperties),
     (bpy.types.Collection, "mumodelprops", MuModelProperties),
     (bpy.types.Scene, "musceneprops", MuSceneProperties),

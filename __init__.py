@@ -63,16 +63,16 @@ def register_submodules(name, submodule_names):
     submodules = [getattr(module, name) for name in submodule_names]
     for mod in submodules:
         m = [(),()]
-        if hasattr(mod, "classes"):
-            m[0] = mod.classes
-            for cls in mod.classes:
+        if hasattr(mod, "classes_to_register"):
+            m[0] = mod.classes_to_register
+            for cls in mod.classes_to_register:
                 register_class(cls)
-        if hasattr(mod, "menus"):
-            m[1] = mod.menus
-            for menu in mod.menus:
+        if hasattr(mod, "menus_to_register"):
+            m[1] = mod.menus_to_register
+            for menu in mod.menus_to_register:
                 menu[0].append(menu[1])
-        if hasattr(mod, "custom_properties"):
-            for prop in mod.custom_properties:
+        if hasattr(mod, "custom_properties_to_register"):
+            for prop in mod.custom_properties_to_register:
                 setattr(prop[0], prop[1], PointerProperty(type=prop[2]))
         if m[0] or m[1]:
             registered_submodules.append(m)

@@ -21,26 +21,24 @@
 
 import bpy
 
-#modules for handling obj.data types
+class IO_OBJECT_MU_MT_shader_presets(bpy.types.Menu):
+    bl_label = "Shader Presets"
+    bl_idname = "IO_OBJECT_MU_MT_shader_presets"
+    preset_subdir = "io_object_mu/shaders"
+    preset_operator = "script.execute_preset"
+    draw = bpy.types.Menu.draw_preset
 
-from .export import export_object, strip_nnn
-from .operators import KSPMU_OT_MuVolume
-from .operators import KSPMU_OT_ExportMu
-from .operators import KSPMU_OT_ExportMu_quick
-from .panels import WORKSPACE_PT_tools_mu_export
+    @classmethod
+    def reset_cb(cls, context):
+        mat = context.material
+        mat.node_tree.nodes.clear()
+        mat.node_tree.links.clear()
 
-from . import export_modules
-
-def export_mu_menu_func(self, context):
-    self.layout.operator(KSPMU_OT_ExportMu.bl_idname, text="KSP Mu (.mu)")
+    @classmethod
+    def post_cb(cls, context):
+        mat = context.material
+        create_nodes(mat)
 
 classes_to_register = (
-    KSPMU_OT_ExportMu,
-    KSPMU_OT_ExportMu_quick,
-    WORKSPACE_PT_tools_mu_export,
-    KSPMU_OT_MuVolume,
-)
-
-menus_to_register = (
-    (bpy.types.TOPBAR_MT_file_export, export_mu_menu_func),
+    IO_OBJECT_MU_MT_shader_presets,
 )

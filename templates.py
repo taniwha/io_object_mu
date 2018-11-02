@@ -37,10 +37,10 @@ class TEXT_MT_templates_kspcfg(Menu):
 def text_func_templates(self, context):
     self.layout.menu("TEXT_MT_templates_kspcfg");
 
-classes = (
+classes_to_register = (
     TEXT_MT_templates_kspcfg,
 )
 
-menus = (
+menus_to_register = (
     (bpy.types.TEXT_MT_templates, text_func_templates),
 )

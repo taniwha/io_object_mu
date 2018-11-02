@@ -88,6 +88,6 @@ class KSPMU_OT_QuickHull(bpy.types.Operator):
 def menu_func(self, context):
     self.layout.operator(QuickHull.bl_idname, text = QuickHull.bl_label, icon='PLUGIN')
 
-classes = (
+classes_to_register = (
     KSPMU_OT_QuickHull,
 )

@@ -409,7 +409,7 @@ class WORKSPACE_PT_tools_mu_collider(bpy.types.Panel):
 def add_collider_menu_func(self, context):
     self.layout.menu("INFO_MT_mucollider_add", icon='PLUGIN')
 
-classes = (
+classes_to_register = (
     KSPMU_OT_ColliderFromMesh,
     KSPMU_OT_MeshToCollider,
     KSPMU_OT_ColliderMesh,
@@ -421,6 +421,6 @@ classes = (
     WORKSPACE_PT_tools_mu_collider,
 )
 
-menus = (
+menus_to_register = (
     (bpy.types.VIEW3D_MT_add, add_collider_menu_func),
 )

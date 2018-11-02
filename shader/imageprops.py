@@ -52,10 +52,10 @@ class IMAGE_PT_MuImagePanel(bpy.types.Panel):
         col.prop(imageprops, "invertY")
         col.prop(imageprops, "convertNorm")
 
-classes = (
+classes_to_register = (
     MuImageProperties,
     IMAGE_PT_MuImagePanel
 )
-custom_properties = (
+custom_properties_to_register = (
     (bpy.types.Image, "muimageprop", MuImageProperties),
 )

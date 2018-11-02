@@ -38,9 +38,9 @@ class MuMaterialProperties(bpy.types.PropertyGroup):
     float3: PointerProperty(type = MuMaterialFloat3PropertySet)
     texture: PointerProperty(type = MuMaterialTexturePropertySet)
 
-classes = (
+classes_to_register = (
     MuMaterialProperties,
 )
-custom_properties = (
+custom_properties_to_register = (
     (bpy.types.Material, "mumatprop", MuMaterialProperties),
 )

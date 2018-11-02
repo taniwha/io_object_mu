@@ -83,7 +83,7 @@ class MuMaterialTexturePropertySet(bpy.types.PropertyGroup):
         col.prop(item, "scale", text="")
         col.prop(item, "offset", text="")
 
-classes = (
+classes_to_register = (
     MuTextureProperties,
     MuMaterialTexturePropertySet,
 )

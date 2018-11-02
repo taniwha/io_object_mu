@@ -60,11 +60,11 @@ class OBJECT_PT_MuLightPanel(bpy.types.Panel):
         col = row.column()
         col.prop(muprops, "cullingMask")
 
-classes = (
+classes_to_register = (
     MuLightProperties,
     OBJECT_PT_MuLightPanel
 )
-custom_properties = (
+custom_properties_to_register = (
     (bpy.types.PointLight, "mulightprop", MuLightProperties),
     (bpy.types.SunLight, "mulightprop", MuLightProperties),
     (bpy.types.SpotLight, "mulightprop", MuLightProperties),

@@ -97,7 +97,7 @@ def Preferences():
     addons = user_preferences.addons
     return addons[__package__].preferences
 
-classes = (
+classes_to_register = (
     IOObjectMu_AddonPreferences,
     KSPMU_OT_InstallShaders,
     KSPMU_OT_CreateColorPalettes,

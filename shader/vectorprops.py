@@ -43,7 +43,7 @@ class MuMaterialVectorPropertySet(bpy.types.PropertyGroup):
         col.prop(item, "name", text="Name")
         col.prop(item, "value", text="")
 
-classes = (
+classes_to_register = (
     MuVectorProp,
     MuMaterialVectorPropertySet,
 )

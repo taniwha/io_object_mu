@@ -78,7 +78,7 @@ class IO_OBJECT_MU_OT_shader_presets(AddPresetBase, bpy.types.Operator):
         "mat.texture",
         ]
 
-classes = (
+classes_to_register = (
     KSPMU_OT_MuShaderPropExpand,
     KSPMU_OT_MuShaderPropAdd,
     KSPMU_OT_MuShaderPropRemove,

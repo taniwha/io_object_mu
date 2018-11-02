@@ -22,7 +22,6 @@
 import sys, traceback
 
 import bpy
-from bpy.types import Menu
 from mathutils import Vector
 
 from .. import register_submodules
@@ -494,24 +493,6 @@ def make_shader4(mumat, mu):
 def make_shader(mumat, mu):
     return make_shader4(mumat, mu)
 
-class IO_OBJECT_MU_MT_shader_presets(Menu):
-    bl_label = "Shader Presets"
-    bl_idname = "IO_OBJECT_MU_MT_shader_presets"
-    preset_subdir = "io_object_mu/shaders"
-    preset_operator = "script.execute_preset"
-    draw = Menu.draw_preset
-
-    @classmethod
-    def reset_cb(cls, context):
-        mat = context.material
-        mat.node_tree.nodes.clear()
-        mat.node_tree.links.clear()
-
-    @classmethod
-    def post_cb(cls, context):
-        mat = context.material
-        create_nodes(mat)
-
 submodule_names = (
     "colorprops",
     "float2props",
@@ -521,11 +502,8 @@ submodule_names = (
     "vectorprops",
 
     "materialprops",
+    "menus",
     "operators",
     "panels",
 )
 register_submodules(__name__, submodule_names)
-
-classes = (
-    IO_OBJECT_MU_MT_shader_presets,
-)
