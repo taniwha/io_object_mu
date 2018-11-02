@@ -20,7 +20,7 @@
 # <pep8 compliant>
 
 import bpy
-from .hull import get_convex_hull
+from .quickhull import get_convex_hull
 
 class RawMesh:
     def __init__(self, mesh):
