@@ -36,6 +36,7 @@ from ..shader import make_shader
 from .. import collider, properties, cameraprops
 
 from .importerror import MuImportError
+from .animation import create_action, create_object_paths
 from .collider import create_collider
 from .mesh import create_mesh
 from .operators import KSPMU_OT_ImportMu
@@ -104,129 +105,6 @@ def create_camera(mu, mucamera, name):
         flags = mucamera.clearFlags - 1
         muprops.clearFlags = cameraprops.clearflag_items[flags][0]
     return camera
-
-property_map = {
-    "m_LocalPosition.x": ("obj", "location", 0, 1),
-    "m_LocalPosition.y": ("obj", "location", 2, 1),
-    "m_LocalPosition.z": ("obj", "location", 1, 1),
-    "m_LocalRotation.x": ("obj", "rotation_quaternion", 1, -1),
-    "m_LocalRotation.y": ("obj", "rotation_quaternion", 3, -1),
-    "m_LocalRotation.z": ("obj", "rotation_quaternion", 2, -1),
-    "m_LocalRotation.w": ("obj", "rotation_quaternion", 0, 1),
-    "m_LocalScale.x": ("obj", "scale", 0, 1),
-    "m_LocalScale.y": ("obj", "scale", 2, 1),
-    "m_LocalScale.z": ("obj", "scale", 1, 1),
-    "m_Intensity": ("data", "energy", 0, 1),
-    "m_Color.r": ("data", "color", 0, 1),
-    "m_Color.g": ("data", "color", 1, 1),
-    "m_Color.b": ("data", "color", 2, 1),
-    "m_Color.a": ("data", "color", 3, 1),
-}
-
-vector_map = {
-    "r": 0, "g": 1, "b": 2, "a":3,
-    "x": 0, "y": 1, "z": 2, "w":3,  # shader props not read as quaternions
-}
-
-def property_index(properties, prop):
-    for i, p in enumerate(properties):
-        if p.name == prop:
-            return i
-    return None
-
-def shader_property(obj, prop):
-    prop = prop.split(".")
-    if not obj or type(obj.data) != bpy.types.Mesh:
-        return None
-    if not obj.data.materials:
-        return None
-    for mat in obj.data.materials:
-        mumat = mat.mumatprop
-        for subpath in ["color", "vector", "float2", "float3", "texture"]:
-            propset = getattr(mumat, subpath)
-            if prop[0] in propset.properties:
-                if subpath == "texture":
-                    print("animated texture properties not yet supported")
-                    print(prop)
-                    return None
-                if subpath[:5] == "float":
-                    rnaIndex = 0
-                else:
-                    rnaIndex = vector_map[prop[1]]
-                propIndex = property_index(propset.properties, prop[0])
-                path = "mumatprop.%s.properties[%d].value" % (subpath, propIndex)
-                return mat, path, rnaIndex
-    return None
-
-def create_fcurve(action, curve, propmap):
-    dp, ind, mult = propmap
-    fps = bpy.context.scene.render.fps
-    fc = action.fcurves.new(data_path = dp, index = ind)
-    fc.keyframe_points.add(len(curve.keys))
-    for i, key in enumerate(curve.keys):
-        x,y = key.time * fps + bpy.context.scene.frame_start, key.value * mult
-        fc.keyframe_points[i].co = x, y
-        fc.keyframe_points[i].handle_left_type = 'FREE'
-        fc.keyframe_points[i].handle_right_type = 'FREE'
-        if i > 0:
-            dist = (key.time - curve.keys[i - 1].time) / 3
-            dx, dy = dist * fps, key.tangent[0] * dist * mult
-        else:
-            dx, dy = 10, 0.0
-        fc.keyframe_points[i].handle_left = x - dx, y - dy
-        if i < len(curve.keys) - 1:
-            dist = (curve.keys[i + 1].time - key.time) / 3
-            dx, dy = dist * fps, key.tangent[1] * dist * mult
-        else:
-            dx, dy = 10, 0.0
-        fc.keyframe_points[i].handle_right = x + dx, y + dy
-    return True
-
-def create_action(mu, path, clip):
-    #print(clip.name)
-    actions = {}
-    for curve in clip.curves:
-        if not curve.path:
-            mu_path = path
-        else:
-            mu_path = "/".join([path, curve.path])
-        if (mu_path not in mu.object_paths
-            or not hasattr(mu.object_paths[mu_path], "bobj")):
-            print("Unknown path: %s" % (mu_path))
-            continue
-        obj = mu.object_paths[mu_path].bobj
-
-        if curve.property not in property_map:
-            sp = shader_property(obj, curve.property)
-            if not sp:
-                print("%s: Unknown property: %s" % (mu_path, curve.property))
-                continue
-            obj, dp, rnaIndex = sp
-            propmap = dp, rnaIndex, 1
-            subpath = "obj"
-        else:
-            propmap = property_map[curve.property]
-            subpath, propmap = propmap[0], propmap[1:]
-
-        if subpath != "obj":
-            obj = getattr (obj, subpath)
-
-        name = ".".join([clip.name, curve.path, subpath])
-        if name not in actions:
-            actions[name] = bpy.data.actions.new(name), obj
-        act, obj = actions[name]
-        if not create_fcurve(act, curve, propmap):
-            continue
-    for name in actions:
-        act, obj = actions[name]
-        if not obj.animation_data:
-            obj.animation_data_create()
-        #FIXME blender 2.8 has a bug (? maybe a change I need to address)
-        #where scripted NLA tracks don't work.
-        obj.animation_data.action = act
-        #track = obj.animation_data.nla_tracks.new()
-        #track.name = clip.name
-        #track.strips.new(act.name, 1.0, act)
 
 def attach_material(mesh, renderer, mu):
     if mu.materials and renderer.materials:
@@ -458,21 +336,6 @@ def needs_armature(mu):
                 return True
         return False
     return has_skinned_mesh(mu.obj)
-
-def create_object_paths(mu, obj=None, parents=None):
-    if obj == None:
-        mu.objects = {}
-        mu.object_paths = {}
-        create_object_paths(mu, mu.obj, [])
-        return
-    name = obj.transform.name
-    parents.append(name)
-    obj.path = "/".join(parents)
-    mu.objects[name] = obj
-    mu.object_paths[obj.path] = obj
-    for child in obj.children:
-        create_object_paths(mu, child, parents)
-    parents.pop()
 
 def process_mu(mu, mudir):
     create_textures(mu, mudir)
