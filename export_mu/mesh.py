@@ -68,6 +68,7 @@ def make_verts(mesh, submeshes):
     verts = []
     normals = []
     uvs = []
+    groups = []
     for sm in submeshes:
         vuvdict = {}
         for i, ft in enumerate(sm):
@@ -79,9 +80,10 @@ def make_verts(mesh, submeshes):
                     verts.append(tuple(mv.co))
                     normals.append(tuple(mv.normal))
                     uvs.append(vuv[1])
+                    groups.append(mv.groups)
                 tv.append(vuvdict[vuv])
             sm[i] = tv
-    return verts, uvs, normals
+    return verts, uvs, normals, groups
 
 def make_tangents(verts, uvs, normals, submeshes):
     sdir = [Vector()] * len(verts)
@@ -138,11 +140,11 @@ def make_mesh(mu, obj):
     submeshes = make_tris(mesh, submeshes)
     mumesh = MuMesh()
     vun = make_verts(mesh, submeshes)
-    mumesh.verts, uvs, mumesh.normals = vun
+    mumesh.verts, uvs, mumesh.normals, mesh.groups = vun
     if uvs:
-        if len(uvs[0]) > 0:
+        if len(uvs) > 0:
             mumesh.uvs = list(map(lambda uv: uv[0], uvs))
-        if len(uvs[0]) > 1:
+        if len(uvs) > 1:
             mumesh.uv2s = list(map(lambda uv: uv[1], uvs))
     mumesh.submeshes = submeshes
     if mumesh.uvs:
@@ -150,22 +152,61 @@ def make_mesh(mu, obj):
                                         mumesh.normals, mumesh.submeshes)
     return mumesh
 
-def make_renderer(mu, mesh):
-    rend = MuRenderer()
-    #FIXME shadows
-    rend.materials = []
+def mesh_materials(mu, mesh):
+    materials = []
     for mat in mesh.materials:
         if mat.mumatprop.shaderName:
             if mat.name not in mu.materials:
                 mu.materials[mat.name] = make_material(mu, mat)
-            rend.materials.append(mu.materials[mat.name].index)
+            materials.append(mu.materials[mat.name].index)
+
+def make_renderer(mu, mesh):
+    rend = MuRenderer()
+    #FIXME shadows
+    rend.materials = mesh_materials(mu, mesh)
     if not rend.materials:
         return None
     return rend
 
+def mesh_bones(obj, mumesh, armature):
+    boneset = set()
+    for bone in armature:
+        boneset.add(bone.name)
+    bones = []
+    boneindices = {}
+    for grp in obj.vertex_groups:
+        if grp.name in boneset:
+            boneindices[grp.name] = len(bones)
+            bones.append(grp.name)
+    for vgrp in mumesh.groups:
+        weights = []
+        for i in len(vgrp):
+            gname = obj.vertex_groups[vgrp[i].group].name 
+            if gname in boneindices:
+                weights.append((boneindices[gname], vgrp[i].weight))
+        weights.sort(key=lambda w: w[1])
+        weights.reverse()
+        if len(weights) < 4:
+            weights += [(0,0)]*4 - len(weights)
+        print(weights)
+    return bones
+
 def handle_mesh(obj, muobj, mu):
     muobj.shared_mesh = make_mesh(mu, obj)
     muobj.renderer = make_renderer(mu, obj.data)
+    return muobj
+
+def handle_skinned_mesh(obj, muobj, mu, armature):
+    smr = MuSkinnedMeshRenderer()
+    smr.mesh = make_mesh(mu, obj)
+    smr.bones = mesh_bones(obj, smr.mesh, armature)
+    smr.materials = mesh_materials(mu, obj.data)
+    #FIXME center, size, quality, updateWhenOffscreen
+    muobj.skinned_mesh_renderer = smr
+    if hasattr(muobj, "renderer"):
+        delattr(muobj, "renderer")
+    if hasattr(muobj, "shared_mesh"):
+        delattr(muobj, "shared_mesh")
     return muobj
 
 type_handlers = {

@@ -129,7 +129,7 @@ def export_object(obj, filepath):
     mu.materials.sort(key=lambda x: x.index)
     mu.textures = list(mu.textures.values())
     mu.textures.sort(key=lambda x: x.index)
-    if anim_root:
+    if anim_root and anim_root in mu.object_paths:
         anim_root_obj = mu.object_paths[anim_root]
         anim_root_obj.animation = make_animations(mu, animations, anim_root)
     mu.write(filepath)

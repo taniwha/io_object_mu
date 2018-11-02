@@ -66,9 +66,20 @@ def find_bone_children(obj):
             bone_children[child.parent_bone] = child
     return bone_children
 
+def find_deform_children(obj):
+    deform_children = []
+    for child in obj.children:
+        for mod in child.modifiers:
+            if (type(mod) == bpy.types.ArmatureModifier
+                and mod.object == obj):
+                deform_children.append(child)
+    return deform_children
+
 def handle_armature(obj, muobj, mu):
-    bone_children = find_bone_children(obj)
     armature = obj.data
+    bone_children = find_bone_children(obj)
+    deform_children = find_deform_children(obj)
+    print(deform_children)
     path = mu.path
     for bone in armature.bones:
         if bone.parent:
