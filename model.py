@@ -24,7 +24,7 @@ import bpy
 from mathutils import Vector, Quaternion
 
 from .import_mu import import_mu
-from .parser import parse_vector
+from .cfgnode import parse_vector
 
 def collect_objects(name, obj):
     def add_to_collection(collection, obj):

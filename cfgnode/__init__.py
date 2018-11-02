@@ -20,3 +20,4 @@
 # <pep8 compliant>
 
 from .cfgnode import ConfigNodeError, ConfigNode
+from .parser import parse_float, parse_vector, parse_quaternion, parse_node

@@ -24,7 +24,7 @@ import bpy
 from mathutils import Vector, Quaternion
 
 from .cfgnode import ConfigNode
-from .parser import parse_float
+from .cfgnode import parse_float
 from .model import compile_model
 
 def loaded_parts_collection():

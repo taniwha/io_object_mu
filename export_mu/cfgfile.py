@@ -25,7 +25,7 @@ import bpy
 from mathutils import Vector
 
 from ..cfgnode import ConfigNode, ConfigNodeError
-from ..parser import parse_node
+from ..cfgnode import parse_node
 from ..utils import strip_nnn, swapyz, swizzleq, vector_str
 
 def find_template(mu, filepath):

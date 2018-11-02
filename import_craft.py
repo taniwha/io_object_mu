@@ -24,8 +24,8 @@ from bpy.props import StringProperty
 
 from .import_mu import MuImportError
 from .cfgnode import ConfigNode, ConfigNodeError
+from .cfgnode import parse_vector, parse_quaternion
 from .gamedata import GameData, gamedata
-from .parser import parse_vector, parse_quaternion
 from .preferences import Preferences
 
 def craft_collection():
