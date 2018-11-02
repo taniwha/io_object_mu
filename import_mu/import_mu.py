@@ -29,7 +29,7 @@ from mathutils import Vector, Quaternion
 from ..mu import Mu
 from ..shader import make_shader
 
-from .importerror import MuImportError
+from .exception import MuImportError
 from .animation import create_action, create_object_paths
 from .armature import create_armature, create_armature_modifier
 from .armature import needs_armature, BONE_LENGTH, create_vertex_groups

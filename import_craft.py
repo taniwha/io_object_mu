@@ -23,7 +23,7 @@ from mathutils import Vector,Quaternion
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty
 
-from .import_mu.importerror import MuImportError
+from .import_mu import MuImportError
 from .cfgnode import ConfigNode, ConfigNodeError
 from .gamedata import GameData, gamedata
 from .parser import parse_vector, parse_quaternion

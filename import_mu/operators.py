@@ -24,8 +24,8 @@ from mathutils import Vector, Quaternion
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import BoolProperty, StringProperty
 
-from .importerror import MuImportError
-#from . import import_mu
+from .exception import MuImportError
+from .import_mu import import_mu
 
 def import_mu_op(self, context, filepath, create_colliders, force_armature):
     operator = self
@@ -34,7 +34,6 @@ def import_mu_op(self, context, filepath, create_colliders, force_armature):
 
     collection = bpy.context.layer_collection.collection
     try:
-        from . import import_mu
         obj = import_mu(collection, filepath, create_colliders, force_armature)
     except MuImportError as e:
         operator.report({'ERROR'}, e.message)
