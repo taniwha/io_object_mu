@@ -31,10 +31,10 @@ from bpy_extras.io_utils import ImportHelper
 from bpy.props import BoolProperty, StringProperty
 
 from .importerror import MuImportError
-from .mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
-from .mu import MuColliderBox, MuColliderWheel
-from .shader import make_shader
-from . import collider, properties, cameraprops
+from ..mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
+from ..mu import MuColliderBox, MuColliderWheel
+from ..shader import make_shader
+from .. import collider, properties, cameraprops
 
 BONE_LENGTH = 0.1
 
