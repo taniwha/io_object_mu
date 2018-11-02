@@ -20,26 +20,15 @@
 # <pep8 compliant>
 
 import sys, traceback
-from struct import unpack
-from pprint import pprint
 
 import bpy
 from bpy.types import Menu
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
-from bpy.props import FloatVectorProperty, IntProperty
-from mathutils import Vector,Matrix,Quaternion
+from mathutils import Vector
 
 from .. import register_submodules
 
-from ..mu import MuEnum, MuMaterial
-from .colorprops import  MuMaterialColorPropertySet
-from .float2props import MuMaterialFloat2PropertySet
-from .float3props import MuMaterialFloat3PropertySet
-from .imageprops import MuImageProperties
 from .operators import IO_OBJECT_MU_OT_shader_presets
-from .textureprops import MuMaterialTexturePropertySet, MuTextureProperties
-from .vectorprops import MuMaterialVectorPropertySet
+from .textureprops import MuTextureProperties
 
 dxtNormal_block = (
     ("node", "dxtNormalInput", 'NodeGroupInput', (0, 60)),
@@ -563,15 +552,6 @@ def panel_func(self, context):
     row.operator(AddPresetObjectDraw.bl_idname, text="", icon='ADD')
     row.operator(AddPresetObjectDraw.bl_idname, text="", icon='REMOVE').remove_active = True
 
-class MuMaterialProperties(bpy.types.PropertyGroup):
-    name: StringProperty(name="Name")
-    shaderName: StringProperty(name="Shader")
-    color: PointerProperty(type = MuMaterialColorPropertySet)
-    vector: PointerProperty(type = MuMaterialVectorPropertySet)
-    float2: PointerProperty(type = MuMaterialFloat2PropertySet)
-    float3: PointerProperty(type = MuMaterialFloat3PropertySet)
-    texture: PointerProperty(type = MuMaterialTexturePropertySet)
-
 class OBJECT_UL_Property_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data,
                   active_propname, index):
@@ -641,18 +621,16 @@ submodule_names = (
     "float2props",
     "float3props",
     "imageprops",
-    "operators",
     "textureprops",
     "vectorprops",
+
+    "materialprops",
+    "operators",
 )
 register_submodules(__name__, submodule_names)
 
 classes = (
     IO_OBJECT_MU_MT_shader_presets,
-    MuMaterialProperties,
     OBJECT_UL_Property_list,
     OBJECT_PT_MuMaterialPanel,
-)
-custom_properties = (
-    (bpy.types.Material, "mumatprop", MuMaterialProperties),
 )
