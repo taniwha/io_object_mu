@@ -140,11 +140,11 @@ def make_mesh(mu, obj):
     submeshes = make_tris(mesh, submeshes)
     mumesh = MuMesh()
     vun = make_verts(mesh, submeshes)
-    mumesh.verts, uvs, mumesh.normals, mesh.groups = vun
+    mumesh.verts, uvs, mumesh.normals, mumesh.groups = vun
     if uvs:
-        if len(uvs) > 0:
+        if len(uvs[0]) > 0:
             mumesh.uvs = list(map(lambda uv: uv[0], uvs))
-        if len(uvs) > 1:
+        if len(uvs[0]) > 1:
             mumesh.uv2s = list(map(lambda uv: uv[1], uvs))
     mumesh.submeshes = submeshes
     if mumesh.uvs:
