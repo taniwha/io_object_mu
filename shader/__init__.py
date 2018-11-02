@@ -27,9 +27,6 @@ from mathutils import Vector
 
 from .. import register_submodules
 
-from .operators import IO_OBJECT_MU_OT_shader_presets
-from .textureprops import MuTextureProperties
-
 dxtNormal_block = (
     ("node", "dxtNormalInput", 'NodeGroupInput', (0, 60)),
     ("node", "separateRGB", 'ShaderNodeSeparateRGB', (180, 60)),
@@ -497,34 +494,6 @@ def make_shader4(mumat, mu):
 def make_shader(mumat, mu):
     return make_shader4(mumat, mu)
 
-def shader_update(prop):
-    def updater(self, context):
-        print("shader_update")
-        if not hasattr(context, "material"):
-            return
-        mat = context.material
-        if type(self) == MuTextureProperties:
-            pass
-        elif type(self) == MuMaterialProperties:
-            if (prop) == "shader":
-                create_nodes(mat)
-            else:
-                shader = ksp_shaders[mat.mumatprop.shader]
-                nodes = mat.node_tree.nodes
-                for s in shader:
-                    if s[0] == "set" and s[3] == prop:
-                        node_set(mat.name, mat.mumatprop, nodes, s)
-                    elif s[0] == "settex" and s[3] == prop:
-                        node_settex(mat.name, mat.mumatprop, nodes, s)
-    return updater
-
-def shader_items(self, context):
-    slist = list(shader_properties.keys())
-    slist.sort()
-    enum = (('', "", ""),)
-    enum += tuple(map(lambda s: (s, s, ""), slist))
-    return enum
-
 class IO_OBJECT_MU_MT_shader_presets(Menu):
     bl_label = "Shader Presets"
     bl_idname = "IO_OBJECT_MU_MT_shader_presets"
@@ -543,79 +512,6 @@ class IO_OBJECT_MU_MT_shader_presets(Menu):
         mat = context.material
         create_nodes(mat)
 
-# Draw into an existing panel
-def panel_func(self, context):
-    layout = self.layout
-
-    row = layout.row(align=True)
-    row.menu(OBJECT_MT_draw_presets.__name__, text=OBJECT_MT_draw_presets.bl_label)
-    row.operator(AddPresetObjectDraw.bl_idname, text="", icon='ADD')
-    row.operator(AddPresetObjectDraw.bl_idname, text="", icon='REMOVE').remove_active = True
-
-class OBJECT_UL_Property_list(bpy.types.UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data,
-                  active_propname, index):
-        if item:
-            layout.prop(item, "name", text="", emboss=False, icon_value=icon)
-        else:
-            layout.label(text="", icon_value=icon)
-
-def draw_property_list(layout, propset, propsetname):
-    box = layout.box()
-    row = box.row()
-    row.operator("object.mushaderprop_expand", text="",
-                 icon='TRIA_DOWN' if propset.expanded else 'TRIA_RIGHT',
-                 emboss=False).propertyset = propsetname
-    row.label(text = propset.bl_label)
-    row.label(text = "",
-              icon = 'RADIOBUT_ON' if propset.properties else 'RADIOBUT_OFF')
-    if propset.expanded:
-        box.separator()
-        row = box.row()
-        col = row.column()
-        col.template_list("OBJECT_UL_Property_list", "", propset, "properties", propset, "index")
-        col = row.column(align=True)
-        add_op = "object.mushaderprop_add"
-        rem_op = "object.mushaderprop_remove"
-        col.operator(add_op, icon='ADD', text="").propertyset = propsetname
-        col.operator(rem_op, icon='REMOVE', text="").propertyset = propsetname
-        if len(propset.properties) > propset.index >= 0:
-            propset.draw_item(box)
-
-class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = 'material'
-    bl_label = 'Mu Shader'
-
-    @classmethod
-    def poll(cls, context):
-        return context.material != None
-
-    def drawtex(self, layout, texprop):
-        box = layout.box()
-        box.prop(texprop, "tex")
-        box.prop(texprop, "scale")
-        box.prop(texprop, "offset")
-
-    def draw(self, context):
-        layout = self.layout
-        matprops = context.material.mumatprop
-        row = layout.row()
-        col = row.column()
-        r = col.row(align=True)
-        r.menu("IO_OBJECT_MU_MT_shader_presets",
-               text=IO_OBJECT_MU_OT_shader_presets.bl_label)
-        r.operator("io_object_mu.shader_presets", text="", icon='ADD')
-        r.operator("io_object_mu.shader_presets", text="", icon='REMOVE').remove_active = True
-        col.prop(matprops, "name")
-        col.prop(matprops, "shaderName")
-        draw_property_list(layout, matprops.texture, "texture")
-        draw_property_list(layout, matprops.color, "color")
-        draw_property_list(layout, matprops.vector, "vector")
-        draw_property_list(layout, matprops.float2, "float2")
-        draw_property_list(layout, matprops.float3, "float3")
-
 submodule_names = (
     "colorprops",
     "float2props",
@@ -626,11 +522,10 @@ submodule_names = (
 
     "materialprops",
     "operators",
+    "panels",
 )
 register_submodules(__name__, submodule_names)
 
 classes = (
     IO_OBJECT_MU_MT_shader_presets,
-    OBJECT_UL_Property_list,
-    OBJECT_PT_MuMaterialPanel,
 )
