@@ -36,6 +36,7 @@ from ..shader import make_shader
 from .. import collider, properties, cameraprops
 
 from .importerror import MuImportError
+from .collider import create_collider
 from .mesh import create_mesh
 
 BONE_LENGTH = 0.1
@@ -72,18 +73,6 @@ def create_data_object(name, data, transform):
         obj.rotation_quaternion = Quaternion((1,0,0,0))
         obj.scale = Vector((1,1,1))
     return obj
-
-def copy_spring(dst, src):
-    dst.spring = src.spring
-    dst.damper = src.damper
-    dst.targetPosition = src.targetPosition
-
-def copy_friction(dst, src):
-    dst.extremumSlip = src.extremumSlip
-    dst.extremumValue = src.extremumValue
-    dst.asymptoteSlip = src.asymptoteSlip
-    dst.extremumValue = src.extremumValue
-    dst.stiffness = src.stiffness
 
 def create_light(mu, mulight, name):
     ltype = ('SPOT', 'SUN', 'POINT', 'AREA')[mulight.type]
@@ -237,47 +226,6 @@ def create_action(mu, path, clip):
         #track = obj.animation_data.nla_tracks.new()
         #track.name = clip.name
         #track.strips.new(act.name, 1.0, act)
-
-def create_collider(mu, muobj):
-    col = muobj.collider
-    name = muobj.transform.name
-    mesh = None
-    if type(col) == MuColliderMesh:
-        name = name + ".collider"
-        mesh = create_mesh(mu, col.mesh, name)
-    obj, cobj = collider.create_collider_object(name, mesh)
-
-    obj.muproperties.isTrigger = False
-    if type(col) != MuColliderWheel:
-        obj.muproperties.isTrigger = col.isTrigger
-    if type(col) == MuColliderMesh:
-        obj.muproperties.collider = 'MU_COL_MESH'
-    elif type(col) == MuColliderSphere:
-        obj.muproperties.radius = col.radius
-        obj.muproperties.center = col.center
-        obj.muproperties.collider = 'MU_COL_SPHERE'
-    elif type(col) == MuColliderCapsule:
-        obj.muproperties.radius = col.radius
-        obj.muproperties.height = col.height
-        obj.muproperties.direction = properties.dir_map[col.direction]
-        obj.muproperties.center = col.center
-        obj.muproperties.collider = 'MU_COL_CAPSULE'
-    elif type(col) == MuColliderBox:
-        obj.muproperties.size = col.size
-        obj.muproperties.center = col.center
-        obj.muproperties.collider = 'MU_COL_BOX'
-    elif type(col) == MuColliderWheel:
-        obj.muproperties.radius = col.radius
-        obj.muproperties.suspensionDistance = col.suspensionDistance
-        obj.muproperties.center = col.center
-        obj.muproperties.mass = col.mass
-        copy_spring(obj.muproperties.suspensionSpring, col.suspensionSpring)
-        copy_friction(obj.muproperties.forwardFriction, col.forwardFriction)
-        copy_friction(obj.muproperties.sideFriction, col.sidewaysFriction)
-        obj.muproperties.collider = 'MU_COL_WHEEL'
-    if type(col) != MuColliderMesh:
-        collider.build_collider(cobj, obj.muproperties)
-    return obj
 
 def attach_material(mesh, renderer, mu):
     if mu.materials and renderer.materials:
