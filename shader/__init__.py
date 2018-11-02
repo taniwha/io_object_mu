@@ -24,8 +24,7 @@ from struct import unpack
 from pprint import pprint
 
 import bpy
-from bpy.types import Operator, Menu
-from bl_operators.presets import AddPresetBase
+from bpy.types import Menu
 from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
 from bpy.props import FloatVectorProperty, IntProperty
@@ -38,6 +37,7 @@ from .colorprops import  MuMaterialColorPropertySet
 from .float2props import MuMaterialFloat2PropertySet
 from .float3props import MuMaterialFloat3PropertySet
 from .imageprops import MuImageProperties
+from .operators import IO_OBJECT_MU_OT_shader_presets
 from .textureprops import MuMaterialTexturePropertySet, MuTextureProperties
 from .vectorprops import MuMaterialVectorPropertySet
 
@@ -554,27 +554,6 @@ class IO_OBJECT_MU_MT_shader_presets(Menu):
         mat = context.material
         create_nodes(mat)
 
-
-class IO_OBJECT_MU_OT_shader_presets(AddPresetBase, Operator):
-    bl_idname = "io_object_mu.shader_presets"
-    bl_label = "Shaders"
-    bl_description = "Mu Shader Presets"
-    preset_menu = "IO_OBJECT_MU_MT_shader_presets"
-    preset_subdir = "io_object_mu/shaders"
-
-    preset_defines = [
-        "mat = bpy.context.material.mumatprop"
-        ]
-    preset_values = [
-        "mat.name",
-        "mat.shaderName",
-        "mat.color",
-        "mat.vector",
-        "mat.float2",
-        "mat.float3",
-        "mat.texture",
-        ]
-
 # Draw into an existing panel
 def panel_func(self, context):
     layout = self.layout
@@ -670,7 +649,6 @@ register_submodules(__name__, submodule_names)
 
 classes = (
     IO_OBJECT_MU_MT_shader_presets,
-    IO_OBJECT_MU_OT_shader_presets,
     MuMaterialProperties,
     OBJECT_UL_Property_list,
     OBJECT_PT_MuMaterialPanel,
@@ -678,5 +656,3 @@ classes = (
 custom_properties = (
     (bpy.types.Material, "mumatprop", MuMaterialProperties),
 )
-
-print(__name__)

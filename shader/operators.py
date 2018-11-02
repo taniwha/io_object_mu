@@ -21,6 +21,7 @@
 
 import bpy
 from bpy.props import StringProperty
+from bl_operators.presets import AddPresetBase
 
 class KSPMU_OT_MuShaderPropExpand(bpy.types.Operator):
     '''Expand/collapse mu shader property set'''
@@ -57,8 +58,29 @@ class KSPMU_OT_MuShaderPropRemove(bpy.types.Operator):
             propset.properties.remove(propset.index)
         return {'FINISHED'}
 
+class IO_OBJECT_MU_OT_shader_presets(AddPresetBase, bpy.types.Operator):
+    bl_idname = "io_object_mu.shader_presets"
+    bl_label = "Shaders"
+    bl_description = "Mu Shader Presets"
+    preset_menu = "IO_OBJECT_MU_MT_shader_presets"
+    preset_subdir = "io_object_mu/shaders"
+
+    preset_defines = [
+        "mat = bpy.context.material.mumatprop"
+        ]
+    preset_values = [
+        "mat.name",
+        "mat.shaderName",
+        "mat.color",
+        "mat.vector",
+        "mat.float2",
+        "mat.float3",
+        "mat.texture",
+        ]
+
 classes = (
     KSPMU_OT_MuShaderPropExpand,
     KSPMU_OT_MuShaderPropAdd,
     KSPMU_OT_MuShaderPropRemove,
+    IO_OBJECT_MU_OT_shader_presets,
 )
