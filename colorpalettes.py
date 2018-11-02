@@ -19,10 +19,6 @@
 
 # <pep8 compliant>
 
-import sys, traceback
-from struct import unpack
-from pprint import pprint
-
 import bpy
 
 color_values = (0x55, 0xba, 0xda)

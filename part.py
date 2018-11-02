@@ -18,16 +18,13 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import sys
 import os
 
 import bpy
-from mathutils import Vector,Matrix,Quaternion
-from bpy_extras.io_utils import ImportHelper
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
+from mathutils import Vector, Quaternion
 
-from .cfgnode import ConfigNode, ConfigNodeError
-from .parser import parse_float, parse_vector
+from .cfgnode import ConfigNode
+from .parser import parse_float
 from .model import compile_model
 
 def loaded_parts_collection():

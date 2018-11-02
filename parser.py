@@ -19,9 +19,7 @@
 
 # <pep8 compliant>
 
-import sys, traceback, math
-from struct import unpack
-from pprint import pprint
+import math
 
 from mathutils import Vector, Quaternion
 

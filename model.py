@@ -18,13 +18,11 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import sys
 import os
 
 import bpy
-from mathutils import Vector,Matrix,Quaternion
+from mathutils import Vector, Quaternion
 
-from .cfgnode import ConfigNode, ConfigNodeError
 from .import_mu import import_mu
 from .parser import parse_vector
 

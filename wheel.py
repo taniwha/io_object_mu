@@ -16,7 +16,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-from mu import Mu, MuEnum, MuColliderWheel
+from mu import Mu, MuColliderWheel
 from cfgnode import ConfigNode
 import sys
 

@@ -20,6 +20,7 @@
 # <pep8 compliant>
 
 from struct import pack, unpack
+
 class MuEnum:
     MODEL_BINARY = 76543
     FILE_VERSION = 5

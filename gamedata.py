@@ -18,17 +18,9 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import sys
 import os
-from pprint import pprint
-
-import bpy
-from mathutils import Vector,Matrix,Quaternion
-from bpy_extras.io_utils import ImportHelper
-from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 
 from .cfgnode import ConfigNode, ConfigNodeError
-from .parser import parse_float
 from .model import Model
 from .part import Part
 from .prop import Prop

@@ -21,11 +21,8 @@
 
 import bpy
 from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
+from bpy.props import PointerProperty
 from bpy.props import FloatVectorProperty, IntProperty
-from mathutils import Vector,Matrix,Quaternion
-
-from .mu import MuEnum
 
 class MuSpringProp(bpy.types.PropertyGroup):
     spring: FloatProperty(name = "Spring")

@@ -22,8 +22,8 @@
 # <pep8 compliant>
 
 import bpy, os
-from bpy.types import AddonPreferences, Menu
-from bpy.props import StringProperty, BoolProperty
+from bpy.types import AddonPreferences
+from bpy.props import StringProperty
 
 from . import colorpalettes, shader
 

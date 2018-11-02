@@ -17,10 +17,10 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 if __name__ == "__main__":
-    from mu import Mu, MuEnum, MuColliderMesh, MuMesh
+    from mu import Mu, MuColliderMesh, MuMesh
     from vect import *
 else:
-    from .mu import Mu, MuEnum, MuColliderMesh, MuMesh
+    from .mu import Mu, MuColliderMesh, MuMesh
     from .vect import *
 import sys
 

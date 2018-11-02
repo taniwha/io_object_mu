@@ -21,12 +21,10 @@
 
 import bpy
 import bmesh
-from bpy_extras.object_utils import object_data_add
 from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from bpy.props import FloatVectorProperty
-from mathutils import Vector,Matrix,Quaternion
+from mathutils import Vector, Matrix, Quaternion
 
-from .mu import MuEnum
 from .quickhull import quickhull
 from . import properties
 

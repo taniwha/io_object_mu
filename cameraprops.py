@@ -19,13 +19,9 @@
 
 # <pep8 compliant>
 
-import sys, traceback
-from struct import unpack
-from pprint import pprint
-
 import bpy
 from bpy.props import BoolVectorProperty, FloatProperty
-from bpy.props import FloatVectorProperty, IntProperty, EnumProperty
+from bpy.props import FloatVectorProperty, EnumProperty
 
 clearflag_items = (
     ('SKYBOX', "Skybox", ""),

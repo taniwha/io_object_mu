@@ -19,7 +19,6 @@
 
 # <pep8 compliant>
 import bpy
-from mathutils import Vector,Quaternion
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty
 
