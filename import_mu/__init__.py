@@ -30,48 +30,15 @@ from mathutils import Vector,Matrix,Quaternion
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import BoolProperty, StringProperty
 
-from .importerror import MuImportError
 from ..mu import MuEnum, Mu, MuColliderMesh, MuColliderSphere, MuColliderCapsule
 from ..mu import MuColliderBox, MuColliderWheel
 from ..shader import make_shader
 from .. import collider, properties, cameraprops
 
+from .importerror import MuImportError
+from .mesh import create_mesh
+
 BONE_LENGTH = 0.1
-
-def create_uvs(mu, uvs, bm, name):
-    layer = bm.loops.layers.uv.new(name)
-    for face in bm.faces:
-        for loop in face.loops:
-            loop[layer].uv = uvs[loop.vert.index]
-
-def create_mesh(mu, mumesh, name):
-    mesh = bpy.data.meshes.new(name)
-    faces = []
-    for sm in mumesh.submeshes:
-        faces.extend(sm)
-    bm = bmesh.new()
-    bv = [None] * len(mumesh.verts)
-    for i, v in enumerate(mumesh.verts):
-        bv[i] = bm.verts.new(v)
-    if mumesh.normals:
-        for i, n in enumerate(mumesh.normals):
-            bv[i].normal = n
-    #FIXME how to set tangents?
-    #if mumesh.tangents:
-    #    for i, t in enumerate(mumesh.tangents):
-    #        bv[i].tangent = t
-    bm.verts.index_update()
-    bm.verts.ensure_lookup_table()
-    for f in faces:
-        bm.faces.new([bv[i] for i in f])
-    bm.faces.index_update()
-    bm.faces.ensure_lookup_table()
-    if mumesh.uvs:
-        create_uvs(mu, mumesh.uvs, bm, "UV")
-    if mumesh.uv2s:
-        create_uvs(mu, mumesh.uv2s, bm, "UV2")
-    bm.to_mesh(mesh)
-    return mesh
 
 def create_vertex_groups(obj, bones, weights):
     mesh = obj.data
