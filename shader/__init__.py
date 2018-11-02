@@ -34,7 +34,6 @@ from mathutils import Vector,Matrix,Quaternion
 from .. import register_submodules
 
 from ..mu import MuEnum, MuMaterial
-from . import shaderprops
 from .colorprops import  MuMaterialColorPropertySet
 from .float2props import MuMaterialFloat2PropertySet
 from .float3props import MuMaterialFloat3PropertySet
@@ -663,7 +662,7 @@ submodule_names = (
     "float2props",
     "float3props",
     "imageprops",
-    "shaderprops",
+    "operators",
     "textureprops",
     "vectorprops",
 )
