@@ -40,6 +40,7 @@ from .animation import create_action, create_object_paths
 from .armature import create_armature, create_armature_modifier
 from .armature import needs_armature, BONE_LENGTH
 from .collider import create_collider
+from .light import create_light
 from .mesh import create_mesh
 from .operators import KSPMU_OT_ImportMu
 
@@ -56,18 +57,6 @@ def create_data_object(name, data, transform):
         obj.rotation_quaternion = Quaternion((1,0,0,0))
         obj.scale = Vector((1,1,1))
     return obj
-
-def create_light(mu, mulight, name):
-    ltype = ('SPOT', 'SUN', 'POINT', 'AREA')[mulight.type]
-    light = bpy.data.lights.new(name, ltype)
-    light.color = mulight.color[:3]
-    light.distance = mulight.range
-    light.energy = mulight.intensity
-    if ltype == 'SPOT' and hasattr(mulight, "spotAngle"):
-        light.spot_size = mulight.spotAngle * pi / 180
-    muprops = light.mulightprop
-    properties.SetPropMask(muprops.cullingMask, mulight.cullingMask)
-    return light
 
 def create_camera(mu, mucamera, name):
     camera = bpy.data.cameras.new(name)
