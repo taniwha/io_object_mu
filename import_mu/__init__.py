@@ -38,6 +38,7 @@ from .. import collider, properties, cameraprops
 from .importerror import MuImportError
 from .collider import create_collider
 from .mesh import create_mesh
+from .operators import KSPMU_OT_ImportMu
 
 BONE_LENGTH = 0.1
 
@@ -497,50 +498,6 @@ def import_mu(collection, filepath, create_colliders, force_armature):
                                   % (mu.magic, mu.version))
 
     return process_mu(mu, os.path.dirname(filepath))
-
-def import_mu_op(self, context, filepath, create_colliders, force_armature):
-    operator = self
-    undo = bpy.context.user_preferences.edit.use_global_undo
-    bpy.context.user_preferences.edit.use_global_undo = False
-
-    collection = bpy.context.layer_collection.collection
-    try:
-        obj = import_mu(collection, filepath, create_colliders, force_armature)
-    except MuImportError as e:
-        operator.report({'ERROR'}, e.message)
-        return {'CANCELLED'}
-    else:
-        for o in bpy.context.scene.objects:
-            o.select_set('DESELECT')
-        bpy.context.view_layer.objects.active = obj
-        obj.location = context.scene.cursor_location
-        obj.rotation_quaternion = Quaternion((1, 0, 0, 0))
-        obj.scale = Vector((1, 1, 1))
-        obj.select_set('SELECT')
-        return {'FINISHED'}
-    finally:
-        bpy.context.user_preferences.edit.use_global_undo = undo
-
-class KSPMU_OT_ImportMu(bpy.types.Operator, ImportHelper):
-    '''Load a KSP Mu (.mu) File'''
-    bl_idname = "import_object.ksp_mu"
-    bl_label = "Import Mu"
-    bl_description = """Import a KSP .mu model."""
-    bl_options = {'REGISTER', 'UNDO'}
-
-    filename_ext = ".mu"
-    filter_glob: StringProperty(default="*.mu", options={'HIDDEN'})
-
-    create_colliders: BoolProperty(name="Create Colliders",
-            description="Disable to import only visual and hierarchy elements",
-                                    default=True)
-    force_armature: BoolProperty(name="Force Armature",
-            description="Enable to force use of an armature to hold the model"
-                        " hierarchy", default=False)
-
-    def execute(self, context):
-        keywords = self.as_keywords (ignore=("filter_glob",))
-        return import_mu_op(self, context, **keywords)
 
 def import_mu_menu_func(self, context):
     self.layout.operator(KSPMU_OT_ImportMu.bl_idname, text="KSP Mu (.mu)")
