@@ -89,7 +89,7 @@ def create_armature(mu):
     name = mu.obj.transform.name
     mu.armature = bpy.data.armatures.new(name)
     mu.armature.show_axes = True
-    from . import create_data_object #FIXME circular reference
+    from .import_mu import create_data_object #FIXME circular reference
     mu.armature_obj = create_data_object(name, mu.armature, mu.obj.transform)
     ctx = bpy.context
     ctx.layer_collection.collection.objects.link(mu.armature_obj)
