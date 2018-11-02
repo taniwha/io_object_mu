@@ -19,7 +19,6 @@
 
 # <pep8 compliant>
 
-import bpy
 from .quickhull import get_convex_hull
 
 class RawMesh:
@@ -47,47 +46,21 @@ def quickhull(mesh):
     rawmesh = RawMesh(mesh)
     hull = get_convex_hull(rawmesh)
     verts, faces = make_hull_mesh (rawmesh, hull)
+    import bpy
     hullmesh = bpy.data.meshes.new("ConvexHull")
     hullmesh.from_pydata(verts, [], faces)
     hullmesh.update()
     return hullmesh
 
-def quickhull_op(self, context):
-    operator = self
-    undo = bpy.context.user_preferences.edit.use_global_undo
-    bpy.context.user_preferences.edit.use_global_undo = False
-
-    for obj in bpy.context.scene.objects:
-        if not obj.select_get():
-            continue
-        obj.select_set('DESELECT')
-        mesh = obj.to_mesh(context.scene, True, 'PREVIEW')
-        if not mesh or not mesh.vertices:
-            continue
-        mesh = quickhull(mesh)
-        hullobj = bpy.data.objects.new("ConvexHull", mesh)
-        bpy.context.scene.collection.objects.link(hullobj)
-        hullobj.select_set('SELECT')
-        hullobj.location = obj.location
-        bpy.context.view_layer.objects.active = hullobj
-
-    bpy.context.user_preferences.edit.use_global_undo = undo
-    return {'FINISHED'}
-
-class KSPMU_OT_QuickHull(bpy.types.Operator):
-    '''Create a convex hull from an object.'''
-    bl_idname = "mesh.quickhull"
-    bl_label = "Convex Hull"
-    bl_description = """Create a convex hull from an object."""
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        keywords = self.as_keywords ()
-        return quickhull_op(self, context, **keywords)
-
 def menu_func(self, context):
     self.layout.operator(QuickHull.bl_idname, text = QuickHull.bl_label, icon='PLUGIN')
 
-classes_to_register = (
-    KSPMU_OT_QuickHull,
+submodule_names = (
+    "operators",
 )
+
+try:
+    from .. import register_submodules
+    register_submodules(__name__, submodule_names)
+except ValueError:
+    pass
