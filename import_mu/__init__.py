@@ -39,6 +39,7 @@ from .importerror import MuImportError
 from .animation import create_action, create_object_paths
 from .armature import create_armature, create_armature_modifier
 from .armature import needs_armature, BONE_LENGTH
+from .camera import create_camera
 from .collider import create_collider
 from .light import create_light
 from .mesh import create_mesh
@@ -57,24 +58,6 @@ def create_data_object(name, data, transform):
         obj.rotation_quaternion = Quaternion((1,0,0,0))
         obj.scale = Vector((1,1,1))
     return obj
-
-def create_camera(mu, mucamera, name):
-    camera = bpy.data.cameras.new(name)
-    #mucamera.clearFlags
-    camera.type = ['PERSP', 'ORTHO'][mucamera.orthographic]
-    camera.lens_unit = 'FOV'
-    # blender's fov is in radians, unity's in degrees
-    camera.angle = mucamera.fov * pi / 180
-    camera.clip_start = mucamera.near
-    camera.clip_end = mucamera.far
-    muprops = camera.mucameraprop
-    properties.SetPropMask(muprops.cullingMask, mucamera.cullingMask)
-    muprops.backgroundColor = mucamera.backgroundColor
-    muprops.depth = mucamera.depth
-    if mucamera.clearFlags > 0:
-        flags = mucamera.clearFlags - 1
-        muprops.clearFlags = cameraprops.clearflag_items[flags][0]
-    return camera
 
 def attach_material(mesh, renderer, mu):
     if mu.materials and renderer.materials:
