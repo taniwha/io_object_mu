@@ -44,6 +44,7 @@ from .collider import create_collider
 from .light import create_light
 from .mesh import create_mesh
 from .operators import KSPMU_OT_ImportMu
+from .textures import create_textures
 
 def create_data_object(name, data, transform):
     obj = bpy.data.objects.new(name, data)
@@ -136,79 +137,6 @@ def create_object(mu, muobj, parent):
         for clip in muobj.animation.clips:
             create_action(mu, muobj.path, clip)
     return obj
-
-def load_mbm(mbmpath):
-    mbmfile = open(mbmpath, "rb")
-    header = mbmfile.read(20)
-    magic, width, height, bump, bpp = unpack("<5i", header)
-    if magic != 0x50534b03: # "\x03KSP" as little endian
-        raise
-    if bpp == 32:
-        pixels = mbmfile.read(width * height * 4)
-    elif bpp == 24:
-        pixels = [0, 0, 0, 255] * width * height
-        for i in range(width * height):
-            p = mbmfile.read(3)
-            l = i * 4
-            pixels[l:l+3] = list(p)
-    else:
-        raise
-    return width, height, pixels
-
-def load_image(base, ext, path, type):
-    name = base + ext
-    if ext.lower() in [".dds", ".png", ".tga"]:
-        img = bpy.data.images.load(os.path.join(path, name))
-        img.name = base
-        img.muimageprop.invertY = False
-        if ext.lower() == ".dds":
-            img.muimageprop.invertY = True
-        pixels = img.pixels[:1024]#256 pixels
-        if base[-2:].lower() == "_n" or base[-3:].lower() == "nrm":
-            type = 1
-    elif ext.lower() == ".mbm":
-        w,h, pixels = load_mbm(os.path.join(path, name))
-        img = bpy.data.images.new(base, w, h)
-        img.pixels[:] = map(lambda x: x / 255.0, pixels)
-        img.pack(as_png=True)
-    img.alpha_mode = 'STRAIGHT'
-    img.muimageprop.invertY = (ext.lower() == ".dds")
-    img.muimageprop.convertNorm = False
-    if type == 1:
-        img.colorspace_settings.name = 'Non-Color'
-        for i in range(256):
-            c = 2*Vector(pixels[i*4:i*4+4])-Vector((1, 1, 1, 1))
-            if abs(c.x*c.x + c.y*c.y + c.z*c.z - 1) > 0.05:
-                img.muimageprop.convertNorm = True
-
-def create_textures(mu, path):
-    extensions = [".dds", ".mbm", ".tga", ".png"]
-    #texture info is in the top level object
-    for tex in mu.textures:
-        base, ext = os.path.splitext(tex.name)
-        ind = 0
-        if ext in extensions:
-            ind = extensions.index(ext)
-        lst = extensions[ind:] + extensions[:ind]
-        for e in lst:
-            try:
-                load_image(base, e, path, tex.type)
-                break
-            except FileNotFoundError:
-                continue
-            except RuntimeError:
-                continue
-    pass
-
-def add_texture(mu, mat, mattex):
-    i, s, o = mattex.index, mattex.scale, mattex.offset
-    mat.texture_slots.add()
-    ts = mat.texture_slots[0]
-    ts.texture = bpy.data.textures[mu.textures[i].name]
-    ts.use_map_alpha = True
-    ts.texture_coords = 'UV'
-    ts.scale = s + (1,)
-    ts.offset = o + (0,)
 
 def create_materials(mu):
     #material info is in the top level object
