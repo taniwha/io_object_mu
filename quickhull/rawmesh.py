@@ -19,14 +19,8 @@
 
 # <pep8 compliant>
 
-from .quickhull import get_convex_hull
-
-try:
-    from .. import register_submodules
-except ValueError:
-    pass
-else:
-    submodule_names = (
-        "operators",
-    )
-    register_submodules(__name__, submodule_names)
+class RawMesh:
+    def __init__(self, mesh):
+        self.verts = [None] * len(mesh.vertices)
+        for i, v in enumerate(mesh.vertices):
+            self.verts[i] = v.co

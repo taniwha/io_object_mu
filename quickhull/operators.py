@@ -20,7 +20,7 @@
 # <pep8 compliant>
 
 import bpy
-from .quickhull import get_convex_hull
+from .convex_hull import quickhull
 
 def quickhull_op(self, context):
     operator = self
@@ -31,7 +31,7 @@ def quickhull_op(self, context):
         if not obj.select_get():
             continue
         obj.select_set('DESELECT')
-        mesh = obj.to_mesh(context.scene, True, 'PREVIEW')
+        mesh = obj.to_mesh(context.depsgraph, True)
         if not mesh or not mesh.vertices:
             continue
         mesh = quickhull(mesh)
@@ -51,10 +51,21 @@ class KSPMU_OT_QuickHull(bpy.types.Operator):
     bl_description = """Create a convex hull from an object."""
     bl_options = {'REGISTER', 'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        return context.active_object.mode == 'OBJECT'
+
     def execute(self, context):
         keywords = self.as_keywords ()
         return quickhull_op(self, context, **keywords)
 
+def convex_hull_menu_func(self, context):
+    self.layout.operator(KSPMU_OT_QuickHull.bl_idname, text = KSPMU_OT_QuickHull.bl_label, icon='PLUGIN')
+
 classes_to_register = (
     KSPMU_OT_QuickHull,
+)
+
+menus_to_register = (
+    (bpy.types.VIEW3D_MT_mesh_add, convex_hull_menu_func),
 )

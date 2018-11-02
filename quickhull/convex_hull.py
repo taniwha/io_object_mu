@@ -20,13 +20,29 @@
 # <pep8 compliant>
 
 from .quickhull import get_convex_hull
+from .rawmesh import RawMesh
 
-try:
-    from .. import register_submodules
-except ValueError:
-    pass
-else:
-    submodule_names = (
-        "operators",
-    )
-    register_submodules(__name__, submodule_names)
+def make_hull_mesh(mesh, hull):
+    vind = [None] * len(mesh.verts)
+    verts = []
+    faces = []
+    for f in hull:
+        t = [f.edges[0][0], f.edges[1][0], f.edges[2][0]]
+        for i in range(3):
+            v = t[i]
+            if vind[v] == None:
+                vind[v] = len(verts)
+                verts.append(mesh.verts[v])
+            t[i] = vind[t[i]]
+        faces.append(t)
+    return verts, faces
+
+def quickhull(mesh):
+    rawmesh = RawMesh(mesh)
+    hull = get_convex_hull(rawmesh)
+    verts, faces = make_hull_mesh (rawmesh, hull)
+    import bpy
+    hullmesh = bpy.data.meshes.new("ConvexHull")
+    hullmesh.from_pydata(verts, [], faces)
+    hullmesh.update()
+    return hullmesh
