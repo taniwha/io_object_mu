@@ -31,12 +31,15 @@ from bpy.props import BoolVectorProperty, CollectionProperty, PointerProperty
 from bpy.props import FloatVectorProperty, IntProperty
 from mathutils import Vector,Matrix,Quaternion
 
-from .mu import MuEnum, MuMaterial
+from .. import register_submodules
+
+from ..mu import MuEnum, MuMaterial
 from . import shaderprops
 from .colorprops import  MuMaterialColorPropertySet
 from .float2props import MuMaterialFloat2PropertySet
 from .float3props import MuMaterialFloat3PropertySet
-from .textureprops import MuMaterialTexturePropertySet
+from .imageprops import MuImageProperties
+from .textureprops import MuMaterialTexturePropertySet, MuTextureProperties
 from .vectorprops import MuMaterialVectorPropertySet
 
 dxtNormal_block = (
@@ -655,6 +658,17 @@ class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
         draw_property_list(layout, matprops.float2, "float2")
         draw_property_list(layout, matprops.float3, "float3")
 
+submodule_names = (
+    "colorprops",
+    "float2props",
+    "float3props",
+    "imageprops",
+    "shaderprops",
+    "textureprops",
+    "vectorprops",
+)
+register_submodules(__name__, submodule_names)
+
 classes = (
     IO_OBJECT_MU_MT_shader_presets,
     IO_OBJECT_MU_OT_shader_presets,
@@ -665,3 +679,5 @@ classes = (
 custom_properties = (
     (bpy.types.Material, "mumatprop", MuMaterialProperties),
 )
+
+print(__name__)

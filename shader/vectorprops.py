@@ -24,8 +24,6 @@ from bpy.props import BoolProperty
 from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
 
-from .mu import MuEnum, MuMaterial
-
 def vector_update(self, context):
     pass
 

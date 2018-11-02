@@ -22,8 +22,6 @@
 import bpy
 from bpy.props import StringProperty
 
-from .mu import MuEnum, MuMaterial
-
 class KSPMU_OT_MuShaderPropExpand(bpy.types.Operator):
     '''Expand/collapse mu shader property set'''
     bl_idname = "object.mushaderprop_expand"

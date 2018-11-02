@@ -35,14 +35,7 @@ bl_info = {
     "category": "Import-Export"}
 
 submodule_names = (
-    "colorprops",
-    "float2props",
-    "float3props",
-    "textureprops",
-    "vectorprops",
-
     "cameraprops",
-    "imageprops",
     "lightprops",
 
     "collider",
@@ -58,19 +51,16 @@ submodule_names = (
     "properties",
     "quickhull",
     "shader",
-    "shaderprops",
     "templates",
 )
 
 from bpy.props import PointerProperty
 from bpy.utils import register_class, unregister_class
 
-module = None
-submodules = []
-def register():
-    global module
-    module = __import__(name=__name__, fromlist=submodule_names)
-    submodules[:] = [getattr(module, name) for name in submodule_names]
+registered_submodules = []
+def register_submodules(name, submodule_names):
+    module = __import__(name=name, fromlist=submodule_names)
+    submodules = [getattr(module, name) for name in submodule_names]
     for mod in submodules:
         m = [(),()]
         if hasattr(mod, "classes"):
@@ -85,11 +75,13 @@ def register():
             for prop in mod.custom_properties:
                 setattr(prop[0], prop[1], PointerProperty(type=prop[2]))
         if m[0] or m[1]:
-            submodules.append(m)
+            registered_submodules.append(m)
 
+def register():
+    register_submodules(__name__, submodule_names);
 
 def unregister():
-    for mod in reversed(submodules):
+    for mod in reversed(registered_submodules):
         for menu in reversed(mod[1]):
             menu[0].remove(menu[1])
         for cls in reversed(mod[0]):
