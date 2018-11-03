@@ -19,13 +19,28 @@
 
 # <pep8 compliant>
 
-from .. import register_submodules
+import bpy
 
-from .collider import create_collider_object, build_collider, update_collider
+class INFO_MT_mucollider_add(bpy.types.Menu):
+    bl_idname = "INFO_MT_mucollider_add"
+    bl_label = "Mu Collider"
 
-submodule_names = (
-    "menus",
-    "operators",
-    "panels",
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("mucollider.mesh", text = "Mesh");
+        layout.operator("mucollider.sphere", text = "Sphere");
+        layout.operator("mucollider.capsule", text = "Capsule");
+        layout.operator("mucollider.box", text = "Box");
+        layout.operator("mucollider.wheel", text = "Wheel");
+
+def add_collider_menu_func(self, context):
+    self.layout.menu("INFO_MT_mucollider_add", icon='PLUGIN')
+
+classes_to_register = (
+    INFO_MT_mucollider_add,
 )
-register_submodules(__name__, submodule_names)
+
+menus_to_register = (
+    (bpy.types.VIEW3D_MT_add, add_collider_menu_func),
+)
