@@ -22,6 +22,7 @@
 import bpy
 
 from .. import preferences
+from . import shader
 
 class IO_OBJECT_MU_MT_shader_presets(bpy.types.Menu):
     bl_label = "Shader Presets"
@@ -39,7 +40,7 @@ class IO_OBJECT_MU_MT_shader_presets(bpy.types.Menu):
     @classmethod
     def post_cb(cls, context):
         mat = context.material
-        create_nodes(mat)
+        shader.create_nodes(mat)
 
 classes_to_register = (
     IO_OBJECT_MU_MT_shader_presets,
