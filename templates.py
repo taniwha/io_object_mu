@@ -29,7 +29,7 @@ class TEXT_MT_templates_kspcfg(Menu):
 
     def draw (self, context):
         self.path_menu(
-            bpy.utils.script_paths("templates_kspcfg"),
+            bpy.utils.preset_paths("io_object_mu/kspcfg"),
             "text.open",
             props_default={"internal": True},
         )

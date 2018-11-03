@@ -27,10 +27,10 @@ from bpy.props import StringProperty
 
 from . import colorpalettes, shader
 
-def install_presets(subdir):
+def install_presets(dstsubdir, srcsubdir):
     presets=bpy.utils.script_paths("presets")
-    dst=presets[-1] + "/" + shader.IO_OBJECT_MU_MT_shader_presets.preset_subdir
-    src=os.path.dirname(os.path.abspath(__file__)) + "/presets/" + subdir
+    dst=presets[-1] + "/" + dstsubdir
+    src=os.path.dirname(os.path.abspath(__file__)) + "/presets/" + srcsubdir
     if not os.access(dst, os.F_OK):
         os.makedirs(dst)
     names = os.listdir(src)
@@ -54,8 +54,21 @@ class KSPMU_OT_InstallShaders(bpy.types.Operator):
         return True
 
     def execute(self, context):
-        install_presets("shaders")
+        install_presets("io_object_mu/shaders", "shaders")
         self.report({'INFO'}, 'Shader presets installed.')
+        return {'FINISHED'}
+
+class KSPMU_OT_InstallCfgTemplates(bpy.types.Operator):
+    bl_idname = 'io_object_mu_presets.cfgtemplates'
+    bl_label = 'Install KSP Config Templates'
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        install_presets("io_object_mu/kspcfg", "cfgtemplates")
+        self.report({'INFO'}, 'Config templates installed.')
         return {'FINISHED'}
 
 class KSPMU_OT_CreateColorPalettes(bpy.types.Operator):
@@ -85,10 +98,15 @@ class IOObjectMu_AddonPreferences(AddonPreferences):
         box.label(text="KSP:")
         box.prop(self, "GameData")
         box.label(text="Shaders:")
-        box.operator(KSPMU_OT_InstallShaders.bl_idname, text=KSPMU_OT_InstallShaders.bl_label);
+        box.operator(KSPMU_OT_InstallShaders.bl_idname,
+                     text=KSPMU_OT_InstallShaders.bl_label);
+        box.label(text="Config Templates:")
+        box.operator(KSPMU_OT_InstallCfgTemplates.bl_idname,
+                     text=KSPMU_OT_InstallCfgTemplates.bl_label);
         box.label(text="Color Paletes:")
         cbox = box.box()
-        cbox.operator(KSPMU_OT_CreateColorPalettes.bl_idname, text=KSPMU_OT_CreateColorPalettes.bl_label);
+        cbox.operator(KSPMU_OT_CreateColorPalettes.bl_idname,
+                      text=KSPMU_OT_CreateColorPalettes.bl_label);
         cbox.label(text="NOTE: this must be done for each new blend file or saved to your startup file.", icon="LAYER_USED")
         cbox.label(text="NOTE2: overwrites existing palettes that have the same names", icon="LAYER_USED")
 
@@ -100,5 +118,6 @@ def Preferences():
 classes_to_register = (
     IOObjectMu_AddonPreferences,
     KSPMU_OT_InstallShaders,
+    KSPMU_OT_InstallCfgTemplates,
     KSPMU_OT_CreateColorPalettes,
 )
