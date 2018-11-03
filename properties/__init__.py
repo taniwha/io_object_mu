@@ -19,26 +19,14 @@
 
 # <pep8 compliant>
 
-from math import pi, sqrt
+from .. import register_submodules
 
-import bpy
+from .properties import dir_items, dir_map, SetPropMask, GetPropMask
+from .cameraprops import clearflag_items
 
-from .. import properties
-
-def create_camera(mu, mucamera, name):
-    camera = bpy.data.cameras.new(name)
-    #mucamera.clearFlags
-    camera.type = ['PERSP', 'ORTHO'][mucamera.orthographic]
-    camera.lens_unit = 'FOV'
-    # blender's fov is in radians, unity's in degrees
-    camera.angle = mucamera.fov * pi / 180
-    camera.clip_start = mucamera.near
-    camera.clip_end = mucamera.far
-    muprops = camera.mucameraprop
-    properties.SetPropMask(muprops.cullingMask, mucamera.cullingMask)
-    muprops.backgroundColor = mucamera.backgroundColor
-    muprops.depth = mucamera.depth
-    if mucamera.clearFlags > 0:
-        flags = mucamera.clearFlags - 1
-        muprops.clearFlags = properties.clearflag_items[flags][0]
-    return camera
+submodule_names = (
+    "cameraprops",
+    "lightprops",
+    "properties",
+)
+register_submodules(__name__, submodule_names)

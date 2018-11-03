@@ -24,6 +24,7 @@ from math import pi
 from mathutils import Quaternion
 
 from ..mu import MuCamera
+from .. import properties
 
 from . import export
 
@@ -34,16 +35,17 @@ rotation_correction = Quaternion((0.5**0.5, -0.5**0.5, 0, 0))
 
 def make_camera(mu, camera, obj):
     mucamera = MuCamera()
-    clear = obj.muproperties.clearFlags
+    muprops = camera.mucameraprop
+    clear = muprops.clearFlags
     flags = ('SKYBOX', 'COLOR', 'DEPTH', 'NOTHING').index(clear)
     mucamera.clearFlags = flags + 1
-    mucamera.backgroundColor = obj.muproperties.backgroundColor
-    mucamera.cullingMask = properties.GetPropMask(obj.muproperties.cullingMask)
+    mucamera.backgroundColor = muprops.backgroundColor
+    mucamera.cullingMask = properties.GetPropMask(muprops.cullingMask)
     mucamera.orthographic = camera.type == 'ORTHO'
     mucamera.fov = camera.angle * 180 / pi
     mucamera.near = camera.clip_start
     mucamera.far = camera.clip_end
-    mucamera.depth = obj.muproperties.depth
+    mucamera.depth = muprops.depth
     return mucamera
 
 def handle_camera(obj, muobj, mu):

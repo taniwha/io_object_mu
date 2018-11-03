@@ -63,11 +63,13 @@ dir_map = {
     2:'MU_Y',   # unity is LHS, blender is RHS
     1:'MU_Z',   # unity is LHS, blender is RHS
 }
+
 dir_items = (
     ('MU_X', "X", ""),
     ('MU_Y', "Y", ""),
     ('MU_Z', "Z", ""),
 )
+
 modelType_items = (
     ('NONE', "None", "Nothing is assumed about the object and its descendants unless specified otherwise by an ancestral object."),
     ('PART', "Part", "The object and its descendants form a KSP part model. Only the first \"Internal Space\" descendant object is special."),
@@ -102,7 +104,8 @@ def GetPropMask(prop):
     return mask
 
 def collider_update(self, context):
-    from .collider import update_collider
+    #FIXME
+    from ..collider import update_collider
     obj = context.active_object
     update_collider(obj)
 

@@ -35,9 +35,6 @@ bl_info = {
     "category": "Import-Export"}
 
 submodule_names = (
-    "cameraprops",
-    "lightprops",
-
     "collider",
     "colorpalettes",
     "export_mu",
