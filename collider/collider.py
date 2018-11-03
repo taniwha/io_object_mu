@@ -23,10 +23,11 @@ import bpy
 import bmesh
 from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from bpy.props import FloatVectorProperty
-from mathutils import Vector, Matrix, Quaternion
+from mathutils import Vector
 
 from ..quickhull import quickhull
 from .. import properties
+from . import box, capsule, sphere, wheel
 
 def collider_collection(name):
     if "colliders" not in bpy.data.collections:
@@ -38,64 +39,6 @@ def collider_collection(name):
     cc = bpy.data.collections.new("collider:"+name)
     bpy.data.collections["colliders"].children.link(cc)
     return cc
-
-collider_sphere_ve = (
-    [(-1.000, 0.000, 0.000), (-0.866, 0.000, 0.500), (-0.500, 0.000, 0.866),
-     ( 0.000, 0.000, 1.000), ( 0.500, 0.000, 0.866), ( 0.866, 0.000, 0.500),
-     ( 1.000, 0.000, 0.000), ( 0.866, 0.000,-0.500), ( 0.500, 0.000,-0.866),
-     ( 0.000, 0.000,-1.000), (-0.500, 0.000,-0.866), (-0.866, 0.000,-0.500),
-
-     ( 0.000,-1.000, 0.000), ( 0.000,-0.866, 0.500), ( 0.000,-0.500, 0.866),
-     ( 0.000, 0.000, 1.000), ( 0.000, 0.500, 0.866), ( 0.000, 0.866, 0.500),
-     ( 0.000, 1.000, 0.000), ( 0.000, 0.866,-0.500), ( 0.000, 0.500,-0.866),
-     ( 0.000, 0.000,-1.000), ( 0.000,-0.500,-0.866), ( 0.000,-0.866,-0.500),
-
-     (-1.000, 0.000, 0.000), (-0.866, 0.500, 0.000), (-0.500, 0.866, 0.000),
-     ( 0.000, 1.000, 0.000), ( 0.500, 0.866, 0.000), ( 0.866, 0.500, 0.000),
-     ( 1.000, 0.000, 0.000), ( 0.866,-0.500, 0.000), ( 0.500,-0.866, 0.000),
-     ( 0.000,-1.000, 0.000), (-0.500,-0.866, 0.000), (-0.866,-0.500, 0.000)],
-    [( 0, 1), ( 1, 2), ( 2, 3), ( 3, 4), ( 4, 5), ( 5, 6),
-     ( 6, 7), ( 7, 8), ( 8, 9), ( 9,10), (10,11), (11, 0),
-     (12,13), (13,14), (14,15), (15,16), (16,17), (17,18),
-     (18,19), (19,20), (20,21), (21,22), (22,23), (23,12),
-     (24,25), (25,26), (26,27), (27,28), (28,29), (29,30),
-     (30,31), (31,32), (32,33), (33,34), (34,35), (35,24)])
-collider_capsule_cyl_ve = (
-    [(-1.000, 0.000,-1.000), (-0.866, 0.500,-1.000), (-0.500, 0.866,-1.000),
-     ( 0.000, 1.000,-1.000), ( 0.500, 0.866,-1.000), ( 0.866, 0.500,-1.000),
-     ( 1.000, 0.000,-1.000), ( 0.866,-0.500,-1.000), ( 0.500,-0.866,-1.000),
-     ( 0.000,-1.000,-1.000), (-0.500,-0.866,-1.000), (-0.866,-0.500,-1.000),
-     (-1.000, 0.000, 1.000), (-0.866, 0.500, 1.000), (-0.500, 0.866, 1.000),
-     ( 0.000, 1.000, 1.000), ( 0.500, 0.866, 1.000), ( 0.866, 0.500, 1.000),
-     ( 1.000, 0.000, 1.000), ( 0.866,-0.500, 1.000), ( 0.500,-0.866, 1.000),
-     ( 0.000,-1.000, 1.000), (-0.500,-0.866, 1.000), (-0.866,-0.500, 1.000),],
-    [( 0, 1), ( 1, 2), ( 2, 3), ( 3, 4), ( 4, 5), ( 5, 6),
-     ( 6, 7), ( 7, 8), ( 8, 9), ( 9,10), (10,11), (11, 0),
-     (12,13), (13,14), (14,15), (15,16), (16,17), (17,18),
-     (18,19), (19,20), (20,21), (21,22), (22,23), (23,12),
-     ( 0,12), ( 3,15), ( 6,18), ( 9,21)])
-collider_capsule_end_ve = (
-    [(-1.000, 0.000, 0.000), (-0.866, 0.000, 0.500), (-0.500, 0.000, 0.866),
-     ( 0.000, 0.000, 1.000),
-     ( 0.500, 0.000, 0.866), ( 0.866, 0.000, 0.500), ( 1.000, 0.000, 0.000),
-     ( 0.000,-1.000, 0.000), ( 0.000,-0.866, 0.500), ( 0.000,-0.500, 0.866),
-     ( 0.000, 0.000, 1.000),
-     ( 0.000, 0.500, 0.866), ( 0.000, 0.866, 0.500), ( 0.000, 1.000, 0.000),],
-    [( 0, 1), ( 1, 2), ( 2, 3), ( 3, 4), ( 4, 5), ( 5, 6),
-     ( 7, 8), ( 8, 9), ( 9,10), (10,11), (11,12), (12,13)])
-collider_box_ve = (
-    [(-0.5,-0.5,-0.5), (-0.5,-0.5, 0.5), (-0.5, 0.5, 0.5), (-0.5, 0.5,-0.5),
-     ( 0.5, 0.5,-0.5), ( 0.5, 0.5, 0.5), ( 0.5,-0.5, 0.5), ( 0.5,-0.5,-0.5)],
-     [( 0, 1), ( 1, 2), ( 2, 3), ( 3, 4),
-      ( 4, 5), ( 5, 6), ( 6, 7), ( 7, 0),
-      ( 6, 1), ( 5, 2), ( 7, 4), ( 3, 0)])
-collider_wheel_ve = (
-    [( 0.000,-1.000, 0.000), ( 0.000,-0.866, 0.500), ( 0.000,-0.500, 0.866),
-     ( 0.000, 0.000, 1.000), ( 0.000, 0.500, 0.866), ( 0.000, 0.866, 0.500),
-     ( 0.000, 1.000, 0.000), ( 0.000, 0.866,-0.500), ( 0.000, 0.500,-0.866),
-     ( 0.000, 0.000,-1.000), ( 0.000,-0.500,-0.866), ( 0.000,-0.866,-0.500)],
-    [( 0, 1), ( 1, 2), ( 2, 3), ( 3, 4), ( 4, 5), ( 5, 6),
-     ( 6, 7), ( 7, 8), ( 8, 9), ( 9,10), (10,11), (11, 0)])
 
 def make_collider_mesh(mesh, vex_list):
     verts = []
@@ -114,70 +57,21 @@ def make_collider_mesh(mesh, vex_list):
     bm.to_mesh(mesh)
     return mesh
 
-def translate(d):
-    return Matrix.Translation(Vector(d))
-
-def scale(s):
-    s = Vector(s)
-    return Matrix(((s.x,  0,  0, 0),
-                   (  0,s.y,  0, 0),
-                   (  0,  0,s.z, 0),
-                   (  0,  0,  0, 1)))
-
-def rotate(r):
-    return Quaternion(r).normalized().to_matrix().to_4x4()
-
-def sphere(mesh, center, radius):
-    m = translate(center) @ scale((radius,)*3)
-    col = (collider_sphere_ve + (m,)),
-    make_collider_mesh(mesh, col)
-
-def capsule(mesh, center, radius, height, direction):
-    height -= 2 * radius
-    if direction == 0 or direction == 'MU_X':
-        # rotate will normalize the quaternion
-        r = rotate((1, 0, 1, 0))
-    elif direction == 2 or direction == 'MU_Y':
-        # rotate will normalize the quaternion
-        r = rotate((1,-1, 0, 0))
-    elif direction == 1 or direction == 'MU_Z':
-        # the mesh is setup for running along Z (Unity Y), so don't rotate
-        r = rotate((1, 0, 0, 0))
-    r = translate(center) @ r
-    m = (Matrix.Translation(Vector((0, 0, height/2)))
-         @ Matrix.Scale(radius, 4))
-    col = (collider_capsule_end_ve + (r @ m,)),
-    m = Matrix.Scale(-1,4) @ m
-    col = col + ((collider_capsule_end_ve + (r @ m,)),)
-    m = Matrix(((radius,      0,        0, 0),
-                (     0, radius,        0, 0),
-                (     0,      0, height/2, 0),
-                (     0,      0,        0, 1)))
-    col = col + ((collider_capsule_cyl_ve + (r @ m,)),)
-    make_collider_mesh(mesh, col)
-
-def box(mesh, center, size):
-    m = translate(center) @ scale(size)
-    col = (collider_box_ve + (m,)),
-    make_collider_mesh(mesh, col)
-
-def wheel(mesh, center, radius):
-    m = translate(center) @ scale((radius,)*3)
-    col = (collider_wheel_ve + (m,)),
-    make_collider_mesh(mesh, col)
-
 def build_collider(obj, muprops):
     mesh = obj.data
+    mesh_data = None
     if muprops.collider == "MU_COL_MESH":
-        box(mesh, (0, 0, 0), (1, 1, 1))
+        mesh_data = box.mesh_data((0, 0, 0), (1, 1, 1))
     elif muprops.collider == "MU_COL_SPHERE":
-        sphere(mesh, muprops.center, muprops.radius)
+        mesh_data = sphere.mesh_data(muprops.center, muprops.radius)
     elif muprops.collider == "MU_COL_CAPSULE":
-        capsule(mesh, muprops.center, muprops.radius, muprops.height, muprops.direction)
+        mesh_data = capsule.mesh_data(muprops.center, muprops.radius, muprops.height, muprops.direction)
     elif muprops.collider == "MU_COL_BOX":
-        box(mesh, muprops.center, muprops.size)
+        mesh_data = box.mesh_data(muprops.center, muprops.size)
     elif muprops.collider == "MU_COL_WHEEL":
-        wheel(mesh, muprops.center, muprops.radius)
+        mesh_data = wheel.mesh_data(muprops.center, muprops.radius)
+    if mesh_data:
+        make_collider_mesh (mesh, mesh_data)
 
 def update_collider(obj):
     if not obj:
