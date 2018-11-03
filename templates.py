@@ -24,12 +24,14 @@
 import bpy
 from bpy.types import Menu
 
+from . import preferences
+
 class TEXT_MT_templates_kspcfg(Menu):
     bl_label = "KSP config"
 
     def draw (self, context):
         self.path_menu(
-            bpy.utils.preset_paths("io_object_mu/kspcfg"),
+            bpy.utils.preset_paths(preferences.package_name + "/kspcfg"),
             "text.open",
             props_default={"internal": True},
         )

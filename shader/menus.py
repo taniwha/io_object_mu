@@ -21,10 +21,12 @@
 
 import bpy
 
+from .. import preferences
+
 class IO_OBJECT_MU_MT_shader_presets(bpy.types.Menu):
     bl_label = "Shader Presets"
     bl_idname = "IO_OBJECT_MU_MT_shader_presets"
-    preset_subdir = "io_object_mu/shaders"
+    preset_subdir = preferences.package_name + "/shaders"
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 

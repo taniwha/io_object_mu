@@ -27,6 +27,8 @@ from bpy.props import StringProperty
 
 from . import colorpalettes, shader
 
+package_name = __package__.split(".")[0]
+
 def install_presets(dstsubdir, srcsubdir):
     presets=bpy.utils.script_paths("presets")
     dst=presets[-1] + "/" + dstsubdir
@@ -54,7 +56,7 @@ class KSPMU_OT_InstallShaders(bpy.types.Operator):
         return True
 
     def execute(self, context):
-        install_presets("io_object_mu/shaders", "shaders")
+        install_presets(package_name + "/shaders", "shaders")
         self.report({'INFO'}, 'Shader presets installed.')
         return {'FINISHED'}
 
@@ -67,7 +69,7 @@ class KSPMU_OT_InstallCfgTemplates(bpy.types.Operator):
         return True
 
     def execute(self, context):
-        install_presets("io_object_mu/kspcfg", "cfgtemplates")
+        install_presets(package_name + "/kspcfg", "cfgtemplates")
         self.report({'INFO'}, 'Config templates installed.')
         return {'FINISHED'}
 
@@ -85,7 +87,7 @@ class KSPMU_OT_CreateColorPalettes(bpy.types.Operator):
         return {'FINISHED'}
 
 class IOObjectMu_AddonPreferences(AddonPreferences):
-    bl_idname = __package__
+    bl_idname = package_name
 
     GameData: StringProperty(
         name="GameData Path",
@@ -113,7 +115,8 @@ class IOObjectMu_AddonPreferences(AddonPreferences):
 def Preferences():
     user_preferences = bpy.context.user_preferences
     addons = user_preferences.addons
-    return addons[__package__].preferences
+    prefs = addons[package_name]
+    return prefs.preferences
 
 classes_to_register = (
     IOObjectMu_AddonPreferences,
