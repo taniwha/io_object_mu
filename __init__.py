@@ -36,7 +36,6 @@ bl_info = {
 
 submodule_names = (
     "collider",
-    "colorpalettes",
     "export_mu",
     "gamedata",
     "import_craft",
@@ -48,7 +47,6 @@ submodule_names = (
     "properties",
     "quickhull",
     "shader",
-    "templates",
 )
 
 from bpy.props import PointerProperty

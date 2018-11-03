@@ -25,7 +25,8 @@ import bpy, os
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty
 
-from . import colorpalettes, shader
+from . import colorpalettes
+from .. import shader
 
 package_name = __package__.split(".")[0]
 
