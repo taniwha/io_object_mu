@@ -25,8 +25,8 @@ from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from bpy.props import FloatVectorProperty
 from mathutils import Vector, Matrix, Quaternion
 
-from .quickhull import quickhull
-from . import properties
+from ..quickhull import quickhull
+from .. import properties
 
 def collider_collection(name):
     if "colliders" not in bpy.data.collections:
