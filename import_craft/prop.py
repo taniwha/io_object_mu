@@ -26,9 +26,9 @@ from bpy_extras.io_utils import ImportHelper
 from mathutils import Vector, Quaternion
 from bpy.props import StringProperty, EnumProperty
 
-from .preferences import Preferences
-from .cfgnode import ConfigNode, ConfigNodeError
-from .utils import strip_nnn
+from ..preferences import Preferences
+from ..cfgnode import ConfigNode, ConfigNodeError
+from ..utils import strip_nnn
 from .model import collect_objects, instantiate_model, compile_model
 
 def loaded_props_collection():

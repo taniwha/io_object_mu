@@ -22,11 +22,12 @@ import bpy
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty
 
-from .import_mu import MuImportError
-from .cfgnode import ConfigNode, ConfigNodeError
-from .cfgnode import parse_vector, parse_quaternion
+from ..import_mu import MuImportError
+from ..cfgnode import ConfigNode, ConfigNodeError
+from ..cfgnode import parse_vector, parse_quaternion
+from ..preferences import Preferences
+
 from .gamedata import GameData, gamedata
-from .preferences import Preferences
 
 def craft_collection():
     if "craft_collection" not in bpy.data.collections:

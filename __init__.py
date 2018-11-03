@@ -37,13 +37,9 @@ bl_info = {
 submodule_names = (
     "collider",
     "export_mu",
-    "gamedata",
     "import_craft",
     "import_mu",
-    "model",
-    "part",
     "preferences",
-    "prop",
     "properties",
     "quickhull",
     "shader",

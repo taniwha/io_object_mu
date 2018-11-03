@@ -20,7 +20,7 @@
 # <pep8 compliant>
 import os
 
-from .cfgnode import ConfigNode, ConfigNodeError
+from ..cfgnode import ConfigNode, ConfigNodeError
 from .model import Model
 from .part import Part
 from .prop import Prop
