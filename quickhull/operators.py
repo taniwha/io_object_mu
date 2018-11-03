@@ -53,7 +53,7 @@ class KSPMU_OT_QuickHull(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object.mode == 'OBJECT'
+        return context.active_object and context.active_object.mode == 'OBJECT'
 
     def execute(self, context):
         keywords = self.as_keywords ()
