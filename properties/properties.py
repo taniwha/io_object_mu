@@ -214,56 +214,6 @@ class OBJECT_PT_MuPropertiesPanel(bpy.types.Panel):
         col.prop(muprops, "tag")
         col.prop(muprops, "layer")
 
-class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = 'object'
-    bl_label = 'Mu Collider'
-
-    @classmethod
-    def poll(cls, context):
-        muprops = context.active_object.muproperties
-        return muprops.collider and muprops.collider != 'MU_COL_NONE'
-
-    def draw(self, context):
-        layout = self.layout
-        muprops = context.active_object.muproperties
-        row = layout.row()
-        col = row.column()
-        # can't change object types :/ (?)
-        #col.prop(muprops, "collider")
-        if muprops.collider == 'MU_COL_MESH':
-            col.prop(muprops, "isTrigger")
-        elif muprops.collider == 'MU_COL_SPHERE':
-            col.prop(muprops, "isTrigger")
-            col.prop(muprops, "radius")
-            col.prop(muprops, "center")
-        elif muprops.collider == 'MU_COL_CAPSULE':
-            col.prop(muprops, "isTrigger")
-            col.prop(muprops, "radius")
-            col.prop(muprops, "height")
-            col.row().prop(muprops, "direction", expand=True)
-            col.prop(muprops, "center")
-        elif muprops.collider == 'MU_COL_BOX':
-            col.prop(muprops, "isTrigger")
-            col.prop(muprops, "size")
-            col.prop(muprops, "center")
-        elif muprops.collider == 'MU_COL_WHEEL':
-            col.prop(muprops, "isTrigger")
-            col.prop(muprops, "radius")
-            col.prop(muprops, "center")
-            col.prop(muprops, "mass")
-            col.prop(muprops, "suspensionDistance")
-            box = col.box()
-            box.label(text="Suspension")
-            muprops.suspensionSpring.draw(context, box)
-            box = col.box()
-            box.label(text="Forward Friction")
-            muprops.forwardFriction.draw(context, box.box())
-            box = col.box()
-            box.label(text="Side Friction")
-            muprops.sideFriction.draw(context, box.box())
-
 classes_to_register = (
     MuSpringProp,
     MuFrictionProp,
@@ -274,7 +224,6 @@ classes_to_register = (
     VIEW3D_PT_MuScenePanel,
     OBJECT_PT_MuAttachNodePanel,
     OBJECT_PT_MuPropertiesPanel,
-    OBJECT_PT_MuColliderPanel,
 )
 custom_properties_to_register = (
     (bpy.types.Object, "muproperties", MuProperties),

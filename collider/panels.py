@@ -43,6 +43,57 @@ class WORKSPACE_PT_tools_mu_collider(bpy.types.Panel):
         layout.operator("mucollider.from_mesh", text = "Selected Meshes")
         layout.operator("mucollider.mesh_to_collider", text = "Selected Meshes")
 
+class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'object'
+    bl_label = 'Mu Collider'
+
+    @classmethod
+    def poll(cls, context):
+        muprops = context.active_object.muproperties
+        return muprops.collider and muprops.collider != 'MU_COL_NONE'
+
+    def draw(self, context):
+        layout = self.layout
+        muprops = context.active_object.muproperties
+        row = layout.row()
+        col = row.column()
+        # can't change object types :/ (?)
+        #col.prop(muprops, "collider")
+        if muprops.collider == 'MU_COL_MESH':
+            col.prop(muprops, "isTrigger")
+        elif muprops.collider == 'MU_COL_SPHERE':
+            col.prop(muprops, "isTrigger")
+            col.prop(muprops, "radius")
+            col.prop(muprops, "center")
+        elif muprops.collider == 'MU_COL_CAPSULE':
+            col.prop(muprops, "isTrigger")
+            col.prop(muprops, "radius")
+            col.prop(muprops, "height")
+            col.row().prop(muprops, "direction", expand=True)
+            col.prop(muprops, "center")
+        elif muprops.collider == 'MU_COL_BOX':
+            col.prop(muprops, "isTrigger")
+            col.prop(muprops, "size")
+            col.prop(muprops, "center")
+        elif muprops.collider == 'MU_COL_WHEEL':
+            col.prop(muprops, "isTrigger")
+            col.prop(muprops, "radius")
+            col.prop(muprops, "center")
+            col.prop(muprops, "mass")
+            col.prop(muprops, "suspensionDistance")
+            box = col.box()
+            box.label(text="Suspension")
+            muprops.suspensionSpring.draw(context, box)
+            box = col.box()
+            box.label(text="Forward Friction")
+            muprops.forwardFriction.draw(context, box.box())
+            box = col.box()
+            box.label(text="Side Friction")
+            muprops.sideFriction.draw(context, box.box())
+
 classes_to_register = (
     WORKSPACE_PT_tools_mu_collider,
+    OBJECT_PT_MuColliderPanel,
 )
