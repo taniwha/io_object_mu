@@ -22,6 +22,7 @@
 from .. import register_submodules
 
 from .properties import dir_items, dir_map, SetPropMask, GetPropMask
+from .properties import method_items
 from .cameraprops import clearflag_items
 
 submodule_names = (
