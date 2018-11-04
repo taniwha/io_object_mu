@@ -159,6 +159,7 @@ def mesh_materials(mu, mesh):
             if mat.name not in mu.materials:
                 mu.materials[mat.name] = make_material(mu, mat)
             materials.append(mu.materials[mat.name].index)
+    return materials
 
 def make_renderer(mu, mesh):
     rend = MuRenderer()
