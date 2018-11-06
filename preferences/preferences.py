@@ -33,7 +33,7 @@ package_name = __package__.split(".")[0]
 def install_presets(dstsubdir, srcsubdir):
     presets=bpy.utils.script_paths("presets")
     dst=presets[-1] + "/" + dstsubdir
-    src=os.path.dirname(os.path.abspath(__file__)) + "/presets/" + srcsubdir
+    src=os.path.dirname(os.path.abspath(__file__)) + "/" + srcsubdir
     if not os.access(dst, os.F_OK):
         os.makedirs(dst)
     names = os.listdir(src)
