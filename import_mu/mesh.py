@@ -47,7 +47,10 @@ def create_mesh(mu, mumesh, name):
     bm.verts.index_update()
     bm.verts.ensure_lookup_table()
     for f in faces:
-        bm.faces.new([bv[i] for i in f])
+        try:
+            bm.faces.new([bv[i] for i in f])
+        except ValueError:
+            print(name + ": duplicate face?", f)
     bm.faces.index_update()
     bm.faces.ensure_lookup_table()
     if mumesh.uvs:
