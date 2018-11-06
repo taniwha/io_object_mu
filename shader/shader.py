@@ -290,7 +290,7 @@ ksp_emissive_bumped_specular = (main_block + mainTex_block + emissive_block
                                 + opaque_block)
 ksp_alpha_cutoff = ()
 ksp_alpha_cutoff_bumped = ()
-ksp_alpha_translucent = ()
+ksp_alpha_translucent = (main_block + mainTex_block + transparency_block)
 ksp_alpha_translucent_specular = main_block + mainTex_block + specularity_block + transparency_block
 ksp_alpha_translucent_additive = main_block + mainTex_block + additive_block
 ksp_unlit_transparent = ()
@@ -308,7 +308,7 @@ ksp_shaders = {
 "KSP/Emissive/Bumped Specular":ksp_emissive_bumped_specular,
 #"KSP/Alpha/Cutoff":ksp_alpha_cutoff,
 #"KSP/Alpha/Cutoff Bumped":ksp_alpha_cutoff_bumped,
-#"KSP/Alpha/Translucent":ksp_alpha_translucent,
+"KSP/Alpha/Translucent":ksp_alpha_translucent,
 "KSP/Alpha/Translucent Specular":ksp_alpha_translucent_specular,
 "KSP/Alpha/Translucent Additive":ksp_alpha_translucent_additive,
 #"KSP/Alpha/Unlit Transparent":ksp_unlit_transparent,
