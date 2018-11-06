@@ -21,7 +21,10 @@
 
 import math
 
-from mathutils import Vector, Quaternion
+try:
+    from mathutils import Vector, Quaternion
+except:
+    pass
 
 def build_dictionary(mu, node):
     value_dict={
