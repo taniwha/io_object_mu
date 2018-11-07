@@ -55,8 +55,8 @@ def texture_update_tex(self, context):
     mat = context.material
     node_name = "%s.%s:texture" % (mat.name, self.name)
     nodes = mat.node_tree.nodes
-    if node_name in nodes:
-        nodes[node_name].image = self.tex
+    if node_name in nodes and self.tex in bpy.data.images:
+        nodes[node_name].image = bpy.data.images[self.tex]
 
 class MuTextureProperties(bpy.types.PropertyGroup):
     tex: StringProperty(name="tex", update=texture_update_tex)
