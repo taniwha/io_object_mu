@@ -48,15 +48,16 @@ def shader_animations(mat, path):
 
 def object_animations(obj, path):
     animations = {}
+    typ = "arm" if type(obj.data) == bpy.types.Armature else "obj"
     if obj.animation_data:
         for track in obj.animation_data.nla_tracks:
             if track.strips:
-                animations[track.name] = [(track, path, "obj")]
+                animations[track.name] = [(track, path, typ)]
         # if nla_tracks exist, then action will be an nla track that has been
         # opened for tweaking, so export action only if there are no nla tracks
         if not animations and obj.animation_data.action:
             action = obj.animation_data.action
-            animations[action.name] = [(action, path, "obj")]
+            animations[action.name] = [(action, path, typ)]
     return animations
 
 def extend_animations(animations, anims):
@@ -156,11 +157,16 @@ vector_map={
     "vector": (".x", ".y", ".z", ".w"),
 }
 
-def make_curve(mu, curve, path, typ):
+def make_curve(mu, muobj, curve, path, typ):
     mucurve = MuCurve()
     mucurve.path = path
     if typ == "obj":
         property, mult = property_map[curve.data_path][curve.array_index]
+    elif typ == "arm":
+        bpath, dpath = curve.data_path.rsplit(".", 1)
+        bone_path = muobj.bone_paths[bpath]
+        mucurve.path = path + bone_path[len(muobj.path):]
+        property, mult = property_map[dpath][curve.array_index]
     elif type(typ) == bpy.types.Material:
         dp = curve.data_path.split(".")
         v = {}
@@ -190,12 +196,13 @@ def make_animations(mu, animations, anim_root):
         clip.wrapMode = 0   #FIXME
         for data in animations[clip_name]:
             track, path, typ = data
+            muobj = mu.object_paths[path]
             path = path[len(anim_root) + 1:]
             if type(track) is bpy.types.Action:
                 action = track
             else:
                 action = track.strips[0].action
             for curve in action.fcurves:
-                clip.curves.append(make_curve(mu, curve, path, typ))
+                clip.curves.append(make_curve(mu, muobj, curve, path, typ))
         anim.clips.append(clip)
     return anim

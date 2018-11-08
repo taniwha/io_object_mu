@@ -45,7 +45,7 @@ def export_bone(bone, mu, armature, bone_children, path):
     path += bone.name
     mubone = MuObject()
     obj = bone_children.get(bone.name)
-    armature.bone_paths[bone.name] = path
+    armature.bone_paths[f'pose.bones["{bone.name}"]'] = path
     mubone.transform = bone_transform (bone, obj)
     if obj:
         make_obj_core(mu, obj, path, mubone)
@@ -83,6 +83,7 @@ def handle_armature(obj, muobj, mu):
     deform_children = find_deform_children(obj)
     path = mu.path
     muobj.bone_paths = {}
+    muobj.path = path
     for bone in armature.bones:
         if bone.parent:
             #not a root bone
