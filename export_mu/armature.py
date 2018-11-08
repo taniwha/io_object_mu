@@ -53,6 +53,7 @@ def export_bone(bone, mu, bone_children, path):
         #FIXME inherit parent tag and layer
         mubone.tag_and_layer.tag = "Untagged"
         mubone.tag_and_layer.layer = 0
+        mu.object_paths[path] = mubone
     for child in bone.children:
         muchild = export_bone(child, mu, bone_children, path)
         mubone.children.append(muchild)
