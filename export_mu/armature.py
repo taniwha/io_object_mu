@@ -39,12 +39,13 @@ def bone_transform(bone, obj):
     return transform
 
 
-def export_bone(bone, mu, bone_children, path):
+def export_bone(bone, mu, armature, bone_children, path):
     if path:
         path += "/"
     path += bone.name
     mubone = MuObject()
     obj = bone_children.get(bone.name)
+    armature.bone_paths[bone.name] = path
     mubone.transform = bone_transform (bone, obj)
     if obj:
         make_obj_core(mu, obj, path, mubone)
@@ -55,7 +56,7 @@ def export_bone(bone, mu, bone_children, path):
         mubone.tag_and_layer.layer = 0
         mu.object_paths[path] = mubone
     for child in bone.children:
-        muchild = export_bone(child, mu, bone_children, path)
+        muchild = export_bone(child, mu, armature, bone_children, path)
         mubone.children.append(muchild)
     return mubone
 
@@ -80,13 +81,13 @@ def handle_armature(obj, muobj, mu):
     armature = obj.data
     bone_children = find_bone_children(obj)
     deform_children = find_deform_children(obj)
-    print(deform_children)
     path = mu.path
+    muobj.bone_paths = {}
     for bone in armature.bones:
         if bone.parent:
             #not a root bone
             continue
-        mubone = export_bone(bone, mu, bone_children, path)
+        mubone = export_bone(bone, mu, muobj, bone_children, path)
         muobj.children.append(mubone)
     return muobj
 
