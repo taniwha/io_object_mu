@@ -39,7 +39,7 @@ def craft_collection():
     return bpy.data.collections["craft_collection"]
 
 def select_objects(obj):
-    obj.select_set('SELECT')
+    obj.select_set(True)
     for o in obj.children:
         select_objects(o)
 
@@ -88,7 +88,7 @@ def import_craft_op(self, context, filepath):
         return {'CANCELLED'}
     else:
         for o in bpy.context.scene.objects:
-            o.select_set('DESELECT')
+            o.select_set(False)
         select_objects(obj)
         bpy.context.view_layer.objects.active = obj
         return {'FINISHED'}

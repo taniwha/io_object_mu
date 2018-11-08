@@ -30,14 +30,14 @@ def quickhull_op(self, context):
     for obj in bpy.context.scene.objects:
         if not obj.select_get():
             continue
-        obj.select_set('DESELECT')
+        obj.select_set(False)
         mesh = obj.to_mesh(context.depsgraph, True)
         if not mesh or not mesh.vertices:
             continue
         mesh = quickhull(mesh)
         hullobj = bpy.data.objects.new("ConvexHull", mesh)
         bpy.context.scene.collection.objects.link(hullobj)
-        hullobj.select_set('SELECT')
+        hullobj.select_set(True)
         hullobj.location = obj.location
         bpy.context.view_layer.objects.active = hullobj
 

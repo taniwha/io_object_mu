@@ -99,11 +99,11 @@ def import_prop_op(self, context, filepath):
     bpy.context.user_preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
-        obj.select_set('DESELECT')
+        obj.select_set(False)
     prop = import_prop(filepath).get_model()
     context.layer_collection.collection.objects.link(prop)
     prop.location = context.scene.cursor_location
-    prop.select_set('SELECT')
+    prop.select_set(True)
 
     bpy.context.user_preferences.edit.use_global_undo = undo
     return {'FINISHED'}

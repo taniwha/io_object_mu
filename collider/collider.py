@@ -104,13 +104,13 @@ def create_collider_object(name, mesh):
 def add_collider(self, context):
     context.user_preferences.edit.use_global_undo = False
     for obj in context.scene.objects:
-        obj.select_set('DESELECT')
+        obj.select_set(False)
     mesh = None
     if type(self) == KSPMU_OT_ColliderMesh:
         mesh = bpy.data.meshes.new("collider")
     obj, cobj = create_collider_object("collider", mesh)
     obj.location = context.scene.cursor_location
-    obj.select_set('SELECT')
+    obj.select_set(True)
     if type(self) == KSPMU_OT_ColliderMesh:
         obj.muproperties.collider = 'MU_COL_MESH'
     elif type(self) == KSPMU_OT_ColliderSphere:
@@ -146,7 +146,7 @@ def add_mesh_colliders(self, context, convex):
     for obj in bpy.context.scene.objects:
         if not obj.select_get():
             continue
-        obj.select_set('DESELECT')
+        obj.select_set(False)
         if obj.type != 'MESH':
             continue
         name = obj.name + ".collider"
@@ -155,7 +155,7 @@ def add_mesh_colliders(self, context, convex):
             mesh = quickhull(mesh)
         col = bpy.data.objects.new(name, mesh)
         col.parent = obj
-        col.select_set('SELECT')
+        col.select_set(True)
         context.scene.collection.objects.link(col)
         col.muproperties.collider = 'MU_COL_MESH'
 
