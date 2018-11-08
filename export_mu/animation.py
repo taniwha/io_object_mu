@@ -91,6 +91,10 @@ def find_path_root(animations):
                 if not o in p:
                     p[o] = {}
                 p = p[o]
+            # flag the path as having animation data so that the first object
+            # whith animation data is found when all objects form a vine
+            # instead of a tree
+            p[None] = {}
     path_root = ""
     p = paths
     while len(p) == 1:
