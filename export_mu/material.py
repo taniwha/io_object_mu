@@ -22,14 +22,17 @@
 from ..mu import MuMaterial, MuTexture, MuMatTex
 
 def make_texture(mu, tex):
-    if tex.tex not in mu.textures:
+    if tex.tex and tex.tex not in mu.textures:
         mutex = MuTexture()
         mutex.name = tex.tex
         mutex.type = tex.type
         mutex.index = len(mu.textures)
         mu.textures[tex.tex] = mutex
     mattex = MuMatTex()
-    mattex.index = mu.textures[tex.tex].index
+    if tex.tex:
+        mattex.index = mu.textures[tex.tex].index
+    else:
+        mattex.index = -1
     mattex.scale = list(tex.scale)
     mattex.offset = list(tex.offset)
     return mattex
