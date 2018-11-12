@@ -56,7 +56,7 @@ def clearinverse_op(self, context, recursive):
 
 class KSPMU_OT_ClearInverse(bpy.types.Operator):
     '''Clear parent inverse matrix keeping world transform.'''
-    bl_idname = "mesh.clearinverse"
+    bl_idname = "object.mu_clearinverse"
     bl_label = "Clear Parent Inverse (keep world transform)"
     bl_description = """Clear parent inverse matrix keeping world transform."""
     bl_options = {'REGISTER', 'UNDO'}
