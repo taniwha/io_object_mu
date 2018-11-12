@@ -43,6 +43,7 @@ submodule_names = (
     "properties",
     "quickhull",
     "shader",
+    "tools",
 )
 
 from bpy.props import PointerProperty
