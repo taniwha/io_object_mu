@@ -22,6 +22,7 @@
 from .. import register_submodules
 
 submodule_names = (
+    "applyscale",
     "clearinverse",
 )
 register_submodules(__name__, submodule_names)
