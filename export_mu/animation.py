@@ -99,9 +99,11 @@ def find_path_root(animations):
     path_root = ""
     p = paths
     while len(p) == 1:
+        o = list(p)[0]
+        if o == None:
+            break
         if path_root:
             path_root += "/"
-        o = list(p)[0]
         path_root += o
         p = p[o]
     return path_root
