@@ -19,11 +19,21 @@
 
 # <pep8 compliant>
 
-from .. import register_submodules
+import bpy
 
-submodule_names = (
-    "applyscale",
-    "clearinverse",
-    "panels",
+class WORKSPACE_PT_tools_mu_tools2(bpy.types.Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_category = "Mu Tools 2"
+    bl_context = ".workspace"
+    bl_label = "Export Mu"
+
+    def draw(self, context):
+        layout = self.layout
+        #col = layout.column(align=True)
+        layout.operator("object.mu_apply_scale", text = "Apply Scale");
+        layout.operator("object.mu_clearinverse", text = "Clear Inverse");
+
+classes_to_register = (
+    WORKSPACE_PT_tools_mu_tools2,
 )
-register_submodules(__name__, submodule_names)
