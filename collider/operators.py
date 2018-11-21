@@ -23,7 +23,7 @@ import bpy
 from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from bpy.props import FloatVectorProperty
 
-from ..quickhull import quickhull
+from ..quickhull.convex_hull import quickhull
 from .. import properties
 from .collider import create_collider_object, build_collider
 
@@ -76,13 +76,13 @@ def add_mesh_colliders(self, context, convex):
         if obj.type != 'MESH':
             continue
         name = obj.name + ".collider"
-        mesh = obj.to_mesh(context.scene, True, 'PREVIEW')
+        mesh = obj.to_mesh(context.depsgraph, True)
         if convex:
             mesh = quickhull(mesh)
         col = bpy.data.objects.new(name, mesh)
+        context.scene.collection.objects.link(col)
         col.parent = obj
         col.select_set(True)
-        context.scene.collection.objects.link(col)
         col.muproperties.collider = 'MU_COL_MESH'
 
     context.user_preferences.edit.use_global_undo = undo
