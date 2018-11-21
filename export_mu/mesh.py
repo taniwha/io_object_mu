@@ -109,7 +109,7 @@ def make_tangents(verts, uvs, normals, submeshes):
 
             r = s1 * t2 - s2 * t1
 
-            if r * r < 1e-6:
+            if r * r == 0:
                 continue
             sd = (t2 * u1 - t1 * u2) / r
             td = (s1 * u2 - s2 * u1) / r
