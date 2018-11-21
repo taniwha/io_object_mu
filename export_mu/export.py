@@ -51,41 +51,67 @@ def make_tag_and_layer(obj):
 type_handlers = {} # filled in by the modules that handle the obj.data types
 exported_objects = set()
 
+def is_collider(obj):
+    muprops = obj.muproperties
+    if muprops.collider and muprops.collider != 'MU_COL_NONE':
+        return True
+    return False
+
+def find_single_collider(objects):
+    colliders = []
+    for o in objects:
+        if is_collider(o):
+            colliders.append(o)
+    if len(colliders) == 1:
+        return colliders[0]
+    return None
+
 def make_obj_core(mu, obj, path, muobj):
     if path:
         path += "/"
     path += muobj.transform.name
     mu.object_paths[path] = muobj
     muobj.tag_and_layer = make_tag_and_layer(obj)
-    if type(obj.data) in type_handlers:
+    if is_collider(obj):
+        exported_objects.add(obj)
+        muobj.collider = make_collider(mu, obj)
+        return muobj
+    elif type(obj.data) in type_handlers:
         mu.path = path  #needs to be reset as a type handler might modify it
         muobj = type_handlers[type(obj.data)](obj, muobj, mu)
         if not muobj:
             # the handler decided the object should not be exported
             return None
     exported_objects.add(obj)
+    col = find_single_collider(obj.children)
+    if col:
+        exported_objects.add(col)
+        muobj.collider = make_collider(mu, col)
     for o in obj.children:
         if o in exported_objects:
             # the object has already been exported
             continue
         muprops = o.muproperties
+        #check whether the object should be exported (eg, props should not be
+        #exported as part of an IVA, and IVAs should not be exported as part
+        #of a part (that sounds odd)
         if muprops.modelType in mu.special:
             if mu.special[muprops.modelType](mu, o):
                 continue
-        if muprops.collider and muprops.collider != 'MU_COL_NONE':
-            muobj.collider = make_collider(mu, o)
-            continue
         child = make_obj(mu, o, path)
         if child:
             muobj.children.append(child)
     return muobj
 
 def make_obj(mu, obj, path):
-    if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
-        # colliders are children of the object representing the transform so
-        # they are never exported directly. Also, they should not have children
-        # since colliders are really components on game objects in Unity.
+    if obj in exported_objects:
+        # the object has already been "exported"
         return None
+    #if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
+    #    # colliders are children of the object representing the transform so
+    #    # they are never exported directly. Also, they should not have children
+    #    # since colliders are really components on game objects in Unity.
+    #    return None
     muobj = MuObject()
     muobj.transform = make_transform (obj)
     return make_obj_core(mu, obj, path, muobj)
