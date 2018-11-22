@@ -118,6 +118,21 @@ def create_object(mu, muobj, parent):
                 set_transform(obj, xform)
             else:
                 obj = create_data_object(name, None, xform)
+                if name[:5] == "node_":
+                    print(name, name[:5])
+                    obj.empty_display_type = 'SINGLE_ARROW'
+                    print(obj.empty_display_type)
+                    # Blender's empties use the +Z axis for single-arrow
+                    # display, so that is the most natural orientation for
+                    # nodes in blender.
+                    # However, KSP uses the transform's +Z (Unity) axis which
+                    # is Blender's +Y, so rotate -90 degrees around local X to
+                    # go from KSP to Blender
+                    print(obj.rotation_quaternion)
+                    rot = Quaternion((0.5**0.5, -(0.5**0.5), 0, 0))
+                    obj.rotation_quaternion @= rot
+                    print(obj.rotation_quaternion)
+
         obj.parent = parent
     if obj:
         #FIXME will lose properties from any empty objects that have properties
