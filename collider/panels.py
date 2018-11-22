@@ -40,8 +40,8 @@ class WORKSPACE_PT_tools_mu_collider(bpy.types.Panel):
 
         col = layout.column(align=True)
         col.label(text="Multiple Colliders:")
-        layout.operator("mucollider.from_mesh", text = "Selected Meshes")
-        layout.operator("mucollider.mesh_to_collider", text = "Selected Meshes")
+        layout.operator("mucollider.from_mesh")
+        layout.operator("mucollider.mesh_to_collider")
 
 class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'

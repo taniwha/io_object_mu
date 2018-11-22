@@ -106,9 +106,9 @@ def make_mesh_colliders(self, context):
     return {'FINISHED'}
 
 class KSPMU_OT_ColliderFromMesh(bpy.types.Operator):
-    """Add Mesh Collider to Selected Meshes"""
+    """Add mesh collider to selected meshes, basing the collider mesh on the original mesh"""
     bl_idname = "mucollider.from_mesh"
-    bl_label = "Add Mesh Collideri to Selected Meshes"
+    bl_label = "Make Mesh Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
     convex: BoolProperty(name="Make Convex",
@@ -120,9 +120,9 @@ class KSPMU_OT_ColliderFromMesh(bpy.types.Operator):
         return add_mesh_colliders(self, context, **keywords)
 
 class KSPMU_OT_MeshToCollider(bpy.types.Operator):
-    """Change Selected Meshes to Add Mesh Colliders"""
+    """Change selected mesh objects to mesh colliders"""
     bl_idname = "mucollider.mesh_to_collider"
-    bl_label = "Change Selected Meshes to Add Mesh Colliders"
+    bl_label = "Convert to Mesh Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
