@@ -35,6 +35,7 @@ def add_collider(self, context):
     if type(self) == KSPMU_OT_ColliderMesh:
         mesh = bpy.data.meshes.new("collider")
     obj, cobj = create_collider_object("collider", mesh)
+    bpy.context.layer_collection.collection.objects.link(obj)
     obj.location = context.scene.cursor_location
     obj.select_set(True)
     if type(self) == KSPMU_OT_ColliderMesh:

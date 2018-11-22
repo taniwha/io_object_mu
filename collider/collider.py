@@ -99,12 +99,10 @@ def create_collider_gizmo(name):
 def create_collider_object(name, mesh):
     if mesh:
         cobj = obj = bpy.data.objects.new(name, mesh)
-        bpy.context.layer_collection.collection.objects.link(obj)
     else:
         gizmo, cobj = create_collider_gizmo(name)
         obj = bpy.data.objects.new(name, None)
         obj.empty_display_size = 0.3
         obj.dupli_type = 'COLLECTION'
         obj.dupli_group = gizmo
-        bpy.context.layer_collection.collection.objects.link(obj)
     return obj, cobj
