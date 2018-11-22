@@ -39,9 +39,7 @@ from .light import create_light
 from .mesh import create_mesh
 from .textures import create_textures
 
-def create_data_object(name, data, transform):
-    obj = bpy.data.objects.new(name, data)
-    bpy.context.view_layer.objects.active = obj
+def set_transform(obj, transform):
     obj.rotation_mode = 'QUATERNION'
     if transform:
         obj.location = Vector(transform.localPosition)
@@ -51,6 +49,11 @@ def create_data_object(name, data, transform):
         obj.location = Vector((0, 0, 0))
         obj.rotation_quaternion = Quaternion((1,0,0,0))
         obj.scale = Vector((1,1,1))
+
+def create_data_object(name, data, transform):
+    obj = bpy.data.objects.new(name, data)
+    bpy.context.view_layer.objects.active = obj
+    set_transform(obj, transform)
     return obj
 
 def attach_material(mesh, renderer, mu):
@@ -110,7 +113,11 @@ def create_object(mu, muobj, parent):
         pbone.scale = muobj.transform.localScale
     else:
         if not obj:
-            obj = create_data_object(name, None, xform)
+            if mu.create_colliders and hasattr(muobj, "collider"):
+                obj = create_collider(mu, muobj)
+                set_transform(obj, xform)
+            else:
+                obj = create_data_object(name, None, xform)
         obj.parent = parent
     if obj:
         #FIXME will lose properties from any empty objects that have properties
@@ -121,8 +128,9 @@ def create_object(mu, muobj, parent):
             obj.muproperties.tag = muobj.tag_and_layer.tag
             obj.muproperties.layer = muobj.tag_and_layer.layer
         if mu.create_colliders and hasattr(muobj, "collider"):
-            cobj = create_collider(mu, muobj)
-            cobj.parent = obj
+            if obj.data:
+                cobj = create_collider(mu, muobj)
+                cobj.parent = obj
         muobj.bobj = obj
     for child in muobj.children:
         create_object(mu, child, obj)

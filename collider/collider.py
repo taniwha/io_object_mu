@@ -103,6 +103,7 @@ def create_collider_object(name, mesh):
         gizmo, cobj = create_collider_gizmo(name)
         obj = bpy.data.objects.new(name, None)
         obj.empty_display_size = 0.3
+        obj.empty_display_type = 'ARROWS'
         obj.dupli_type = 'COLLECTION'
         obj.dupli_group = gizmo
     return obj, cobj
