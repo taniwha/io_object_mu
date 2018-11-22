@@ -30,14 +30,14 @@ from ..utils import strip_nnn
 from . import box, capsule, sphere, wheel
 
 def collider_collection(name):
-    if "colliders" not in bpy.data.collections:
-        cc = bpy.data.collections.new("colliders")
+    if "collider_gizmos" not in bpy.data.collections:
+        cc = bpy.data.collections.new("collider_gizmos")
         cc.hide_viewport = True
         cc.hide_render = True
         cc.hide_select = True
         bpy.context.scene.collection.children.link(cc)
     cc = bpy.data.collections.new("collider:"+name)
-    bpy.data.collections["colliders"].children.link(cc)
+    bpy.data.collections["collider_gizmos"].children.link(cc)
     return cc
 
 def make_collider_mesh(mesh, vex_list):
