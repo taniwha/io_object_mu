@@ -26,6 +26,7 @@ from bpy.props import FloatVectorProperty
 from mathutils import Vector
 
 from .. import properties
+from ..utils import strip_nnn
 from . import box, capsule, sphere, wheel
 
 def collider_collection(name):
@@ -79,23 +80,31 @@ def update_collider(obj):
     if not muprops.collider:
         return
     if muprops.collider != 'MU_COL_MESH':
-        build_collider(obj.dupli_group.objects[0], obj.muproperties)
+        collection = obj.dupli_group
+        if collection.users > len(collection.objects) + 1:
+            name = strip_nnn(collection.name)
+            gizmo, cobj = create_collider_gizmo(name)
+            obj.dupli_group = gizmo
+        else:
+            cobj = obj.dupli_group.objects[0]
+        build_collider(cobj, obj.muproperties)
+
+def create_collider_gizmo(name):
+    mesh = bpy.data.meshes.new(name)
+    cobj = bpy.data.objects.new("mesh:" + name, mesh)
+    gizmo = collider_collection (name)
+    gizmo.objects.link(cobj)
+    return gizmo, cobj
 
 def create_collider_object(name, mesh):
-    pref = "" if mesh else "mesh:"
-    if not mesh:
-        mesh = bpy.data.meshes.new(name)
-    cobj = obj = bpy.data.objects.new(pref+name, mesh)
-    # pref acts as an "is mesh collider" bool
-    if pref:
-        cobj = obj
-        collection = collider_collection (name)
-        collection.objects.link(obj)
+    if mesh:
+        cobj = obj = bpy.data.objects.new(name, mesh)
+        bpy.context.layer_collection.collection.objects.link(obj)
+    else:
+        gizmo, cobj = create_collider_gizmo(name)
         obj = bpy.data.objects.new(name, None)
         obj.empty_display_size = 0.3
         obj.dupli_type = 'COLLECTION'
-        obj.dupli_group = collection
-        bpy.context.layer_collection.collection.objects.link(obj)
-    else:
+        obj.dupli_group = gizmo
         bpy.context.layer_collection.collection.objects.link(obj)
     return obj, cobj
