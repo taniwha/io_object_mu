@@ -107,11 +107,6 @@ def make_obj(mu, obj, path):
     if obj in exported_objects:
         # the object has already been "exported"
         return None
-    #if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
-    #    # colliders are children of the object representing the transform so
-    #    # they are never exported directly. Also, they should not have children
-    #    # since colliders are really components on game objects in Unity.
-    #    return None
     muobj = MuObject()
     muobj.transform = make_transform (obj)
     return make_obj_core(mu, obj, path, muobj)
