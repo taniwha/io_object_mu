@@ -63,12 +63,19 @@ def obj_volume(obj):
 def model_volume(obj):
     svols = []
     evols = []
+    def group(g):
+        for o in g.objects:
+            recurse(o)
+        for c in g.children:
+            group(c)
     def recurse(o):
         v = obj_volume(o)
         svols.append(v[0])
         evols.append(v[1])
         for c in o.children:
             recurse(c)
+        if o.dupli_group and o.dupli_type == 'COLLECTION':
+            group(o.dupli_group)
     recurse(obj)
     skinvol = 0
     extvol = 0
