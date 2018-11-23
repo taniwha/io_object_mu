@@ -50,7 +50,6 @@ def export_collection(obj, muobj, mu):
         # so support multiple group root objects
         if o.hide_render or not is_group_root(o, objects):
             continue
-        print(o.name, o.location)
         child = export.make_obj(mu, o, mu.path)
         if child:
             child.transform.localPosition -= group.dupli_offset
