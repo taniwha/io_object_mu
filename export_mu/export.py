@@ -20,6 +20,7 @@
 # <pep8 compliant>
 
 import bpy
+from mathutils import Vector, Quaternion
 
 from .. import properties
 from ..mu import Mu
@@ -34,12 +35,12 @@ from .volume import model_volume
 def make_transform(obj):
     transform = MuTransform()
     transform.name = strip_nnn(obj.name)
-    transform.localPosition = obj.location
+    transform.localPosition = Vector(obj.location)
     if obj.rotation_mode != 'QUATERNION':
       transform.localRotation = obj.rotation_euler.to_quaternion()
     else:
-      transform.localRotation = obj.rotation_quaternion
-    transform.localScale = obj.scale
+      transform.localRotation = Quaternion(obj.rotation_quaternion)
+    transform.localScale = Vector(obj.scale)
     return transform
 
 def make_tag_and_layer(obj):

@@ -24,35 +24,45 @@ from ..utils import strip_nnn
 from . import attachnode
 from . import export
 
-def is_group_root(obj, group):
-    print(obj.name)
-    while obj.parent:
-        obj = obj.parent
-        print(obj.name, obj.users_group)
-        if group.name not in obj.users_group:
-            return False
-    return True
+def is_group_root(obj, objects):
+    if not obj.parent:
+        return True
+    return obj.parent.name not in objects
+
+def collect_objects(collection):
+    objects = {}
+    def collect(col):
+        for o in col.objects:
+            objects[o.name] = o
+        for c in col.children:
+            collect(c)
+    collect(collection)
+    return objects
+
+def export_collection(obj, muobj, mu):
+    saved_exported_objects = set(export.exported_objects)
+    group = obj.dupli_group
+    objects = collect_objects(group)
+    for n in objects:
+        o = objects[n]
+        # while KSP models (part/prop/internal) will have only one root
+        # object, grouping might be used for other purposes (eg, greeble)
+        # so support multiple group root objects
+        if o.hide_render or not is_group_root(o, objects):
+            continue
+        print(o.name, o.location)
+        child = export.make_obj(mu, o, mu.path)
+        if child:
+            child.transform.localPosition -= group.dupli_offset
+            muobj.children.append(child)
+    export.exported_objects = saved_exported_objects
 
 def handle_empty(obj, muobj, mu):
     if obj.dupli_group:
         if obj.dupli_type != 'COLLECTION':
             #FIXME flag an error? figure out something else to do?
             return None
-        group = obj.dupli_group
-        for o in group.objects:
-            # while KSP models (part/prop/internal) will have only one root
-            # object, grouping might be used for other purposes (eg, greeble)
-            # so support multiple group root objects
-            if not is_group_root(o, group):
-                continue
-            #easiest way to deal with dupli_offset is to temporarily shift
-            #the object by the offset and then restor the object's location
-            loc = o.location
-            o.location -= group.dupli_offset
-            child = make_obj(mu, o, special, path)
-            o.location = loc
-            if child:
-                muobj.children.append(child)
+        export_collection(obj, muobj, mu)
     name = strip_nnn(obj.name)
     if name[:5] == "node_":
         n = attachnode.AttachNode(obj, mu.inverse)
