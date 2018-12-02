@@ -1,5 +1,4 @@
 from mu import Mu
-import sys
 
 def check_clip(clip):
     i = len(clip.curves)

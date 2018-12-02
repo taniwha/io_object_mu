@@ -1,0 +1,69 @@
+values {
+	mass = ${math.floor(7.8 * modelSkinVolume * 1000 + 0.5)/1000}
+	capacity = ${math.floor((modelExtVolume-modelSkinVolume) * 1000)/1000}
+	resourceCapacity = ${math.floor(capacity*200)}
+	LiquidFuel = ${9 * resourceCapacity / 20}
+	Oxidizer = ${11 * resourceCapacity / 20}
+}
+PART
+{
+	name = DiamondGridContainerTetraHub
+	module = Part
+	author = Bill Currie
+
+	MODEL {
+		model = mystuff/DGC-TetraHub
+		position = 0, 0, 0
+		rotation = 0, 0, 0
+		scale = 1, 1, 1
+	}
+	rescaleFactor = 1.0
+	scale = 1.0
+
+
+	TechRequired = advConstruction
+	entryCost = 3000
+	cost = 307.521
+	category = FuelTank
+	subcategory = 0
+	title = DGC-TetraHub-125
+	manufacturer = Kairyuu Shipping
+	description = Works with the octahedral hub to form interesting structures.
+
+	// attachment rules: stack, srfAttach, allowStack, allowSrfAttach, allowCollision
+	attachRules = 1,0,1,1,0
+
+	mass = ${mass}
+	dragModelType = default
+	maximum_drag = 0.2
+	minimum_drag = 0.15
+	angularDrag = 2
+	crashTolerance = 8
+	breakingForce = 200
+	breakingTorque = 200
+	maxTemp = 1700
+
+	RESOURCE {
+		name = LiquidFuel
+		amount = ${LiquidFuel}
+		maxAmount = ${LiquidFuel}
+	}
+	RESOURCE {
+		name = Oxidizer
+		amount = ${Oxidizer}
+		maxAmount = ${Oxidizer}
+	}
+}
+
+@PART[DiamondGridContainerTetraHub]:NEEDS[ModularStorageContainer] {
+	MODULE {
+		name = ModuleStorageContainer
+		availableVolume = ${capacity}
+		Container {
+			name = Resource
+			volume = ${capacity}
+			LiquidFuel = ${"%g, %g" % (LiquidFuel, LiquidFuel)}
+			Oxidizer = ${"%g, %g" % (Oxidizer, Oxidizer)}
+		}
+	}
+}

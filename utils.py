@@ -41,3 +41,12 @@ def vector_str(vec):
         return "%.9g, %.9g, %.9g" % vec
     elif len(vec) == 4:
         return "%.9g, %.9g, %.9g, %.9g" % vec
+
+#FIXME horible hack to work around blender 2.8 not (yet) allowing control
+# over render/preview when converting an object to a mesh
+def collect_modifiers(obj):
+    modifiers = []
+    for mod in obj.modifiers:
+        if mod.show_viewport and not mod.show_render:
+            modifiers.append(mod)
+    return modifiers

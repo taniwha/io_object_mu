@@ -24,7 +24,7 @@
 bl_info = {
     "name": "Mu model format (KSP)",
     "author": "Bill Currie",
-    "blender": (2, 7, 0),
+    "blender": (2, 80, 0),
     "api": 35622,
     "location": "File > Import-Export",
     "description": "Import-Export KSP Mu format files. (.mu)",
@@ -34,78 +34,50 @@ bl_info = {
 #    "support": 'OFFICIAL',
     "category": "Import-Export"}
 
-# To support reload properly, try to access a package var, if it's there,
-# reload everything
-if "bpy" in locals():
-    import importlib as imp
-    imp.reload(collider)
-    imp.reload(preferences)
-    imp.reload(properties)
-    imp.reload(shader)
-    imp.reload(colorpalettes)
-    imp.reload(export_mu)
-    imp.reload(import_mu)
-    imp.reload(import_craft)
-    imp.reload(prop)
-    imp.reload(quickhull)
-else:
-    from . import collider
-    from . import preferences
-    from . import properties
-    from . import shader
-    from . import colorpalettes
-    from . import export_mu
-    from . import import_mu
-    from . import import_craft
-    from . import prop
-    from . import quickhull
+submodule_names = (
+    "collider",
+    "export_mu",
+    "import_craft",
+    "import_mu",
+    "preferences",
+    "properties",
+    "quickhull",
+    "shader",
+    "tools",
+)
 
-import bpy, os
-from bpy.types import Menu
-from bpy.props import StringProperty, BoolProperty
+from bpy.props import PointerProperty
+from bpy.utils import register_class, unregister_class
 
-
-def menu_func_import(self, context):
-    self.layout.operator(import_mu.ImportMu.bl_idname, text="KSP Mu (.mu)")
-    self.layout.operator(import_craft.ImportCraft.bl_idname, text="KSP Craft (.craft)")
-
-def menu_func_export(self, context):
-    self.layout.operator(export_mu.ExportMu.bl_idname, text="KSP Mu (.mu)")
-
-class TEXT_MT_templates_kspcfg(Menu):
-    bl_label = "KSP config"
-
-    def draw (self, context):
-        self.path_menu(
-            bpy.utils.script_paths("templates_kspcfg"),
-            "text.open",
-            props_default={"internal": True},
-        )
-
-def text_func_templates(self, context):
-    self.layout.menu("TEXT_MT_templates_kspcfg");
+registered_submodules = []
+def register_submodules(name, submodule_names):
+    module = __import__(name=name, fromlist=submodule_names)
+    submodules = [getattr(module, name) for name in submodule_names]
+    for mod in submodules:
+        m = [(),()]
+        if hasattr(mod, "classes_to_register"):
+            m[0] = mod.classes_to_register
+            for cls in mod.classes_to_register:
+                register_class(cls)
+        if hasattr(mod, "menus_to_register"):
+            m[1] = mod.menus_to_register
+            for menu in mod.menus_to_register:
+                menu[0].append(menu[1])
+        if hasattr(mod, "custom_properties_to_register"):
+            for prop in mod.custom_properties_to_register:
+                setattr(prop[0], prop[1], PointerProperty(type=prop[2]))
+        if m[0] or m[1]:
+            registered_submodules.append(m)
 
 def register():
-    bpy.utils.register_module(__name__)
-
-    bpy.types.INFO_MT_file_import.append(menu_func_import)
-    bpy.types.INFO_MT_file_export.append(menu_func_export)
-    bpy.types.INFO_MT_mesh_add.append(quickhull.menu_func)
-    bpy.types.TEXT_MT_templates.append(text_func_templates)
-
-    prop.register()
-    properties.register()
-    collider.register()
-    shader.register()
+    register_submodules(__name__, submodule_names);
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
-    bpy.types.INFO_MT_file_export.remove(menu_func_export)
-    prop.unregister()
-    properties.unregister()
-    collider.unregister()
+    for mod in reversed(registered_submodules):
+        for menu in reversed(mod[1]):
+            menu[0].remove(menu[1])
+        for cls in reversed(mod[0]):
+            unregister_class(cls)
 
 if __name__ == "__main__":
     register()
