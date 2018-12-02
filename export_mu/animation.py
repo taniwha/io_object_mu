@@ -192,6 +192,8 @@ def make_animations(mu, animations, anim_root):
     anim.autoPlay = False
     for clip_name in animations:
         clip = MuClip()
+        if not anim.clip:   #FIXME how to select when multiple?
+            anim.clip = clip_name
         clip.name = clip_name
         clip.lbCenter = (0, 0, 0)
         clip.lbSize = (0, 0, 0)
