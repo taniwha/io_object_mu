@@ -81,8 +81,8 @@ def loaded_models_collection():
 
 def instantiate_model(model, name, loc, rot, scale):
     obj = bpy.data.objects.new(name, None)
-    obj.dupli_type='COLLECTION'
-    obj.dupli_group=model
+    obj.instance_type = 'COLLECTION'
+    obj.instance_collection = model
     obj.location = loc
     obj.scale = scale
     if type(rot) == Vector:

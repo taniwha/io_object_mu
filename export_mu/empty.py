@@ -41,7 +41,7 @@ def collect_objects(collection):
 
 def export_collection(obj, muobj, mu):
     saved_exported_objects = set(export.exported_objects)
-    group = obj.dupli_group
+    group = obj.instance_collection
     objects = collect_objects(group)
     for n in objects:
         o = objects[n]
@@ -52,13 +52,12 @@ def export_collection(obj, muobj, mu):
             continue
         child = export.make_obj(mu, o, mu.path)
         if child:
-            child.transform.localPosition -= group.dupli_offset
             muobj.children.append(child)
     export.exported_objects = saved_exported_objects
 
 def handle_empty(obj, muobj, mu):
-    if obj.dupli_group:
-        if obj.dupli_type != 'COLLECTION':
+    if obj.instance_collection:
+        if obj.instance_type != 'COLLECTION':
             #FIXME flag an error? figure out something else to do?
             return None
         export_collection(obj, muobj, mu)

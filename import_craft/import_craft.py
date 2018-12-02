@@ -70,8 +70,8 @@ def import_craft(filepath):
         part.rotation_quaternion = rot
         vessel.objects.link(part)
     obj = bpy.data.objects.new(craft_name, None)
-    obj.dupli_type='COLLECTION'
-    obj.dupli_group=vessel
+    obj.instance_type = 'COLLECTION'
+    obj.instance_collection = vessel
     obj.location = bpy.context.scene.cursor_location
     bpy.context.layer_collection.collection.objects.link(obj)
     return obj

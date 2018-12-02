@@ -80,13 +80,13 @@ def update_collider(obj):
     if not muprops.collider:
         return
     if muprops.collider != 'MU_COL_MESH':
-        collection = obj.dupli_group
+        collection = obj.instance_collection
         if collection.users > len(collection.objects) + 1:
             name = strip_nnn(collection.name)
             gizmo, cobj = create_collider_gizmo(name)
-            obj.dupli_group = gizmo
+            obj.instance_collection = gizmo
         else:
-            cobj = obj.dupli_group.objects[0]
+            cobj = obj.instance_collection.objects[0]
         build_collider(cobj, obj.muproperties)
 
 def create_collider_gizmo(name):
@@ -104,6 +104,6 @@ def create_collider_object(name, mesh):
         obj = bpy.data.objects.new(name, None)
         obj.empty_display_size = 0.3
         obj.empty_display_type = 'ARROWS'
-        obj.dupli_type = 'COLLECTION'
-        obj.dupli_group = gizmo
+        obj.instance_type = 'COLLECTION'
+        obj.instance_collection = gizmo
     return obj, cobj

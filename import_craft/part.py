@@ -77,8 +77,8 @@ class Part:
 
     def instantiate(self, loc, rot, scale):
         obj = bpy.data.objects.new(self.name, None)
-        obj.dupli_type='COLLECTION'
-        obj.dupli_group=self.model
+        obj.instance_type = 'COLLECTION'
+        obj.instance_collection = self.model
         obj.location = loc
         obj.scale = scale
         return obj

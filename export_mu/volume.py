@@ -74,8 +74,8 @@ def model_volume(obj):
         evols.append(v[1])
         for c in o.children:
             recurse(c)
-        if o.dupli_group and o.dupli_type == 'COLLECTION':
-            group(o.dupli_group)
+        if o.instance_collection and o.instance_type == 'COLLECTION':
+            group(o.instance_collection)
     recurse(obj)
     skinvol = 0
     extvol = 0
