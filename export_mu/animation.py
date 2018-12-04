@@ -128,29 +128,29 @@ def make_key(key, mult):
 
 property_map = {
     "location":(
-        ("m_LocalPosition.x", 1),
-        ("m_LocalPosition.z", 1),
-        ("m_LocalPosition.y", 1),
+        ("m_LocalPosition.x", 1, 0),
+        ("m_LocalPosition.z", 1, 0),
+        ("m_LocalPosition.y", 1, 0),
     ),
     "rotation_quaternion":(
-        ("m_LocalRotation.w", 1),
-        ("m_LocalRotation.x", -1),
-        ("m_LocalRotation.z", -1),
-        ("m_LocalRotation.y", -1),
+        ("m_LocalRotation.w", 1, 0),
+        ("m_LocalRotation.x", -1, 0),
+        ("m_LocalRotation.z", -1, 0),
+        ("m_LocalRotation.y", -1, 0),
     ),
     "scale":(
-        ("m_LocalScale.x", 1),
-        ("m_LocalScale.z", 1),
-        ("m_LocalScale.y", 1),
+        ("m_LocalScale.x", 1, 0),
+        ("m_LocalScale.z", 1, 0),
+        ("m_LocalScale.y", 1, 0),
     ),
     "color":(
-        ("m_Color.r", 1),
-        ("m_Color.g", 1),
-        ("m_Color.b", 1),
-        ("m_Color.a", 1),#probably not used
+        ("m_Color.r", 1, 2),
+        ("m_Color.g", 1, 2),
+        ("m_Color.b", 1, 2),
+        ("m_Color.a", 1, 2),#probably not used
     ),
     "energy":(
-        ("m_Intensity", 1),
+        ("m_Intensity", 1, 2),
     ),
 }
 
@@ -163,12 +163,12 @@ def make_curve(mu, muobj, curve, path, typ):
     mucurve = MuCurve()
     mucurve.path = path
     if typ == "obj":
-        property, mult = property_map[curve.data_path][curve.array_index]
+        property, mult, ctyp = property_map[curve.data_path][curve.array_index]
     elif typ == "arm":
         bpath, dpath = curve.data_path.rsplit(".", 1)
         bone_path = muobj.bone_paths[bpath]
         mucurve.path = path + bone_path[len(muobj.path):]
-        property, mult = property_map[dpath][curve.array_index]
+        property, mul, ctyp  = property_map[dpath][curve.array_index]
     elif type(typ) == bpy.types.Material:
         dp = curve.data_path.split(".")
         v = {}
@@ -178,8 +178,10 @@ def make_curve(mu, muobj, curve, path, typ):
         mult = 1
         if dp[1] in ["color", "vector"]:
             property += vector_map[dp[1]][curve.array_index]
+        ctyp = 1
     mucurve.property = property
-    mucurve.type = 0
+    # 0 = transform, 1 = material, 2 = light, 3 = audio source
+    mucurve.type = ctyp
     mucurve.wrapMode = (8, 8)
     mucurve.keys = []
     for key in curve.keyframe_points:
