@@ -14,3 +14,20 @@ load and back again when writing.
 will be preserved if mu.py is used to copy a .mu file. This is a bug.
 * mu.py always writes version 5 .mu files.
 * it may still break, back up your work.
+
+Installation Instructions
+=========================
+
+1. Clone the github repo
+2. Copy the entire folder (io_object_mu) into Blender's scripts/addons folder
+3. Start Blender
+4. Go to File ->  User Preferences... -> Add-ons tab -> Import-Export category
+5. Find "Import-Export: Mu model format (KSP)" in the list
+6. Check the checkbox next to it
+7. Click "Save User Settings"
+
+If you go to the File -> Import menu, it now has "KSP Mu" and "KSP Craft" in the list.
+
+The KSP Forum with discussions about this is located here:
+* https://forum.kerbalspaceprogram.com/index.php?/topic/40056-12-14-blender-mu-importexport-addon/&
+
