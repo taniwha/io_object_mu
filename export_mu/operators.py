@@ -52,7 +52,8 @@ class KSPMU_OT_ExportMu(bpy.types.Operator, ExportHelper):
         return obj != None and type(obj.data) in exportable_objects
 
     def execute(self, context):
-        keywords = self.as_keywords (ignore=("check_existing", "filter_glob"))
+        keywords = self.as_keywords (ignore=("check_existing", "filter_glob",
+                                             "axis_forward", "axis_up"))
         return export_mu(self, context, **keywords)
 
 class KSPMU_OT_ExportMu_quick(bpy.types.Operator, ExportHelper):
