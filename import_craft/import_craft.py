@@ -106,7 +106,8 @@ class KSPMU_OT_ImportCraft(bpy.types.Operator, ImportHelper):
     filter_glob: StringProperty(default="*.craft", options={'HIDDEN'})
 
     def execute(self, context):
-        keywords = self.as_keywords(ignore=("filter_glob",))
+        keywords = self.as_keywords (ignore=("filter_glob",
+                                             "axis_forward", "axis_up"))
         return import_craft_op(self, context, **keywords)
 
 def import_craft_menu_func(self, context):

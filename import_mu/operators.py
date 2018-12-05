@@ -68,5 +68,6 @@ class KSPMU_OT_ImportMu(bpy.types.Operator, ImportHelper):
                         " hierarchy", default=False)
 
     def execute(self, context):
-        keywords = self.as_keywords (ignore=("filter_glob",))
+        keywords = self.as_keywords (ignore=("filter_glob",
+                                             "axis_forward", "axis_up"))
         return import_mu_op(self, context, **keywords)
