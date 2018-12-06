@@ -2,7 +2,7 @@ from mu import Mu
 import sys
 
 def check_transform(obj, level):
-    print("    " * level + obj.transform.name)
+    print("    " * level + obj.transform.name + (" c" if hasattr(obj, "collider") else ""))
 
 def check_obj(obj, level = 0):
     check_transform(obj, level)
