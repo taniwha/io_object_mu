@@ -145,6 +145,8 @@ def create_object(mu, muobj, parent):
         if mu.create_colliders and hasattr(muobj, "collider"):
             if obj.data:
                 cobj = create_collider(mu, muobj)
+                set_transform(cobj, None)
+                mu.collection.objects.link(cobj)
                 cobj.parent = obj
         muobj.bobj = obj
     for child in muobj.children:
