@@ -102,6 +102,9 @@ def create_action(mu, path, clip):
     #print(clip.name)
     actions = {}
     for curve in clip.curves:
+        if not curve.keys:
+            print("Curve has no keys")
+            continue
         if not curve.path:
             mu_path = path
         else:
