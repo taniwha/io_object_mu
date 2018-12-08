@@ -168,7 +168,7 @@ def make_curve(mu, muobj, curve, path, typ):
         bpath, dpath = curve.data_path.rsplit(".", 1)
         bone_path = muobj.bone_paths[bpath]
         mucurve.path = path + bone_path[len(muobj.path):]
-        property, mul, ctyp  = property_map[dpath][curve.array_index]
+        property, mult, ctyp  = property_map[dpath][curve.array_index]
     elif type(typ) == bpy.types.Material:
         dp = curve.data_path.split(".")
         v = {}
