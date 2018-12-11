@@ -86,8 +86,11 @@ def make_verts(mesh, submeshes):
     return verts, uvs, normals, groups
 
 def make_tangents(verts, uvs, normals, submeshes):
-    sdir = [Vector()] * len(verts)
-    tdir = [Vector()] * len(verts)
+    sdir = [None] * len(verts)
+    tdir = [None] * len(verts)
+    for i in range(len(verts)):
+        sdir[i] = Vector()
+        tdir[i] = Vector()
     tangents = []
     for sm in submeshes:
         for tri in sm:
@@ -121,10 +124,12 @@ def make_tangents(verts, uvs, normals, submeshes):
             tdir[tri[1]] += td
             tdir[tri[2]] += td
     for i, n in enumerate(normals):
+        n = Vector(n)
         t = sdir[i]
-        t -= t.dot(n) * Vector(n)
+        t -= t.dot(n) * n
         t.normalize()
-        hand = t.dot(tdir[i]) < 0 and -1.0 or 1.0
+        b = n.cross(t)
+        hand = b.dot(tdir[i]) < 0 and -1.0 or 1.0
         tangents.append(tuple(t) + (hand,))
     return tangents
 
