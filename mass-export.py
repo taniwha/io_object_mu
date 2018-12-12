@@ -14,6 +14,8 @@ for obj in bpy.data.objects:
         print(name, filepath)
 
         mu = export_object (obj, filepath)
+        for m in mu.messages:
+            print(m)
         for tex in mu.textures:
             textures.add(tex.name)
 
