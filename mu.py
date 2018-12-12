@@ -1135,7 +1135,7 @@ class Mu:
         self.write_float(t)
 
     def write_color(self, c):
-        cb = tuple(map(lambda x: int(bound(0, x, 1) * 255), x))
+        cb = tuple(map(lambda x: int(bound(0, x, 1) * 255), c))
         self.write_byte(cb)
 
     def write_bytes(self, data, size=-1):
