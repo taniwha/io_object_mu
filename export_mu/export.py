@@ -139,6 +139,7 @@ def export_object(obj, filepath):
     mu.textures = {}
     mu.nodes = []
     mu.props = []
+    mu.messages = []
     mu.internal = None
     mu.type = obj.muproperties.modelType
     mu.CoMOffset = None

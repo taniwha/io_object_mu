@@ -68,16 +68,21 @@ def get_mesh(obj):
         mod.show_viewport = True
     return mesh
 
-def get_vertex_data(mesh):
+def get_vertex_data(mu, mesh):
     vertdata = [None] * len(mesh.loops)
     if not vertdata:
         return vertdata
     if mesh.loops[0].normal == Vector():
         mesh.calc_normals()
+    tangentsOk = True
     if mesh.uv_layers:
         #FIXME active UV layer?
         uvs = list(map(lambda a: Vector(a.uv).freeze(), mesh.uv_layers[0].data))
-        mesh.calc_tangents(uvmap = mesh.uv_layers[0].name)
+        try:
+            mesh.calc_tangents(uvmap = mesh.uv_layers[0].name)
+        except RuntimeError:
+            tangentsOk = False
+            mu.messages.append(({'WARNING'}, "tangents not exported due to N-gons in the mesh"))
     else:
         uvs = [None] * len(mesh.loops)
     if mesh.vertex_colors:
@@ -90,7 +95,7 @@ def get_vertex_data(mesh):
         n = Vector(mesh.loops[i].normal).freeze()
         uv = uvs[i]
         col = colors[i]
-        if uv != None:
+        if uv != None and tangentsOk:
             t = Vector(mesh.loops[i].tangent).freeze()
             bts = mesh.loops[i].bitangent_sign
         else:
@@ -144,7 +149,7 @@ def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
 
 def make_mesh(mu, obj):
     mesh = get_mesh(obj)
-    vertex_data = get_vertex_data(mesh)
+    vertex_data = get_vertex_data(mu, mesh)
     vertex_map, num_verts = make_vertex_map(vertex_data)
     submeshes = build_submeshes(mesh)
     submeshes = make_tris(mesh, submeshes, vertex_map)

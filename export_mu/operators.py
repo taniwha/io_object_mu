@@ -29,7 +29,9 @@ from . import export
 from . import volume
 
 def export_mu(operator, context, filepath):
-    export.export_object (context.active_object, filepath)
+    mu = export.export_object (context.active_object, filepath)
+    for m in mu.messages:
+        operator.report(m[0], m[1])
     return {'FINISHED'}
 
 exportable_objects = {
