@@ -163,6 +163,7 @@ class OBJECT_PT_MuScenePropertyPanel(bpy.types.Panel):
 class VIEW3D_PT_MuScenePanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
+    bl_category = "View"
     bl_label = "Mu Scene"
 
     def draw(self, context):
