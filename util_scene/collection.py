@@ -24,10 +24,11 @@ import bpy
 from .scene import util_scene
 
 def util_collection(name):
+    scene = util_scene()
     if name not in bpy.data.collections:
         util_col = bpy.data.collections.new(name)
         util_col.hide_viewport = True
         util_col.hide_render = True
         util_col.hide_select = True
-        util_scene().collection.children.link(util_col)
+        scene.collection.children.link(util_col)
     return bpy.data.collections[name]
