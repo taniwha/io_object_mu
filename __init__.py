@@ -17,8 +17,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# copied from io_scene_obj
-
 # <pep8 compliant>
 
 bl_info = {
