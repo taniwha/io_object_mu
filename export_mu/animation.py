@@ -48,7 +48,11 @@ def shader_animations(mat, path):
 
 def object_animations(obj, path):
     animations = {}
-    typ = "arm" if type(obj.data) == bpy.types.Armature else "obj"
+    typ = "obj"
+    if type(obj) in light_types:
+        typ = "lit"
+    elif type(obj.data) == bpy.types.Armature:
+        typ = "arm"
     if obj.animation_data:
         for track in obj.animation_data.nla_tracks:
             if track.strips:
@@ -162,7 +166,7 @@ vector_map={
 def make_curve(mu, muobj, curve, path, typ):
     mucurve = MuCurve()
     mucurve.path = path
-    if typ == "obj":
+    if typ in {"obj", "lit"}:
         property, mult, ctyp = property_map[curve.data_path][curve.array_index]
     elif typ == "arm":
         bpath, dpath = curve.data_path.rsplit(".", 1)
