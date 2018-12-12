@@ -1,3 +1,11 @@
+# either load into blender's text editor and run via alt-p, or:
+#   blender -noaudio --background project.blend -P mass-export.py
+# All objects that look like a model (no parent, has children) and is enabled
+# for render will be exported as objectname.mu (without blender's numeric
+# suffix (eg, foo.001 -> foo.mu), and any blender images referenced by the
+# exported mu files will be exported with ".png" appended to their names
+# (note that they must be packed in the blend, and they will be exported as
+# png). foo.cfg.in -> foo.cfg is handled as if exported manually.
 import bpy
 import os
 from io_object_mu.export_mu import export_object, strip_nnn
