@@ -29,21 +29,15 @@ from .material import make_material
 
 from . import export
 
-def split_face(mesh, index):
+from pprint import pprint
+
+def split_face(mesh, index, vertex_map):
     face = mesh.polygons[index]
     s, e = face.loop_start, face.loop_start + face.loop_total
-    # extract up to two uv layers from the mesh
-    uv = list(map(lambda layer:
-                  list(map(lambda a:
-                           a.uv,
-                           layer.data[s:e])),
-                  mesh.uv_layers[:2]))
-    fv = list(face.vertices)
+    fv = list(vertex_map[s:e])
     tris = []
     for i in range(1, len(fv) - 1):
-        tri = ((fv[0], tuple(map(lambda l: tuple(l[0]), uv))),
-               (fv[i], tuple(map(lambda l: tuple(l[i]), uv))),
-               (fv[i+1], tuple(map(lambda l: tuple(l[i+1]), uv))))
+        tri = (fv[0], fv[i], fv[i+1])
         tris.append(tri)
     return tris
 
@@ -55,85 +49,16 @@ def build_submeshes(mesh):
     submeshes.append(submesh)
     return submeshes
 
-def make_tris(mesh, submeshes):
+def make_tris(mesh, submeshes, vertex_map):
     for sm in submeshes:
         i = 0
         while i < len(sm):
-            tris = split_face(mesh, sm[i])
+            tris = split_face(mesh, sm[i], vertex_map)
             sm[i:i+1] = tris
             i += len(tris)
     return submeshes
 
-def make_verts(mesh, submeshes):
-    verts = []
-    normals = []
-    uvs = []
-    groups = []
-    for sm in submeshes:
-        vuvdict = {}
-        for i, ft in enumerate(sm):
-            tv = []
-            for vuv in ft:
-                if vuv not in vuvdict:
-                    vuvdict[vuv] = len(verts)
-                    mv = mesh.vertices[vuv[0]]
-                    verts.append(tuple(mv.co))
-                    normals.append(tuple(mv.normal))
-                    uvs.append(vuv[1])
-                    groups.append(mv.groups)
-                tv.append(vuvdict[vuv])
-            sm[i] = tv
-    return verts, uvs, normals, groups
-
-def make_tangents(verts, uvs, normals, submeshes):
-    sdir = [None] * len(verts)
-    tdir = [None] * len(verts)
-    for i in range(len(verts)):
-        sdir[i] = Vector()
-        tdir[i] = Vector()
-    tangents = []
-    for sm in submeshes:
-        for tri in sm:
-            v1 = Vector(verts[tri[0]])
-            v2 = Vector(verts[tri[1]])
-            v3 = Vector(verts[tri[2]])
-
-            w1 = uvs[tri[0]]
-            w2 = uvs[tri[1]]
-            w3 = uvs[tri[2]]
-
-            u1 = v2 - v1
-            u2 = v3 - v1
-
-            s1 = w2[0] - w1[0]
-            s2 = w3[0] - w1[0]
-            t1 = w2[1] - w1[1]
-            t2 = w3[1] - w1[1]
-
-            r = s1 * t2 - s2 * t1
-
-            if r * r == 0:
-                continue
-            sd = (t2 * u1 - t1 * u2) / r
-            td = (s1 * u2 - s2 * u1) / r
-
-            sdir[tri[0]] += sd
-            sdir[tri[1]] += sd
-            sdir[tri[2]] += sd
-            tdir[tri[0]] += td
-            tdir[tri[1]] += td
-            tdir[tri[2]] += td
-    for i, n in enumerate(normals):
-        n = Vector(n)
-        t = sdir[i]
-        t -= t.dot(n) * n
-        t.normalize()
-        b = n.cross(t)
-        hand = b.dot(tdir[i]) < 0 and -1.0 or 1.0
-        tangents.append(tuple(t) + (hand,))
-    return tangents
-
-def make_mesh(mu, obj):
+def get_mesh(obj):
     #FIXME mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
     modifiers = collect_modifiers(obj)
     for mod in modifiers:
@@ -141,20 +66,90 @@ def make_mesh(mu, obj):
     mesh = obj.to_mesh(bpy.context.depsgraph, True)
     for mod in modifiers:
         mod.show_viewport = True
-    submeshes = build_submeshes(mesh)
-    submeshes = make_tris(mesh, submeshes)
+    return mesh
+
+def get_vertex_data(mesh):
+    vertdata = [None] * len(mesh.loops)
+    if not vertdata:
+        return vertdata
+    if mesh.loops[0].normal == Vector():
+        mesh.calc_normals()
+    if mesh.uv_layers:
+        #FIXME active UV layer?
+        uvs = list(map(lambda a: Vector(a.uv).freeze(), mesh.uv_layers[0].data))
+        mesh.calc_tangents(uvmap = mesh.uv_layers[0].name)
+    else:
+        uvs = [None] * len(mesh.loops)
+    if mesh.vertex_colors:
+        #FIXME active colors?
+        colors = list(map(lambda a: Vector(a.color).freeze(), mesh.vertex_colors[0].data))
+    else:
+        colors = [None] * len(mesh.loops)
+    for i in range(len(mesh.loops)):
+        v = mesh.loops[i].vertex_index
+        n = Vector(mesh.loops[i].normal).freeze()
+        uv = uvs[i]
+        col = colors[i]
+        if uv != None:
+            t = Vector(mesh.loops[i].tangent).freeze()
+            bts = mesh.loops[i].bitangent_sign
+        else:
+            t = None
+            bts = None
+        vertdata[i] = (v, n, uv, t, bts, col)
+    return vertdata
+
+def make_vertex_map(vertex_data):
+    vdict = {}
+    vmap = []
+    for i, v in enumerate(vertex_data):
+        #print(i, v in vdict)
+        if v not in vdict:
+            vdict[v] = len(vdict)
+        vmap.append(vdict[v])
+    return vmap, len(vdict)
+
+def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
+    verts = [None] * num_verts
+    uvs = [None] * num_verts
+    normals = [None] * num_verts
+    tangents = [None] * num_verts
+    bitangents = [None] * num_verts
+    colors = [None] * num_verts
+    for i, vind in enumerate(vertex_map):
+        v, n, uv, t, bts, col = vertex_data[i]
+        verts[vind] = v
+        normals[vind] = n
+        uvs[vind] = uv
+        tangents[vind] = t
+        bitangents[vind] = bts
+        colors[vind] = col
+    for i, v in enumerate(verts):
+        verts[i] = mesh.vertices[v].co
+    if tangents[0] != None:
+        for i, t in enumerate(tangents):
+            tangents[i] = tuple(t) + (bitangents[i],)
     mumesh = MuMesh()
-    vun = make_verts(mesh, submeshes)
-    mumesh.verts, uvs, mumesh.normals, mumesh.groups = vun
-    if uvs:
-        if len(uvs[0]) > 0:
-            mumesh.uvs = list(map(lambda uv: uv[0], uvs))
-        if len(uvs[0]) > 1:
-            mumesh.uv2s = list(map(lambda uv: uv[1], uvs))
     mumesh.submeshes = submeshes
-    if mumesh.uvs:
-        mumesh.tangents = make_tangents(mumesh.verts, mumesh.uvs,
-                                        mumesh.normals, mumesh.submeshes)
+    mumesh.verts = verts
+    if normals[0] != None:
+        mumesh.normals = normals
+    if uvs[0] != None:
+        mumesh.uvs = uvs
+    if tangents[0] != None:
+        mumesh.tangents = tangents
+    if colors[0] != None:
+        mumesh.colors = colors
+    return mumesh
+
+def make_mesh(mu, obj):
+    mesh = get_mesh(obj)
+    vertex_data = get_vertex_data(mesh)
+    vertex_map, num_verts = make_vertex_map(vertex_data)
+    submeshes = build_submeshes(mesh)
+    submeshes = make_tris(mesh, submeshes, vertex_map)
+    #pprint(submeshes)
+    mumesh = make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts)
     return mumesh
 
 def mesh_materials(mu, mesh):
@@ -187,7 +182,7 @@ def mesh_bones(obj, mumesh, armature):
     for vgrp in mumesh.groups:
         weights = []
         for i in len(vgrp):
-            gname = obj.vertex_groups[vgrp[i].group].name 
+            gname = obj.vertex_groups[vgrp[i].group].name
             if gname in boneindices:
                 weights.append((boneindices[gname], vgrp[i].weight))
         weights.sort(key=lambda w: w[1])
