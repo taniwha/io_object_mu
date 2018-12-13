@@ -68,7 +68,7 @@ def get_mesh(obj):
         mod.show_viewport = True
     return mesh
 
-def get_vertex_data(mu, mesh):
+def get_vertex_data(mu, mesh, obj):
     vertdata = [None] * len(mesh.loops)
     if not vertdata:
         return vertdata
@@ -82,7 +82,7 @@ def get_vertex_data(mu, mesh):
             mesh.calc_tangents(uvmap = mesh.uv_layers[0].name)
         except RuntimeError:
             tangentsOk = False
-            mu.messages.append(({'WARNING'}, "tangents not exported due to N-gons in the mesh"))
+            mu.messages.append(({'WARNING'}, "tangents not exported due to N-gons in the mesh: " + obj.name))
     else:
         uvs = [None] * len(mesh.loops)
     if mesh.vertex_colors:
@@ -149,7 +149,7 @@ def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
 
 def make_mesh(mu, obj):
     mesh = get_mesh(obj)
-    vertex_data = get_vertex_data(mu, mesh)
+    vertex_data = get_vertex_data(mu, mesh, obj)
     vertex_map, num_verts = make_vertex_map(vertex_data)
     submeshes = build_submeshes(mesh)
     submeshes = make_tris(mesh, submeshes, vertex_map)
