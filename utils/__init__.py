@@ -20,3 +20,4 @@
 # <pep8 compliant>
 
 from .collection import util_collection
+from .utils import swapyz, swizzleq, strip_nnn, vector_str, collect_modifiers

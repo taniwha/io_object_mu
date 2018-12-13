@@ -26,8 +26,7 @@ from bpy.props import FloatVectorProperty
 from mathutils import Vector
 
 from .. import properties
-from ..utils import strip_nnn
-from ..util_scene import util_collection
+from ..utils import strip_nnn, util_collection
 from . import box, capsule, sphere, wheel
 
 def collider_collection(name):
