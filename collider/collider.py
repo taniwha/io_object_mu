@@ -73,9 +73,9 @@ def update_collider(obj):
     if not obj:
         return
     muprops = obj.muproperties
-    if not muprops.collider:
+    if not muprops.collider or muprops.collider == 'MU_COL_MESH':
         return
-    if muprops.collider != 'MU_COL_MESH':
+    if obj.instance_collection:
         collection = obj.instance_collection
         if collection.users > len(collection.objects) + 1:
             name = strip_nnn(collection.name)
