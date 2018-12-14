@@ -26,17 +26,12 @@ from ..import_mu import MuImportError
 from ..cfgnode import ConfigNode, ConfigNodeError
 from ..cfgnode import parse_vector, parse_quaternion
 from ..preferences import Preferences
+from ..utils import util_collection
 
 from .gamedata import GameData, gamedata
 
 def craft_collection():
-    if "craft_collection" not in bpy.data.collections:
-        cc = bpy.data.collections.new("craft_collection")
-        cc.hide_viewport = True
-        cc.hide_render = True
-        cc.hide_select = True
-        bpy.context.scene.collection.children.link(cc)
-    return bpy.data.collections["craft_collection"]
+    return util_collection("craft_collection")
 
 def select_objects(obj):
     obj.select_set(True)

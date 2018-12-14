@@ -29,69 +29,7 @@ from bpy.props import StringProperty, EnumProperty
 from ..preferences import Preferences
 from ..cfgnode import ConfigNode, ConfigNodeError
 from ..utils import strip_nnn
-from .model import collect_objects, instantiate_model, compile_model
-
-def loaded_props_collection():
-    if "loaded_props" not in bpy.data.collections:
-        lp = bpy.data.collections.new("loaded_props")
-        lp.hide_viewport = True
-        lp.hide_render = True
-        lp.hide_select = True
-        bpy.context.scene.collection.children.link(lp)
-    return bpy.data.collections["loaded_props"]
-
-class Prop:
-    @classmethod
-    def Preloaded(cls):
-        preloaded = {}
-        for g in bpy.data.collections:
-            if g.name[:5] == "prop:":
-                url = g.name[5:]
-                prop = Prop("", ConfigNode.load(g.mumodelprops.config))
-                prop.model = g
-                preloaded[url] = prop
-        return preloaded
-    def __init__(self, path, cfg):
-        self.cfg = cfg
-        self.path = os.path.dirname(path)
-        self.name = cfg.GetValue("name")
-        self.model = None
-    def get_model(self):
-        if not self.model:
-            self.model = compile_model(self.db, self.path, "prop", self.name,
-                                       self.cfg, loaded_props_collection())
-            props = self.model.mumodelprops
-            props.config = self.cfg.ToString(-1)
-        model = self.instantiate(Vector((0, 0, 0)),
-                                 Quaternion((1,0,0,0)),
-                                 Vector((1, 1, 1)))
-        return model
-
-    def instantiate(self, loc, rot, scale):
-        obj = bpy.data.objects.new(self.name, None)
-        obj.instance_type = 'COLLECTION'
-        obj.instance_collection = self.model
-        obj.location = loc
-        return obj
-
-gamedata = None
-def import_prop(filepath):
-    global gamedata
-    if not gamedata:
-        from .gamedata import GameData
-        gamedata = GameData(Preferences().GameData)
-    try:
-        propcfg = ConfigNode.loadfile(filepath)
-    except ConfigNodeError as e:
-        print(filepath+e.message)
-        return
-    if filepath[:len(gamedata.root)] == gamedata.root:
-        #the prop is in GameData
-        propnode = propcfg.GetNode("PROP")
-        name = propnode.GetValue("name")
-        return gamedata.props[name]
-    # load it directly
-    return Prop(path, propcfg)
+from ..model import instantiate_model
 
 def import_prop_op(self, context, filepath):
     operator = self
@@ -117,19 +55,6 @@ def clean_selected(selected):
     for o in objects:
         if ancestor_selected(o, selected):
             selected.remove(o)
-
-def make_prop(obj):
-    name = strip_nnn(obj.name)
-    collection = collect_objects("prop:"+name, obj)
-    obj.muproperties.modelType = 'PROP'
-    #FIXME group instancing seems to work with the object's world location
-    #rather than its local location
-    collection.dupli_offset = obj.location #FIXME update if the prop is later moved
-    #necessary because groups don't support rotation or scale offsets
-    obj.rotation_quaternion = Quaternion((1, 0, 0, 0))
-    obj.scale = Vector((1, 1, 1))
-    collection.mumodelprops.name = name
-    collection.mumodelprops.type = "prop"
 
 def make_props(self, context):
     operator = self
@@ -223,38 +148,8 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
         context.window_manager.invoke_search_popup(self)
         return {'CANCELLED'}
 
-class WORKSPACE_PT_tools_mu_props(bpy.types.Panel):
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_category = "Mu Tools"
-    bl_context = ".workspace"
-    bl_label = "Prop Tools"
-
-    def draw(self, context):
-        layout = self.layout
-        #col = layout.column(align=True)
-        layout.operator(KSPMU_OT_ImportProp.bl_idname, text = KSPMU_OT_ImportProp.bl_description);
-        layout.operator(KSPMU_OT_MakeProps.bl_idname, text = KSPMU_OT_MakeProps.bl_description);
-
-def add_prop_menu_func(self, context):
-    layout = self.layout
-    if len(OBJECT_OT_add_ksp_prop._enum_item_cache) > 10:
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator(OBJECT_OT_add_ksp_prop.bl_idname,
-                        text="KSP Prop...",
-                        icon='OUTLINER_OB_GROUP_INSTANCE')
-    else:
-        layout.operator_menu_enum(OBJECT_OT_add_ksp_prop.bl_idname,
-                                  "prop_item", text="KSP Prop",
-                                  icon='OUTLINER_OB_GROUP_INSTANCE')
-
 classes_to_register = (
     KSPMU_OT_ImportProp,
     KSPMU_OT_MakeProps,
     OBJECT_OT_add_ksp_prop,
-    WORKSPACE_PT_tools_mu_props,
-)
-
-menus_to_register = (
-    (bpy.types.VIEW3D_MT_add, add_prop_menu_func),
 )

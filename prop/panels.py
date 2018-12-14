@@ -19,11 +19,25 @@
 
 # <pep8 compliant>
 
-from .. import register_submodules
+import os
 
-submodule_names = (
-    "gamedata",
-    "import_craft",
-    "part",
+import bpy
+
+from .operators import KSPMU_OT_ImportProp, KSPMU_OT_MakeProps
+
+class WORKSPACE_PT_tools_mu_props(bpy.types.Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_category = "Mu Tools"
+    bl_context = ".workspace"
+    bl_label = "Prop Tools"
+
+    def draw(self, context):
+        layout = self.layout
+        #col = layout.column(align=True)
+        layout.operator(KSPMU_OT_ImportProp.bl_idname, text = KSPMU_OT_ImportProp.bl_description);
+        layout.operator(KSPMU_OT_MakeProps.bl_idname, text = KSPMU_OT_MakeProps.bl_description);
+
+classes_to_register = (
+    WORKSPACE_PT_tools_mu_props,
 )
-register_submodules(__name__, submodule_names)

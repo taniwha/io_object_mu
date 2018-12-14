@@ -21,9 +21,9 @@
 import os
 
 from ..cfgnode import ConfigNode, ConfigNodeError
-from .model import Model
+from ..model import Model
 from .part import Part
-from .prop import Prop
+from ..prop import Prop
 
 def recurse_tree(path, func):
     files = os.listdir(path)

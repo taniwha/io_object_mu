@@ -21,9 +21,11 @@
 
 from .. import register_submodules
 
+from .prop import Prop
+
 submodule_names = (
-    "gamedata",
-    "import_craft",
-    "part",
+    "menus",
+    "operators",
+    "panels",
 )
 register_submodules(__name__, submodule_names)

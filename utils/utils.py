@@ -50,3 +50,12 @@ def collect_modifiers(obj):
         if mod.show_viewport and not mod.show_render:
             modifiers.append(mod)
     return modifiers
+
+def collect_objects(name, obj):
+    def add_to_collection(collection, obj):
+        collection.objects.link (obj)
+        for child in obj.children:
+            add_to_collection(collection, child)
+    collection = bpy.data.collections.new(name)
+    add_to_collection(collection, obj)
+    return collection

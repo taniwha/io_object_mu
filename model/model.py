@@ -25,15 +25,7 @@ from mathutils import Vector, Quaternion
 
 from ..import_mu import import_mu
 from ..cfgnode import parse_vector
-
-def collect_objects(name, obj):
-    def add_to_collection(collection, obj):
-        collection.objects.link (obj)
-        for child in obj.children:
-            add_to_collection(collection, child)
-    collection = bpy.data.collections.new(name)
-    add_to_collection(collection, obj)
-    return collection
+from ..utils import util_collection
 
 def compile_model(db, path, type, name, cfg, collection):
     nodes = cfg.GetNodes("MODEL")
@@ -71,13 +63,7 @@ def compile_model(db, path, type, name, cfg, collection):
     return model
 
 def loaded_models_collection():
-    if "loaded_models" not in bpy.data.collections:
-        lm = bpy.data.collections.new("loaded_models")
-        lm.hide_viewport = True
-        lm.hide_render = True
-        lm.hide_select = True
-        bpy.context.scene.collection.children.link(lm)
-    return bpy.data.collections["loaded_models"]
+    return util_collection("loaded_models")
 
 def instantiate_model(model, name, loc, rot, scale):
     obj = bpy.data.objects.new(name, None)

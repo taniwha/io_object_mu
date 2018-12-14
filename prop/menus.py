@@ -19,11 +19,24 @@
 
 # <pep8 compliant>
 
-from .. import register_submodules
+import os
 
-submodule_names = (
-    "gamedata",
-    "import_craft",
-    "part",
+import bpy
+
+from .operators import OBJECT_OT_add_ksp_prop
+
+def add_prop_menu_func(self, context):
+    layout = self.layout
+    if len(OBJECT_OT_add_ksp_prop._enum_item_cache) > 10:
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator(OBJECT_OT_add_ksp_prop.bl_idname,
+                        text="KSP Prop...",
+                        icon='OUTLINER_OB_GROUP_INSTANCE')
+    else:
+        layout.operator_menu_enum(OBJECT_OT_add_ksp_prop.bl_idname,
+                                  "prop_item", text="KSP Prop",
+                                  icon='OUTLINER_OB_GROUP_INSTANCE')
+
+menus_to_register = (
+    (bpy.types.VIEW3D_MT_add, add_prop_menu_func),
 )
-register_submodules(__name__, submodule_names)

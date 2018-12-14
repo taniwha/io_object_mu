@@ -25,16 +25,11 @@ from mathutils import Vector, Quaternion
 
 from ..cfgnode import ConfigNode
 from ..cfgnode import parse_float
-from .model import compile_model
+from ..model import compile_model
+from ..utils import util_collection
 
 def loaded_parts_collection():
-    if "loaded_parts" not in bpy.data.collections:
-        lp = bpy.data.collections.new("loaded_parts")
-        lp.hide_viewport = True
-        lp.hide_render = True
-        lp.hide_select = True
-        bpy.context.scene.collection.children.link(lp)
-    return bpy.data.collections["loaded_parts"]
+    return util_collection("loaded_parts")
 
 class Part:
     @classmethod

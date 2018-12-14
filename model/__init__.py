@@ -21,9 +21,8 @@
 
 from .. import register_submodules
 
+from .model import Model, compile_model, instantiate_model
+
 submodule_names = (
-    "gamedata",
-    "import_craft",
-    "part",
 )
 register_submodules(__name__, submodule_names)
