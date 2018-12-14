@@ -31,9 +31,10 @@ for tex in textures:
     if tex not in bpy.data.images:
         continue
     image = bpy.data.images[tex]
-    name = tex + ".png"
-    path = os.path.join(blend_filepath, name)
-    print(tex, image.type, path)
-    image.filepath_raw = "//" + name
-    image.packed_files[0].filepath = path
-    image.save()
+    if image.packed_files:
+        name = tex + ".png"
+        path = os.path.join(blend_filepath, name)
+        print(tex, image.type, path)
+        image.filepath_raw = "//" + name
+        image.packed_files[0].filepath = path
+        image.save()
