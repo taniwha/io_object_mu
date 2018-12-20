@@ -31,7 +31,7 @@ def recurse_tree(path, func):
     for f in files:
         if f[0] in [".", "_"]:
             continue
-        p = os.path.join(path, f)
+        p = "/".join((path, f))
         if os.path.isdir(p):
             recurse_tree(p, func)
         else:
@@ -118,7 +118,7 @@ class GameData:
         return True
 
     def create_db(self):
-        mmcache = os.path.join(self.root, self.ModuleManager)
+        mmcache = "/".join((self.root, self.ModuleManager))
         if os.access(mmcache, os.F_OK):
             if self.parse_module_manager(mmcache):
                 self.use_module_manager = True
@@ -142,7 +142,7 @@ class GameData:
         if url not in self.models:
             return None
         if type(self.models[url]) == type(""):
-            path = os.path.join(self.root, self.models[url])
+            path = "/".join((self.root, self.models[url]))
             self.models[url] = Model(path, url)
         return self.models[url]
 

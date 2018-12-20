@@ -50,7 +50,7 @@ def compile_model(db, path, type, name, cfg, collection):
             obj.parent = root
     else:
         mesh = db.model_by_path[path][0]
-        url = os.path.join(path, mesh)
+        url = '/'.join((path, mesh))
         submodel = db.model(url)
         position = Vector((0, 0, 0))
         rotation = Vector((0, 0, 0))
