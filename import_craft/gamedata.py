@@ -42,8 +42,12 @@ class Internal(Part):
 
 class GameData:
     ModuleManager = "ModuleManager.ConfigCache"
+
+    def get_gdpath(self, path):
+        return path[len(self.root)+1:]
+
     def process_mu(self, path):
-        gdpath = path[len(self.root):]
+        gdpath = self.get_gdpath(path)
         directory, model = os.path.split(gdpath)
         if directory not in self.model_by_path:
             self.model_by_path[directory] = []
@@ -89,7 +93,7 @@ class GameData:
         if not cfg:
             return
         for node in cfg.nodes:
-            gdpath = path[len(self.root):]
+            gdpath = self.get_gdpath(path)
             self.process_cfgnode(gdpath, node)
 
     def build_db(self, path):
@@ -128,6 +132,9 @@ class GameData:
 
     def __init__(self, path):
         self.use_module_manager = False
+        path = path.replace("\\", "/")
+        if path[-1:] == "/":
+            path = path[:-1]
         self.root = path
         self.model_by_path = {}
         self.models = Model.Preloaded()
