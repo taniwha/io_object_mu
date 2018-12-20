@@ -149,7 +149,7 @@ class GameData:
         if url not in self.models:
             return None
         if type(self.models[url]) == type(""):
-            path = "/".join((self.root, self.models[url]))
+            path = self.models[url]
             self.models[url] = Model(path, url)
         return self.models[url]
 
