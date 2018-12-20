@@ -45,6 +45,7 @@ class GameData:
     def process_mu(self, path):
         gdpath = path[len(self.root):]
         directory, model = os.path.split(gdpath)
+        directory = directory.replace("\\", "/")
         if directory not in self.model_by_path:
             self.model_by_path[directory] = []
         self.model_by_path[directory].append(model[:-3])
