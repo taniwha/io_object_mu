@@ -1,3 +1,6 @@
+o  merge collection instances that use the same material and have the same
+   parent (for single-mesh collections? have a "merge" flag on collections,
+   too?)
 o  export armatures
 o  export skinned meshes
 o  ensure the inherit flags on bones are respected when exporting
