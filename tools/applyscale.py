@@ -44,15 +44,15 @@ def apply_scale(obj):
 
 def apply_scale_op(self, context):
     operator = self
-    undo = bpy.context.user_preferences.edit.use_global_undo
-    bpy.context.user_preferences.edit.use_global_undo = False
+    undo = bpy.context.preferences.edit.use_global_undo
+    bpy.context.preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
         if not obj.select_get():
             continue
         apply_scale(obj)
 
-    bpy.context.user_preferences.edit.use_global_undo = undo
+    bpy.context.preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
 class KSPMU_OT_ClearInverse(bpy.types.Operator):

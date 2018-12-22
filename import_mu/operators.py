@@ -29,8 +29,8 @@ from .import_mu import import_mu
 
 def import_mu_op(self, context, filepath, create_colliders, force_armature):
     operator = self
-    undo = bpy.context.user_preferences.edit.use_global_undo
-    bpy.context.user_preferences.edit.use_global_undo = False
+    undo = bpy.context.preferences.edit.use_global_undo
+    bpy.context.preferences.edit.use_global_undo = False
 
     collection = bpy.context.layer_collection.collection
     try:
@@ -48,7 +48,7 @@ def import_mu_op(self, context, filepath, create_colliders, force_armature):
         obj.select_set(True)
         return {'FINISHED'}
     finally:
-        bpy.context.user_preferences.edit.use_global_undo = undo
+        bpy.context.preferences.edit.use_global_undo = undo
 
 class KSPMU_OT_ImportMu(bpy.types.Operator, ImportHelper):
     '''Load a KSP Mu (.mu) File'''

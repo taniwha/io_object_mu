@@ -114,8 +114,8 @@ class IOObjectMu_AddonPreferences(AddonPreferences):
         cbox.label(text="NOTE2: overwrites existing palettes that have the same names", icon="LAYER_USED")
 
 def Preferences():
-    user_preferences = bpy.context.user_preferences
-    addons = user_preferences.addons
+    preferences = bpy.context.preferences
+    addons = preferences.addons
     prefs = addons[package_name]
     return prefs.preferences
 

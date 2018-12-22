@@ -33,8 +33,8 @@ from ..model import instantiate_model
 
 def import_prop_op(self, context, filepath):
     operator = self
-    undo = bpy.context.user_preferences.edit.use_global_undo
-    bpy.context.user_preferences.edit.use_global_undo = False
+    undo = bpy.context.preferences.edit.use_global_undo
+    bpy.context.preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
         obj.select_set(False)
@@ -43,7 +43,7 @@ def import_prop_op(self, context, filepath):
     prop.location = context.scene.cursor_location
     prop.select_set(True)
 
-    bpy.context.user_preferences.edit.use_global_undo = undo
+    bpy.context.preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
 def clean_selected(selected):
@@ -58,8 +58,8 @@ def clean_selected(selected):
 
 def make_props(self, context):
     operator = self
-    undo = bpy.context.user_preferences.edit.use_global_undo
-    bpy.context.user_preferences.edit.use_global_undo = False
+    undo = bpy.context.preferences.edit.use_global_undo
+    bpy.context.preferences.edit.use_global_undo = False
 
     selected = set()
     for obj in bpy.context.scene.objects:
@@ -70,7 +70,7 @@ def make_props(self, context):
     for obj in selected:
         make_prop(obj)
 
-    bpy.context.user_preferences.edit.use_global_undo = undo
+    bpy.context.preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
 class KSPMU_OT_ImportProp(bpy.types.Operator, ImportHelper):

@@ -43,15 +43,15 @@ def clearinverse(obj, recursive):
 
 def clearinverse_op(self, context, recursive):
     operator = self
-    undo = bpy.context.user_preferences.edit.use_global_undo
-    bpy.context.user_preferences.edit.use_global_undo = False
+    undo = bpy.context.preferences.edit.use_global_undo
+    bpy.context.preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
         if not obj.select_get():
             continue
         clearinverse(obj, recursive)
 
-    bpy.context.user_preferences.edit.use_global_undo = undo
+    bpy.context.preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
 class KSPMU_OT_ClearInverse(bpy.types.Operator):

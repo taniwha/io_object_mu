@@ -28,7 +28,7 @@ from .. import properties
 from .collider import create_collider_object, build_collider
 
 def add_collider(self, context):
-    context.user_preferences.edit.use_global_undo = False
+    context.preferences.edit.use_global_undo = False
     for obj in context.scene.objects:
         obj.select_set(False)
     mesh = None
@@ -62,13 +62,13 @@ def add_collider(self, context):
     build_collider(cobj, obj.muproperties)
     context.view_layer.objects.active=obj
 
-    context.user_preferences.edit.use_global_undo = True
+    context.preferences.edit.use_global_undo = True
     return {'FINISHED'}
 
 def add_mesh_colliders(self, context, convex):
     operator = self
-    undo = bpy.context.user_preferences.edit.use_global_undo
-    bpy.context.user_preferences.edit.use_global_undo = False
+    undo = bpy.context.preferences.edit.use_global_undo
+    bpy.context.preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
         if not obj.select_get():
@@ -86,13 +86,13 @@ def add_mesh_colliders(self, context, convex):
         col.select_set(True)
         col.muproperties.collider = 'MU_COL_MESH'
 
-    context.user_preferences.edit.use_global_undo = undo
+    context.preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
 def make_mesh_colliders(self, context):
     operator = self
-    undo = bpy.context.user_preferences.edit.use_global_undo
-    bpy.context.user_preferences.edit.use_global_undo = False
+    undo = bpy.context.preferences.edit.use_global_undo
+    bpy.context.preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
         if not obj.select_get():
@@ -103,7 +103,7 @@ def make_mesh_colliders(self, context):
             continue
         obj.muproperties.collider = 'MU_COL_MESH'
 
-    context.user_preferences.edit.use_global_undo = undo
+    context.preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
 class KSPMU_OT_ColliderFromMesh(bpy.types.Operator):

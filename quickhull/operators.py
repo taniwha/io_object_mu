@@ -24,8 +24,8 @@ from .convex_hull import quickhull
 
 def quickhull_op(self, context):
     operator = self
-    undo = bpy.context.user_preferences.edit.use_global_undo
-    bpy.context.user_preferences.edit.use_global_undo = False
+    undo = bpy.context.preferences.edit.use_global_undo
+    bpy.context.preferences.edit.use_global_undo = False
 
     for obj in bpy.context.scene.objects:
         if not obj.select_get():
@@ -41,7 +41,7 @@ def quickhull_op(self, context):
         hullobj.location = obj.location
         bpy.context.view_layer.objects.active = hullobj
 
-    bpy.context.user_preferences.edit.use_global_undo = undo
+    bpy.context.preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
 class KSPMU_OT_QuickHull(bpy.types.Operator):

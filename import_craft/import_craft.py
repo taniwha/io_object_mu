@@ -73,8 +73,8 @@ def import_craft(filepath):
 
 def import_craft_op(self, context, filepath):
     operator = self
-    undo = bpy.context.user_preferences.edit.use_global_undo
-    bpy.context.user_preferences.edit.use_global_undo = False
+    undo = bpy.context.preferences.edit.use_global_undo
+    bpy.context.preferences.edit.use_global_undo = False
 
     try:
         obj = import_craft(filepath)
@@ -88,7 +88,7 @@ def import_craft_op(self, context, filepath):
         bpy.context.view_layer.objects.active = obj
         return {'FINISHED'}
     finally:
-        bpy.context.user_preferences.edit.use_global_undo = undo
+        bpy.context.preferences.edit.use_global_undo = undo
 
 class KSPMU_OT_ImportCraft(bpy.types.Operator, ImportHelper):
     '''Load a KSP craft file'''
