@@ -363,9 +363,7 @@ def load_mbm(mbmpath):
             pixels[l:l+3] = list(p)
     else:
         raise
-    if bump:
-        pixels = convert_bump(pixels, width, height)
-    return width, height, pixels
+    return width, height, bump, pixels
 
 def load_image(name, path, type):
     if name[-4:].lower() in [".dds", ".png", ".tga"]:
@@ -382,18 +380,21 @@ def load_image(name, path, type):
                 pixels[ind2:ind2+rowlen] = t
             if type == 1 or name[-6:-4].lower() == "_n":
                 type = 1
-                if name[-7:-4].lower() != "nrm":
-                    pixels = convert_bump(pixels, img.size[0], height)
             img.pixels = pixels[:]
             img.pack(True)
     elif name[-4:].lower() == ".mbm":
-        w,h, pixels = load_mbm(os.path.join(path, name))
+        w,h, type, pixels = load_mbm(os.path.join(path, name))
         img = bpy.data.images.new(name, w, h)
         img.pixels[:] = map(lambda x: x / 255.0, pixels)
         img.pack(True)
     img.alpha_mode = 'STRAIGHT'
     if type == 1:
         img.colorspace_settings.name = 'Non-Color'
+        for i in range(min(int(len(pixels)/4), 256)):
+            c = 2*Vector(pixels[i*4:i*4+4])-Vector((1, 1, 1, 1))
+            if abs(c.x*c.x + c.y*c.y + c.z*c.z - 1) > 0.05:
+                pixels = convert_bump(pixels, width, height)
+                break
 
 def create_textures(mu, path):
     extensions = [".dds", ".mbm", ".tga", ".png"]
