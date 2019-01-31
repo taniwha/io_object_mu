@@ -341,6 +341,8 @@ def convert_bump(pixels, width, height):
             ny = py * 2 - 1;
             xy = nx**2 + ny**2
             #print(px, py, nx, ny, xy)
+            if xy > 1:
+                xy = 1
             n = [px,py,(sqrt(1-xy)+1)/2,1]
             #n = [px,py,255,255]
             outp[index:index + 4] = n
@@ -393,7 +395,8 @@ def load_image(name, path, type):
         for i in range(min(int(len(pixels)/4), 256)):
             c = 2*Vector(pixels[i*4:i*4+4])-Vector((1, 1, 1, 1))
             if abs(c.x*c.x + c.y*c.y + c.z*c.z - 1) > 0.05:
-                pixels = convert_bump(pixels, width, height)
+                print(dir(img.size))
+                pixels = convert_bump(pixels, img.size[0], img.size[1])
                 break
 
 def create_textures(mu, path):
