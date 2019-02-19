@@ -48,7 +48,6 @@ class OBJECT_PT_MuLightPanel(bpy.types.Panel):
         if type(context.active_object.data) in [bpy.types.PointLight,
                                                 bpy.types.SunLight,
                                                 bpy.types.SpotLight,
-                                                bpy.types.HemiLight,
                                                 bpy.types.AreaLight]:
             return True
         return False
@@ -68,6 +67,5 @@ custom_properties_to_register = (
     (bpy.types.PointLight, "mulightprop", MuLightProperties),
     (bpy.types.SunLight, "mulightprop", MuLightProperties),
     (bpy.types.SpotLight, "mulightprop", MuLightProperties),
-    (bpy.types.HemiLight, "mulightprop", MuLightProperties),
     (bpy.types.AreaLight, "mulightprop", MuLightProperties),
 )

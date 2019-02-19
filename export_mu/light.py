@@ -54,7 +54,6 @@ type_handlers = {
     bpy.types.PointLight: handle_light,
     bpy.types.SunLight: handle_light,
     bpy.types.SpotLight: handle_light,
-    bpy.types.HemiLight: handle_light,
     bpy.types.AreaLight: handle_light,
 }
 
