@@ -111,14 +111,14 @@ class GameData:
         except ConfigNodeError as e:
             print(mmcache+e.message)
             return False
-        for name, node, line in cfg.nodes:
+        for name, urlconfig, line in cfg.nodes:
             if name != "UrlConfig":
                 continue
-            type = node.GetValue("type")
-            path = node.GetValue("parentUrl")
-            if type in {"PART", "PROP", "INTERNAL", "RESOURCE_DEFINITION",
-                        "Localization"}:
-                self.process_cfgnode(path, (type, node.GetNode(type)))
+            path = urlconfig.GetValue("parentUrl")
+            for type, node, line in urlconfig.nodes:
+                if type in {"PART", "PROP", "INTERNAL", "RESOURCE_DEFINITION",
+                            "Localization"}:
+                    self.process_cfgnode(path, (type, node))
         return True
 
     def create_db(self):
