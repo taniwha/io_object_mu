@@ -67,7 +67,7 @@ def import_craft(filepath):
     obj = bpy.data.objects.new(craft_name, None)
     obj.instance_type = 'COLLECTION'
     obj.instance_collection = vessel
-    obj.location = bpy.context.scene.cursor_location
+    obj.location = bpy.context.scene.cursor.location
     bpy.context.layer_collection.collection.objects.link(obj)
     return obj
 

@@ -42,7 +42,7 @@ def import_mu_op(self, context, filepath, create_colliders, force_armature):
         for o in bpy.context.scene.objects:
             o.select_set(False)
         bpy.context.view_layer.objects.active = obj
-        obj.location = context.scene.cursor_location
+        obj.location = context.scene.cursor.location
         obj.rotation_quaternion = Quaternion((1, 0, 0, 0))
         obj.scale = Vector((1, 1, 1))
         obj.select_set(True)

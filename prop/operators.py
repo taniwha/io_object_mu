@@ -40,7 +40,7 @@ def import_prop_op(self, context, filepath):
         obj.select_set(False)
     prop = import_prop(filepath).get_model()
     context.layer_collection.collection.objects.link(prop)
-    prop.location = context.scene.cursor_location
+    prop.location = context.scene.cursor.location
     prop.select_set(True)
 
     bpy.context.preferences.edit.use_global_undo = undo
@@ -128,7 +128,7 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
         prop = self.find_prop(context)
         self._enum_item_cache.clear()
         if prop:
-            loc = context.scene.cursor_location
+            loc = context.scene.cursor.location
             muscene = context.scene.musceneprops
             if muscene.internal:
                 loc = muscene.internal.matrix_world.inverted() * loc
