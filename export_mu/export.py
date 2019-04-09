@@ -64,7 +64,9 @@ def find_single_collider(objects):
         if is_collider(o):
             colliders.append(o)
     if len(colliders) == 1:
-        return colliders[0]
+        mat = colliders[0].matrix_local
+        if mat == mat.Identity(4):
+            return colliders[0]
     return None
 
 def make_obj_core(mu, obj, path, muobj):
