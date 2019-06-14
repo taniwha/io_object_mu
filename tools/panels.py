@@ -22,11 +22,11 @@
 import bpy
 
 class WORKSPACE_PT_tools_mu_tools2(bpy.types.Panel):
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_category = "Mu Tools 2"
-    bl_context = ".workspace"
-    bl_label = "Export Mu"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Tool"
+    bl_context = ".objectmode"
+    bl_label = "Mu Hierarchy"
 
     def draw(self, context):
         layout = self.layout

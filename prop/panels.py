@@ -26,10 +26,10 @@ import bpy
 from .operators import KSPMU_OT_ImportProp, KSPMU_OT_MakeProps
 
 class WORKSPACE_PT_tools_mu_props(bpy.types.Panel):
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_category = "Mu Tools"
-    bl_context = ".workspace"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Tool"
+    bl_context = ".objectmode"
     bl_label = "Prop Tools"
 
     def draw(self, context):
