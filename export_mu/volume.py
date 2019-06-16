@@ -47,18 +47,22 @@ def obj_volume(obj):
     #FIXME skin_mesh = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
     #FIXME ext_mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
 
-    #FIXME horible hack to work around blender 2.8 not (yet) allowing control
-    # over render/preview when converting an object to a mesh
+    #FIXME horible hack until I figure out how to get a render mode depsgraph
     modifiers = collect_modifiers(obj)
-    skin_mesh = obj.to_mesh(bpy.context.depsgraph, True)
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    skin_mesh = obj.evaluated_get(depsgraph).to_mesh()
+    skin_vol = calcVolume(skin_mesh);
+    obj.to_mesh_clear()
     for mod in modifiers:
         mod.show_viewport = False
-    ext_mesh = obj.to_mesh(bpy.context.depsgraph, True)
+    depsgraph.update()
+    ext_mesh = obj.evaluated_get(depsgraph).to_mesh()
+    ext_vol = calcVolume(ext_mesh)
+    obj.to_mesh_clear()
     for mod in modifiers:
         mod.show_viewport = True
 
-    return calcVolume(skin_mesh), calcVolume(ext_mesh)
-    return 0, 0
+    return skin_vol, ext_vol
 
 def model_volume(obj):
     svols = []

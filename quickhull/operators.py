@@ -31,7 +31,8 @@ def quickhull_op(self, context):
         if not obj.select_get():
             continue
         obj.select_set(False)
-        mesh = obj.to_mesh(context.depsgraph, True)
+        depsgraph = context.evaluated_depsgraph_get()
+        mesh = obj.evaluated_get(depsgraph).to_mesh()
         if not mesh or not mesh.vertices:
             continue
         mesh = quickhull(mesh)

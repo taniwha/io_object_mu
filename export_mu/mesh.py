@@ -63,7 +63,8 @@ def get_mesh(obj):
     modifiers = collect_modifiers(obj)
     for mod in modifiers:
         mod.show_viewport = False
-    mesh = obj.to_mesh(bpy.context.depsgraph, True)
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    mesh = obj.evaluated_get(depsgraph).to_mesh()
     for mod in modifiers:
         mod.show_viewport = True
     return mesh

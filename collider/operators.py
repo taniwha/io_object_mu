@@ -77,13 +77,18 @@ def add_mesh_colliders(self, context, convex):
         if obj.type != 'MESH':
             continue
         name = obj.name + ".collider"
-        mesh = obj.to_mesh(context.depsgraph, True)
+        depsgraph = context.evaluated_depsgraph_get()
+        objeval = obj.evaluated_get(depsgraph)
         if convex:
+            mesh = objeval.to_mesh()
             mesh = quickhull(mesh)
+        else:
+            mesh = bpy.data.meshes.new_from_object(objeval)
         col = bpy.data.objects.new(name, mesh)
         context.scene.collection.objects.link(col)
         col.parent = obj
         col.select_set(True)
+        bpy.context.view_layer.objects.active = col
         col.muproperties.collider = 'MU_COL_MESH'
 
     context.preferences.edit.use_global_undo = undo
