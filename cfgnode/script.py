@@ -29,6 +29,8 @@ class Script:
         self.filename = filename
         if text[0:3] == "\xef\xbb\xbf":
             text = text[3:]
+        elif text[0] == u"\ufeff":
+            text = text[1:]
         self.text = text
         self.single = single
         self.quotes = quotes
