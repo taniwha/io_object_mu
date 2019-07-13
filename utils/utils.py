@@ -51,6 +51,16 @@ def collect_modifiers(obj):
             modifiers.append(mod)
     return modifiers
 
+def collect_collections(scene):
+    def recurse(col, collist):
+        if (col.hide_viewport and not col.hide_render):
+            collist.append(col)
+        for c in col.children:
+            recurse(c, collist)
+    collections = []
+    recurse(scene.collection, collections)
+    return collections
+
 def collect_objects(name, obj):
     def add_to_collection(collection, obj):
         collection.objects.link (obj)

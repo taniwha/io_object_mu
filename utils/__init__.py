@@ -21,4 +21,4 @@
 
 from .collection import util_collection
 from .utils import swapyz, swizzleq, strip_nnn, vector_str, collect_modifiers
-from .utils import collect_objects
+from .utils import collect_objects, collect_collections

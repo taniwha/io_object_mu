@@ -29,7 +29,11 @@ from . import export
 from . import volume
 
 def export_mu(operator, context, filepath):
-    mu = export.export_object (context.active_object, filepath)
+    collections = export.enable_collections()
+    try:
+        mu = export.export_object (context.active_object, filepath)
+    finally:
+        export.restore_collections(collections)
     for m in mu.messages:
         operator.report(m[0], m[1])
     return {'FINISHED'}

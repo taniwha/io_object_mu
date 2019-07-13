@@ -24,6 +24,7 @@ import bpy
 #modules for handling obj.data types
 
 from .export import export_object, strip_nnn
+from .export import enable_collections, restore_collections
 from .operators import KSPMU_OT_MuVolume
 from .operators import KSPMU_OT_ExportMu
 from .operators import KSPMU_OT_ExportMu_quick

@@ -25,7 +25,7 @@ from mathutils import Vector, Quaternion
 from .. import properties
 from ..mu import Mu
 from ..mu import MuObject, MuTransform, MuTagLayer
-from ..utils import strip_nnn
+from ..utils import strip_nnn, collect_collections
 
 from .animation import collect_animations, find_path_root, make_animations
 from .collider import make_collider
@@ -161,3 +161,13 @@ def export_object(obj, filepath):
     mu.skin_volume, mu.ext_volume = model_volume(obj)
     generate_cfg(mu, filepath)
     return mu
+
+def enable_collections():
+    collections = collect_collections(bpy.context.scene)
+    for col in collections:
+        col.hide_viewport = False
+    return collections
+
+def restore_collections(collections):
+    for col in collections:
+        col.hide_viewport = True
