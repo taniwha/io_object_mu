@@ -136,10 +136,12 @@ def create_action(mu, path, clip):
             subpath, propmap = propmap[0], propmap[1:]
         propmap = (dppref + propmap[0],) +  propmap[1:]
 
+        objname = ".".join([obj.name, subpath])
+
         if subpath != "obj":
             obj = getattr (obj, subpath)
 
-        name = ".".join([clip.name, curve.path, subpath])
+        name = objname
         if name not in actions:
             actions[name] = bpy.data.actions.new(name), obj
         act, obj = actions[name]
