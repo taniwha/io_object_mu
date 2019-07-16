@@ -76,7 +76,6 @@ def create_object(mu, muobj, parent):
     mesh = None
     name = muobj.transform.name
     if is_armature(muobj):
-        print(f"{name} armature!")
         obj = create_armature(muobj)
     xform = None if hasattr(muobj, "bone") else muobj.transform
     if hasattr(muobj, "shared_mesh") and hasattr(muobj, "renderer"):
@@ -124,25 +123,25 @@ def create_object(mu, muobj, parent):
     else:
         if not obj:
             if mu.create_colliders and hasattr(muobj, "collider"):
-                print(muobj.transform.name)
+                #print(muobj.transform.name)
                 obj = create_collider(mu, muobj)
                 set_transform(obj, xform)
             else:
                 obj = create_data_object(name, None, xform)
                 if name[:5] == "node_":
-                    print(name, name[:5])
+                    #print(name, name[:5])
                     obj.empty_display_type = 'SINGLE_ARROW'
-                    print(obj.empty_display_type)
+                    #print(obj.empty_display_type)
                     # Blender's empties use the +Z axis for single-arrow
                     # display, so that is the most natural orientation for
                     # nodes in blender.
                     # However, KSP uses the transform's +Z (Unity) axis which
                     # is Blender's +Y, so rotate -90 degrees around local X to
                     # go from KSP to Blender
-                    print(obj.rotation_quaternion)
+                    #print(obj.rotation_quaternion)
                     rot = Quaternion((0.5**0.5, -(0.5**0.5), 0, 0))
                     obj.rotation_quaternion @= rot
-                    print(obj.rotation_quaternion)
+                    #print(obj.rotation_quaternion)
 
         obj.parent = parent
     if obj:

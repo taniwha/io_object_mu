@@ -98,7 +98,7 @@ def find_bones(armobj):
             while b.parent != armobj:
                 b = b.parent
                 bones.add(b)
-    print(list(map(lambda b: b.transform.name, bones)))
+    #print(list(map(lambda b: b.transform.name, bones)))
 
     return bones
 
