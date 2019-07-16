@@ -144,17 +144,20 @@ def create_action(mu, path, clip):
         track.name = clip.name
         track.strips.new(act.name, 1.0, act)
 
-def create_object_paths(mu, obj=None, parents=None):
-    if obj == None:
-        mu.objects = {}
-        mu.object_paths = {}
-        create_object_paths(mu, mu.obj, [])
-        return
-    name = obj.transform.name
-    parents.append(name)
-    obj.path = "/".join(parents)
-    mu.objects[name] = obj
-    mu.object_paths[obj.path] = obj
-    for child in obj.children:
-        create_object_paths(mu, child, parents)
-    parents.pop()
+from pprint import pprint
+def create_object_paths(mu):
+    def recurse (mu, obj, parent_names, parent):
+        obj.parent = parent
+        obj.mu = mu
+        name = obj.transform.name
+        parent_names.append(name)
+        obj.path = "/".join(parent_names)
+        mu.objects[name] = obj
+        mu.object_paths[obj.path] = obj
+        for child in obj.children:
+            recurse(mu, child, parent_names, obj)
+        parent_names.pop()
+    mu.objects = {}
+    mu.object_paths = {}
+    recurse(mu, mu.obj, [], None)
+    pprint(mu.object_paths)

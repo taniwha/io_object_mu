@@ -34,14 +34,14 @@ def create_vertex_groups(obj, bones, weights):
             if bweight != 0:
                 obj.vertex_groups[bind].add((vind,), bweight, 'ADD')
 
-def create_armature_modifier(obj, mu):
+def create_armature_modifier(obj, armobj):
     mod = obj.modifiers.new(name='Armature', type='ARMATURE')
     mod.use_apply_on_spline = False
     mod.use_bone_envelopes = False
     mod.use_deform_preserve_volume = False # silly Unity :P
     mod.use_multi_modifier = False
     mod.use_vertex_groups = True
-    mod.object = mu.armature_obj
+    mod.object = armobj.armature_obj
 
 def create_bone(bone_obj, edit_bones):
     xform = bone_obj.transform
@@ -57,8 +57,8 @@ def create_bone(bone_obj, edit_bones):
     bone.use_relative_parent = False
     return bone
 
-def process_armature(mu):
-    def process_bone(mu, obj, position, rotation):
+def process_armature(armobj):
+    def process_bone(obj, position, rotation):
         xform = obj.transform
         obj.bone.head = rotation @ Vector(xform.localPosition) + position
         rot = Quaternion(xform.localRotation)
@@ -67,7 +67,7 @@ def process_armature(mu):
         obj.bone.tail = obj.bone.head + lrot @ Vector((0, y, 0))
         obj.bone.align_roll(lrot @ Vector((0, 0, 1)))
         for child in obj.children:
-            process_bone(mu, child, obj.bone.head, lrot)
+            process_bone(child, obj.bone.head, lrot)
         # must not keep references to bones when the armature leaves edit mode,
         # so keep the bone's name instead (which is what's needed for bone
         # parenting anway)
@@ -75,43 +75,67 @@ def process_armature(mu):
 
     pos = Vector((0, 0, 0))
     rot = Quaternion((1, 0, 0, 0))
-    #the root object has no bone
-    for child in mu.obj.children:
-        process_bone(mu, child, pos, rot)
+    #the armature object has no bone
+    for child in armobj.children:
+        if hasattr(child, "bone"):
+            process_bone(child, pos, rot)
 
-def create_armature(mu):
-    def create_bone_hierarchy(mu, obj, parent):
-        bone = create_bone(obj, mu.armature.edit_bones)
-        bone.parent = parent
-        for child in obj.children:
-            create_bone_hierarchy(mu, child, bone)
+def find_bones(armobj):
+    bone_names = set()
+    for child in armobj.children:
+        if hasattr(child, "skinned_mesh_renderer"):
+            bone_names |= set(child.skinned_mesh_renderer.bones)
+    bones = set()
+    for bname in bone_names:
+        bones.add(armobj.mu.objects[bname])
 
-    name = mu.obj.transform.name
-    mu.armature = bpy.data.armatures.new(name)
-    mu.armature.show_axes = True
+    prev_bones = set()
+    while bones - prev_bones:
+        prev_bones = bones
+        bones = set()
+        for b in prev_bones:
+            bones.add(b)
+            while b.parent != armobj:
+                b = b.parent
+                bones.add(b)
+    print(list(map(lambda b: b.transform.name, bones)))
+
+    return bones
+
+def create_armature(armobj):
+    name = armobj.transform.name
+    armobj.armature = bpy.data.armatures.new(name)
+    armobj.armature.show_axes = True
     from .import_mu import create_data_object #FIXME circular reference
-    mu.armature_obj = create_data_object(name, mu.armature, mu.obj.transform)
+    armobj.armature_obj = create_data_object(name, armobj.armature,
+                                             armobj.transform)
     ctx = bpy.context
-    ctx.layer_collection.collection.objects.link(mu.armature_obj)
+    ctx.layer_collection.collection.objects.link(armobj.armature_obj)
     #need to set the active object so edit mode can be entered
-    ctx.view_layer.objects.active = mu.armature_obj
+    ctx.view_layer.objects.active = armobj.armature_obj
+
+    bones = find_bones(armobj)
+
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+    for b in bones:
+        b.armature = armobj
+        create_bone(b, armobj.armature.edit_bones)
+    for b in bones:
+        if hasattr(b.parent, "bone"):
+            b.bone.parent = b.parent.bone
+    process_armature(armobj)
 
-    # the armature itself is the root object
-    #FIXME any properties on the root object are lost, however, the root
-    #object is supposed to be an empty, so it may not matter
-    for child in mu.obj.children:
-        create_bone_hierarchy (mu, child, None)
-
-    process_armature(mu)
     bpy.ops.object.mode_set(mode='OBJECT')
+    return armobj.armature_obj
 
-def needs_armature(mu):
-    def has_skinned_mesh(obj):
-        if hasattr(obj, "skinned_mesh_renderer"):
-            return True
-        for child in obj.children:
-            if has_skinned_mesh(child):
+def is_armature(obj):
+    for comp in ["shared_mesh", "renderer", "skinned_mesh_renderer",
+                 "collider", "camera", "light"]:
+        if hasattr(obj, comp):
+            return False
+    sm = []
+    for child in obj.children:
+        if hasattr(child, "skinned_mesh_renderer"):
+            if child.skinned_mesh_renderer.bones:
                 return True
-        return False
-    return has_skinned_mesh(mu.obj)
+    return False

@@ -32,7 +32,7 @@ from ..shader import make_shader
 from .exception import MuImportError
 from .animation import create_action, create_object_paths
 from .armature import create_armature, create_armature_modifier
-from .armature import needs_armature, BONE_LENGTH, create_vertex_groups
+from .armature import is_armature, BONE_LENGTH, create_vertex_groups
 from .camera import create_camera
 from .collider import create_collider
 from .light import create_light
@@ -75,6 +75,9 @@ def create_object(mu, muobj, parent):
     obj = None
     mesh = None
     name = muobj.transform.name
+    if is_armature(muobj):
+        print(f"{name} armature!")
+        obj = create_armature(muobj)
     xform = None if hasattr(muobj, "bone") else muobj.transform
     if hasattr(muobj, "shared_mesh") and hasattr(muobj, "renderer"):
         mesh = create_mesh(mu, muobj.shared_mesh, name)
@@ -90,7 +93,8 @@ def create_object(mu, muobj, parent):
             poly.use_smooth = True
         obj = create_data_object(name, mesh, xform)
         create_vertex_groups(obj, smr.bones, smr.mesh.boneWeights)
-        create_armature_modifier(obj, mu)
+        if hasattr(muobj.parent, "armature_obj"):
+            create_armature_modifier(obj, muobj.parent)
         attach_material(mesh, smr, mu)
         child_collider(mu, muobj, obj)
     if not obj:
@@ -111,11 +115,11 @@ def create_object(mu, muobj, parent):
         #problem, but if so will need to not import the whole hierarchy as one
         #armature.
         if obj:
-            obj.parent = mu.armature_obj
+            obj.parent = muobj.armature.armature_obj
             obj.parent_type = 'BONE'
             obj.parent_bone = muobj.bone
             obj.matrix_parent_inverse[1][3] = -BONE_LENGTH
-        pbone = mu.armature_obj.pose.bones[muobj.bone]
+        pbone = muobj.armature.armature_obj.pose.bones[muobj.bone]
         pbone.scale = muobj.transform.localScale
     else:
         if not obj:
@@ -142,10 +146,8 @@ def create_object(mu, muobj, parent):
 
         obj.parent = parent
     if obj:
-        #FIXME will lose properties from any empty objects that have properties
-        #set when using an armature. Maybe create an empty? Put properties on
-        #bones?
-        mu.collection.objects.link(obj)
+        if obj.name not in mu.collection.objects:
+            mu.collection.objects.link(obj)
         if hasattr(muobj, "tag_and_layer"):
             obj.muproperties.tag = muobj.tag_and_layer.tag
             obj.muproperties.layer = muobj.tag_and_layer.layer
@@ -166,15 +168,7 @@ def process_mu(mu, mudir):
     create_textures(mu, mudir)
     create_materials(mu)
     create_object_paths(mu)
-    if mu.force_armature or needs_armature(mu):
-        create_armature(mu)
-        # The root object is the armature itself
-        for child in mu.obj.children:
-            create_object(mu, child, None)
-        obj = mu.armature_obj
-    else:
-        obj = create_object(mu, mu.obj, None)
-    return obj
+    return create_object(mu, mu.obj, None)
 
 def import_mu(collection, filepath, create_colliders, force_armature):
     mu = Mu()
