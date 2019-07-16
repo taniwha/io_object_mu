@@ -109,11 +109,19 @@ def create_action(mu, path, clip):
             mu_path = path
         else:
             mu_path = "/".join([path, curve.path])
-        if (mu_path not in mu.object_paths
-            or not hasattr(mu.object_paths[mu_path], "bobj")):
+        if (mu_path not in mu.object_paths):
             print("Unknown path: %s" % (mu_path))
             continue
-        obj = mu.object_paths[mu_path].bobj
+        muobj = mu.object_paths[mu_path]
+        dppref = ""
+        if hasattr(muobj, "bone"):
+            obj = muobj.armature.armature_obj
+            dppref = f'pose.bones["{muobj.bone}"].'
+        elif hasattr(muobj, "bobj"):
+            obj = muobj.bobj
+        else:
+            print("No blender object at path: %s" % (mu_path))
+            continue
 
         if curve.property not in property_map:
             sp = shader_property(obj, curve.property)
@@ -126,6 +134,7 @@ def create_action(mu, path, clip):
         else:
             propmap = property_map[curve.property]
             subpath, propmap = propmap[0], propmap[1:]
+        propmap = (dppref + propmap[0],) +  propmap[1:]
 
         if subpath != "obj":
             obj = getattr (obj, subpath)
