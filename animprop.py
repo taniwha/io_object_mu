@@ -18,7 +18,7 @@ def check_clip(clip, props, clips, path):
             properties[curve.property] = f"{count} static"
             initValue = curve.keys[0].value
             for k in curve.keys:
-                if k.value != initValue:
+                if k.value != initValue or k.tangent[0] or k.tangent[1]:
                     properties[curve.property] = f"{count} animated"
 
 def check_obj(obj, props, anims, path):
