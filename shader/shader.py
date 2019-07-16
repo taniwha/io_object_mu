@@ -214,7 +214,7 @@ bumpmap_block = (
     ("node", "_BumpMap:texture", 'ShaderNodeTexImage', (-600, -20)),
     ("setval", "_BumpMap:texture", "label", "Normal Map"),
     ("setval", "_BumpMap:texture", "hide", True),
-    ("setval", "_BumpMap:texture", "color_space", 'NONE'),
+    #FIXME moved to image?("setval", "_BumpMap:texture", "color_space", 'NONE'),
     ("setparent", "_BumpMap:texture", "_BumpMap:frame"),
     ("node", "_BumpMap:dxtNormal", 'ShaderNodeGroup', (-480, -20)),
     ("setval", "_BumpMap:dxtNormal", "label", "GA Normal"),
