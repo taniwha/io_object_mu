@@ -38,6 +38,8 @@ def add_vector(name, mu, vec, node):
         node.AddValue(name, "%.9g, %.9g, %.9g" % vec)
     elif len(vec) == 4:
         node.AddValue(name, "%.9g, %.9g, %.9g, %.9g" % vec)
+    elif len(vec) == 16:
+        node.AddValue(name, "%.9g, %.9g, %.9g, %.9g, %.9g, %.9g, %.9g, %.9g, %.9g, %.9g, %.9g, %.9g, %.9g, %.9g, %.9g, %.9g" % vec)
 
 def add_thing(thing, mu, node, exclude, add_funcs):
     for a in dir(thing):
