@@ -94,9 +94,10 @@ def add_bone_weights(name, mu, weights, node):
         add_bone_weight(name, mu, weight, weights_node)
 
 def add_bind_poses(name, mu, poses, node):
-    poses_node = node.AddNewNode(name)
-    for pose in poses:
-        add_vector("pose", mu, pose, poses_node)
+    if poses:
+        poses_node = node.AddNewNode(name)
+        for pose in poses:
+            add_vector("pose", mu, pose, poses_node)
 
 def add_uvs(name, mu, uvs, node):
     uvs_node = node.AddNewNode(name)
