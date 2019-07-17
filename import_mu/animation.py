@@ -20,18 +20,19 @@
 # <pep8 compliant>
 
 import bpy
+from mathutils import Quaternion
 
 property_map = {
-    "m_LocalPosition.x": ("obj", "location", 0, 1),
-    "m_LocalPosition.y": ("obj", "location", 2, 1),
-    "m_LocalPosition.z": ("obj", "location", 1, 1),
-    "m_LocalRotation.x": ("obj", "rotation_quaternion", 1, -1),
-    "m_LocalRotation.y": ("obj", "rotation_quaternion", 3, -1),
-    "m_LocalRotation.z": ("obj", "rotation_quaternion", 2, -1),
-    "m_LocalRotation.w": ("obj", "rotation_quaternion", 0, 1),
-    "m_LocalScale.x": ("obj", "scale", 0, 1),
-    "m_LocalScale.y": ("obj", "scale", 2, 1),
-    "m_LocalScale.z": ("obj", "scale", 1, 1),
+    "m_LocalPosition.x": ("obj", "location", 0, 1, 3),
+    "m_LocalPosition.y": ("obj", "location", 2, 1, 3),
+    "m_LocalPosition.z": ("obj", "location", 1, 1, 3),
+    "m_LocalRotation.x": ("obj", "rotation_quaternion", 1, -1, 4),
+    "m_LocalRotation.y": ("obj", "rotation_quaternion", 3, -1, 4),
+    "m_LocalRotation.z": ("obj", "rotation_quaternion", 2, -1, 4),
+    "m_LocalRotation.w": ("obj", "rotation_quaternion", 0, 1, 4),
+    "m_LocalScale.x": ("obj", "scale", 0, 1, 3),
+    "m_LocalScale.y": ("obj", "scale", 2, 1, 3),
+    "m_LocalScale.z": ("obj", "scale", 1, 1, 3),
     "m_Intensity": ("data", "energy", 0, 1),
     "m_Color.r": ("data", "color", 0, 1),
     "m_Color.g": ("data", "color", 1, 1),
@@ -96,11 +97,12 @@ def create_fcurve(action, curve, propmap):
         else:
             dx, dy = 10, 0.0
         fc.keyframe_points[i].handle_right = x + dx, y + dy
-    return True
+    return fc
 
 def create_action(mu, path, clip):
     #print(clip.name)
     actions = {}
+    bones = set()
     for curve in clip.curves:
         if not curve.keys:
             print("Curve has no keys")
@@ -134,7 +136,7 @@ def create_action(mu, path, clip):
         else:
             propmap = property_map[curve.property]
             subpath, propmap = propmap[0], propmap[1:]
-        propmap = (dppref + propmap[0],) +  propmap[1:]
+        fullpropmap = (dppref + propmap[0],) +  propmap[1:3]
 
         objname = ".".join([obj.name, subpath])
 
@@ -145,8 +147,51 @@ def create_action(mu, path, clip):
         if name not in actions:
             actions[name] = bpy.data.actions.new(name), obj
         act, obj = actions[name]
-        if not create_fcurve(act, curve, propmap):
-            continue
+        fcurve = create_fcurve(act, curve, fullpropmap)
+        if hasattr(muobj, "bone"):
+            if not hasattr(muobj, "fcurves"):
+                muobj.fcurves = {}
+            if propmap[0] not in muobj.fcurves:
+                muobj.fcurves[propmap[0]] = [None] * propmap[3]
+            muobj.fcurves[propmap[0]][propmap[1]] = fcurve
+            bones.add(muobj)
+    for muobj in bones:
+        xform = muobj.transform
+        if "location" in muobj.fcurves:
+            location = muobj.fcurves["location"]
+            for i in range(3):
+                if not location[i]:
+                    continue
+                for key in location[i].keyframe_points:
+                    coord = xform.localPosition[i]
+                    key.co.y -= coord
+                    key.handle_left.y -= coord
+                    key.handle_right.y -= coord
+        if "rotation_quaternion" in muobj.fcurves:
+            rotation = muobj.fcurves["rotation_quaternion"]
+            lrot = Quaternion(muobj.transform.localRotation).inverted()
+            if None in rotation:
+                print("Skipping incomplete rotation fcurve set")
+            elif ((len(rotation[0].keyframe_points)
+                  != len(rotation[1].keyframe_points))
+                  or (len(rotation[0].keyframe_points)
+                      != len(rotation[2].keyframe_points))
+                  or (len(rotation[0].keyframe_points)
+                      != len(rotation[3].keyframe_points))):
+                print("Skipping mismatched rotation fcurve set")
+            else:
+                for i in range(len(rotation[0].keyframe_points)):
+                    def rotkey(kval):
+                        wk = getattr(rotation[0].keyframe_points[i], kval)
+                        xk = getattr(rotation[1].keyframe_points[i], kval)
+                        yk = getattr(rotation[2].keyframe_points[i], kval)
+                        zk = getattr(rotation[3].keyframe_points[i], kval)
+                        q = Quaternion((wk.y, xk.y, yk.y, zk.y))
+                        q = q @ lrot
+                        (wk.y, xk.y, yk.y, zk.y) = q
+                    rotkey("co")
+                    rotkey("handle_left")
+                    rotkey("handle_right")
     for name in actions:
         act, obj = actions[name]
         if not obj.animation_data:
