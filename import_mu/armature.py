@@ -53,7 +53,7 @@ def create_bone(bone_obj, edit_bones):
     bone.use_connect = False
     bone.use_inherit_rotation = True
     bone.use_inherit_scale = True
-    bone.use_local_location = True
+    bone.use_local_location = False
     bone.use_relative_parent = False
     return bone
 
