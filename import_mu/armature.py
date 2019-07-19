@@ -20,9 +20,14 @@
 # <pep8 compliant>
 
 import bpy
-from mathutils import Vector, Quaternion
+from mathutils import Vector, Quaternion, Matrix
 
 BONE_LENGTH = 0.1
+#matrix for converting between LHS and RHS (works either direction)
+Matrix_YZ = Matrix(((1,0,0,0),
+                    (0,0,1,0),
+                    (0,1,0,0),
+                    (0,0,0,1)))
 
 def create_vertex_groups(obj, bones, weights):
     mesh = obj.data
@@ -70,7 +75,8 @@ def process_armature(armobj):
         obj.bone.tail = obj.bone.head + lrot @ Vector((0, y, 0))
         obj.bone.align_roll(lrot @ Vector((0, 0, 1)))
         for child in obj.children:
-            process_bone(child, obj.bone.head, lrot)
+            if hasattr(child, "armature") and child.armature == armobj:
+                process_bone(child, obj.bone.head, lrot)
         # must not keep references to bones when the armature leaves edit mode,
         # so keep the bone's name instead (which is what's needed for bone
         # parenting anway)
@@ -85,9 +91,18 @@ def process_armature(armobj):
 
 def find_bones(armobj):
     bone_names = set()
+    multi_skin_reported = False
     for child in armobj.children:
         if hasattr(child, "skinned_mesh_renderer"):
+            if bone_names and not multi_skin_reported:
+                multi_skin_reported = True
+                armobj.mu.messages.append(({'WARNING'}, f"Multiple skinned meshes on {obj.name}, things may go pear-shaped"))
             bone_names |= set(child.skinned_mesh_renderer.bones)
+            for i, bname in enumerate(child.skinned_mesh_renderer.bones):
+                bone = armobj.mu.objects[bname]
+                bp = child.skinned_mesh_renderer.mesh.bindPoses[i]
+                bp = Matrix((bp[0:4], bp[4:8], bp[8:12], bp[12:16]))
+                bone.bindPose = Matrix_YZ @ bp @ Matrix_YZ
     bones = set()
     for bname in bone_names:
         bones.add(armobj.mu.objects[bname])
