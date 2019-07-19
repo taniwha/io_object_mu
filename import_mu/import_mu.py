@@ -171,6 +171,7 @@ def process_mu(mu, mudir):
 
 def import_mu(collection, filepath, create_colliders, force_armature):
     mu = Mu()
+    mu.messages = []
     mu.create_colliders = create_colliders
     mu.force_armature = force_armature
     mu.collection = collection
@@ -178,4 +179,4 @@ def import_mu(collection, filepath, create_colliders, force_armature):
         raise MuImportError("Mu", "Unrecognized format: magic %x version %d"
                                   % (mu.magic, mu.version))
 
-    return process_mu(mu, os.path.dirname(filepath))
+    return process_mu(mu, os.path.dirname(filepath)), mu

@@ -101,7 +101,7 @@ class Model:
         else:
             model = bpy.data.collections.new(modelname)
             loaded_models.children.link(model)
-            obj = import_mu(model, path, False, False)
+            obj, mu = import_mu(model, path, False, False)
             obj.location = Vector((0, 0, 0))
             obj.rotation_quaternion = Quaternion((1,0,0,0))
             obj.scale = Vector((1,1,1))

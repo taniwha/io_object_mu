@@ -34,11 +34,12 @@ def import_mu_op(self, context, filepath, create_colliders, force_armature):
 
     collection = bpy.context.layer_collection.collection
     try:
-        obj = import_mu(collection, filepath, create_colliders, force_armature)
+        ret = import_mu(collection, filepath, create_colliders, force_armature)
     except MuImportError as e:
         operator.report({'ERROR'}, e.message)
         return {'CANCELLED'}
     else:
+        obj, mu = ret
         for o in bpy.context.scene.objects:
             o.select_set(False)
         bpy.context.view_layer.objects.active = obj
@@ -46,6 +47,8 @@ def import_mu_op(self, context, filepath, create_colliders, force_armature):
         obj.rotation_quaternion = Quaternion((1, 0, 0, 0))
         obj.scale = Vector((1, 1, 1))
         obj.select_set(True)
+        for m in mu.messages:
+            operator.report(m[0], m[1])
         return {'FINISHED'}
     finally:
         bpy.context.preferences.edit.use_global_undo = undo
