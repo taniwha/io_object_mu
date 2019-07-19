@@ -60,6 +60,7 @@ def create_object(mu, muobj, parent):
     mesh = None
     name = muobj.transform.name
     if is_armature(muobj):
+        muobj.mu = mu
         obj = create_armature(muobj)
     xform = None if hasattr(muobj, "bone") else muobj.transform
     if hasattr(muobj, "shared_mesh") and hasattr(muobj, "renderer"):

@@ -41,17 +41,20 @@ def create_vertex_groups(obj, bones, weights):
                 obj.vertex_groups[bind].add((vind,), bweight, 'ADD')
 
 def create_armature_modifier(obj, armobj):
-    mod = obj.modifiers.new(name='Armature', type='ARMATURE')
-    mod.use_apply_on_spline = False
-    mod.use_bone_envelopes = False
-    mod.use_deform_preserve_volume = False # silly Unity :P
-    mod.use_multi_modifier = False
-    mod.use_vertex_groups = True
-    mod.object = armobj.armature_obj
+    def add_modifier(obj, name, armature):
+        mod = obj.modifiers.new(name=name, type='ARMATURE')
+        mod.use_apply_on_spline = False
+        mod.use_bone_envelopes = False
+        mod.use_deform_preserve_volume = False # silly Unity :P
+        mod.use_multi_modifier = False
+        mod.use_vertex_groups = True
+        mod.object = armature
+    add_modifier(obj, "BindPose", armobj.bindPose_obj)
+    add_modifier(obj, "Armature", armobj.armature_obj)
 
 def create_bone(bone_obj, edit_bones):
     xform = bone_obj.transform
-    bone_obj.bone = bone = edit_bones.new(xform.name)
+    bone = edit_bones.new(xform.name)
     # actual positions and orientations will be sorted out when building
     # the hierarchy
     bone.head = Vector((0, 0, 0))
@@ -122,28 +125,50 @@ def find_bones(armobj):
     return bones
 
 def create_armature(armobj):
-    name = armobj.transform.name
-    armobj.armature = bpy.data.armatures.new(name)
-    armobj.armature.show_axes = True
-    armobj.armature_obj = create_data_object(name, armobj.armature,
-                                             armobj.transform)
-    ctx = bpy.context
-    ctx.layer_collection.collection.objects.link(armobj.armature_obj)
-    #need to set the active object so edit mode can be entered
-    ctx.view_layer.objects.active = armobj.armature_obj
-
     bones = find_bones(armobj)
 
+    name = armobj.transform.name
+    armobj.armature = bpy.data.armatures.new(name)
+    armobj.bindPose = bpy.data.armatures.new(name + ".bindPose")
+    armobj.armature.show_axes = True
+    armobj.bindPose.show_axes = True
+    armobj.armature_obj = create_data_object(name, armobj.armature,
+                                             armobj.transform)
+    armobj.bindPose_obj = create_data_object(name + ".bindPose",
+                                             armobj.bindPose, None)
+    armobj.bindPose_obj.parent = armobj.armature_obj
+    ctx = bpy.context
+    ctx.layer_collection.collection.objects.link(armobj.armature_obj)
+    ctx.layer_collection.collection.objects.link(armobj.bindPose_obj)
+
+    ctx.view_layer.objects.active = armobj.armature_obj
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     for b in bones:
         b.armature = armobj
-        create_bone(b, armobj.armature.edit_bones)
+        b.bone = create_bone(b, armobj.armature.edit_bones)
     for b in bones:
         if hasattr(b.parent, "bone"):
             b.bone.parent = b.parent.bone
     process_armature(armobj)
-
     bpy.ops.object.mode_set(mode='OBJECT')
+
+    ctx.view_layer.objects.active = armobj.bindPose_obj
+    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+    for b in bones:
+        if hasattr(b, "bindPose"):
+            m = b.bindPose.inverted()
+            pb = create_bone (b, armobj.bindPose.edit_bones)
+            pb.head = m @ Vector((0, 0, 0))
+            pb.tail = m @ Vector((0, BONE_LENGTH, 0))
+            pb.align_roll(m @ Vector((0, 0, 1)))
+            b.poseBone = pb.name
+    bpy.ops.object.mode_set(mode='OBJECT')
+    for b in bones:
+        if hasattr(b, "bindPose"):
+            pb = armobj.bindPose_obj.pose.bones[b.poseBone]
+            rb = armobj.armature_obj.pose.bones[b.poseBone]
+            pb.matrix = rb.matrix
+
     return armobj.armature_obj
 
 def is_armature(obj):
