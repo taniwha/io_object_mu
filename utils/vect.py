@@ -43,8 +43,8 @@ def qmul (a, b):
         return (a[0] * b, mul (a[1], b))
     elif len (b) == 3:
         s = -dot (a[1], b)
-        tv = cross (a[1], v)
-        tv = add (tv, mul (a[0], v))
+        tv = cross (a[1], b)
+        tv = add (tv, mul (a[0], b))
         o = cross (a[1], tv)
         o = sub (o, mul (s, a[1]))
         o = add (o, mul (a[0], tv))
