@@ -21,6 +21,7 @@
 
 import bpy
 from mathutils import Vector, Quaternion, Matrix
+from ..utils import create_data_object
 
 BONE_LENGTH = 0.1
 #matrix for converting between LHS and RHS (works either direction)
@@ -124,7 +125,6 @@ def create_armature(armobj):
     name = armobj.transform.name
     armobj.armature = bpy.data.armatures.new(name)
     armobj.armature.show_axes = True
-    from .import_mu import create_data_object #FIXME circular reference
     armobj.armature_obj = create_data_object(name, armobj.armature,
                                              armobj.transform)
     ctx = bpy.context

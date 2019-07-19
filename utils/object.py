@@ -19,7 +19,23 @@
 
 # <pep8 compliant>
 
-from .collection import util_collection
-from .object import set_transform, create_data_object
-from .utils import swapyz, swizzleq, strip_nnn, vector_str, collect_modifiers
-from .utils import collect_objects, collect_collections
+import bpy
+from mathutils import Vector, Quaternion
+
+def set_transform(obj, transform):
+    obj.rotation_mode = 'QUATERNION'
+    if transform:
+        obj.location = Vector(transform.localPosition)
+        obj.rotation_quaternion = Quaternion(transform.localRotation)
+        obj.scale = Vector(transform.localScale)
+    else:
+        obj.location = Vector((0, 0, 0))
+        obj.rotation_quaternion = Quaternion((1,0,0,0))
+        obj.scale = Vector((1,1,1))
+
+def create_data_object(name, data, transform):
+    obj = bpy.data.objects.new(name, data)
+    bpy.context.view_layer.objects.active = obj
+    set_transform(obj, transform)
+    return obj
+
