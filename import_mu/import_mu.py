@@ -110,9 +110,6 @@ def create_object(mu, muobj, parent):
             rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
             obj.rotation_quaternion @= rot
     if hasattr(muobj, "bone"):
-        #FIXME skinned_mesh_renderer double transforms? Not yet sure this is a
-        #problem, but if so will need to not import the whole hierarchy as one
-        #armature.
         if obj:
             obj.parent = muobj.armature.armature_obj
             obj.parent_type = 'BONE'
