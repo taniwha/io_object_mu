@@ -16,8 +16,10 @@ def cross (a, b):
 def mul (a, b):
     if type (a) in (int, float):
         return (a * b[0], a * b[1], a * b[2])
-    else:
+    elif type (b) in (int, float):
         return (a[0] * b, a[1] * b, a[2] * b)
+    else:
+        return (a[0] * b[0], a[1] * b[1], a[2] * b[2])
 
 def div (a, b):
     return (a[0] / b, a[1] / b, a[2] / b)
