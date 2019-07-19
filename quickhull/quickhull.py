@@ -17,7 +17,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from .vect import *
+from ..utils.vect import *
 
 id = 0
 epsilon = 1e-5

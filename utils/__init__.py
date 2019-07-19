@@ -19,7 +19,12 @@
 
 # <pep8 compliant>
 
-from .collection import util_collection
-from .object import set_transform, create_data_object
+try:
+    import bpy
+except ModuleNotFoundError:
+    pass
+else:
+    from .collection import util_collection
+    from .object import set_transform, create_data_object
 from .utils import swapyz, swizzleq, strip_nnn, vector_str, collect_modifiers
 from .utils import collect_objects, collect_collections
