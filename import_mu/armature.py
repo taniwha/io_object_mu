@@ -52,6 +52,12 @@ def create_armature_modifier(obj, armobj):
     add_modifier(obj, "BindPose", armobj.bindPose_obj)
     add_modifier(obj, "Armature", armobj.armature_obj)
 
+def parent_to_bone(child, bone):
+    child.parent = armobj.armature_obj
+    child.parent_type = 'BONE'
+    child.parent_bone = bone
+    child.matrix_parent_inverse[1][3] = -BONE_LENGTH
+
 def create_bone(bone_obj, edit_bones):
     xform = bone_obj.transform
     bone = edit_bones.new(xform.name)
