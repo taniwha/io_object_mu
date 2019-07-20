@@ -24,6 +24,7 @@ import os.path
 from math import pi, sqrt
 
 import bpy
+import bpy_types
 from mathutils import Vector, Quaternion
 
 from ..mu import Mu
@@ -40,13 +41,6 @@ from .light import create_light
 from .mesh import create_mesh
 from .textures import create_textures
 
-def attach_material(mesh, renderer, mu):
-    if mu.materials and renderer.materials:
-        #KSP supports only the first submesh and thus only the first
-        #material
-        mumat = mu.materials[renderer.materials[0]]
-        mesh.materials.append(mumat.material)
-
 def child_collider(mu, muobj, obj):
     if mu.create_colliders and hasattr(muobj, "collider"):
         if obj.data:
@@ -55,81 +49,78 @@ def child_collider(mu, muobj, obj):
             mu.collection.objects.link(cobj)
             cobj.parent = obj
 
-def create_object(mu, muobj, parent):
-    obj = None
-    mesh = None
-    name = muobj.transform.name
-    xform = None if hasattr(muobj, "bone") else muobj.transform
-    if hasattr(muobj, "shared_mesh") and hasattr(muobj, "renderer"):
-        mesh = create_mesh(mu, muobj.shared_mesh, name)
-        for poly in mesh.polygons:
-            poly.use_smooth = True
-        obj = create_data_object(name, mesh, xform)
-        attach_material(mesh, muobj.renderer, mu)
-        child_collider(mu, muobj, obj)
-    elif hasattr(muobj, "skinned_mesh_renderer"):
-        smr = muobj.skinned_mesh_renderer
-        mesh = create_mesh(mu, smr.mesh, name)
-        for poly in mesh.polygons:
-            poly.use_smooth = True
-        obj = create_data_object(name, mesh, xform)
-        create_vertex_groups(obj, smr.bones, smr.mesh.boneWeights)
-        if hasattr(muobj.parent, "armature_obj"):
-            create_armature_modifier(obj, muobj.parent)
-        attach_material(mesh, smr, mu)
-        child_collider(mu, muobj, obj)
-    if not obj:
-        data = None
-        if hasattr(muobj, "light"):
-            data = create_light(mu, muobj.light, name)
-        elif hasattr(muobj, "camera"):
-            data = create_camera(mu, muobj.camera, name)
-        if data:
-            obj = create_data_object(name, data, xform)
-            # Blender points spotlights along local -Z, unity along local +Z
-            # which is Blender's +Y, so rotate 90 degrees around local X to
-            # go from Unity to Blender
-            rot = Quaternion((0.5**0.5,0.5**0.5,0,0))
-            obj.rotation_quaternion @= rot
-    if hasattr(muobj, "bone"):
-        if obj:
-            obj.parent = muobj.armature.armature_obj
-            obj.parent_type = 'BONE'
-            obj.parent_bone = muobj.bone
-            obj.matrix_parent_inverse[1][3] = -BONE_LENGTH
-        pbone = muobj.armature.armature_obj.pose.bones[muobj.bone]
-        pbone.scale = muobj.transform.localScale
-    else:
-        if not obj:
-            if mu.create_colliders and hasattr(muobj, "collider"):
-                #print(muobj.transform.name)
-                obj = create_collider(mu, muobj)
-                set_transform(obj, xform)
-            else:
-                obj = create_data_object(name, None, xform)
-                if name[:5] == "node_":
-                    #print(name, name[:5])
-                    obj.empty_display_type = 'SINGLE_ARROW'
-                    #print(obj.empty_display_type)
-                    # Blender's empties use the +Z axis for single-arrow
-                    # display, so that is the most natural orientation for
-                    # nodes in blender.
-                    # However, KSP uses the transform's +Z (Unity) axis which
-                    # is Blender's +Y, so rotate -90 degrees around local X to
-                    # go from KSP to Blender
-                    #print(obj.rotation_quaternion)
-                    rot = Quaternion((0.5**0.5, -(0.5**0.5), 0, 0))
-                    obj.rotation_quaternion @= rot
-                    #print(obj.rotation_quaternion)
+import_exclude = {
+    "read", "write", "children"
+}
+type_handlers = {} # filled in by the modules that handle the Mu types
 
-        obj.parent = parent
-    if obj:
-        if obj.name not in mu.collection.objects:
-            mu.collection.objects.link(obj)
-        if hasattr(muobj, "tag_and_layer"):
-            obj.muproperties.tag = muobj.tag_and_layer.tag
-            obj.muproperties.layer = muobj.tag_and_layer.layer
-        muobj.bobj = obj
+def create_object(mu, muobj, parent):
+    if muobj in mu.imported_objects:
+        # the object has already been processed (probably an armature)
+        return muobj.bobj
+    mu.imported_objects.add(muobj)
+
+    xform = muobj.transform
+
+    component_data = []
+    for a in dir(muobj):
+        if a in import_exclude:
+            continue
+        component = getattr(muobj, a)
+        if type(component) in type_handlers:
+            data = type_handlers[type(component)](mu, muobj, component, xform.name)
+            if data:
+                component_data.append(data)
+
+    if len(component_data) != 1:
+        #empty or multiple components
+        obj = create_data_object(xform.name, None, xform)
+        for component in component_data:
+            name, data, rot = component
+            name = ".".join([xform.name, name])
+            if type(data) == bpy_types.Object:
+                cobj = data
+            else:
+                cobj = create_data_object(name, data, None)
+            if rot:
+                cobj.rotation_quaternion @= rot
+            mu.collection.objects.link(cobj)
+            cobj.parent = obj
+    else:
+        name, data, rot = component_data[0]
+        if type(data) == bpy_types.Object:
+            obj = data
+            set_transform(obj, xform)
+        else:
+            obj = create_data_object(xform.name, data, xform)
+        if rot:
+            obj.rotation_quaternion @= rot
+
+    if not obj.data:
+        if xform.name[:5] == "node_":
+            #print(name, xform.name[:5])
+            obj.empty_display_type = 'SINGLE_ARROW'
+            #print(obj.empty_display_type)
+            # Blender's empties use the +Z axis for single-arrow
+            # display, so that is the most natural orientation for
+            # nodes in blender.
+            # However, KSP uses the transform's +Z (Unity) axis which
+            # is Blender's +Y, so rotate -90 degrees around local X to
+            # go from KSP to Blender
+            #print(obj.rotation_quaternion)
+            rot = Quaternion((0.5**0.5, -(0.5**0.5), 0, 0))
+            obj.rotation_quaternion @= rot
+            #print(obj.rotation_quaternion)
+
+    muobj.bobj = obj
+    obj.parent = parent
+
+    if obj.name not in mu.collection.objects:
+        mu.collection.objects.link(obj)
+    if hasattr(muobj, "tag_and_layer"):
+        obj.muproperties.tag = muobj.tag_and_layer.tag
+        obj.muproperties.layer = muobj.tag_and_layer.layer
+
     # prioritize any armatures so their bone objects get consumed
     for child in muobj.children:
         if is_armature(child):
@@ -152,6 +143,7 @@ def process_mu(mu, mudir):
     create_textures(mu, mudir)
     create_materials(mu)
     create_object_paths(mu)
+    mu.imported_objects = set()
     return create_object(mu, mu.obj, None)
 
 def import_mu(collection, filepath, create_colliders, force_armature):

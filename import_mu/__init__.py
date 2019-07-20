@@ -25,6 +25,8 @@ from .operators import KSPMU_OT_ImportMu
 from .import_mu import import_mu
 from .exception import MuImportError
 
+from . import import_modules
+
 def import_mu_menu_func(self, context):
     self.layout.operator(KSPMU_OT_ImportMu.bl_idname, text="KSP Mu (.mu)")
 

@@ -37,9 +37,7 @@ def copy_friction(dst, src):
     dst.extremumValue = src.extremumValue
     dst.stiffness = src.stiffness
 
-def create_collider(mu, muobj):
-    col = muobj.collider
-    name = muobj.transform.name
+def create_collider(mu, muobj, col, name):
     mesh = None
     if type(col) == MuColliderMesh:
         name = name + ".collider"
@@ -76,4 +74,12 @@ def create_collider(mu, muobj):
         obj.muproperties.collider = 'MU_COL_WHEEL'
     if type(col) != MuColliderMesh:
         collider.build_collider(cobj, obj.muproperties)
-    return obj
+    return "collider", obj, None
+
+type_handlers = {
+    MuColliderWheel: create_collider,
+    MuColliderMesh: create_collider,
+    MuColliderBox: create_collider,
+    MuColliderCapsule: create_collider,
+    MuColliderSphere: create_collider,
+}

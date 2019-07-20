@@ -22,6 +22,15 @@
 import bpy
 import bmesh
 
+from ..mu import MuMesh, MuSkinnedMeshRenderer
+
+def attach_material(mesh, renderer, mu):
+    if mu.materials and renderer.materials:
+        #KSP supports only the first submesh and thus only the first
+        #material
+        mumat = mu.materials[renderer.materials[0]]
+        mesh.materials.append(mumat.material)
+
 def create_uvs(mu, uvs, bm, name):
     layer = bm.loops.layers.uv.new(name)
     for face in bm.faces:
@@ -59,3 +68,26 @@ def create_mesh(mu, mumesh, name):
         create_uvs(mu, mumesh.uv2s, bm, "UV2")
     bm.to_mesh(mesh)
     return mesh
+
+def create_mesh_component(mu, muobj, mumesh, name):
+    if not hasattr(muobj, "renderer"):
+        return None
+    mesh = create_mesh (mu, mumesh, name)
+    for poly in mesh.polygons:
+        poly.use_smooth = True
+    attach_material(mesh, muobj.renderer, mu)
+    return "mesh", mesh, None
+
+def create_skinned_mesh_component(mu, muobj, skin, name):
+    mesh = create_mesh(mu, skin.mesh, name)
+    for poly in mesh.polygons:
+        poly.use_smooth = True
+    obj = create_data_object(name, mesh, None)
+    create_vertex_groups(obj, skin.bones, skin.mesh.boneWeights)
+    attach_material(mesh, skin, mu)
+    return "skin", obj, None
+
+type_handlers = {
+    MuMesh: create_mesh_component,
+    MuSkinnedMeshRenderer: create_skinned_mesh_component
+}

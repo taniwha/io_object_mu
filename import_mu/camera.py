@@ -22,10 +22,12 @@
 from math import pi, sqrt
 
 import bpy
+from mathutils import Quaternion
 
+from ..mu import MuCamera
 from .. import properties
 
-def create_camera(mu, mucamera, name):
+def create_camera(mu, muobj, mucamera, name):
     camera = bpy.data.cameras.new(name)
     #mucamera.clearFlags
     camera.type = ['PERSP', 'ORTHO'][mucamera.orthographic]
@@ -41,4 +43,8 @@ def create_camera(mu, mucamera, name):
     if mucamera.clearFlags > 0:
         flags = mucamera.clearFlags - 1
         muprops.clearFlags = properties.clearflag_items[flags][0]
-    return camera
+    return "camera", camera, Quaternion((0.5**0.5, 0.5**0.5, 0, 0))
+
+type_handlers = {
+    MuCamera: create_camera,
+}

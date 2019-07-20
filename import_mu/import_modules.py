@@ -19,26 +19,16 @@
 
 # <pep8 compliant>
 
-from math import pi
+from .import_mu import type_handlers
 
-import bpy
-from mathutils import Quaternion
+from . import armature
+from . import camera
+from . import collider
+from . import light
+from . import mesh
 
-from .. import properties
-from ..mu import MuLight
-
-def create_light(mu, muobj, mulight, name):
-    ltype = ('SPOT', 'SUN', 'POINT', 'AREA')[mulight.type]
-    light = bpy.data.lights.new(name, ltype)
-    light.color = mulight.color[:3]
-    light.distance = mulight.range
-    light.energy = mulight.intensity
-    if ltype == 'SPOT' and hasattr(mulight, "spotAngle"):
-        light.spot_size = mulight.spotAngle * pi / 180
-    muprops = light.mulightprop
-    properties.SetPropMask(muprops.cullingMask, mulight.cullingMask)
-    return "light", light, Quaternion((0.5**0.5, 0.5**0.5, 0, 0))
-
-type_handlers = {
-    MuLight: create_light,
-}
+#type_handlers.update(armature.type_handlers)
+type_handlers.update(camera.type_handlers)
+type_handlers.update(collider.type_handlers)
+type_handlers.update(light.type_handlers)
+type_handlers.update(mesh.type_handlers)
