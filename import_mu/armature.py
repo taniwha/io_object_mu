@@ -71,9 +71,8 @@ def create_bone(bone_obj, edit_bones):
 
 def process_armature(armobj):
     def process_bone(obj, position, rotation):
-        xform = obj.transform
-        obj.bone.head = rotation @ Vector(xform.localPosition) + position
-        rot = Quaternion(xform.localRotation)
+        obj.bone.head = rotation @ Vector(obj.position) + position
+        rot = Quaternion(obj.rotation)
         lrot = rotation @ rot
         y = BONE_LENGTH
         obj.bone.tail = obj.bone.head + lrot @ Vector((0, y, 0))
@@ -89,24 +88,16 @@ def process_armature(armobj):
     pos = Vector((0, 0, 0))
     rot = Quaternion((1, 0, 0, 0))
     #the armature object has no bone
-    for child in armobj.children:
-        if hasattr(child, "bone"):
-            process_bone(child, pos, rot)
+    for rootBone in armobj.rootBones:
+        process_bone(rootBone, pos, rot)
 
 def find_bones(armobj):
-    bone_names = set()
-    multi_skin_reported = False
-    for child in armobj.children:
-        if hasattr(child, "skinned_mesh_renderer"):
-            if bone_names and not multi_skin_reported:
-                multi_skin_reported = True
-                armobj.mu.messages.append(({'WARNING'}, f"Multiple skinned meshes on {obj.name}, things may go pear-shaped"))
-            bone_names |= set(child.skinned_mesh_renderer.bones)
-            for i, bname in enumerate(child.skinned_mesh_renderer.bones):
-                bone = armobj.mu.objects[bname]
-                bp = child.skinned_mesh_renderer.mesh.bindPoses[i]
-                bp = Matrix((bp[0:4], bp[4:8], bp[8:12], bp[12:16]))
-                bone.bindPose = Matrix_YZ @ bp @ Matrix_YZ
+    bone_names = set(armobj.skinned_mesh_renderer.bones)
+    for i, bname in enumerate(armobj.skinned_mesh_renderer.bones):
+        bone = armobj.mu.objects[bname]
+        bp = armobj.skinned_mesh_renderer.mesh.bindPoses[i]
+        bp = Matrix((bp[0:4], bp[4:8], bp[8:12], bp[12:16]))
+        bone.bindPose = Matrix_YZ @ bp @ Matrix_YZ
     bones = set()
     for bname in bone_names:
         bones.add(armobj.mu.objects[bname])
@@ -117,7 +108,7 @@ def find_bones(armobj):
         bones = set()
         for b in prev_bones:
             bones.add(b)
-            while b.parent != armobj:
+            while b not in armobj.siblings:
                 b = b.parent
                 bones.add(b)
     #print(list(map(lambda b: b.transform.name, bones)))
@@ -125,6 +116,10 @@ def find_bones(armobj):
     return bones
 
 def create_armature(armobj):
+    armobj.siblings = set(armobj.parent.children)
+    armobj.rootBones = set()
+    armobj.position = Vector(armobj.transform.localPosition)
+    armobj.rotation = Quaternion(armobj.transform.localRotation)
     bones = find_bones(armobj)
 
     name = armobj.transform.name
@@ -144,11 +139,19 @@ def create_armature(armobj):
     ctx.view_layer.objects.active = armobj.armature_obj
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     for b in bones:
+        b.position = Vector(b.transform.localPosition)
+        b.rotation = Quaternion(b.transform.localRotation)
+        if b in armobj.siblings:
+            r = armobj.rotation.inverted()
+            b.rotation = r @ b.rotation
+            b.position = r @ (b.position - armobj.position)
         b.armature = armobj
         b.bone = create_bone(b, armobj.armature.edit_bones)
     for b in bones:
-        if hasattr(b.parent, "bone"):
+        if b.parent in bones:
             b.bone.parent = b.parent.bone
+        else:
+            armobj.rootBones.add(b)
     process_armature(armobj)
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -172,13 +175,9 @@ def create_armature(armobj):
     return armobj.armature_obj
 
 def is_armature(obj):
-    for comp in ["shared_mesh", "renderer", "skinned_mesh_renderer",
-                 "collider", "camera", "light"]:
-        if hasattr(obj, comp):
-            return False
-    sm = []
-    for child in obj.children:
-        if hasattr(child, "skinned_mesh_renderer"):
-            if child.skinned_mesh_renderer.bones:
-                return True
+    # In Unity, it seems that an object with a SkinnedMeshRenderer is the
+    # armature, and bones can be children of the SMR object, or even siblings
+    if hasattr(obj, "skinned_mesh_renderer"):
+        if obj.skinned_mesh_renderer.bones:
+            return True
     return False

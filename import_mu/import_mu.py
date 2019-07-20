@@ -59,9 +59,6 @@ def create_object(mu, muobj, parent):
     obj = None
     mesh = None
     name = muobj.transform.name
-    if is_armature(muobj):
-        muobj.mu = mu
-        obj = create_armature(muobj)
     xform = None if hasattr(muobj, "bone") else muobj.transform
     if hasattr(muobj, "shared_mesh") and hasattr(muobj, "renderer"):
         mesh = create_mesh(mu, muobj.shared_mesh, name)
@@ -133,6 +130,12 @@ def create_object(mu, muobj, parent):
             obj.muproperties.tag = muobj.tag_and_layer.tag
             obj.muproperties.layer = muobj.tag_and_layer.layer
         muobj.bobj = obj
+    # prioritize any armatures so their bone objects get consumed
+    for child in muobj.children:
+        if is_armature(child):
+            child.mu = mu
+            arm = create_armature(child)
+            arm.parent = obj
     for child in muobj.children:
         create_object(mu, child, obj)
     if hasattr(muobj, "animation"):
