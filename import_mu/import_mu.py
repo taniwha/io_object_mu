@@ -70,7 +70,7 @@ def create_component_object(component, objname, xform):
 def create_object(mu, muobj, parent):
     if muobj in mu.imported_objects:
         # the object has already been processed (probably an armature)
-        return muobj.bobj
+        return None
     mu.imported_objects.add(muobj)
 
     xform = muobj.transform

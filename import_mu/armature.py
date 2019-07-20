@@ -139,6 +139,7 @@ def create_armature(armobj):
     ctx.view_layer.objects.active = armobj.armature_obj
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     for b in bones:
+        armobj.mu.imported_objects.add(b)
         b.position = Vector(b.transform.localPosition)
         b.rotation = Quaternion(b.transform.localRotation)
         if b in armobj.siblings:
