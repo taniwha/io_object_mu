@@ -23,6 +23,9 @@ import bpy
 import bmesh
 
 from ..mu import MuMesh, MuSkinnedMeshRenderer
+from ..utils import create_data_object
+
+from .armature import create_vertex_groups, create_armature_modifier
 
 def attach_material(mesh, renderer, mu):
     if mu.materials and renderer.materials:
@@ -82,10 +85,13 @@ def create_skinned_mesh_component(mu, muobj, skin, name):
     mesh = create_mesh(mu, skin.mesh, name)
     for poly in mesh.polygons:
         poly.use_smooth = True
-    obj = create_data_object(name, mesh, None)
+    obj = create_data_object(name + ".skin", mesh, None)
     create_vertex_groups(obj, skin.bones, skin.mesh.boneWeights)
     attach_material(mesh, skin, mu)
-    return "skin", obj, None
+    obj.parent = muobj.armature_obj
+    create_armature_modifier(obj, muobj)
+    mu.collection.objects.link(obj)
+    return "armature", muobj.armature_obj, None
 
 type_handlers = {
     MuMesh: create_mesh_component,

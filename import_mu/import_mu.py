@@ -33,8 +33,8 @@ from ..utils import set_transform, create_data_object
 
 from .exception import MuImportError
 from .animation import create_action, create_object_paths
-from .armature import create_armature, create_armature_modifier
-from .armature import is_armature, BONE_LENGTH, create_vertex_groups
+from .armature import create_armature
+from .armature import is_armature, BONE_LENGTH
 from .camera import create_camera
 from .collider import create_collider
 from .light import create_light
