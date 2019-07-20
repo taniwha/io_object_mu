@@ -34,7 +34,7 @@ from ..utils import set_transform, create_data_object
 from .exception import MuImportError
 from .animation import create_action, create_object_paths
 from .armature import create_armature
-from .armature import is_armature, BONE_LENGTH
+from .armature import is_armature, parent_to_bone
 from .camera import create_camera
 from .collider import create_collider
 from .light import create_light
@@ -50,7 +50,7 @@ def child_collider(mu, muobj, obj):
             cobj.parent = obj
 
 import_exclude = {
-    "read", "write", "children"
+    "read", "write", "children", "parent"
 }
 type_handlers = {} # filled in by the modules that handle the Mu types
 
@@ -84,6 +84,9 @@ def create_object(mu, muobj, parent):
             data = type_handlers[type(component)](mu, muobj, component, xform.name)
             if data:
                 component_data.append(data)
+
+    if hasattr(muobj, "bone") and not component_data and not muobj.children:
+        return None
 
     if len(component_data) != 1:
         #empty or multiple components
@@ -122,7 +125,11 @@ def create_object(mu, muobj, parent):
             #print(obj.rotation_quaternion)
 
     muobj.bobj = obj
-    obj.parent = parent
+    if hasattr(muobj, "bone") and hasattr(muobj, "armature"):
+        set_transform(obj, None)
+        parent_to_bone(obj, muobj.armature.armature_obj, muobj.bone)
+    else:
+        obj.parent = parent
 
     if hasattr(muobj, "tag_and_layer"):
         obj.muproperties.tag = muobj.tag_and_layer.tag

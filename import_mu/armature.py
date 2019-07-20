@@ -52,8 +52,8 @@ def create_armature_modifier(obj, armobj):
     add_modifier(obj, "BindPose", armobj.bindPose_obj)
     add_modifier(obj, "Armature", armobj.armature_obj)
 
-def parent_to_bone(child, bone):
-    child.parent = armobj.armature_obj
+def parent_to_bone(child, armature, bone):
+    child.parent = armature
     child.parent_type = 'BONE'
     child.parent_bone = bone
     child.matrix_parent_inverse[1][3] = -BONE_LENGTH
@@ -145,7 +145,6 @@ def create_armature(armobj):
     ctx.view_layer.objects.active = armobj.armature_obj
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     for b in bones:
-        armobj.mu.imported_objects.add(b)
         b.position = Vector(b.transform.localPosition)
         b.rotation = Quaternion(b.transform.localRotation)
         b.relRotation = Quaternion((1, 0, 0, 0))
