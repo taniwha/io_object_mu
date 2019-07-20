@@ -40,7 +40,8 @@ def check_transform(obj, level, parent):
     flags += (" r" if hasattr(obj, "renderer") else "")
     flags += (" s" if hasattr(obj, "skinned_mesh_renderer") else "")
     flags += (" c" if hasattr(obj, "collider") else "")
-    print("    " * level + obj.transform.name + flags + "\t" + transform.to_str())
+    #print("    " * level + obj.transform.name + flags + "\t" + transform.to_str())
+    print("    " * level + obj.transform.name + flags)
     return transform
 
 def check_obj(obj, parent, level = 0):
