@@ -54,6 +54,19 @@ import_exclude = {
 }
 type_handlers = {} # filled in by the modules that handle the Mu types
 
+def create_component_object(component, objname, xform):
+    name, data, rot = component
+    name = ".".join([objname, name])
+    if type(data) == bpy_types.Object:
+        cobj = data
+        if xform:
+            set_transform(cobj, xform)
+    else:
+        cobj = create_data_object(name, data, xform)
+    if rot:
+        cobj.rotation_quaternion @= rot
+    return cobj
+
 def create_object(mu, muobj, parent):
     if muobj in mu.imported_objects:
         # the object has already been processed (probably an armature)
@@ -74,27 +87,23 @@ def create_object(mu, muobj, parent):
 
     if len(component_data) != 1:
         #empty or multiple components
-        obj = create_data_object(xform.name, None, xform)
+        obj = None
+        #if a mesh is present, use it for the main object
         for component in component_data:
-            name, data, rot = component
-            name = ".".join([xform.name, name])
-            if type(data) == bpy_types.Object:
-                cobj = data
-            else:
-                cobj = create_data_object(name, data, None)
-            if rot:
-                cobj.rotation_quaternion @= rot
+            if component[0] == "mesh":
+                obj = create_component_object(component, xform.name, xform)
+                component_data.remove(component)
+                break
+        if not obj:
+            obj = create_data_object(xform.name, None, xform)
+        for component in component_data:
+            cobj = create_component_object(component, xform.name, None)
             mu.collection.objects.link(cobj)
             cobj.parent = obj
     else:
-        name, data, rot = component_data[0]
-        if type(data) == bpy_types.Object:
-            obj = data
-            set_transform(obj, xform)
-        else:
-            obj = create_data_object(xform.name, data, xform)
-        if rot:
-            obj.rotation_quaternion @= rot
+        obj = create_component_object(component_data[0], xform.name, xform)
+    if obj.name not in mu.collection.objects:
+        mu.collection.objects.link(obj)
 
     if not obj.data:
         if xform.name[:5] == "node_":
@@ -115,8 +124,6 @@ def create_object(mu, muobj, parent):
     muobj.bobj = obj
     obj.parent = parent
 
-    if obj.name not in mu.collection.objects:
-        mu.collection.objects.link(obj)
     if hasattr(muobj, "tag_and_layer"):
         obj.muproperties.tag = muobj.tag_and_layer.tag
         obj.muproperties.layer = muobj.tag_and_layer.layer
