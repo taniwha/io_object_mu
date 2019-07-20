@@ -20,7 +20,7 @@
 # <pep8 compliant>
 
 import bpy
-from mathutils import Quaternion
+from mathutils import Vector, Quaternion
 
 property_map = {
     "m_LocalPosition.x": ("obj", "location", 0, 1, 3),
@@ -157,16 +157,29 @@ def create_action(mu, path, clip):
             bones.add(muobj)
     for muobj in bones:
         xform = muobj.transform
+        rrot = muobj.relRotation
         if "location" in muobj.fcurves:
             location = muobj.fcurves["location"]
-            for i in range(3):
-                if not location[i]:
-                    continue
-                for key in location[i].keyframe_points:
-                    coord = xform.localPosition[i]
-                    key.co.y -= coord
-                    key.handle_left.y -= coord
-                    key.handle_right.y -= coord
+            lloc = Vector(muobj.transform.localPosition)
+            if None in location:
+                print("Skipping incomplete location fcurve set")
+            elif ((len(location[0].keyframe_points)
+                  != len(location[1].keyframe_points))
+                  or (len(location[0].keyframe_points)
+                      != len(location[2].keyframe_points))):
+                print("Skipping mismatched location fcurve set")
+            else:
+                for i in range(len(location[0].keyframe_points)):
+                    def transformkey(kval):
+                        xk = getattr(location[0].keyframe_points[i], kval)
+                        yk = getattr(location[1].keyframe_points[i], kval)
+                        zk = getattr(location[2].keyframe_points[i], kval)
+                        loc = Vector((xk.y, yk.y, zk.y))
+                        loc = rrot @ (loc - lloc)
+                        (xk.y, yk.y, zk.y) = loc
+                    transformkey("co")
+                    transformkey("handle_left")
+                    transformkey("handle_right")
         if "rotation_quaternion" in muobj.fcurves:
             rotation = muobj.fcurves["rotation_quaternion"]
             lrot = Quaternion(muobj.transform.localRotation).inverted()

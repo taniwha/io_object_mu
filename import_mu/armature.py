@@ -148,10 +148,12 @@ def create_armature(armobj):
         armobj.mu.imported_objects.add(b)
         b.position = Vector(b.transform.localPosition)
         b.rotation = Quaternion(b.transform.localRotation)
+        b.relRotation = Quaternion((1, 0, 0, 0))
         if b in armobj.siblings:
             r = armobj.rotation.inverted()
             b.rotation = r @ b.rotation
             b.position = r @ (b.position - armobj.position)
+            b.relRotation = r
         b.armature = armobj
         b.bone = create_bone(b, armobj.armature.edit_bones)
     for b in bones:
