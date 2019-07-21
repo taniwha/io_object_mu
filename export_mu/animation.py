@@ -20,6 +20,7 @@
 # <pep8 compliant>
 
 import bpy
+from mathutils import Vector, Quaternion
 
 from ..mu import MuAnimation, MuClip, MuCurve, MuKey
 from ..utils import strip_nnn
@@ -126,7 +127,7 @@ def make_key(key, mult):
     dx = (dx - x) / fps
     dy = (dy - y) * mult
     t2 = dy / dx
-    mukey.tangent = t1, t2
+    mukey.tangent = [t1, t2]
     mukey.tangentMode = 0
     return mukey
 
@@ -170,11 +171,19 @@ def make_curve(mu, muobj, curve, path, typ):
         property, mult, ctyp = property_map[curve.data_path][curve.array_index]
     elif typ == "arm":
         bpath, dpath = curve.data_path.rsplit(".", 1)
-        bone_path = muobj.bone_paths[bpath][len(muobj.path):]
+        bone_path = muobj.bone_paths[bpath]
+        bone = mu.object_paths[bone_path]
+        bone_path = bone_path[len(muobj.path):]
         if bone_path[0] == '/':
             bone_path = bone_path[1:]
         mucurve.path = path + bone_path
         property, mult, ctyp  = property_map[dpath][curve.array_index]
+        if not hasattr(bone, "curves"):
+            bone.curves = {}
+        if dpath not in bone.curves:
+            bone.curves[dpath] = [None] * len(property_map[dpath])
+        bone.curves[dpath][curve.array_index] = mucurve
+        muobj.animated_bones.add(bone)
     elif type(typ) == bpy.types.Material:
         dp = curve.data_path.split(".")
         v = {}
@@ -193,6 +202,61 @@ def make_curve(mu, muobj, curve, path, typ):
     for key in curve.keyframe_points:
         mucurve.keys.append(make_key(key, mult))
     return mucurve
+
+def transform_curves(muarm):
+    print(f"transform_curves {muarm.transform.name}")
+    for bone in muarm.animated_bones:
+        if "location" in bone.curves:
+            location = bone.curves["location"]
+            if None in location:
+                print("Skipping incomplete location curve set")
+            elif ((len(location[0].keys) != len(location[1].keys))
+                  or (len(location[0].keys) != len(location[2].keys))):
+                print("Skipping mismatched location fcurve set")
+            else:
+                for i in range(len(location[0].keys)):
+                    xk = location[0].keys[i].value
+                    yk = location[1].keys[i].value
+                    zk = location[2].keys[i].value
+                    loc = Vector((xk, yk, zk))
+                    loc += bone.transform.localPosition
+                    location[0].keys[i].value = loc.x
+                    location[1].keys[i].value = loc.y
+                    location[2].keys[i].value = loc.z
+                    print(loc, bone.transform.localPosition)
+        if "rotation_quaternion" in bone.curves:
+            rotation = bone.curves["rotation_quaternion"]
+            if None in rotation:
+                print("Skipping incomplete rotation fcurve set")
+            elif ((len(rotation[0].keys) != len(rotation[1].keys))
+                  or (len(rotation[0].keys) != len(rotation[2].keys))
+                  or (len(rotation[0].keys) != len(rotation[3].keys))):
+                print("Skipping mismatched rotation fcurve set")
+            else:
+                for i in range(len(rotation[0].keys)):
+                    wk = rotation[0].keys[i].value
+                    xk = rotation[1].keys[i].value
+                    yk = rotation[2].keys[i].value
+                    zk = rotation[3].keys[i].value
+                    rot = Quaternion((wk, xk, yk, zk))
+                    rot = rot @ bone.transform.localRotation
+                    rotation[0].keys[i].value = rot.w
+                    rotation[1].keys[i].value = rot.x
+                    rotation[2].keys[i].value = rot.y
+                    rotation[3].keys[i].value = rot.z
+                    print(rot, bone.transform.localRotation)
+                    for j in range(2):
+                        wk = rotation[0].keys[i].tangent[j]
+                        xk = rotation[1].keys[i].tangent[j]
+                        yk = rotation[2].keys[i].tangent[j]
+                        zk = rotation[3].keys[i].tangent[j]
+                        tan = Quaternion((wk, xk, yk, zk))
+                        tan = tan @ bone.transform.localRotation
+                        rotation[0].keys[i].tangent[j] = tan.w
+                        rotation[1].keys[i].tangent[j] = tan.x
+                        rotation[2].keys[i].tangent[j] = tan.y
+                        rotation[3].keys[i].tangent[j] = tan.z
+                        print(tan)
 
 def make_animations(mu, animations, anim_root):
     anim = MuAnimation()
@@ -216,5 +280,7 @@ def make_animations(mu, animations, anim_root):
                 action = track.strips[0].action
             for curve in action.fcurves:
                 clip.curves.append(make_curve(mu, muobj, curve, path, typ))
+            if hasattr(muobj, "animated_bones"):
+                transform_curves(muobj)
         anim.clips.append(clip)
     return anim

@@ -55,7 +55,7 @@ def export_bone(bone, mu, armature, bone_children, path):
         #FIXME inherit parent tag and layer
         mubone.tag_and_layer.tag = "Untagged"
         mubone.tag_and_layer.layer = 0
-        mu.object_paths[path] = mubone
+    mu.object_paths[path] = mubone
     for child in bone.children:
         muchild = export_bone(child, mu, armature, bone_children, path)
         mubone.children.append(muchild)
@@ -81,7 +81,6 @@ def find_deform_children(obj):
 def find_bindpose_children(obj):
     bindpose_children = []
     for child in obj.children:
-        print(child.name, type(child.data))
         if type(child.data) == bpy.types.Armature:
             if child.name[-9:] == ".bindPose":
                 bindpose_children.append(child)
@@ -116,6 +115,7 @@ def handle_armature(obj, muobj, mu):
             m[0].show_render = m[2]
         muobj.skinned_mesh_renderer = smr
     muobj.bone_paths = {}
+    muobj.animated_bones = set()
     muobj.path = path
     for bone in armature.bones:
         if bone.parent:
