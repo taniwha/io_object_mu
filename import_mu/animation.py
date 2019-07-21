@@ -202,7 +202,7 @@ def create_action(mu, path, clip):
                         yk = getattr(rotation[2].keyframe_points[i], kval)
                         zk = getattr(rotation[3].keyframe_points[i], kval)
                         q = Quaternion((wk.y, xk.y, yk.y, zk.y))
-                        q = q @ lrot
+                        q = lrot @ q
                         (wk.y, xk.y, yk.y, zk.y) = q
                     rotkey("co")
                     rotkey("handle_left")
