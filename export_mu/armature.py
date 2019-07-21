@@ -25,7 +25,7 @@ from mathutils import Vector, Quaternion
 from ..mu import MuObject, MuTransform, MuTagLayer
 from ..utils import strip_nnn
 
-from .export import make_obj_core
+from .export import make_obj_core, exported_objects
 
 def bone_transform(bone, obj):
     matrix = bone.matrix_local
@@ -77,10 +77,21 @@ def find_deform_children(obj):
                 deform_children.append(child)
     return deform_children
 
+def find_bindpose_children(obj):
+    bindpose_children = []
+    for child in obj.children:
+        print(child.name, type(child.data))
+        if type(child.data) == bpy.types.Armature:
+            if child.name[-9:] == ".bindPose":
+                bindpose_children.append(child)
+    return bindpose_children
+
 def handle_armature(obj, muobj, mu):
     armature = obj.data
     bone_children = find_bone_children(obj)
     deform_children = find_deform_children(obj)
+    bindpose_children = find_bindpose_children(obj)
+    exported_objects.update(bindpose_children)
     path = mu.path
     muobj.bone_paths = {}
     muobj.path = path
