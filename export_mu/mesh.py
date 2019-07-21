@@ -244,8 +244,16 @@ def create_skinned_mesh(obj, mu, armature, bindPoses):
     make_bindPoses (smr, armature, bindPoses)
     smr.materials = mesh_materials(mu, obj.data)
     #FIXME center, size, updateWhenOffscreen
-    smr.center = Vector((0, 0, 0))
-    smr.size = Vector((1, 1, 1))
+    #however, with updateWhenOffscreen = 1, Unity will recaculate the mesh
+    #bounds every frame, so take the easy way for now
+    mins = Vector(smr.mesh.verts[0])
+    maxs = Vector(smr.mesh.verts[0])
+    for v in smr.mesh.verts:
+        for i in range(3):
+            mins[i] = min(v[i], mins[i])
+            maxs[i] = max(v[i], maxs[i])
+    smr.center = (maxs + mins) / 2
+    smr.size = (maxs - mins) / 2
     smr.updateWhenOffscreen = 1
     return smr
 
