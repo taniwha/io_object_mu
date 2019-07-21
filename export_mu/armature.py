@@ -92,6 +92,9 @@ def handle_armature(obj, muobj, mu):
     deform_children = find_deform_children(obj)
     bindpose_children = find_bindpose_children(obj)
     exported_objects.update(bindpose_children)
+    if len(bindpose_children) > 1:
+        mu.messages.append(({'WARNING'}, "too many bind-pose armatures, ignoring excess"))
+        bindpose_children = bindpose_children[:1]
     path = mu.path
     muobj.bone_paths = {}
     muobj.path = path
