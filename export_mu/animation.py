@@ -170,8 +170,10 @@ def make_curve(mu, muobj, curve, path, typ):
         property, mult, ctyp = property_map[curve.data_path][curve.array_index]
     elif typ == "arm":
         bpath, dpath = curve.data_path.rsplit(".", 1)
-        bone_path = muobj.bone_paths[bpath]
-        mucurve.path = path + bone_path[len(muobj.path):]
+        bone_path = muobj.bone_paths[bpath][len(muobj.path):]
+        if bone_path[0] == '/':
+            bone_path = bone_path[1:]
+        mucurve.path = path + bone_path
         property, mult, ctyp  = property_map[dpath][curve.array_index]
     elif type(typ) == bpy.types.Material:
         dp = curve.data_path.split(".")
