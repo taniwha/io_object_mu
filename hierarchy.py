@@ -8,29 +8,35 @@ def nice(tup):
 class Transform:
     def __init__(self, loc, rot, scale, parent=None):
         rot = rot[0],rot[1:4]
+        self.loc = loc
+        self.rot = rot
+        self.scale = scale
+        self.wloc = loc
+        self.wrot = rot
+        self.wscale = scale
         if parent:
-            self.loc = parent.transformPoint(loc)
-            self.rot = parent.transformRotation(rot)
-            self.scale = parent.transformScale(scale)
-        else:
-            self.loc = loc
-            self.rot = rot
-            self.scale = scale
+            self.wloc = parent.transformPoint(loc)
+            self.wrot = parent.transformRotation(rot)
+            self.wscale = parent.transformScale(scale)
     def transformPoint(self, p):
-        p = vect.mul(self.scale, p)
-        p = vect.qmul(self.rot, p)
-        p = vect.add(self.loc, p)
+        p = vect.mul(self.wscale, p)
+        p = vect.qmul(self.wrot, p)
+        p = vect.add(self.wloc, p)
         return p
     def transformRotation(self, r):
-        r = vect.qmul(self.rot, r)
+        r = vect.qmul(self.wrot, r)
         return r
     def transformScale(self, s):
-        s = vect.mul(self.scale, s)
-        s = vect.qmul(self.rot, s)
+        s = vect.mul(self.wscale, s)
+        s = vect.qmul(self.wrot, s)
         return s
-    def to_str(self):
-        r = self.rot[0:1]+self.rot[1]
-        return f"[{nice(self.loc)}, {nice(r)}, {nice(self.scale)}]"
+    def to_str(self, world):
+        if world:
+            r = self.wrot[0:1]+self.wrot[1]
+            return f"[{nice(self.wloc)}, {nice(r)}, {nice(self.wscale)}]"
+        else:
+            r = self.rot[0:1]+self.rot[1]
+            return f"[{nice(self.loc)}, {nice(r)}, {nice(self.scale)}]"
 
 def check_transform(obj, level, parent):
     x = obj.transform
@@ -40,7 +46,7 @@ def check_transform(obj, level, parent):
     flags += (" r" if hasattr(obj, "renderer") else "")
     flags += (" s" if hasattr(obj, "skinned_mesh_renderer") else "")
     flags += (" c" if hasattr(obj, "collider") else "")
-    #print("    " * level + obj.transform.name + flags + "\t" + transform.to_str())
+    #print("    " * level + obj.transform.name + flags + "\t" + transform.to_str(False))
     print("    " * level + obj.transform.name + flags)
     return transform
 
