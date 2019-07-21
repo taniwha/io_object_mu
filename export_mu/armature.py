@@ -90,6 +90,10 @@ def handle_armature(obj, muobj, mu):
     armature = obj.data
     bone_children = find_bone_children(obj)
     deform_children = find_deform_children(obj)
+    exported_objects.update(deform_children)
+    if len(deform_children) > 1:
+        mu.messages.append(({'WARNING'}, "too many deform children, ignoring excess"))
+        deform_children = deform_children[:1]
     bindpose_children = find_bindpose_children(obj)
     exported_objects.update(bindpose_children)
     if len(bindpose_children) > 1:
