@@ -112,7 +112,9 @@ def create_action(mu, path, clip):
         else:
             mu_path = "/".join([path, curve.path])
         if (mu_path not in mu.object_paths):
-            print("Unknown path: %s" % (mu_path))
+            if mu_path not in mu.bad_paths:
+                mu.bad_paths.add(mu_path)
+                print("Unknown path: %s" % (mu_path))
             continue
         muobj = mu.object_paths[mu_path]
         dppref = ""
@@ -227,4 +229,5 @@ def create_object_paths(mu):
         parent_names.pop()
     mu.objects = {}
     mu.object_paths = {}
+    mu.bad_paths = set()
     recurse(mu, mu.obj, [], None)
