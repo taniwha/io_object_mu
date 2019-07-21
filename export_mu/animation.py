@@ -223,7 +223,6 @@ def transform_curves(muarm):
                     location[0].keys[i].value = loc.x
                     location[1].keys[i].value = loc.y
                     location[2].keys[i].value = loc.z
-                    print(loc, bone.transform.localPosition)
         if "rotation_quaternion" in bone.curves:
             rotation = bone.curves["rotation_quaternion"]
             if None in rotation:
@@ -244,7 +243,6 @@ def transform_curves(muarm):
                     rotation[1].keys[i].value = rot.x
                     rotation[2].keys[i].value = rot.y
                     rotation[3].keys[i].value = rot.z
-                    print(rot, bone.transform.localRotation)
                     for j in range(2):
                         wk = rotation[0].keys[i].tangent[j]
                         xk = rotation[1].keys[i].tangent[j]
@@ -256,7 +254,6 @@ def transform_curves(muarm):
                         rotation[1].keys[i].tangent[j] = tan.x
                         rotation[2].keys[i].tangent[j] = tan.y
                         rotation[3].keys[i].tangent[j] = tan.z
-                        print(tan)
 
 def make_animations(mu, animations, anim_root):
     anim = MuAnimation()
