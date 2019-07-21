@@ -75,7 +75,7 @@ def create_bone(bone_obj, edit_bones):
     bone.use_cyclic_offset = False
     return bone
 
-def process_armature(armobj):
+def process_armature(armobj, rootBones):
     def process_bone(obj, position, rotation):
         obj.bone.head = rotation @ Vector(obj.position) + position
         rot = Quaternion(obj.rotation)
@@ -94,19 +94,19 @@ def process_armature(armobj):
     pos = Vector((0, 0, 0))
     rot = Quaternion((1, 0, 0, 0))
     #the armature object has no bone
-    for rootBone in armobj.rootBones:
+    for rootBone in rootBones:
         process_bone(rootBone, pos, rot)
 
-def find_bones(armobj):
-    bone_names = set(armobj.skinned_mesh_renderer.bones)
-    for i, bname in enumerate(armobj.skinned_mesh_renderer.bones):
-        bone = armobj.mu.objects[bname]
-        bp = armobj.skinned_mesh_renderer.mesh.bindPoses[i]
+def find_bones(mu, skin, siblings):
+    bone_names = set(skin.skinned_mesh_renderer.bones)
+    for i, bname in enumerate(skin.skinned_mesh_renderer.bones):
+        bone = mu.objects[bname]
+        bp = skin.skinned_mesh_renderer.mesh.bindPoses[i]
         bp = Matrix((bp[0:4], bp[4:8], bp[8:12], bp[12:16]))
         bone.bindPose = Matrix_YZ @ bp @ Matrix_YZ
     bones = set()
     for bname in bone_names:
-        bones.add(armobj.mu.objects[bname])
+        bones.add(mu.objects[bname])
 
     prev_bones = set()
     while bones - prev_bones:
@@ -114,19 +114,24 @@ def find_bones(armobj):
         bones = set()
         for b in prev_bones:
             bones.add(b)
-            while b not in armobj.siblings:
+            while b not in siblings:
                 b = b.parent
                 bones.add(b)
     #print(list(map(lambda b: b.transform.name, bones)))
 
     return bones
 
-def create_armature(armobj):
-    armobj.siblings = set(armobj.parent.children)
-    armobj.rootBones = set()
+def create_armature(mu, skins, siblings):
+    #FIXME assumes all skin transfroms and bind poses are compatible
+    siblings = set(siblings)
+    rootBones = set()
+    bones = set()
+    for skin in skins:
+        bones.update(find_bones(mu, skin, siblings))
+
+    armobj = skins[0]
     armobj.position = Vector(armobj.transform.localPosition)
     armobj.rotation = Quaternion(armobj.transform.localRotation)
-    bones = find_bones(armobj)
 
     name = armobj.transform.name
     armobj.armature = bpy.data.armatures.new(name)
@@ -138,17 +143,20 @@ def create_armature(armobj):
     armobj.bindPose_obj = create_data_object(name + ".bindPose",
                                              armobj.bindPose, None)
     armobj.bindPose_obj.parent = armobj.armature_obj
+
     ctx = bpy.context
+    # link armature objects so they can be edited
     ctx.layer_collection.collection.objects.link(armobj.armature_obj)
     ctx.layer_collection.collection.objects.link(armobj.bindPose_obj)
 
+    save_active = ctx.view_layer.objects.active
     ctx.view_layer.objects.active = armobj.armature_obj
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     for b in bones:
         b.position = Vector(b.transform.localPosition)
         b.rotation = Quaternion(b.transform.localRotation)
         b.relRotation = Quaternion((1, 0, 0, 0))
-        if b in armobj.siblings:
+        if b in siblings:
             r = armobj.rotation.inverted()
             b.rotation = r @ b.rotation
             b.position = r @ (b.position - armobj.position)
@@ -159,8 +167,12 @@ def create_armature(armobj):
         if b.parent in bones:
             b.bone.parent = b.parent.bone
         else:
-            armobj.rootBones.add(b)
-    process_armature(armobj)
+            rootBones.add(b)
+        b.force_import = False
+        for c in b.children:
+            if c not in bones:
+                b.force_import = True
+    process_armature(armobj, rootBones)
     bpy.ops.object.mode_set(mode='OBJECT')
 
     ctx.view_layer.objects.active = armobj.bindPose_obj
@@ -179,6 +191,19 @@ def create_armature(armobj):
             pb = armobj.bindPose_obj.pose.bones[b.poseBone]
             rb = armobj.armature_obj.pose.bones[b.poseBone]
             pb.matrix = rb.matrix
+
+    # don't clutter the main collection if importing to a different collection
+    ctx.layer_collection.collection.objects.unlink(armobj.armature_obj)
+    ctx.layer_collection.collection.objects.unlink(armobj.bindPose_obj)
+    ctx.view_layer.objects.active = save_active
+    #however, do need to link the bindPose armature to the import collection
+    mu.collection.objects.link(armobj.bindPose_obj)
+
+    for skin in skins:
+        skin.armature = armobj.armature
+        skin.armature_obj = armobj.armature_obj
+        skin.bindPose = armobj.bindPose
+        skin.bindPose_obj = armobj.bindPose_obj
 
     return armobj.armature_obj
 

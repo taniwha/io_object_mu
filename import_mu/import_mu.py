@@ -88,7 +88,7 @@ def create_object(mu, muobj, parent):
             if data:
                 component_data.append(data)
 
-    if hasattr(muobj, "bone") and not component_data and not muobj.children:
+    if hasattr(muobj, "bone") and not component_data and not muobj.force_import:
         return None
 
     if len(component_data) != 1:
@@ -142,11 +142,14 @@ def create_object(mu, muobj, parent):
         obj.muproperties.layer = muobj.tag_and_layer.layer
 
     # prioritize any armatures so their bone objects get consumed
+    # however, unity allows for multiple skins to share one armature
+    skins = []
     for child in muobj.children:
         if is_armature(child):
-            child.mu = mu
-            arm = create_armature(child)
-            arm.parent = obj
+            skins.append(child)
+    if skins:
+        arm = create_armature(mu, skins, muobj.children)
+        arm.parent = obj
     for child in muobj.children:
         create_object(mu, child, obj)
     if hasattr(muobj, "animation"):
