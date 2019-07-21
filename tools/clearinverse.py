@@ -32,11 +32,14 @@ def clearinverse(obj, recursive):
     # transformed prior to parenting but not after.
     # this effectively makes the UI reflect the actual local transform
     # FIXME need to apply to animations, too
-    # FIXME be a little smarter about objects parented to bones: the tail
-    # offset portion of the parent inverse is required for things to work
-    # the way unity (and thus KSP) expects
     obj.matrix_basis = obj.matrix_local
     obj.matrix_parent_inverse.identity()
+    if obj.parent and obj.parent_type == 'BONE':
+        armature = obj.parent.data
+        bone = armature.bones[obj.parent_bone]
+        length = (bone.tail - bone.head).magnitude
+        obj.matrix_basis[1][3] += length
+        obj.matrix_parent_inverse[1][3] = -length
     if recursive:
         for child in obj.children:
             clearinverse(child, recursive)
