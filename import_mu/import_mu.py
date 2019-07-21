@@ -56,7 +56,10 @@ type_handlers = {} # filled in by the modules that handle the Mu types
 
 def create_component_object(component, objname, xform):
     name, data, rot = component
-    name = ".".join([objname, name])
+    if name:
+        name = ".".join([objname, name])
+    else:
+        name = objname
     if type(data) == bpy_types.Object:
         cobj = data
         if xform:
@@ -94,8 +97,9 @@ def create_object(mu, muobj, parent):
         #if a mesh is present, use it for the main object
         for component in component_data:
             if component[0] == "mesh":
-                obj = create_component_object(component, xform.name, xform)
                 component_data.remove(component)
+                component = (None,) + component[1:]
+                obj = create_component_object(component, xform.name, xform)
                 break
         if not obj:
             obj = create_data_object(xform.name, None, xform)
@@ -104,7 +108,9 @@ def create_object(mu, muobj, parent):
             mu.collection.objects.link(cobj)
             cobj.parent = obj
     else:
-        obj = create_component_object(component_data[0], xform.name, xform)
+        component = component_data[0]
+        component = (None,) + component[1:]
+        obj = create_component_object(component, xform.name, xform)
     if obj.name not in mu.collection.objects:
         mu.collection.objects.link(obj)
 
