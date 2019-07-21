@@ -65,7 +65,12 @@ def find_single_collider(objects):
             colliders.append(o)
     if len(colliders) == 1:
         mat = colliders[0].matrix_local
-        if mat == mat.Identity(4):
+        mat = mat - mat.Identity(4)
+        sum = 0
+        for i in range(4):
+            for j in range(4):
+                sum += mat[i][j]**2
+        if sum < 1e-9:
             return colliders[0]
     return None
 
