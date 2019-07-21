@@ -23,7 +23,7 @@ import bpy
 from mathutils import Vector, Quaternion
 
 from ..mu import MuObject, MuTransform, MuTagLayer
-from ..utils import strip_nnn
+from ..utils import strip_nnn, collect_armature_modifiers
 
 from .export import make_obj_core, exported_objects
 from .mesh import create_skinned_mesh
@@ -103,7 +103,17 @@ def handle_armature(obj, muobj, mu):
     bindposes = map(lambda o: o.data, bindpose_children)
     path = mu.path
     if deform_children:
+        child = deform_children[0]
+        mods = collect_armature_modifiers(child)
+        for i in range(len(mods)):
+            m = mods[i]
+            mods[i] = (m, m.show_viewport, m.show_render)
+            m.show_viewport = False
+            m.show_render = False
         smr = create_skinned_mesh(deform_children[0], mu, armature, bindposes)
+        for m in mods:
+            m[0].show_viewport = m[1]
+            m[0].show_render = m[2]
         muobj.skinned_mesh_renderer = smr
     muobj.bone_paths = {}
     muobj.path = path

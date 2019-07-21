@@ -48,6 +48,13 @@ def collect_modifiers(obj):
             modifiers.append(mod)
     return modifiers
 
+def collect_armature_modifiers(obj):
+    modifiers = []
+    for mod in obj.modifiers:
+        if type(mod) == bpy.types.ArmatureModifier:
+            modifiers.append(mod)
+    return modifiers
+
 def collect_collections(scene):
     def recurse(col, collist):
         if (col.hide_viewport and not col.hide_render):
