@@ -204,7 +204,6 @@ def make_curve(mu, muobj, curve, path, typ):
     return mucurve
 
 def transform_curves(muarm):
-    print(f"transform_curves {muarm.transform.name}")
     for bone in muarm.animated_bones:
         if "location" in bone.curves:
             location = bone.curves["location"]
@@ -232,28 +231,37 @@ def transform_curves(muarm):
                   or (len(rotation[0].keys) != len(rotation[3].keys))):
                 print("Skipping mismatched rotation fcurve set")
             else:
+                lrot = bone.transform.localRotation
                 for i in range(len(rotation[0].keys)):
+                    # the keys are already left-handled, but the array
+                    # order is wxzy
                     wk = rotation[0].keys[i].value
-                    xk = rotation[1].keys[i].value
-                    yk = rotation[2].keys[i].value
-                    zk = rotation[3].keys[i].value
+                    xk = -rotation[1].keys[i].value
+                    yk = -rotation[2].keys[i].value
+                    zk = -rotation[3].keys[i].value
                     rot = Quaternion((wk, xk, yk, zk))
-                    rot = rot @ bone.transform.localRotation
+                    rot = lrot @ rot
+                    # the keys are already left-handled, but the array
+                    # order is wxzy
                     rotation[0].keys[i].value = rot.w
-                    rotation[1].keys[i].value = rot.x
-                    rotation[2].keys[i].value = rot.y
-                    rotation[3].keys[i].value = rot.z
+                    rotation[1].keys[i].value = -rot.x
+                    rotation[2].keys[i].value = -rot.y
+                    rotation[3].keys[i].value = -rot.z
                     for j in range(2):
+                        # the keys are already left-handled, but the array
+                        # order is wxzy
                         wk = rotation[0].keys[i].tangent[j]
-                        xk = rotation[1].keys[i].tangent[j]
-                        yk = rotation[2].keys[i].tangent[j]
-                        zk = rotation[3].keys[i].tangent[j]
+                        xk = -rotation[1].keys[i].tangent[j]
+                        yk = -rotation[2].keys[i].tangent[j]
+                        zk = -rotation[3].keys[i].tangent[j]
                         tan = Quaternion((wk, xk, yk, zk))
-                        tan = tan @ bone.transform.localRotation
+                        tan = lrot @ tan
+                        # the keys are already left-handled, but the array
+                        # order is wxzy
                         rotation[0].keys[i].tangent[j] = tan.w
-                        rotation[1].keys[i].tangent[j] = tan.x
-                        rotation[2].keys[i].tangent[j] = tan.y
-                        rotation[3].keys[i].tangent[j] = tan.z
+                        rotation[1].keys[i].tangent[j] = -tan.x
+                        rotation[2].keys[i].tangent[j] = -tan.y
+                        rotation[3].keys[i].tangent[j] = -tan.z
 
 def make_animations(mu, animations, anim_root):
     anim = MuAnimation()
