@@ -100,9 +100,10 @@ def handle_armature(obj, muobj, mu):
     if len(bindpose_children) > 1:
         mu.messages.append(({'WARNING'}, "too many bind-pose armatures, ignoring excess"))
         bindpose_children = bindpose_children[:1]
+    bindposes = map(lambda o: o.data, bindpose_children)
     path = mu.path
     if deform_children:
-        smr = create_skinned_mesh(deform_children[0], mu, armature)
+        smr = create_skinned_mesh(deform_children[0], mu, armature, bindposes)
         muobj.skinned_mesh_renderer = smr
     muobj.bone_paths = {}
     muobj.path = path

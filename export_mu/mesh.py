@@ -20,7 +20,7 @@
 # <pep8 compliant>
 
 import bpy
-from mathutils import Vector
+from mathutils import Vector, Matrix
 
 from ..mu import MuMesh, MuRenderer, MuSkinnedMeshRenderer, MuBoneWeight
 from ..utils import collect_modifiers
@@ -30,6 +30,12 @@ from .material import make_material
 from . import export
 
 from pprint import pprint
+
+#matrix for converting between LHS and RHS (works either direction)
+Matrix_YZ = Matrix(((1,0,0,0),
+                    (0,0,1,0),
+                    (0,1,0,0),
+                    (0,0,0,1)))
 
 def split_face(mesh, index, vertex_map):
     face = mesh.polygons[index]
@@ -209,17 +215,35 @@ def mesh_bones(obj, mumesh, armature):
         mumesh.boneWeights[i] = bw
     return bones, maxlen
 
+def make_bindPoses(smr, armature, bindPoses):
+    smr.mesh.bindPoses = [None] * len(smr.bones)
+    for i, bone in enumerate(smr.bones):
+        poseBone = None
+        for bp in bindPoses:
+            if bone in bp.bones:
+                poseBone = bp.bones[bone]
+                break
+        if not poseBone:
+            poseBone = armature.bones[bone]
+        mat = poseBone.matrix_local.inverted()
+        mat = Matrix_YZ @ mat @ Matrix_YZ
+        mat = tuple(mat)
+        mat = tuple(map(lambda v: tuple(v), mat))
+        mat = mat[0] + mat[1] + mat[2] + mat[3]
+        smr.mesh.bindPoses[i] = mat
+
 def handle_mesh(obj, muobj, mu):
     muobj.shared_mesh = make_mesh(mu, obj)
     muobj.renderer = make_renderer(mu, obj.data)
     return muobj
 
-def create_skinned_mesh(obj, mu, armature):
+def create_skinned_mesh(obj, mu, armature, bindPoses):
     smr = MuSkinnedMeshRenderer()
     smr.mesh = make_mesh(mu, obj)
     smr.bones, smr.quality = mesh_bones(obj, smr.mesh, armature)
+    make_bindPoses (smr, armature, bindPoses)
     smr.materials = mesh_materials(mu, obj.data)
-    #FIXME center, size, quality, updateWhenOffscreen
+    #FIXME center, size, updateWhenOffscreen
     smr.center = Vector((0, 0, 0))
     smr.size = Vector((1, 1, 1))
     smr.updateWhenOffscreen = 1
