@@ -26,6 +26,7 @@ from ..mu import MuObject, MuTransform, MuTagLayer
 from ..utils import strip_nnn
 
 from .export import make_obj_core, exported_objects
+from .mesh import create_skinned_mesh
 
 def bone_transform(bone, obj):
     matrix = bone.matrix_local
@@ -100,6 +101,9 @@ def handle_armature(obj, muobj, mu):
         mu.messages.append(({'WARNING'}, "too many bind-pose armatures, ignoring excess"))
         bindpose_children = bindpose_children[:1]
     path = mu.path
+    if deform_children:
+        smr = create_skinned_mesh(deform_children[0], mu, armature)
+        muobj.skinned_mesh_renderer = smr
     muobj.bone_paths = {}
     muobj.path = path
     for bone in armature.bones:

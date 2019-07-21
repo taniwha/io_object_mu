@@ -22,7 +22,7 @@
 import bpy
 from mathutils import Vector
 
-from ..mu import MuMesh, MuRenderer
+from ..mu import MuMesh, MuRenderer, MuSkinnedMeshRenderer, MuBoneWeight
 from ..utils import collect_modifiers
 
 from .material import make_material
@@ -117,6 +117,7 @@ def make_vertex_map(vertex_data):
 
 def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
     verts = [None] * num_verts
+    groups = [None] * num_verts
     uvs = [None] * num_verts
     normals = [None] * num_verts
     tangents = [None] * num_verts
@@ -132,12 +133,14 @@ def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
         colors[vind] = col
     for i, v in enumerate(verts):
         verts[i] = mesh.vertices[v].co
+        groups[i] = mesh.vertices[v].groups
     if tangents[0] != None:
         for i, t in enumerate(tangents):
             tangents[i] = tuple(t) + (bitangents[i],)
     mumesh = MuMesh()
     mumesh.submeshes = submeshes
     mumesh.verts = verts
+    mumesh.groups = groups
     if normals[0] != None:
         mumesh.normals = normals
     if uvs[0] != None:
@@ -177,44 +180,50 @@ def make_renderer(mu, mesh):
 
 def mesh_bones(obj, mumesh, armature):
     boneset = set()
-    for bone in armature:
+    for bone in armature.bones:
         boneset.add(bone.name)
     bones = []
     boneindices = {}
+    mumesh.boneWeights = [None] * len(mumesh.verts)
     for grp in obj.vertex_groups:
         if grp.name in boneset:
             boneindices[grp.name] = len(bones)
             bones.append(grp.name)
-    for vgrp in mumesh.groups:
+    maxlen = 0
+    for i, vertex_group in enumerate(mumesh.groups):
         weights = []
-        for i in len(vgrp):
-            gname = obj.vertex_groups[vgrp[i].group].name
+        for vgrp in vertex_group:
+            gname = obj.vertex_groups[vgrp.group].name
             if gname in boneindices:
-                weights.append((boneindices[gname], vgrp[i].weight))
+                weights.append((boneindices[gname], vgrp.weight))
         weights.sort(key=lambda w: w[1])
         weights.reverse()
+        weights = weights[:4]
+        if len(weights) > maxlen:
+            maxlen = len(weights)
         if len(weights) < 4:
-            weights += [(0,0)]*4 - len(weights)
-        print(weights)
-    return bones
+            weights += [(0,0)]*(4 - len(weights))
+        bw = MuBoneWeight()
+        bw.indices = list(map(lambda w: w[0], weights))
+        bw.weights = list(map(lambda w: w[1], weights))
+        mumesh.boneWeights[i] = bw
+    return bones, maxlen
 
 def handle_mesh(obj, muobj, mu):
     muobj.shared_mesh = make_mesh(mu, obj)
     muobj.renderer = make_renderer(mu, obj.data)
     return muobj
 
-def handle_skinned_mesh(obj, muobj, mu, armature):
+def create_skinned_mesh(obj, mu, armature):
     smr = MuSkinnedMeshRenderer()
     smr.mesh = make_mesh(mu, obj)
-    smr.bones = mesh_bones(obj, smr.mesh, armature)
+    smr.bones, smr.quality = mesh_bones(obj, smr.mesh, armature)
     smr.materials = mesh_materials(mu, obj.data)
     #FIXME center, size, quality, updateWhenOffscreen
-    muobj.skinned_mesh_renderer = smr
-    if hasattr(muobj, "renderer"):
-        delattr(muobj, "renderer")
-    if hasattr(muobj, "shared_mesh"):
-        delattr(muobj, "shared_mesh")
-    return muobj
+    smr.center = Vector((0, 0, 0))
+    smr.size = Vector((1, 1, 1))
+    smr.updateWhenOffscreen = 1
+    return smr
 
 type_handlers = {
     bpy.types.Mesh: handle_mesh,
