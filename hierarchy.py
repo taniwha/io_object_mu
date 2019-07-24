@@ -3,7 +3,7 @@ from utils import vect
 import sys
 
 def nice(tup):
-    return "(" + ", ".join(map(lambda t:f"{t:.3f}", tup)) + ")"
+    return "(" + ", ".join(map(lambda t:f"{t:6.3f}", tup)) + ")"
 
 class Transform:
     def __init__(self, loc, rot, scale, parent=None):
