@@ -7,3 +7,4 @@ o  ensure the inherit flags on bones are respected when exporting
 o  make parent inverse clearing unnecessary
 o  ???
 o  profit
+o  constraints -> simple constraints (need to get that going again)
