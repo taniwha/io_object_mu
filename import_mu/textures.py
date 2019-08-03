@@ -58,7 +58,7 @@ def load_image(base, ext, path, type):
         w,h, pixels = load_mbm(os.path.join(path, name))
         img = bpy.data.images.new(base, w, h)
         img.pixels[:] = map(lambda x: x / 255.0, pixels)
-        img.pack(as_png=True)
+        img.pack()
     img.alpha_mode = 'STRAIGHT'
     img.muimageprop.invertY = (ext.lower() == ".dds")
     img.muimageprop.convertNorm = False
