@@ -23,6 +23,8 @@ class Transform:
         p = vect.qmul(self.wrot, p)
         p = vect.add(self.wloc, p)
         return p
+    def transformDirection(self, d):
+        return vect.qmul(self.wrot, d)
     def transformRotation(self, r):
         r = vect.qmul(self.wrot, r)
         return r
@@ -46,8 +48,12 @@ def check_transform(obj, level, parent):
     flags += (" r" if hasattr(obj, "renderer") else "")
     flags += (" s" if hasattr(obj, "skinned_mesh_renderer") else "")
     flags += (" c" if hasattr(obj, "collider") else "")
-    #print("    " * level + obj.transform.name + flags + "\t" + transform.to_str(False))
-    print("    " * level + obj.transform.name + flags)
+    print("    " * level + obj.transform.name + flags + "\t" + transform.to_str(False))
+    print("    " * level + "\t" + transform.to_str(True))
+    print("    " * level + "\t  X:" + nice(transform.transformDirection((1,0,0))))
+    print("    " * level + "\t  Y:" + nice(transform.transformDirection((0,1,0))))
+    print("    " * level + "\t  Z:" + nice(transform.transformDirection((0,0,1))))
+    #print("    " * level + obj.transform.name + flags)
     return transform
 
 def check_obj(obj, parent, level = 0):
