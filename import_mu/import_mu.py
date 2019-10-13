@@ -169,11 +169,12 @@ def process_mu(mu, mudir):
     mu.imported_objects = set()
     return create_object(mu, mu.obj, None)
 
-def import_mu(collection, filepath, create_colliders, force_armature):
+def import_mu(collection, filepath, create_colliders, force_armature, force_mesh=False):
     mu = Mu()
     mu.messages = []
     mu.create_colliders = create_colliders
     mu.force_armature = force_armature
+    mu.force_mesh = force_mesh
     mu.collection = collection
     if not mu.read(filepath):
         raise MuImportError("Mu", "Unrecognized format: magic %x version %d"

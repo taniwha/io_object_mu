@@ -27,14 +27,14 @@ from bpy.props import BoolProperty, StringProperty
 from .exception import MuImportError
 from .import_mu import import_mu
 
-def import_mu_op(self, context, filepath, create_colliders, force_armature):
+def import_mu_op(self, context, filepath, create_colliders, force_armature, force_mesh):
     operator = self
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
 
     collection = bpy.context.layer_collection.collection
     try:
-        ret = import_mu(collection, filepath, create_colliders, force_armature)
+        ret = import_mu(collection, filepath, create_colliders, force_armature, force_mesh)
     except MuImportError as e:
         operator.report({'ERROR'}, e.message)
         return {'CANCELLED'}
@@ -69,6 +69,9 @@ class KSPMU_OT_ImportMu(bpy.types.Operator, ImportHelper):
     force_armature: BoolProperty(name="Force Armature",
             description="Enable to force use of an armature to hold the model"
                         " hierarchy", default=False)
+    force_mesh: BoolProperty(name="Force Invisible Mesh",
+            description="Enable to force creation of mesh objects that have"
+                        " no renderer", default=False)
 
     def execute(self, context):
         keywords = self.as_keywords (ignore=("filter_glob",

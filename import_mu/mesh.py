@@ -73,12 +73,13 @@ def create_mesh(mu, mumesh, name):
     return mesh
 
 def create_mesh_component(mu, muobj, mumesh, name):
-    if not hasattr(muobj, "renderer"):
+    if not mu.force_mesh and not hasattr(muobj, "renderer"):
         return None
     mesh = create_mesh (mu, mumesh, name)
     for poly in mesh.polygons:
         poly.use_smooth = True
-    attach_material(mesh, muobj.renderer, mu)
+    if hasattr(muobj, "renderer"):
+        attach_material(mesh, muobj.renderer, mu)
     return "mesh", mesh, None
 
 def create_skinned_mesh_component(mu, muobj, skin, name):
