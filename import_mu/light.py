@@ -31,7 +31,8 @@ def create_light(mu, muobj, mulight, name):
     ltype = ('SPOT', 'SUN', 'POINT', 'AREA')[mulight.type]
     light = bpy.data.lights.new(name, ltype)
     light.color = mulight.color[:3]
-    light.distance = mulight.range
+    light.use_custom_distance = True
+    light.cutoff_distance = mulight.range
     light.energy = mulight.intensity
     if ltype == 'SPOT' and hasattr(mulight, "spotAngle"):
         light.spot_size = mulight.spotAngle * pi / 180

@@ -37,7 +37,10 @@ def make_light(mu, light, obj):
     mulight = MuLight()
     mulight.type = ('SPOT', 'SUN', 'POINT', 'AREA').index(light.type)
     mulight.color = tuple(light.color) + (1.0,)
-    mulight.range = light.distance
+    if light.use_custom_distance:
+        mulight.range = light.cutoff_distance
+    else:
+        mulight.range = 10
     mulight.intensity = light.energy
     mulight.spotAngle = 0.0
     mulight.cullingMask = properties.GetPropMask(light.mulightprop.cullingMask)
