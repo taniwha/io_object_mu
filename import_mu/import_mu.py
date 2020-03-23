@@ -54,7 +54,7 @@ import_exclude = {
 }
 type_handlers = {} # filled in by the modules that handle the Mu types
 
-def create_component_object(component, objname, xform):
+def create_component_object(collection, component, objname, xform):
     name, data, rot = component
     if name:
         name = ".".join([objname, name])
@@ -65,7 +65,7 @@ def create_component_object(component, objname, xform):
         if xform:
             set_transform(cobj, xform)
     else:
-        cobj = create_data_object(name, data, xform)
+        cobj = create_data_object(collection, name, data, xform)
     if rot:
         cobj.rotation_quaternion @= rot
     return cobj
@@ -99,18 +99,20 @@ def create_object(mu, muobj, parent):
             if component[0] == "mesh":
                 component_data.remove(component)
                 component = (None,) + component[1:]
-                obj = create_component_object(component, xform.name, xform)
+                obj = create_component_object(mu.collection, component,
+                                              xform.name, xform)
                 break
         if not obj:
-            obj = create_data_object(xform.name, None, xform)
+            obj = create_data_object(mu.collection, xform.name, None, xform)
         for component in component_data:
-            cobj = create_component_object(component, xform.name, None)
-            mu.collection.objects.link(cobj)
+            cobj = create_component_object(mu.collection, component,
+                                           xform.name, None)
             cobj.parent = obj
     else:
         component = component_data[0]
         component = (None,) + component[1:]
-        obj = create_component_object(component, xform.name, xform)
+        obj = create_component_object(mu.collection, component, xform.name,
+                                      xform)
     if obj.name not in mu.collection.objects:
         mu.collection.objects.link(obj)
 

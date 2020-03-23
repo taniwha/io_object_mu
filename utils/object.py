@@ -33,8 +33,9 @@ def set_transform(obj, transform):
         obj.rotation_quaternion = Quaternion((1,0,0,0))
         obj.scale = Vector((1,1,1))
 
-def create_data_object(name, data, transform):
+def create_data_object(collection, name, data, transform):
     obj = bpy.data.objects.new(name, data)
+    collection.objects.link(obj)
     bpy.context.view_layer.objects.active = obj
     set_transform(obj, transform)
     return obj

@@ -138,18 +138,15 @@ def create_armature(mu, skins, siblings):
     armobj.bindPose = bpy.data.armatures.new(name + ".bindPose")
     armobj.armature.show_axes = True
     armobj.bindPose.show_axes = True
-    armobj.armature_obj = create_data_object(name, armobj.armature,
+    ctx = bpy.context
+    col = ctx.layer_collection.collection
+    save_active = ctx.view_layer.objects.active
+    armobj.armature_obj = create_data_object(col, name, armobj.armature,
                                              armobj.transform)
-    armobj.bindPose_obj = create_data_object(name + ".bindPose",
+    armobj.bindPose_obj = create_data_object(col, name + ".bindPose",
                                              armobj.bindPose, None)
     armobj.bindPose_obj.parent = armobj.armature_obj
 
-    ctx = bpy.context
-    # link armature objects so they can be edited
-    ctx.layer_collection.collection.objects.link(armobj.armature_obj)
-    ctx.layer_collection.collection.objects.link(armobj.bindPose_obj)
-
-    save_active = ctx.view_layer.objects.active
     ctx.view_layer.objects.active = armobj.armature_obj
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     for b in bones:
