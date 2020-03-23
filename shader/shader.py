@@ -197,8 +197,8 @@ mainTex_block = (
     ("link", "_MainTex:texture", "Alpha", "_MainTex:invertAlpha", "inputs[1]"),
     ("link", "_MainTex:multiply", "Color", "BaseShader", "Base Color"),
     ("settex", "_MainTex:texture", "image", "_MainTex", "tex"),
-    ("settex", "_MainTex:mapping", "translation.xy", "_MainTex", "offset"),
-    ("settex", "_MainTex:mapping", "scale.xy", "_MainTex", "scale"),
+    ("settex", "_MainTex:mapping", "inputs['Location'].default_value.xy", "_MainTex", "offset"),
+    ("settex", "_MainTex:mapping", "inputs['Scale'].default_value.xy", "_MainTex", "scale"),
     ("set", "_Color", "outputs[0].default_value",
             "color.properties", "_Color"),
 )
@@ -240,8 +240,8 @@ bumpmap_block = (
     ("link", "_BumpMap:normal", "Normal", "_BumpMap:select", "inputs[2]"),
     ("link", "_BumpMap:select", "Color", "BaseShader", "Normal"),
     ("settex", "_BumpMap:texture", "image", "_BumpMap", "tex"),
-    ("settex", "_BumpMap:mapping", "translation.xy", "_BumpMap", "offset"),
-    ("settex", "_BumpMap:mapping", "scale.xy", "_BumpMap", "scale"),
+    ("settex", "_BumpMap:mapping", "inputs['Location'].default_value.xy", "_BumpMap", "offset"),
+    ("settex", "_BumpMap:mapping", "inputs['Scale'].default_value.xy", "_BumpMap", "scale"),
     ("settex", "_BumpMap:select", "inputs[0].default_value", "_BumpMap", "rgbNorm", "float"),
 )
 
@@ -273,8 +273,8 @@ emissive_block = (
     ("link", "UV Map", "UV", "_Emissive:mapping", "Vector"),
     ("link", "_Emissive:multiply", "Color", "EmissiveShader", "Color"),
     ("settex", "_Emissive:texture", "image", "_Emissive", "tex"),
-    ("settex", "_Emissive:mapping", "translation.xy", "_Emissive", "offset"),
-    ("settex", "_Emissive:mapping", "scale.xy", "_Emissive", "scale"),
+    ("settex", "_Emissive:mapping", "inputs['Location'].default_value.xy", "_Emissive", "offset"),
+    ("settex", "_Emissive:mapping", "inputs['Scale'].default_value.xy", "_Emissive", "scale"),
     ("set", "_EmissiveColor", "outputs[0].default_value",
             "color.properties", "_EmissiveColor"),
 )
