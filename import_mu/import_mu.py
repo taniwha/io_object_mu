@@ -64,6 +64,7 @@ def create_component_object(collection, component, objname, xform):
         cobj = data
         if xform:
             set_transform(cobj, xform)
+        collection.objects.link(cobj)
     else:
         cobj = create_data_object(collection, name, data, xform)
     if rot:
