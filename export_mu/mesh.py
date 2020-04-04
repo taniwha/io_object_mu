@@ -65,12 +65,12 @@ def make_tris(mesh, submeshes, vertex_map):
     return submeshes
 
 def get_mesh(obj):
-    #FIXME mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
     modifiers = collect_modifiers(obj)
     for mod in modifiers:
         mod.show_viewport = False
     depsgraph = bpy.context.evaluated_depsgraph_get()
-    mesh = obj.evaluated_get(depsgraph).to_mesh()
+    obj_eval = obj.evaluated_get(depsgraph)
+    mesh = bpy.data.meshes.new_from_object(obj_eval)
     for mod in modifiers:
         mod.show_viewport = True
     return mesh
