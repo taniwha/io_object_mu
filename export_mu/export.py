@@ -152,6 +152,9 @@ def export_object(obj, filepath):
     mu.CoMOffset = None
     mu.CoPOffset = None
     mu.CoLOffset = None
+    mu.anim_root = anim_root
+    if anim_root and "/" not in anim_root:
+        mu.messages.append(({'WARNING'}, "animations on root object not supported by KSP"))
     mu.inverse = obj.matrix_world.inverted()
     mu.special = special_modelTypes[mu.type]
     mu.obj = make_obj(mu, obj, "")
