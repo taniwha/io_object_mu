@@ -33,6 +33,9 @@ def build_dictionary(mu, node):
         "modelSkinVolume":mu.skin_volume,
         "modelExtVolume":mu.ext_volume,
     }
+    if mu.anim_root and mu.anim_root in mu.object_paths:
+        obj = mu.object_paths[mu.anim_root]
+        value_dict["animationRoot"] = obj.transform.name
     i = 0
     while i < len(node.nodes):
         if node.nodes[i][0] == "values":
