@@ -4,6 +4,10 @@ mat = bpy.context.material.mumatprop
 
 mat.name = ''
 mat.shaderName = 'KSP/Alpha/Translucent Specular'
+mat.texture.name = ''
+mat.texture.properties.clear()
+mat.texture.index = 0
+mat.texture.expanded = False
 mat.color.name = ''
 mat.color.properties.clear()
 mat.color.index = 0
