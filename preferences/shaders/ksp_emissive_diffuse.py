@@ -7,11 +7,9 @@ mat.shaderName = 'KSP/Emissive/Diffuse'
 mat.texture.name = ''
 mat.texture.properties.clear()
 mat.texture.index = 0
-mat.texture.expanded = False
 mat.color.name = ''
 mat.color.properties.clear()
 mat.color.index = 0
-mat.color.expanded = False
 mat.vector.name = ''
 mat.vector.properties.clear()
 mat.vector.index = 0
