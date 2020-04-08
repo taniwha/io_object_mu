@@ -24,6 +24,8 @@
 import bpy, os
 from bpy.types import AddonPreferences, Menu
 from bpy.props import StringProperty, BoolProperty
+from . import shader
+
 
 def install_presets(subdir):
     presets=bpy.utils.script_paths("presets")
