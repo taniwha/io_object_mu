@@ -1,4 +1,4 @@
-# either load into blender's text editor and run via alt-p, or:
+# Either load this script into blender's text editor and run via alt-p, or:
 #   blender -noaudio --background project.blend -P mass-export.py
 # All objects that look like a model (no parent, has children) and is enabled
 # for render will be exported as objectname.mu (without blender's numeric
@@ -9,23 +9,28 @@
 import bpy
 import os
 from io_object_mu.export_mu import export_object, strip_nnn
+from io_object_mu.export_mu import enable_collections, restore_collections
 
 textures = set()
 
 blend_filepath = bpy.context.blend_data.filepath
 blend_filepath = os.path.dirname(blend_filepath)
 print(blend_filepath)
-for obj in bpy.data.objects:
-    if not obj.hide_render and not obj.parent and obj.children:
-        name = strip_nnn(obj.name)+".mu"
-        filepath = os.path.join(blend_filepath, name)
-        print(name, filepath)
+collections = enable_collections()
+try:
+    for obj in bpy.data.objects:
+        if not obj.hide_render and not obj.parent and obj.children:
+            name = strip_nnn(obj.name)+".mu"
+            filepath = os.path.join(blend_filepath, name)
+            print(name, filepath)
 
-        mu = export_object (obj, filepath)
-        for m in mu.messages:
-            print(m)
-        for tex in mu.textures:
-            textures.add(tex.name)
+            mu = export_object (obj, filepath)
+            for m in mu.messages:
+                print(m)
+            for tex in mu.textures:
+                textures.add(tex.name)
+finally:
+    restore_collections(collections)
 
 for tex in textures:
     if tex not in bpy.data.images:
