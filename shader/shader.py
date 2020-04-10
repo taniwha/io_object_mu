@@ -224,6 +224,7 @@ bumpmap_block = (
     ("node", "_BumpMap:normal", 'ShaderNodeNormalMap', (-480, -100)),
     ("setval", "_BumpMap:normal", "label", ""),
     ("setval", "_BumpMap:normal", "hide", True),
+    ("setval", "_BumpMap:normal", "inputs[0].default_value", -1),
     ("setparent", "_BumpMap:normal", "_BumpMap:frame"),
     ("node", "_BumpMap:select", 'ShaderNodeMixRGB', (-360, -60)),
     ("setval", "_BumpMap:select", "label", ""),
@@ -373,10 +374,12 @@ def node_settex(name, matprops, nodes, s):
     else:
         val = s[4]
     if tex.tex in bpy.data.images:
-        tex = bpy.data.images[tex.tex]
-        if tex.muimageprop.invertY:
+        img = bpy.data.images[tex.tex]
+        img.colorspace_settings.is_data = tex.type
+        if img.muimageprop.invertY:
             scale.y *= -1
             offset.y = 1 - offset.y
+        tex = img
         cmd = "n.%s = %s" % (s[2], val)
         exec(cmd, {}, locals())
 
