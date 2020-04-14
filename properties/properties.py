@@ -121,6 +121,7 @@ class MuProperties(bpy.types.PropertyGroup):
 
     collider: EnumProperty(items = collider_items, name = "Collider")
     isTrigger: BoolProperty(name = "Trigger")
+    separate: BoolProperty(name = "Separate", description = "Force the collider to be on a separate game object when exporting")
     center: FloatVectorProperty(name = "Center", subtype = 'XYZ', update=collider_update)
     radius: FloatProperty(name = "Radius", update=collider_update)
     height: FloatProperty(name = "Height", update=collider_update)

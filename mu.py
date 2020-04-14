@@ -905,6 +905,7 @@ class MuObject:
     def __init__(self, name=""):
         self.name = name
         self.children = []
+        self.components = []
     def read(self, mu):
         #print("MuObject")
         self.transform = MuTransform().read(mu)
@@ -930,20 +931,28 @@ class MuObject:
                                 MuEnum.ET_BOX_COLLIDER2,
                                 MuEnum.ET_WHEEL_COLLIDER]:
                 self.collider = MuCollider(entry_type).read(mu)
+                self.components.append(self.collider)
             elif entry_type == MuEnum.ET_MESH_FILTER:
                 self.shared_mesh = MuMesh().read(mu)
+                self.components.append(self.shared_mesh)
             elif entry_type == MuEnum.ET_MESH_RENDERER:
                 self.renderer = MuRenderer().read(mu)
+                self.components.append(self.renderer)
             elif entry_type == MuEnum.ET_SKINNED_MESH_RENDERER:
                 self.skinned_mesh_renderer = MuSkinnedMeshRenderer().read(mu)
+                self.components.append(self.skinned_mesh_renderer)
             elif entry_type == MuEnum.ET_ANIMATION:
                 self.animation = MuAnimation().read(mu)
+                self.components.append(self.animation)
             elif entry_type == MuEnum.ET_CAMERA:
                 self.camera = MuCamera().read(mu)
+                self.components.append(self.camera)
             elif entry_type == MuEnum.ET_PARTICLES:
                 self.particles = MuParticles().read(mu)
+                self.components.append(self.particles)
             elif entry_type == MuEnum.ET_LIGHT:
                 self.light = MuLight().read(mu)
+                self.components.append(self.light)
             elif entry_type == MuEnum.ET_MATERIALS:
                 mat_count = mu.read_int()
                 for i in range(mat_count):

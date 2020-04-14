@@ -45,6 +45,10 @@ def create_collider(mu, muobj, col, name):
     obj, cobj = collider.create_collider_object(name, mesh)
 
     obj.muproperties.isTrigger = False
+    # if the collider is the only component on the game object, then make
+    # sure it is kept separate when exporting
+    # FIXME animated colliders? (does anybody do that?)
+    obj.muproperties.separate = len(muobj.components) == 1
     if type(col) != MuColliderWheel:
         obj.muproperties.isTrigger = col.isTrigger
     if type(col) == MuColliderMesh:

@@ -63,7 +63,7 @@ def find_single_collider(objects):
     for o in objects:
         if is_collider(o):
             colliders.append(o)
-    if len(colliders) == 1:
+    if len(colliders) == 1 and not colliders[0].muproperties.separate:
         mat = colliders[0].matrix_local
         mat = mat - mat.Identity(4)
         sum = 0
