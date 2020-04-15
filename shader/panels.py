@@ -23,7 +23,7 @@ import bpy
 
 from .operators import IO_OBJECT_MU_OT_shader_presets
 
-class OBJECT_UL_Property_list(bpy.types.UIList):
+class OBJECT_UL_ShaderProperty_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data,
                   active_propname, index):
         if item:
@@ -44,7 +44,7 @@ def draw_property_list(layout, propset, propsetname):
         box.separator()
         row = box.row()
         col = row.column()
-        col.template_list("OBJECT_UL_Property_list", "", propset,
+        col.template_list("OBJECT_UL_ShaderProperty_list", "", propset,
                           "properties", propset, "index")
         col = row.column(align=True)
         add_op = "object.mushaderprop_add"
@@ -89,6 +89,6 @@ class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
         draw_property_list(layout, matprops.float3, "float3")
 
 classes_to_register = (
-    OBJECT_UL_Property_list,
+    OBJECT_UL_ShaderProperty_list,
     OBJECT_PT_MuMaterialPanel,
 )
