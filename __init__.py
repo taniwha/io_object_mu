@@ -38,6 +38,7 @@ submodule_names = (
     "import_craft",
     "import_mu",
     "model",
+    "module",
     "preferences",
     "prop",
     "properties",
