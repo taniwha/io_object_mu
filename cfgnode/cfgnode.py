@@ -72,6 +72,8 @@ class ConfigNode:
             cfg_error(script, "unexpected end of file")
     @classmethod
     def load(cls, text):
+        if not text:
+            return []
         script = Script("", text, "{}=", False)
         script.error = cfg_error.__get__(script, Script)
         nodes = []
