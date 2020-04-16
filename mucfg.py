@@ -43,7 +43,7 @@ def add_vector(name, mu, vec, node):
 
 def add_thing(thing, mu, node, exclude, add_funcs):
     for a in dir(thing):
-        if a[0] == "_" or a in ["read", "write"] or a in exclude:
+        if a[0] == "_" or a in ["read", "write", "components"] or a in exclude:
             continue
         attr = getattr(thing, a)
         n = attr.__class__.__name__
