@@ -125,7 +125,6 @@ def get_key_normals(shape_key):
     normals = shape_key.normals_split_get()
     normals = zip(normals[0:-2:3], normals[1:-1:3], normals[2::3])
     normals = list(map(lambda n: Vector(n), normals))
-    print(len(normals))
     return normals
 
 def get_key_verts(shape_key):
@@ -156,9 +155,8 @@ def process_shape_keys(mesh, mumesh, vertex_map, vertex_data):
     #ensure base mesh data reflects the basis key
     for i, vind in enumerate(vertex_map):
         v = vertex_data[i][0]
-        vert = basis_verts[v]
-        mumesh.verts[i] = basis_verts[v]
-        mumesh.normals[i] = basis_normals[vind]
+        mumesh.verts[vind] = basis_verts[v]
+        mumesh.normals[vind] = basis_normals[v]
     base_ind = num_verts
     for key in mesh.shape_keys.key_blocks:
         if key.name == basis.name:
@@ -171,10 +169,9 @@ def process_shape_keys(mesh, mumesh, vertex_map, vertex_data):
         for i, vind in enumerate(vertex_map):
             v = vertex_data[i][0]
             vert = verts[v] - ref_verts[v]
-            norm = normals[vind] - ref_normals[vind]
-            mumesh.verts[base_ind + i] = vert
-            mumesh.normals[base_ind + i] = norm
-            print(i, mumesh.verts[base_ind + i], mumesh.normals[base_ind + i])
+            norm = normals[v] - ref_normals[v]
+            mumesh.verts[base_ind + vind] = vert
+            mumesh.normals[base_ind + vind] = norm
         base_ind += num_verts
 
 
@@ -223,7 +220,6 @@ def make_mesh(mu, obj):
     #pprint(submeshes)
     mumesh = make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts)
     mesh = obj.data
-    print(mesh.shape_keys)
     if mesh.shape_keys:
         process_shape_keys(mesh, mumesh, vertex_map, vertex_data)
     return mumesh
