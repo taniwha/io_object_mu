@@ -121,6 +121,63 @@ def make_vertex_map(vertex_data):
         vmap.append(vdict[v])
     return vmap, len(vdict)
 
+def get_key_normals(shape_key):
+    normals = shape_key.normals_split_get()
+    normals = zip(normals[0:-2:3], normals[1:-1:3], normals[2::3])
+    normals = list(map(lambda n: Vector(n), normals))
+    print(len(normals))
+    return normals
+
+def get_key_verts(shape_key):
+    verts = list(map(lambda data: data.co, shape_key.data))
+    return verts
+
+def process_shape_keys(mesh, mumesh, vertex_map, vertex_data):
+    num_shapes = len(mesh.shape_keys.key_blocks)
+    num_verts = len(mumesh.verts)
+    new_verts = (num_shapes - 1) * num_verts
+    # UVs and vertex colors can't be keyed, but the arrays need to be the
+    # same length. Extended with 0s for better compressibility in zip files
+    if (hasattr(mumesh, "uvs")):
+        mumesh.uvs.extend([Vector((0, 0))] * new_verts)
+    if (hasattr(mumesh, "colors")):
+        mumesh.colors.extend([Vector((1, 1, 1, 1))] * new_verts)
+
+    if (hasattr(mumesh, "tangents")):
+        #unfornately, don't know how to do tangents properly, so set
+        #deltas to 0 FIXME
+        mumesh.tangents.extend([(0, 0, 0, 0)] * new_verts)
+    mumesh.verts = mumesh.verts * num_shapes
+    if (hasattr(mumesh, "normals")):
+        mumesh.normals = mumesh.normals * num_shapes
+    basis = mesh.shape_keys.reference_key
+    basis_verts = get_key_verts(basis)
+    basis_normals = get_key_normals(basis)
+    #ensure base mesh data reflects the basis key
+    for i, vind in enumerate(vertex_map):
+        v = vertex_data[i][0]
+        vert = basis_verts[v]
+        mumesh.verts[i] = basis_verts[v]
+        mumesh.normals[i] = basis_normals[vind]
+    base_ind = num_verts
+    for key in mesh.shape_keys.key_blocks:
+        if key.name == basis.name:
+            continue
+        print(key.name)
+        ref_verts = get_key_verts(key.relative_key)
+        ref_normals = get_key_normals(key.relative_key)
+        verts = get_key_verts(key)
+        normals = get_key_normals(key)
+        for i, vind in enumerate(vertex_map):
+            v = vertex_data[i][0]
+            vert = verts[v] - ref_verts[v]
+            norm = normals[vind] - ref_normals[vind]
+            mumesh.verts[base_ind + i] = vert
+            mumesh.normals[base_ind + i] = norm
+            print(i, mumesh.verts[base_ind + i], mumesh.normals[base_ind + i])
+        base_ind += num_verts
+
+
 def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
     verts = [None] * num_verts
     groups = [None] * num_verts
@@ -165,6 +222,10 @@ def make_mesh(mu, obj):
     submeshes = make_tris(mesh, submeshes, vertex_map)
     #pprint(submeshes)
     mumesh = make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts)
+    mesh = obj.data
+    print(mesh.shape_keys)
+    if mesh.shape_keys:
+        process_shape_keys(mesh, mumesh, vertex_map, vertex_data)
     return mumesh
 
 def mesh_materials(mu, mesh):
