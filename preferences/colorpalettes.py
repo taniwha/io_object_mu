@@ -102,6 +102,22 @@ general_data = [
     "333333", "262626", "191919", "0c0c0c",
 ]
 
+nertea_data = [
+    "8C7753", "475E74", "171717", "D9B358", "5F88AF",
+    "5D4934", "53686F", "583232", "856226", "C7974A",
+    "242424", "856C44", "9A7054", "8F5949", "B18B1B",
+    "784139", "856226", "C7974A", "AB4032", "8C8C8C",
+    "424242", "586F53", "B89F54", "A1A1A1", "222222",
+    "666666", "C78C40", "FF4F00", "A9A9A9", "2D2D2D",
+    "C66F32", "5A5A5A", "707070", "787878", "4F4F4F",
+    "DDDDDD", "404040", "C7C7C7", "5E8438", "435D28",
+    "567987", "B08D43", "D88342", "63869A", "262626",
+    "B8B8B8", "FBC189", "AB6432", "B1773C", "272E32",
+    "4F565A", "212C33", "505B63", "151718", "2B1515",
+    "494D49", "AECBAE", "A6A6A6", "496268", "333C72",
+    "723333", "464646", "CEAC5C",
+]
+
 palette_presets = [
     ("Porkjet", html_generate, porkjet_data),
     ("Stock", html_generate, stock_data),
@@ -110,6 +126,7 @@ palette_presets = [
     ("Tantares", html_generate, tantares_data),
     ("bada55", bada55_generate, None),
     ("General", html_generate, general_data),
+    ("Nertea", html_generate, nertea_data),
 ]
 
 def install():
