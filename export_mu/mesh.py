@@ -156,7 +156,7 @@ def process_shape_keys(mesh, mumesh, vertex_map, vertex_data):
     for i, vind in enumerate(vertex_map):
         v = vertex_data[i][0]
         mumesh.verts[vind] = basis_verts[v]
-        mumesh.normals[vind] = basis_normals[v]
+        mumesh.normals[vind] = basis_normals[i]
     base_ind = num_verts
     for key in mesh.shape_keys.key_blocks:
         if key.name == basis.name:
@@ -169,7 +169,7 @@ def process_shape_keys(mesh, mumesh, vertex_map, vertex_data):
         for i, vind in enumerate(vertex_map):
             v = vertex_data[i][0]
             vert = verts[v] - ref_verts[v]
-            norm = normals[v] - ref_normals[v]
+            norm = normals[i] - ref_normals[i]
             mumesh.verts[base_ind + vind] = vert
             mumesh.normals[base_ind + vind] = norm
         base_ind += num_verts
