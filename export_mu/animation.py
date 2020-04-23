@@ -178,7 +178,10 @@ def make_curve(mu, muobj, curve, path, typ):
             bone_path = bone_path[len(muobj.path):]
             if bone_path[0] == '/':
                 bone_path = bone_path[1:]
+            if path and path[-1:] != "/":
+                path = path + "/"
             mucurve.path = path + bone_path
+            print(mucurve.path)
             property, mult, ctyp  = property_map[dpath][curve.array_index]
             if not hasattr(bone, "curves"):
                 bone.curves = {}
