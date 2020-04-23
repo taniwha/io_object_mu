@@ -53,6 +53,7 @@ def object_animations(obj, path):
     if type(obj) in light_types:
         typ = "lit"
     elif type(obj.data) == bpy.types.Armature:
+        print(obj.name)
         typ = "arm"
     if obj.animation_data:
         for track in obj.animation_data.nla_tracks:
@@ -170,20 +171,25 @@ def make_curve(mu, muobj, curve, path, typ):
     if typ in {"obj", "lit"}:
         property, mult, ctyp = property_map[curve.data_path][curve.array_index]
     elif typ == "arm":
-        bpath, dpath = curve.data_path.rsplit(".", 1)
-        bone_path = muobj.bone_paths[bpath]
-        bone = mu.object_paths[bone_path]
-        bone_path = bone_path[len(muobj.path):]
-        if bone_path[0] == '/':
-            bone_path = bone_path[1:]
-        mucurve.path = path + bone_path
-        property, mult, ctyp  = property_map[dpath][curve.array_index]
-        if not hasattr(bone, "curves"):
-            bone.curves = {}
-        if dpath not in bone.curves:
-            bone.curves[dpath] = [None] * len(property_map[dpath])
-        bone.curves[dpath][curve.array_index] = mucurve
-        muobj.animated_bones.add(bone)
+        if "." in curve.data_path:
+            bpath, dpath = curve.data_path.rsplit(".", 1)
+            bone_path = muobj.bone_paths[bpath]
+            bone = mu.object_paths[bone_path]
+            bone_path = bone_path[len(muobj.path):]
+            if bone_path[0] == '/':
+                bone_path = bone_path[1:]
+            mucurve.path = path + bone_path
+            property, mult, ctyp  = property_map[dpath][curve.array_index]
+            if not hasattr(bone, "curves"):
+                bone.curves = {}
+            if dpath not in bone.curves:
+                bone.curves[dpath] = [None] * len(property_map[dpath])
+            bone.curves[dpath][curve.array_index] = mucurve
+            muobj.animated_bones.add(bone)
+        else:
+            dp = curve.data_path
+            ai = curve.array_index
+            property, mult, ctyp = property_map[dp][ai]
     elif type(typ) == bpy.types.Material:
         dp = curve.data_path.split(".")
         v = {}
