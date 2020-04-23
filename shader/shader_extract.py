@@ -75,6 +75,8 @@ node_common = {
     "image_user",
 }
 
+node_groups = set()
+
 def record_inputs(treenode, inputs):
     if not inputs:
         return
@@ -134,6 +136,7 @@ def record_node(node):
                 out.AddValue(a, attr.name)
             elif t == "ShaderNodeTree":
                 out.AddValue(a, attr.name)
+                node_groups.add(attr.name)
             else:
                 out.AddValue(a, attr)
         else:
@@ -195,4 +198,11 @@ def record_material(mat):
     if mat.use_nodes:
         treenode = matnode.AddNewNode("node_tree")
         record_node_tree(mat.node_tree, treenode)
-    return matnode
+    node = cfgnode.ConfigNode()
+    node.AddNode("Material", matnode)
+    print(node_groups)
+    while node_groups:
+        group = node_groups.pop()
+        treenode = node.AddNewNode("node_tree")
+        record_node_tree(bpy.data.node_groups[group], treenode)
+    return node
