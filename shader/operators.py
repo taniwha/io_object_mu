@@ -20,8 +20,10 @@
 # <pep8 compliant>
 
 import bpy
+from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty
 from bl_operators.presets import AddPresetBase
+from .shader_extract import record_material
 
 class KSPMU_OT_MuShaderPropExpand(bpy.types.Operator):
     '''Expand/collapse mu shader property set'''
@@ -78,9 +80,34 @@ class IO_OBJECT_MU_OT_shader_presets(AddPresetBase, bpy.types.Operator):
         "mat.texture",
         ]
 
+def export_material(operator, context, filepath):
+    mat = context.material
+    matnode = record_material(mat)
+    of = open(filepath,"wt")
+    of.write(matnode.ToString())
+    return {'FINISHED'}
+
+class IO_OBJECT_MU_MT_shader_export(bpy.types.Operator, ExportHelper):
+    '''Save a material as a .cfg file'''
+    bl_idname = "export_material.ksp_cfg"
+    bl_label = "Export Material"
+
+    filename_ext = ".cfg"
+    filter_glob: StringProperty(default="*.cfg", options={'HIDDEN'})
+
+    @classmethod
+    def poll(cls, context):
+        return context.material != None
+
+    def execute(self, context):
+        keywords = self.as_keywords (ignore=("check_existing", "filter_glob",
+                                             "axis_forward", "axis_up"))
+        return export_material(self, context, **keywords)
+
 classes_to_register = (
     KSPMU_OT_MuShaderPropExpand,
     KSPMU_OT_MuShaderPropAdd,
     KSPMU_OT_MuShaderPropRemove,
     IO_OBJECT_MU_OT_shader_presets,
+    IO_OBJECT_MU_MT_shader_export,
 )
