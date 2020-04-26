@@ -27,5 +27,6 @@ else:
     from .collection import util_collection
     from .object import set_transform, create_data_object
     from .object import collect_objects, collect_collections
+    from .object import collect_hierarchy_objects
     from .object import collect_armature_modifiers, collect_modifiers
 from .utils import swapyz, swizzleq, strip_nnn, vector_str

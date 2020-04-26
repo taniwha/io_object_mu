@@ -23,7 +23,7 @@ import bpy
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty
 
-from ..utils import strip_nnn
+from ..utils import strip_nnn, collect_hierarchy_objects
 
 from . import export
 from . import volume
@@ -102,4 +102,28 @@ class KSPMU_OT_MuVolume(bpy.types.Operator):
         else:
             vol = volume.model_volume(obj)
         self.report({'INFO'}, 'Skin Volume = %g m^3, Ext Volume = %g m^3' % vol)
+        return {'FINISHED'}
+
+class KSPMU_OT_MuFindCoM(bpy.types.Operator):
+    bl_idname = 'object.mu_snap_cursor_to_com'
+    bl_label = 'Mu Center of Mass'
+
+    @classmethod
+    def poll(cls, context):
+        #print(context.selected_objects)
+        if len(context.selected_objects) == 1 and context.active_object:
+            return True
+        if context.selected_objects:
+            return True
+        return False
+
+    def execute(self, context):
+        obj = context.active_object
+        if len(context.selected_objects) == 1 and context.active_object:
+            objects = collect_hierarchy_objects(context.active_object)
+            print(objects)
+        elif context.selected_objects:
+            objects = context.selected_objects[:]
+        pos = volume.find_com(objects)
+        bpy.context.scene.cursor.location = pos
         return {'FINISHED'}

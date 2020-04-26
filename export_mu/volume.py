@@ -20,6 +20,7 @@
 # <pep8 compliant>
 
 import bpy
+from mathutils import Vector
 
 from ..utils import collect_modifiers
 
@@ -88,3 +89,41 @@ def model_volume(obj):
     for e in sorted(evols, key=abs):
         extvol += e
     return skinvol, extvol
+
+def find_com(objects):
+    origin = Vector((0, 0, 0))
+    base_pos = objects[0].matrix_world @ origin
+    weighted_x = [None] * len(objects)
+    weighted_y = [None] * len(objects)
+    weighted_z = [None] * len(objects)
+    vols = [None] * len(objects)
+    for i, obj in enumerate(objects):
+        pos = obj.matrix_world @ origin - base_pos
+        if obj.instance_collection and obj.instance_type == 'COLLECTION':
+            vol = model_volume(obj)[0]
+        elif obj.data and type(obj.data) == bpy.types.Mesh:
+            vol = obj_volume(obj)[0]
+        else:
+            vol = 0
+        wpos = pos * vol
+        weighted_x[i] = wpos.x
+        weighted_y[i] = wpos.y
+        weighted_z[i] = wpos.z
+        vols[i] = vol
+    vol = 0
+    x = 0
+    y = 0
+    z = 0
+    for v in sorted(vols, key=abs):
+        vol += v
+    for c in sorted(weighted_x, key=abs):
+        x += c
+    for c in sorted(weighted_y, key=abs):
+        y += c
+    for c in sorted(weighted_z, key=abs):
+        z += c
+    pos = Vector((x, y, z))
+    if vol > 0:
+        pos /= vol
+    print((x,y,z),vol,pos,base_pos)
+    return pos + base_pos

@@ -73,3 +73,12 @@ def collect_objects(name, obj):
     collection = bpy.data.collections.new(name)
     add_to_collection(collection, obj)
     return collection
+
+def collect_hierarchy_objects(root):
+    def collect(objects, obj):
+        objects.extend(obj.children)
+        for child in obj.children:
+            collect(objects, child)
+    objects = [root]
+    collect(objects, root)
+    return objects
