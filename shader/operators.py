@@ -84,7 +84,7 @@ def export_material(operator, context, filepath):
     mat = context.material
     matnode = record_material(mat)
     of = open(filepath,"wt")
-    of.write(matnode.ToString())
+    of.write("shader " + matnode.ToString())
     return {'FINISHED'}
 
 class IO_OBJECT_MU_MT_shader_export(bpy.types.Operator, ExportHelper):
