@@ -83,13 +83,11 @@ def build_nodes(matname, node_tree, ntcfg):
         if sndata.HasNode("inputs"):
             for i,ip in enumerate(sndata.GetNode("inputs").GetNodes("input")):
                 if ip.HasValue("default_value"):
-                    print(sn.name)
                     value = ip.GetValue("default_value")
                     sn.inputs[i].default_value = parse_value(value)
         if sndata.HasNode("outputs"):
             for i,op in enumerate(sndata.GetNode("outputs").GetNodes("output")):
                 if op.HasValue("default_value"):
-                    print(sn.name)
                     value = op.GetValue("default_value")
                     sn.outputs[i].default_value = parse_value(value)
     for r in refs:
@@ -155,6 +153,8 @@ def create_nodes(mat):
                 nodes.remove(nodes[0])
         if mat.use_nodes and matcfg.HasNode("node_tree"):
             build_nodes(mat.name, mat.node_tree, matcfg.GetNode("node_tree"))
+    else:
+        print(f"WARNING: unknown shader: {shaderName}")
 
 def make_shader4(mumat, mu):
     mat = bpy.data.materials.new(mumat.name)
