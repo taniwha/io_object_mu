@@ -104,7 +104,7 @@ def build_nodes(matname, node_tree, ntcfg):
         to_socket = to_node.inputs[int(ln.GetValue("to_socket"))]
         links.new(from_socket, to_socket)
 
-def set_tex(mu, dst, src):
+def set_tex(mu, dst, src, context):
     try:
         tex = mu.textures[src.index]
         if tex.name[-4:] in [".dds", ".png", ".tga", ".mbm"]:
@@ -118,18 +118,22 @@ def set_tex(mu, dst, src):
         dst.rgbNorm = not bpy.data.images[dst.tex].muimageprop.convertNorm
     dst.scale = src.scale
     dst.offset = src.offset
+    dst.__annotations__["tex"][1]["update"](dst, context)
+    #other properties are all updated in the one updater
+    dst.__annotations__["rgbNorm"][1]["update"](dst, context)
 
-def make_shader_prop(muprop, blendprop):
+def make_shader_prop(muprop, blendprop, context):
     for k in muprop:
         item = blendprop.add()
         item.name = k
         item.value = muprop[k]
+        item.__annotations__["value"][1]["update"](item, context)
 
-def make_shader_tex_prop(mu, muprop, blendprop):
+def make_shader_tex_prop(mu, muprop, blendprop, context):
     for k in muprop:
         item = blendprop.add()
         item.name = k
-        set_tex(mu, item, muprop[k])
+        set_tex(mu, item, muprop[k], context)
 
 def create_nodes(mat):
     shaderName = mat.mumatprop.shaderName
@@ -160,12 +164,16 @@ def make_shader4(mumat, mu):
     mat = bpy.data.materials.new(mumat.name)
     matprops = mat.mumatprop
     matprops.shaderName = mumat.shaderName
-    make_shader_prop(mumat.colorProperties, matprops.color.properties)
-    make_shader_prop(mumat.vectorProperties, matprops.vector.properties)
-    make_shader_prop(mumat.floatProperties2, matprops.float2.properties)
-    make_shader_prop(mumat.floatProperties3, matprops.float3.properties)
-    make_shader_tex_prop(mu, mumat.textureProperties, matprops.texture.properties)
     create_nodes(mat)
+    class Context:
+        pass
+    ctx = Context()
+    ctx.material = mat
+    make_shader_prop(mumat.colorProperties, matprops.color.properties, ctx)
+    make_shader_prop(mumat.vectorProperties, matprops.vector.properties, ctx)
+    make_shader_prop(mumat.floatProperties2, matprops.float2.properties, ctx)
+    make_shader_prop(mumat.floatProperties3, matprops.float3.properties, ctx)
+    make_shader_tex_prop(mu, mumat.textureProperties, matprops.texture.properties, ctx)
     return mat
 
 def make_shader(mumat, mu):
