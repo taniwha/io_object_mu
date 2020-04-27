@@ -34,8 +34,9 @@ class IO_OBJECT_MU_MT_shader_presets(bpy.types.Menu):
     @classmethod
     def reset_cb(cls, context):
         mat = context.material
-        mat.node_tree.nodes.clear()
-        mat.node_tree.links.clear()
+        if mat.use_nodes:
+            mat.node_tree.nodes.clear()
+            mat.node_tree.links.clear()
 
     @classmethod
     def post_cb(cls, context):
