@@ -25,7 +25,12 @@ from bpy.props import CollectionProperty
 from bpy.props import IntProperty
 
 def float2_update(self, context):
-    pass
+    if not hasattr(context, "material") or not context.material:
+        return
+    mat = context.material
+    nodes = mat.node_tree.nodes
+    if self.name in nodes:
+        nodes[self.name].outputs[0].default_value = self.value
 
 class MuFloat2Prop(bpy.types.PropertyGroup):
     value: FloatProperty(name="", update=float2_update)

@@ -87,6 +87,7 @@ class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
         draw_property_list(layout, matprops.vector, "vector")
         draw_property_list(layout, matprops.float2, "float2")
         draw_property_list(layout, matprops.float3, "float3")
+        col.operator("export_material.ksp_cfg")
 
 classes_to_register = (
     OBJECT_UL_ShaderProperty_list,

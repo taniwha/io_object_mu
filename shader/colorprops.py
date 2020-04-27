@@ -28,10 +28,10 @@ def color_update(self, context):
     if not hasattr(context, "material") or not context.material:
         return
     mat = context.material
-    node_name = "%s.%s" % (mat.name, self.name)
     nodes = mat.node_tree.nodes
-    if node_name in nodes:
-        nodes[node_name].outputs[0].default_value = self.value
+    if self.name in nodes:
+        nodes[self.name].inputs[0].default_value = self.value
+        nodes[self.name].inputs[1].default_value = self.value[3]
 
 class MuColorProp(bpy.types.PropertyGroup):
     value: FloatVectorProperty(name="", size = 4, subtype='COLOR', min = 0.0, max = 1.0, default = (1.0, 1.0, 1.0, 1.0), update=color_update)

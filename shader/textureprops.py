@@ -33,30 +33,28 @@ def texture_update_mapping(self, context):
     if not hasattr(context, "material") or not context.material:
         return
     mat = context.material
-    node_name = "%s.%s:mapping" % (mat.name, self.name)
-    sel_name = "%s.%s:select" % (mat.name, self.name)
+    #sel_name = "%s.%s:select" % (mat.name, self.name)
     nodes = mat.node_tree.nodes
     scale = Vector(self.scale)
     offset = Vector(self.offset)
-    if node_name in nodes:
+    if self.name in nodes:
         if self.tex in bpy.data.images:
             img = bpy.data.images[self.tex]
             if img.muimageprop.invertY:
                 scale.y *= -1
                 offset.y = 1 - offset.y
-        nodes[node_name].translation.xy = offset
-        nodes[node_name].scale.xy = scale
-    if sel_name in nodes:
-        nodes[sel_name].inputs[0].default_value = float(self.rgbNorm)
+        nodes[self.name].texture_mapping.translation.xy = offset
+        nodes[self.name].texture_mapping.scale.xy = scale
+    #if sel_name in nodes:
+    #    nodes[sel_name].inputs[0].default_value = float(self.rgbNorm)
 
 def texture_update_tex(self, context):
     if not hasattr(context, "material") or not context.material:
         return
     mat = context.material
-    node_name = "%s.%s:texture" % (mat.name, self.name)
     nodes = mat.node_tree.nodes
-    if node_name in nodes and self.tex in bpy.data.images:
-        nodes[node_name].image = bpy.data.images[self.tex]
+    if self.name in nodes and self.tex in bpy.data.images:
+        nodes[self.name].image = bpy.data.images[self.tex]
 
 class MuTextureProperties(bpy.types.PropertyGroup):
     tex: StringProperty(name="tex", update=texture_update_tex)

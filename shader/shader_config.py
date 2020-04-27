@@ -19,24 +19,26 @@
 
 # <pep8 compliant>
 
-from .. import register_submodules
+import sys, os
+from pprint import pprint
 
-from .shader import make_shader
+import bpy
+from mathutils import Vector
 
-from .shader_config import load_shader_configs
+from ..cfgnode import ConfigNode
 
-submodule_names = (
-    "colorprops",
-    "float2props",
-    "float3props",
-    "imageprops",
-    "textureprops",
-    "vectorprops",
+shader_configs = {}
 
-    "materialprops",
-    "menus",
-    "operators",
-    "panels",
-)
-register_submodules(__name__, submodule_names)
-load_shader_configs(__path__[0])
+def load_shader_configs(path):
+    files = os.listdir(path)
+    for f in files:
+        if f[0] in [".", "_"]:
+            continue
+        if f[-4:] == ".cfg":
+            p = "/".join((path, f))
+            if os.path.isfile(p):
+                cfg = ConfigNode.loadfile(p)
+                for shader in cfg.GetNodes("shader"):
+                    if shader.HasValue("name"):
+                        shader_configs[shader.GetValue("name")] = shader
+    #pprint(shader_configs)

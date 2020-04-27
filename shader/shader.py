@@ -24,433 +24,87 @@ import sys, traceback
 import bpy
 from mathutils import Vector
 
-dxtNormal_block = (
-    ("node", "dxtNormalInput", 'NodeGroupInput', (0, 60)),
-    ("node", "separateRGB", 'ShaderNodeSeparateRGB', (180, 60)),
-    ("setval", "separateRGB", "hide", True),
-    ("node", "scaleGreen", 'ShaderNodeMath', (300, 60)),
-    ("setval", "scaleGreen", "label", "Scale Green"),
-    ("setval", "scaleGreen", "hide", True),
-    ("setval", "scaleGreen", "operation", 'MULTIPLY'),
-    ("setval", "scaleGreen", "inputs[1].default_value", 2),
-    ("node", "scaleAlpha", 'ShaderNodeMath', (300, 20)),
-    ("setval", "scaleAlpha", "label", "Scale Alpha"),
-    ("setval", "scaleAlpha", "hide", True),
-    ("setval", "scaleAlpha", "operation", 'MULTIPLY'),
-    ("setval", "scaleAlpha", "inputs[1].default_value", 2),
-    ("node", "offsetGreenToY", 'ShaderNodeMath', (420, 60)),
-    ("setval", "offsetGreenToY", "label", "Offset Green to Y"),
-    ("setval", "offsetGreenToY", "hide", True),
-    ("setval", "offsetGreenToY", "operation", 'SUBTRACT'),
-    ("setval", "offsetGreenToY", "inputs[1].default_value", 1),
-    ("node", "offsetAlphaToX", 'ShaderNodeMath', (420, 20)),
-    ("setval", "offsetAlphaToX", "label", "Offset Alpha to X"),
-    ("setval", "offsetAlphaToX", "hide", True),
-    ("setval", "offsetAlphaToX", "operation", 'SUBTRACT'),
-    ("setval", "offsetAlphaToX", "inputs[1].default_value", 1),
-    ("node", "Reroute0", 'NodeReroute', (560, 80)),
-    ("setval", "Reroute0", "label", ""),
-    ("node", "Reroute1", 'NodeReroute', (540, 0)),
-    ("setval", "Reroute1", "label", ""),
-    ("node", "Reroute2", 'NodeReroute', (540, 100)),
-    ("setval", "Reroute2", "label", ""),
-    ("node", "squareX", 'ShaderNodeMath', (580, 20)),
-    ("setval", "squareX", "label", "Square X"),
-    ("setval", "squareX", "hide", True),
-    ("setval", "squareX", "operation", 'MULTIPLY'),
-    ("node", "squareY", 'ShaderNodeMath', (580, 60)),
-    ("setval", "squareY", "label", "Square Y"),
-    ("setval", "squareY", "hide", True),
-    ("setval", "squareY", "operation", 'MULTIPLY'),
-    ("node", "addX2Y2", 'ShaderNodeMath', (700, 60)),
-    ("setval", "addX2Y2", "label", "X^2 + Y^2"),
-    ("setval", "addX2Y2", "hide", True),
-    ("setval", "addX2Y2", "operation", 'ADD'),
-    ("node", "subXY", 'ShaderNodeMath', (820, 60)),
-    ("setval", "subXY", "label", "Z^2"),
-    ("setval", "subXY", "hide", True),
-    ("setval", "subXY", "operation", 'SUBTRACT'),
-    ("setval", "subXY", "inputs[0].default_value", 1),
-    ("node", "sqrtZ2", 'ShaderNodeMath', (940, 60)),
-    ("setval", "sqrtZ2", "label", "Z = sqrt(1-X^2-Y^2)"),
-    ("setval", "sqrtZ2", "hide", True),
-    ("setval", "sqrtZ2", "operation", 'SQRT'),
-    ("node", "combineXYZ", 'ShaderNodeCombineXYZ', (1040, 100)),
-    ("setval", "combineXYZ", "hide", True),
-    ("node", "dxtNormalOutput", 'NodeGroupOutput', (1160, 120)),
-    ("link", "dxtNormalInput", "outputs[0]", "separateRGB", "inputs[0]"),
-    ("link", "separateRGB", "G", "scaleGreen", "inputs[0]"),
-    ("link", "scaleGreen", "Value", "offsetGreenToY", "inputs[0]"),
-    ("link", "offsetGreenToY", "Value", "Reroute0", "Input"),
-    ("link", "Reroute0", "Output", "squareY", "inputs[0]"),
-    ("link", "Reroute0", "Output", "squareY", "inputs[1]"),
-    ("link", "Reroute0", "Output", "combineXYZ", "Y"),
-    ("link", "dxtNormalInput", "outputs[1]", "scaleAlpha", "inputs[0]"),
-    ("link", "scaleAlpha", "Value", "offsetAlphaToX", "inputs[0]"),
-    ("link", "offsetAlphaToX", "Value", "Reroute1", "Input"),
-    ("link", "Reroute1", "Output", "squareX", "inputs[0]"),
-    ("link", "Reroute1", "Output", "squareX", "inputs[1]"),
-    ("link", "Reroute1", "Output", "Reroute2", "Input"),
-    ("link", "Reroute2", "Output", "combineXYZ", "X"),
-    ("link", "squareY", "Value", "addX2Y2", "inputs[0]"),
-    ("link", "squareX", "Value", "addX2Y2", "inputs[1]"),
-    ("link", "addX2Y2", "Value", "subXY", "inputs[1]"),
-    ("link", "subXY", "Value", "sqrtZ2", "inputs[0]"),
-    ("link", "sqrtZ2", "Value", "combineXYZ", "Z"),
-    ("link", "combineXYZ", "Vector", "dxtNormalOutput", "inputs[0]"),
-)
+from .shader_config import shader_configs
 
-main_block = (
-    ("node", "UV Map", 'ShaderNodeUVMap', (-920, -80)),
-    ("setval", "UV Map", "label", ""),
-    ("node", "BaseShader", 'ShaderNodeBsdfPrincipled', (-100, 280)),
-    ("setval", "BaseShader", "label", ""),
-    ("node", "EmissiveShader", 'ShaderNodeEmission', (-100, -280)),
-    ("setval", "EmissiveShader", "label", ""),
-    ("setval", "EmissiveShader", "inputs[0].default_value", (0,0,0,1)),
-    ("node", "Reroute0", 'NodeReroute', (180, -320)),
-    ("setval", "Reroute0", "label", ""),
-    ("node", "Reroute1", 'NodeReroute', (180, 220)),
-    ("setval", "Reroute1", "label", ""),
-    ("node", "Add Shader", 'ShaderNodeAddShader', (200, 260)),
-    ("setval", "Add Shader", "label", ""),
-    ("setval", "Add Shader", "hide", True),
-    ("node", "Mix Shader", 'ShaderNodeMixShader', (340, 260)),
-    ("setval", "Mix Shader", "label", ""),
-    ("setval", "Mix Shader", "hide", True),
-    ("setval", "Mix Shader", "inputs[0].default_value", 0),
-    ("node", "TransparencyShader", 'ShaderNodeBsdfTransparent', (200, 200)),
-    ("setval", "TransparencyShader", "label", ""),
-    ("setval", "TransparencyShader", "hide", True),
-    ("setval", "TransparencyShader", "inputs[0].default_value", (1,1,1,1)),
-    ("node", "Material Output", 'ShaderNodeOutputMaterial', (480, 260)),
-    ("setval", "Material Output", "label", ""),
-    ("setval", "Material Output", "hide", True),
-    ("link", "BaseShader", "BSDF", "Add Shader", "inputs[0]"),
-    ("link", "Add Shader", "Shader", "Mix Shader", "inputs[1]"),
-    ("link", "Mix Shader", "Shader", "Material Output", "Surface"),
-    ("link", "EmissiveShader", "Emission", "Reroute0", "Input"),
-    ("link", "TransparencyShader", "BSDF", "Mix Shader", "inputs[2]"),
-    ("link", "Reroute0", "Output", "Reroute1", "Input"),
-    ("link", "Reroute1", "Output", "Add Shader", "inputs[1]"),
-)
-
-transparency_block = (
-    ("node", "Reroute2", 'NodeReroute', (-180, 300)),
-    ("setval", "Reroute2", "label", ""),
-    ("node", "Reroute3", 'NodeReroute', (300, 300)),
-    ("setval", "Reroute3", "label", ""),
-    ("link", "_MainTex:invertAlpha", "Value", "Reroute2", "Input"),
-    ("link", "Reroute2", "Output", "Reroute3", "Input"),
-    ("link", "Reroute3", "Output", "Mix Shader", "inputs[0]"),
-    ("matset", "blend_method", 'BLEND'),
-)
-
-additive_block = (
-    ("matset", "blend_method", 'ADD'),
-    ("setval", "BaseShader", "inputs[5].default_value", 0),
-    ("setval", "BaseShader", "inputs[7].default_value", 1),
-)
-
-opaque_block = (
-    ("matset", "blend_method", 'OPAQUE'),
-)
-
-specularity_block = (
-    ("link", "_MainTex:invertAlpha", "Value", "BaseShader", "Roughness"),
-)
-
-mainTex_block = (
-    ("node", "_MainTex:frame", 'NodeFrame', (-820, 200)),
-    ("setval", "_MainTex:frame", "label", "_MainTex"),
-    ("setval", "_MainTex:frame", "hide", True),
-    ("node", "_MainTex:texture", 'ShaderNodeTexImage', (-480, 140)),
-    ("setval", "_MainTex:texture", "label", "Texture"),
-    ("setval", "_MainTex:texture", "hide", True),
-    ("setparent", "_MainTex:texture", "_MainTex:frame"),
-    ("node", "_MainTex:mapping", 'ShaderNodeMapping', (-600, 140)),
-    ("setval", "_MainTex:mapping", "label", "Mapping"),
-    ("setval", "_MainTex:mapping", "hide", True),
-    ("setval", "_MainTex:mapping", "vector_type", 'POINT'),
-    ("setparent", "_MainTex:mapping", "_MainTex:frame"),
-    ("node", "_Color", 'ShaderNodeRGB', (-480, 80)),
-    ("setval", "_Color", "label", "_Color"),
-    ("setval", "_Color", "hide", True),
-    ("setval", "_Color", "outputs[0].default_value", (1,1,1,1)),
-    ("setparent", "_Color", "_MainTex:frame"),
-    ("node", "_MainTex:invertAlpha", 'ShaderNodeMath', (-360, 80)),
-    ("setval", "_MainTex:invertAlpha", "label", "Invert Alpha"),
-    ("setval", "_MainTex:invertAlpha", "hide", True),
-    ("setval", "_MainTex:invertAlpha", "operation", 'SUBTRACT'),
-    ("setval", "_MainTex:invertAlpha", "inputs[0].default_value", 1),
-    ("setparent", "_MainTex:invertAlpha", "_MainTex:frame"),
-    ("node", "_MainTex:multiply", 'ShaderNodeMixRGB', (-360, 140)),
-    ("setval", "_MainTex:multiply", "label", ""),
-    ("setval", "_MainTex:multiply", "hide", True),
-    ("setval", "_MainTex:multiply", "blend_type", 'MULTIPLY'),
-    ("setval", "_MainTex:multiply", "inputs[0].default_value", 1),
-    ("setparent", "_MainTex:multiply", "_MainTex:frame"),
-    ("link", "UV Map", "UV", "_MainTex:mapping", "Vector"),
-    ("link", "_MainTex:mapping", "Vector", "_MainTex:texture", "Vector"),
-    ("link", "_MainTex:texture", "Color", "_MainTex:multiply", "Color1"),
-    ("link", "_Color", "Color", "_MainTex:multiply", "Color2"),
-    ("link", "_MainTex:texture", "Alpha", "_MainTex:invertAlpha", "inputs[1]"),
-    ("link", "_MainTex:multiply", "Color", "BaseShader", "Base Color"),
-    ("settex", "_MainTex:texture", "image", "_MainTex", "tex"),
-    ("settex", "_MainTex:mapping", "inputs['Location'].default_value.xy", "_MainTex", "offset"),
-    ("settex", "_MainTex:mapping", "inputs['Scale'].default_value.xy", "_MainTex", "scale"),
-    ("set", "_Color", "outputs[0].default_value",
-            "color.properties", "_Color"),
-)
-
-bumpmap_block = (
-    ("node", "_BumpMap:frame", 'NodeFrame', (-920, 0)),
-    ("setval", "_BumpMap:frame", "label", "_BumpMap"),
-    ("node", "_BumpMap:mapping", 'ShaderNodeMapping', (-720, -20)),
-    ("setval", "_BumpMap:mapping", "label", "Mapping"),
-    ("setval", "_BumpMap:mapping", "hide", True),
-    ("setval", "_BumpMap:mapping", "vector_type", 'POINT'),
-    ("setparent", "_BumpMap:mapping", "_BumpMap:frame"),
-    ("node", "_BumpMap:texture", 'ShaderNodeTexImage', (-600, -20)),
-    ("setval", "_BumpMap:texture", "label", "Normal Map"),
-    ("setval", "_BumpMap:texture", "hide", True),
-    #FIXME moved to image?("setval", "_BumpMap:texture", "color_space", 'NONE'),
-    ("setparent", "_BumpMap:texture", "_BumpMap:frame"),
-    ("node", "_BumpMap:dxtNormal", 'ShaderNodeGroup', (-480, -20)),
-    ("setval", "_BumpMap:dxtNormal", "label", "GA Normal"),
-    ("setval", "_BumpMap:dxtNormal", "hide", True),
-    ("setgrp", "_BumpMap:dxtNormal", "dxtNormal"),
-    ("setparent", "_BumpMap:dxtNormal", "_BumpMap:frame"),
-    ("node", "_BumpMap:normal", 'ShaderNodeNormalMap', (-480, -100)),
-    ("setval", "_BumpMap:normal", "label", ""),
-    ("setval", "_BumpMap:normal", "hide", True),
-    ("setval", "_BumpMap:normal", "inputs[0].default_value", -1),
-    ("setparent", "_BumpMap:normal", "_BumpMap:frame"),
-    ("node", "_BumpMap:select", 'ShaderNodeMixRGB', (-360, -60)),
-    ("setval", "_BumpMap:select", "label", ""),
-    ("setval", "_BumpMap:select", "hide", True),
-    ("setval", "_BumpMap:select", "blend_type", 'MIX'),
-    ("setval", "_BumpMap:select", "inputs[0].default_value", 1),
-    ("setparent", "_BumpMap:select", "_BumpMap:frame"),
-    ("link", "UV Map", "UV", "_BumpMap:mapping", "Vector"),
-    ("link", "_BumpMap:mapping", "Vector", "_BumpMap:texture", "Vector"),
-    ("link", "_BumpMap:texture", "Color", "_BumpMap:normal", "Color"),
-    ("link", "_BumpMap:texture", "Color", "_BumpMap:dxtNormal", "RGB"),
-    ("link", "_BumpMap:texture", "Alpha", "_BumpMap:dxtNormal", "Alpha"),
-    ("link", "_BumpMap:dxtNormal", "Normal", "_BumpMap:select", "inputs[1]"),
-    ("link", "_BumpMap:normal", "Normal", "_BumpMap:select", "inputs[2]"),
-    ("link", "_BumpMap:select", "Color", "BaseShader", "Normal"),
-    ("settex", "_BumpMap:texture", "image", "_BumpMap", "tex"),
-    ("settex", "_BumpMap:mapping", "inputs['Location'].default_value.xy", "_BumpMap", "offset"),
-    ("settex", "_BumpMap:mapping", "inputs['Scale'].default_value.xy", "_BumpMap", "scale"),
-    ("settex", "_BumpMap:select", "inputs[0].default_value", "_BumpMap", "rgbNorm", "float"),
-)
-
-emissive_block = (
-    ("node", "_Emissive:frame", 'NodeFrame', (-800, -180)),
-    ("setval", "_Emissive:frame", "label", "_Emissive"),
-    ("node", "_EmissiveColor", 'ShaderNodeRGB', (-480, -300)),
-    ("setval", "_EmissiveColor", "label", "_EmissiveColor"),
-    ("setval", "_EmissiveColor", "hide", True),
-    ("setparent", "_EmissiveColor", "_Emissive:frame"),
-    ("node", "_Emissive:mapping", 'ShaderNodeMapping', (-600, -240)),
-    ("setval", "_Emissive:mapping", "label", "Mapping"),
-    ("setval", "_Emissive:mapping", "hide", True),
-    ("setval", "_Emissive:mapping", "vector_type", 'POINT'),
-    ("setparent", "_Emissive:mapping", "_Emissive:frame"),
-    ("node", "_Emissive:texture", 'ShaderNodeTexImage', (-480, -240)),
-    ("setval", "_Emissive:texture", "label", "EmissiveShader Map"),
-    ("setval", "_Emissive:texture", "hide", True),
-    ("setparent", "_Emissive:texture", "_Emissive:frame"),
-    ("node", "_Emissive:multiply", 'ShaderNodeMixRGB', (-360, -240)),
-    ("setval", "_Emissive:multiply", "label", "Multiply"),
-    ("setval", "_Emissive:multiply", "hide", True),
-    ("setval", "_Emissive:multiply", "blend_type", 'MULTIPLY'),
-    ("setval", "_Emissive:multiply", "inputs[0].default_value", 1),
-    ("setparent", "_Emissive:multiply", "_Emissive:frame"),
-    ("link", "_Emissive:mapping", "Vector", "_Emissive:texture", "Vector"),
-    ("link", "_EmissiveColor", "Color", "_Emissive:multiply", "Color2"),
-    ("link", "_Emissive:texture", "Color", "_Emissive:multiply", "Color1"),
-    ("link", "UV Map", "UV", "_Emissive:mapping", "Vector"),
-    ("link", "_Emissive:multiply", "Color", "EmissiveShader", "Color"),
-    ("settex", "_Emissive:texture", "image", "_Emissive", "tex"),
-    ("settex", "_Emissive:mapping", "inputs['Location'].default_value.xy", "_Emissive", "offset"),
-    ("settex", "_Emissive:mapping", "inputs['Scale'].default_value.xy", "_Emissive", "scale"),
-    ("set", "_EmissiveColor", "outputs[0].default_value",
-            "color.properties", "_EmissiveColor"),
-)
-
-ksp_specular = main_block + mainTex_block + specularity_block + opaque_block
-ksp_bumped = main_block + mainTex_block + bumpmap_block + opaque_block
-ksp_bumped_specular = main_block + mainTex_block + specularity_block + bumpmap_block + opaque_block
-ksp_emissive_diffuse = main_block + mainTex_block + emissive_block + opaque_block
-ksp_emissive_specular = (main_block + mainTex_block + emissive_block
-                         + specularity_block + opaque_block)
-ksp_emissive_bumped_specular = (main_block + mainTex_block + emissive_block
-                                + specularity_block + bumpmap_block
-                                + opaque_block)
-ksp_alpha_cutoff = ()
-ksp_alpha_cutoff_bumped = ()
-ksp_alpha_translucent = (main_block + mainTex_block + transparency_block)
-ksp_alpha_translucent_specular = main_block + mainTex_block + specularity_block + transparency_block
-ksp_alpha_translucent_additive = main_block + mainTex_block + additive_block
-ksp_unlit_transparent = ()
-ksp_unlit = ()
-ksp_diffuse = main_block + mainTex_block + opaque_block
-ksp_particles_alpha_blended = ()
-ksp_particles_additive = ()
-
-ksp_shaders = {
-"KSP/Specular":ksp_specular,
-"KSP/Bumped":ksp_bumped,
-"KSP/Bumped Specular":ksp_bumped_specular,
-"KSP/Emissive/Diffuse":ksp_emissive_diffuse,
-"KSP/Emissive/Specular":ksp_emissive_specular,
-"KSP/Emissive/Bumped Specular":ksp_emissive_bumped_specular,
-#"KSP/Alpha/Cutoff":ksp_alpha_cutoff,
-#"KSP/Alpha/Cutoff Bumped":ksp_alpha_cutoff_bumped,
-"KSP/Alpha/Translucent":ksp_alpha_translucent,
-"KSP/Alpha/Translucent Specular":ksp_alpha_translucent_specular,
-"KSP/Alpha/Translucent Additive":ksp_alpha_translucent_additive,
-#"KSP/Alpha/Unlit Transparent":ksp_unlit_transparent,
-#"KSP/Unlit":ksp_unlit,
-"KSP/Diffuse":ksp_diffuse,
-#"KSP/Particles/Alpha Blended":ksp_particles_alpha_blended,
-#"KSP/Particles/Additive":ksp_particles_additive,
+typemap = {
+    'VALUE': "NodeSocketFloat",
+    'RGBA': "NodeSocketColor",
+    'SHADER': "NodeSocketShader",
 }
 
-def node_node(name, nodes, s):
-    n = nodes.new(s[2])
-    #print(s[2])
-    #for i in n.inputs:
-    #    print(i.name)
-    #for o in n.outputs:
-    #    print(o.name)
-    n.name = "%s.%s" % (name, s[1])
-    n.label = s[1]
-    n.location = s[3]
-    if s[2] == "ShaderNodeMaterial":
-        n.material = bpy.data.materials.new(n.name)
+def parse_value(valstr):
+    valstr = valstr.strip()
+    if valstr in {"False", "false"}:
+        return False
+    if valstr in {"True", "true"}:
+        return True
+    if not valstr or valstr[0].isalpha() or valstr[0] in ["_"]:
+        return valstr
+    return eval(valstr)
 
-def node_link(name, nodes, links, s):
-    n1 = nodes["%s.%s" % (name, s[1])]
-    n2 = nodes["%s.%s" % (name, s[3])]
-    if s[2][:7] == "outputs":
-        op = eval("n1.%s" % s[2])
-    else:
-        op = n1.outputs[s[2]]
-    if s[4][:6] == "inputs":
-        ip = eval("n2.%s" % s[4])
-    else:
-        ip = n2.inputs[s[4]]
-    links.new(op, ip)
-
-def node_set(name, matprops, nodes, s):
-    n = nodes["%s.%s" % (name, s[1])]
-    str="'%s' in matprops.%s" % (s[4], s[3])
-    if eval(str, {}, locals()):
-        str="n.%s = matprops.%s['%s'].value" % (s[2], s[3], s[4])
-        exec(str, {}, locals())
-
-def mat_set(mat, s):
-    setattr(mat, s[1], s[2])
-
-def node_setgrp(name, matprops, nodes, s):
-    n = nodes["%s.%s" % (name, s[1])]
-    tree = bpy.data.node_groups[s[2]]
-    exec("n.node_tree = tree", {}, locals())
-
-def node_settex(name, matprops, nodes, s):
-    n = nodes["%s.%s" % (name, s[1])]
-    tex = matprops.texture.properties[s[3]]
-    #FIXME doesn't work
-    #offset = tex.offset / tex.scale
-    #offset = Vector((tex.offset.x/tex.scale.x, tex.offset.y / tex.scale.y))
-    offset = Vector(tex.offset)
-    scale = Vector(tex.scale)
-    rgbNorm = tex.rgbNorm
-    if len(s) > 5:
-        val = "%s(%s)" % (s[5], s[4])
-    else:
-        val = s[4]
-    if tex.tex in bpy.data.images:
-        img = bpy.data.images[tex.tex]
-        img.colorspace_settings.is_data = tex.type
-        if img.muimageprop.invertY:
-            scale.y *= -1
-            offset.y = 1 - offset.y
-        tex = img
-        cmd = "n.%s = %s" % (s[2], val)
-        exec(cmd, {}, locals())
-
-def node_setval(name, nodes, s):
-    n = nodes["%s.%s" % (name, s[1])]
-    #print(s)
-    exec("n.%s = %s" % (s[2], repr(s[3])), {}, locals())
-
-def node_setparent(name, nodes, s):
-    n = nodes["%s.%s" % (name, s[1])]
-    p = "%s.%s" % (name, s[2])
-    #print("n.parent = nodes['%s']" % (p,))
-    exec("n.parent = nodes['%s']" % (p,), {}, locals())
-
-def node_call(name, nodes, s):
-    n = nodes["%s.%s" % (name, s[1])]
-    exec("n.%s" % s[2], {}, locals())
-
-def build_shader(shader, mat, nodes, links):
-    if type(mat) is type(""):
-        name = mat
-    else:
-        name = mat.name
-    for s in shader:
-        #print(s)
-        try :
-            if s[0] == "node":
-                node_node(name, nodes, s)
-            elif s[0] == "link":
-                node_link(name, nodes, links, s)
-            elif s[0] == "set":
-                node_set(name, mat.mumatprop, nodes, s)
-            elif s[0] == "matset":
-                mat_set(mat, s)
-            elif s[0] == "settex":
-                node_settex(name, mat.mumatprop, nodes, s)
-            elif s[0] == "setgrp":
-                node_setgrp(name, mat.mumatprop, nodes, s)
-            elif s[0] == "setval":
-                node_setval(name, nodes, s)
-            elif s[0] == "setparent":
-                node_setparent(name, nodes, s)
-            elif s[0] == "call":
-                node_call(name, nodes, s)
-            else:
-                print("unknown shader command", s[0])
-        except:
-           print("Exception in node setup code:")
-           traceback.print_exc(file=sys.stdout)
-
-def create_nodes(mat):
-    if "dxtNormal" not in bpy.data.node_groups:
-        dxtNormal = bpy.data.node_groups.new("dxtNormal", 'ShaderNodeTree')
-        build_shader (dxtNormal_block, "dxtNormal",
-                      dxtNormal.nodes, dxtNormal.links)
-        dxtNormal.inputs[0].name = "RGB"
-        dxtNormal.inputs[1].name = "Alpha"
-        dxtNormal.outputs[0].name = "Normal"
-    mat.use_nodes = True
-    nodes = mat.node_tree.nodes
-    links = mat.node_tree.links
-    while len(links):
-        links.remove(links[0])
-    while len(nodes):
-        nodes.remove(nodes[0])
-    if mat.mumatprop.shaderName not in ksp_shaders:
-        print("Unknown shader: '%s'" % mat.mumatprop.shaderName)
+def build_nodes(matname, node_tree, ntcfg):
+    for value in ntcfg.values:
+        attr, val, line = value
+        if attr == "name":
+            continue
+        setattr(node_tree, attr, parse_value(val))
+    if ntcfg.HasNode("inputs"):
+        inputs = ntcfg.GetNode("inputs")
+        for ip in inputs.GetNodes("input"):
+            type = typemap[ip.GetValue("type")]
+            name = ip.GetValue("name")
+            input = node_tree.inputs.new(type, name)
+            if ip.HasValue("min_value"):
+                input.min_value = parse_value(ip.GetValue("min_value"))
+            if ip.HasValue("max_value"):
+                input.max_value = parse_value(ip.GetValue("max_value"))
+    if ntcfg.HasNode("outputs"):
+        outputs = ntcfg.GetNode("outputs")
+        for op in outputs.GetNodes("output"):
+            type = typemap[op.GetValue("type")]
+            name = op.GetValue("name")
+            node_tree.outputs.new(type, name)
+    if not ntcfg.HasNode("nodes"):
         return
-    shader = ksp_shaders[mat.mumatprop.shaderName]
-    #print(mat.mumatprop.shaderName)
-    build_shader(shader, mat, nodes, links)
+    refs = []
+    nodes = node_tree.nodes
+    for n in ntcfg.GetNode("nodes").nodes:
+        sntype, sndata, line = n
+        sn = nodes.new(sntype)
+        for snvalue in sndata.values:
+            a, v, l = snvalue
+            if a == "parent":
+                refs.append((sn, a, v))
+                continue
+            elif a == "node_tree":
+                sn.node_tree = bpy.data.node_groups[v]
+            else:
+                setattr(sn, a, parse_value(v))
+        if sndata.HasNode("inputs"):
+            for i,ip in enumerate(sndata.GetNode("inputs").GetNodes("input")):
+                if ip.HasValue("default_value"):
+                    print(sn.name)
+                    value = ip.GetValue("default_value")
+                    sn.inputs[i].default_value = parse_value(value)
+        if sndata.HasNode("outputs"):
+            for i,op in enumerate(sndata.GetNode("outputs").GetNodes("output")):
+                if op.HasValue("default_value"):
+                    print(sn.name)
+                    value = op.GetValue("default_value")
+                    sn.outputs[i].default_value = parse_value(value)
+    for r in refs:
+        if r[1] == "parent" and r[2] in nodes:
+            setattr(r[0], r[1], nodes[r[2]])
+    if not ntcfg.HasNode("links"):
+        return
+    links = node_tree.links
+    linknodes = ntcfg.GetNode("links")
+    for ln in linknodes.GetNodes("link"):
+        from_node = nodes[ln.GetValue("from_node")]
+        to_node = nodes[ln.GetValue("to_node")]
+        from_socket = from_node.outputs[int(ln.GetValue("from_socket"))]
+        to_socket = to_node.inputs[int(ln.GetValue("to_socket"))]
+        links.new(from_socket, to_socket)
 
 def set_tex(mu, dst, src):
     try:
@@ -478,6 +132,29 @@ def make_shader_tex_prop(mu, muprop, blendprop):
         item = blendprop.add()
         item.name = k
         set_tex(mu, item, muprop[k])
+
+def create_nodes(mat):
+    shaderName = mat.mumatprop.shaderName
+    if shaderName in shader_configs:
+        cfg = shader_configs[shaderName]
+        for extra in cfg.GetNodes("node_tree"):
+            ntname = extra.GetValue("name")
+            if not ntname in bpy.data.node_groups:
+                node_tree = bpy.data.node_groups.new(ntname, "ShaderNodeTree")
+                build_nodes(mat.name, node_tree, extra)
+        matcfg = cfg.GetNode("Material")
+        for value in matcfg.values:
+            name, val, line = value
+            setattr(mat, name, parse_value(val))
+        if mat.use_nodes:
+            links = mat.node_tree.links
+            nodes = mat.node_tree.nodes
+            while len(links):
+                links.remove(links[0])
+            while len(nodes):
+                nodes.remove(nodes[0])
+        if mat.use_nodes and matcfg.HasNode("node_tree"):
+            build_nodes(mat.name, mat.node_tree, matcfg.GetNode("node_tree"))
 
 def make_shader4(mumat, mu):
     mat = bpy.data.materials.new(mumat.name)
