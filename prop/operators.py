@@ -30,6 +30,7 @@ from ..preferences import Preferences
 from ..cfgnode import ConfigNode, ConfigNodeError
 from ..utils import strip_nnn
 from ..model import instantiate_model
+from .prop import loaded_props_collection
 
 def import_prop_op(self, context, filepath):
     operator = self
