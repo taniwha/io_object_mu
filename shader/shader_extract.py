@@ -26,6 +26,7 @@ node_common = {
     "__doc__",
     "__module__",
     "__slots__",
+    "view_center",
     "type",
     "location",
     "width",
@@ -73,6 +74,8 @@ node_common = {
     #texture stuff, not directly usable?
     "color_mapping",
     "image_user",
+    "image",
+    "texture_mapping",
 }
 
 node_groups = set()
@@ -82,14 +85,21 @@ def record_inputs(treenode, inputs):
         return
     node = treenode.AddNewNode("inputs")
     for input in inputs:
-        node.AddValue("input", input.name)
+        ip = node.AddNewNode ("input")
+        ip.AddValue ("type", input.type)
+        ip.AddValue ("name", input.name)
+        if hasattr (input, "min_value"):
+            ip.AddValue ("min_value", input.min_value)
+            ip.AddValue ("max_value", input.max_value)
 
 def record_outputs(treenode, outputs):
     if not outputs:
         return
     node = treenode.AddNewNode("outputs")
     for output in outputs:
-        node.AddValue("output", output.name)
+        op = node.AddNewNode ("output")
+        op.AddValue ("type", output.type)
+        op.AddValue ("name", output.name)
         
 def record_texture_mapping(texmap):
     node = cfgnode.ConfigNode()
@@ -106,6 +116,30 @@ def record_texture_mapping(texmap):
     node.AddValue("mapping_z", texmap.mapping_z)
     node.AddValue("mapping", texmap.mapping)
     return node
+
+def record_node_inputs(node):
+    out = cfgnode.ConfigNode()
+    for input in node.inputs:
+        ip = out.AddNewNode("input")
+        ip.AddValue("enabled", input.enabled)
+        if hasattr(input, "default_value"):
+            if input.bl_idname in ["NodeSocketFloat", "NodeSocketFloatFactor"]:
+                ip.AddValue("default_value", input.default_value)
+            elif input.bl_idname in ["NodeSocketVector,", "NodeSocketColor"]:
+                ip.AddValue("default_value", tuple(input.default_value))
+    return out
+
+def record_node_outputs(node):
+    out = cfgnode.ConfigNode()
+    for output in node.outputs:
+        op = out.AddNewNode("output")
+        op.AddValue("enabled", output.enabled)
+        if hasattr(output, "default_value"):
+            if output.bl_idname in ["NodeSocketFloat", "NodeSocketFloatFactor"]:
+                op.AddValue("default_value", output.default_value)
+            elif output.bl_idname in ["NodeSocketVector,", "NodeSocketColor"]:
+                op.AddValue("default_value", tuple(output.default_value))
+    return out
 
 def record_node(node):
     out = cfgnode.ConfigNode()
@@ -124,6 +158,8 @@ def record_node(node):
     out.AddValue("hide", node.hide)
     out.AddValue("mute", node.mute)
     out.AddValue("show_texture", node.show_texture)
+    out.AddNode("inputs", record_node_inputs(node))
+    out.AddNode("outputs", record_node_outputs(node))
     for a in dir(node):
         if a in node_common:
             continue
@@ -152,10 +188,14 @@ def record_nodes(treenode, nodes):
 
 def record_link(link):
     node = cfgnode.ConfigNode()
-    node.AddValue("from_node", link.from_node.name)
-    node.AddValue("to_node", link.to_node.name)
-    node.AddValue("from_socket", link.from_socket.name)
-    node.AddValue("to_socket", link.to_socket.name)
+    from_node = link.from_node
+    to_node = link.to_node
+    from_socket = from_node.outputs.values().index(link.from_socket)
+    to_socket = to_node.inputs.values().index(link.to_socket)
+    node.AddValue("from_node", from_node.name)
+    node.AddValue("to_node", to_node.name)
+    node.AddValue("from_socket", from_socket)
+    node.AddValue("to_socket", to_socket)
     node.AddValue("is_hidden", link.is_hidden)
     return node
 
@@ -169,7 +209,6 @@ def record_links(treenode, links):
 def record_node_tree(node_tree, treenode):
     treenode.AddValue("name", node_tree.name)
     treenode.AddValue("tag", node_tree.tag)
-    treenode.AddValue("view_center", tuple(node_tree.view_center))
     record_nodes(treenode, node_tree.nodes)
     record_links(treenode, node_tree.links)
     record_inputs(treenode, node_tree.inputs)
@@ -199,8 +238,8 @@ def record_material(mat):
         treenode = matnode.AddNewNode("node_tree")
         record_node_tree(mat.node_tree, treenode)
     node = cfgnode.ConfigNode()
+    node.AddValue("name", mat.mumatprop.shaderName)
     node.AddNode("Material", matnode)
-    print(node_groups)
     while node_groups:
         group = node_groups.pop()
         treenode = node.AddNewNode("node_tree")
