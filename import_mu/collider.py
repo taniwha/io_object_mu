@@ -38,6 +38,8 @@ def copy_friction(dst, src):
     dst.stiffness = src.stiffness
 
 def create_collider(mu, muobj, col, name):
+    if not mu.create_colliders:
+        return None
     mesh = None
     if type(col) == MuColliderMesh:
         name = name + ".collider"

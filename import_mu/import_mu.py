@@ -41,14 +41,6 @@ from .light import create_light
 from .mesh import create_mesh
 from .textures import create_textures
 
-def child_collider(mu, muobj, obj):
-    if mu.create_colliders and hasattr(muobj, "collider"):
-        if obj.data:
-            cobj = create_collider(mu, muobj)
-            set_transform(cobj, None)
-            mu.collection.objects.link(cobj)
-            cobj.parent = obj
-
 import_exclude = {
     "read", "write", "children", "parent"
 }
