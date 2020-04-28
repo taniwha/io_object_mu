@@ -30,6 +30,7 @@ from ..utils import strip_nnn, collect_collections
 from .animation import collect_animations, find_path_root, make_animations
 from .collider import make_collider
 from .cfgfile import generate_cfg
+from .export_util import is_collider
 from .volume import model_volume
 
 def make_transform(obj):
@@ -51,12 +52,6 @@ def make_tag_and_layer(obj):
 
 type_handlers = {} # filled in by the modules that handle the obj.data types
 exported_objects = set()
-
-def is_collider(obj):
-    muprops = obj.muproperties
-    if muprops.collider and muprops.collider != 'MU_COL_NONE':
-        return True
-    return False
 
 def find_single_collider(objects):
     colliders = []

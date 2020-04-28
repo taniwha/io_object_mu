@@ -27,7 +27,7 @@ from ..utils import collect_modifiers
 
 from .material import make_material
 
-from . import export
+from .export_util import is_collider
 
 from pprint import pprint
 
@@ -76,13 +76,14 @@ def get_mesh(obj):
     return mesh
 
 def get_vertex_data(mu, mesh, obj):
+    full_data = not is_collider(obj)
     vertdata = [None] * len(mesh.loops)
     if not vertdata:
         return vertdata
     if mesh.loops[0].normal == Vector():
         mesh.calc_normals()
     tangentsOk = True
-    if mesh.uv_layers:
+    if full_data and mesh.uv_layers:
         #FIXME active UV layer?
         uvs = list(map(lambda a: Vector(a.uv).freeze(), mesh.uv_layers[0].data))
         try:
@@ -92,14 +93,17 @@ def get_vertex_data(mu, mesh, obj):
             mu.messages.append(({'WARNING'}, "tangents not exported due to N-gons in the mesh: " + obj.name))
     else:
         uvs = [None] * len(mesh.loops)
-    if mesh.vertex_colors:
+    if full_data and mesh.vertex_colors:
         #FIXME active colors?
         colors = list(map(lambda a: Vector(a.color).freeze(), mesh.vertex_colors[0].data))
     else:
         colors = [None] * len(mesh.loops)
     for i in range(len(mesh.loops)):
         v = mesh.loops[i].vertex_index
-        n = Vector(mesh.loops[i].normal).freeze()
+        if full_data:
+            n = Vector(mesh.loops[i].normal).freeze()
+        else:
+            n = None
         uv = uvs[i]
         col = colors[i]
         if uv != None and tangentsOk:
@@ -220,7 +224,7 @@ def make_mesh(mu, obj):
     #pprint(submeshes)
     mumesh = make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts)
     mesh = obj.data
-    if mesh.shape_keys:
+    if not is_collider(obj) and mesh.shape_keys:
         process_shape_keys(mesh, mumesh, vertex_map, vertex_data)
     return mumesh
 
