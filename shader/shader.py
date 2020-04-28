@@ -73,6 +73,7 @@ def build_nodes(matname, node_tree, ntcfg):
         sn = nodes.new(sntype)
         for snvalue in sndata.values:
             a, v, l = snvalue
+            v = v.strip()
             if a == "parent":
                 refs.append((sn, a, v))
                 continue
