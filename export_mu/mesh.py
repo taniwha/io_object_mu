@@ -37,20 +37,10 @@ Matrix_YZ = Matrix(((1,0,0,0),
                     (0,1,0,0),
                     (0,0,0,1)))
 
-def split_face(mesh, index, vertex_map):
-    face = mesh.polygons[index]
-    s, e = face.loop_start, face.loop_start + face.loop_total
-    fv = list(vertex_map[s:e])
-    tris = []
-    for i in range(1, len(fv) - 1):
-        tri = (fv[0], fv[i], fv[i+1])
-        tris.append(tri)
-    return tris
-
 def build_submeshes(mesh):
     submeshes = []
     submesh = []
-    for i in range(len(mesh.polygons)):
+    for i in range(len(mesh.loop_triangles)):
         submesh.append(i)
     submeshes.append(submesh)
     return submeshes
@@ -59,9 +49,8 @@ def make_tris(mesh, submeshes, vertex_map):
     for sm in submeshes:
         i = 0
         while i < len(sm):
-            tris = split_face(mesh, sm[i], vertex_map)
-            sm[i:i+1] = tris
-            i += len(tris)
+            sm[i] = tuple(mesh.loop_triangles[sm[i]].vertices)
+            i += 1
     return submeshes
 
 def get_mesh(obj):
@@ -217,6 +206,10 @@ def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
 
 def make_mesh(mu, obj):
     mesh = get_mesh(obj)
+    #mesh is always a copy of the object mesh data, but this is non-destructive
+    #anyway
+    if not mesh.loop_triangles:
+        mesh.calc_loop_triangles()
     vertex_data = get_vertex_data(mu, mesh, obj)
     vertex_map, num_verts = make_vertex_map(vertex_data)
     submeshes = build_submeshes(mesh)
