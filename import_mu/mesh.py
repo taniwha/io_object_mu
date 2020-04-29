@@ -39,6 +39,13 @@ def create_uvs(mu, uvs, mesh, name):
     for i, loop in enumerate(mesh.loops):
         uv_layer[i].uv = uvs[loop.vertex_index]
 
+def create_normals(mu, normals, mesh):
+    custom_normals = [None] * len(mesh.loops)
+    for i, loop in enumerate(mesh.loops):
+        custom_normals[i] = normals[loop.vertex_index]
+    mesh.normals_split_custom_set(custom_normals)
+    mesh.use_auto_smooth = True
+
 def create_mesh(mu, mumesh, name):
     mesh = bpy.data.meshes.new(name)
     faces = []
@@ -49,9 +56,8 @@ def create_mesh(mu, mumesh, name):
         create_uvs(mu, mumesh.uvs, mesh, "UV")
     if mumesh.uv2s:
         create_uvs(mu, mumesh.uv2s, mesh, "UV2")
-    #if mumesh.normals:
-    #    for i, n in enumerate(mumesh.normals):
-    #        bv[i].normal = n
+    if mumesh.normals:
+        create_normals(mu, mumesh.normals, mesh)
     #FIXME how to set tangents?
     #if mumesh.tangents:
     #    for i, t in enumerate(mumesh.tangents):
