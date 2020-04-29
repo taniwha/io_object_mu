@@ -34,42 +34,28 @@ def attach_material(mesh, renderer, mu):
         mumat = mu.materials[renderer.materials[0]]
         mesh.materials.append(mumat.material)
 
-def create_uvs(mu, uvs, bm, name):
-    layer = bm.loops.layers.uv.new(name)
-    for face in bm.faces:
-        for loop in face.loops:
-            loop[layer].uv = uvs[loop.vert.index]
+def create_uvs(mu, uvs, mesh, name):
+    uv_layer = mesh.uv_layers.new(name=name).data
+    for i, loop in enumerate(mesh.loops):
+        uv_layer[i].uv = uvs[loop.vertex_index]
 
 def create_mesh(mu, mumesh, name):
     mesh = bpy.data.meshes.new(name)
     faces = []
     for sm in mumesh.submeshes:
         faces.extend(sm)
-    bm = bmesh.new()
-    bv = [None] * len(mumesh.verts)
-    for i, v in enumerate(mumesh.verts):
-        bv[i] = bm.verts.new(v)
-    if mumesh.normals:
-        for i, n in enumerate(mumesh.normals):
-            bv[i].normal = n
+    mesh.from_pydata(mumesh.verts, [], faces)
+    if mumesh.uvs:
+        create_uvs(mu, mumesh.uvs, mesh, "UV")
+    if mumesh.uv2s:
+        create_uvs(mu, mumesh.uv2s, mesh, "UV2")
+    #if mumesh.normals:
+    #    for i, n in enumerate(mumesh.normals):
+    #        bv[i].normal = n
     #FIXME how to set tangents?
     #if mumesh.tangents:
     #    for i, t in enumerate(mumesh.tangents):
     #        bv[i].tangent = t
-    bm.verts.index_update()
-    bm.verts.ensure_lookup_table()
-    for f in faces:
-        try:
-            bm.faces.new([bv[i] for i in f])
-        except ValueError:
-            print(name + ": duplicate face?", f)
-    bm.faces.index_update()
-    bm.faces.ensure_lookup_table()
-    if mumesh.uvs:
-        create_uvs(mu, mumesh.uvs, bm, "UV")
-    if mumesh.uv2s:
-        create_uvs(mu, mumesh.uv2s, bm, "UV2")
-    bm.to_mesh(mesh)
     return mesh
 
 def create_mesh_component(mu, muobj, mumesh, name):
