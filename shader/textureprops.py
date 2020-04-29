@@ -55,10 +55,11 @@ def texture_update_tex(self, context):
     nodes = mat.node_tree.nodes
     if self.name in nodes and self.tex in bpy.data.images:
         nodes[self.name].image = bpy.data.images[self.tex]
+        nodes[self.name].image.colorspace_settings.is_data = self.type
 
 class MuTextureProperties(bpy.types.PropertyGroup):
     tex: StringProperty(name="tex", update=texture_update_tex)
-    type: BoolProperty(name="type", description="Texture is a normal map", default = False)
+    type: BoolProperty(name="type", description="Texture is a normal map", default = False, update=texture_update_tex)
     rgbNorm: BoolProperty(name="RGB Normal", description="Texture is RGB rather than GA (blender shader control, not exported)", update=texture_update_mapping)
     scale: FloatVectorProperty(name="scale", size = 2, subtype='XYZ', default = (1.0, 1.0), update=texture_update_mapping)
     offset: FloatVectorProperty(name="offset", size = 2, subtype='XYZ', default = (0.0, 0.0), update=texture_update_mapping)
