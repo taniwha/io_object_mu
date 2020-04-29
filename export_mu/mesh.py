@@ -49,7 +49,8 @@ def make_tris(mesh, submeshes, vertex_map):
     for sm in submeshes:
         i = 0
         while i < len(sm):
-            sm[i] = tuple(mesh.loop_triangles[sm[i]].vertices)
+            tri = mesh.loop_triangles[sm[i]].loops
+            sm[i] = vertex_map[tri[0]], vertex_map[tri[1]], vertex_map[tri[2]]
             i += 1
     return submeshes
 
