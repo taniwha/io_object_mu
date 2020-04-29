@@ -125,7 +125,7 @@ def record_node_inputs(node):
         if hasattr(input, "default_value"):
             if input.bl_idname in ["NodeSocketFloat", "NodeSocketFloatFactor"]:
                 ip.AddValue("default_value", input.default_value)
-            elif input.bl_idname in ["NodeSocketVector,", "NodeSocketColor"]:
+            elif input.bl_idname in ["NodeSocketVector", "NodeSocketColor"]:
                 ip.AddValue("default_value", tuple(input.default_value))
     return out
 
@@ -137,7 +137,7 @@ def record_node_outputs(node):
         if hasattr(output, "default_value"):
             if output.bl_idname in ["NodeSocketFloat", "NodeSocketFloatFactor"]:
                 op.AddValue("default_value", output.default_value)
-            elif output.bl_idname in ["NodeSocketVector,", "NodeSocketColor"]:
+            elif output.bl_idname in ["NodeSocketVector", "NodeSocketColor"]:
                 op.AddValue("default_value", tuple(output.default_value))
     return out
 
