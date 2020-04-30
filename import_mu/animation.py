@@ -146,9 +146,10 @@ def create_action(mu, path, clip):
             obj = getattr (obj, subpath)
 
         name = objname
-        if name not in actions:
-            actions[name] = bpy.data.actions.new(name), obj
-        act, obj = actions[name]
+        actpath = "/".join([curve.path, name])
+        if actpath not in actions:
+            actions[actpath] = bpy.data.actions.new(name), obj
+        act, obj = actions[actpath]
         fcurve = create_fcurve(act, curve, fullpropmap)
         if hasattr(muobj, "bone"):
             if not hasattr(muobj, "fcurves"):
