@@ -64,6 +64,10 @@ def create_mesh(mu, mumesh, name):
     #        bv[i].tangent = t
     return mesh
 
+def mesh_post(obj, renderer):
+    obj.muproperties.castShadows = renderer.castShadows
+    obj.muproperties.receiveShadows = renderer.receiveShadows
+
 def create_mesh_component(mu, muobj, mumesh, name):
     if not mu.force_mesh and not hasattr(muobj, "renderer"):
         return None
@@ -72,7 +76,7 @@ def create_mesh_component(mu, muobj, mumesh, name):
         poly.use_smooth = True
     if hasattr(muobj, "renderer"):
         attach_material(mesh, muobj.renderer, mu)
-    return "mesh", mesh, None
+    return "mesh", mesh, None, (mesh_post, muobj.renderer)
 
 def create_skinned_mesh_component(mu, muobj, skin, name):
     mesh = create_mesh(mu, skin.mesh, name)

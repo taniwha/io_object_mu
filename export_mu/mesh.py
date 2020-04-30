@@ -231,10 +231,12 @@ def mesh_materials(mu, mesh):
             materials.append(mu.materials[mat.name].index)
     return materials
 
-def make_renderer(mu, mesh):
+def make_renderer(mu, obj, mesh):
     rend = MuRenderer()
     #FIXME shadows
     rend.materials = mesh_materials(mu, mesh)
+    rend.castShadows = obj.muproperties.castShadows
+    rend.receiveShadows = obj.muproperties.receiveShadows
     if not rend.materials:
         return None
     return rend
@@ -289,7 +291,7 @@ def make_bindPoses(smr, armature, bindPoses):
 
 def handle_mesh(obj, muobj, mu):
     muobj.shared_mesh = make_mesh(mu, obj)
-    muobj.renderer = make_renderer(mu, obj.data)
+    muobj.renderer = make_renderer(mu, obj, obj.data)
     return muobj
 
 def create_skinned_mesh(obj, mu, armature, bindPoses):

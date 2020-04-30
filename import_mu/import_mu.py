@@ -47,7 +47,10 @@ import_exclude = {
 type_handlers = {} # filled in by the modules that handle the Mu types
 
 def create_component_object(collection, component, objname, xform):
-    name, data, rot = component
+    post = None
+    if len(component) >= 4:
+        post = component[3:4][0]
+    name, data, rot = component[:3]
     if name:
         name = ".".join([objname, name])
     else:
@@ -61,6 +64,8 @@ def create_component_object(collection, component, objname, xform):
         cobj = create_data_object(collection, name, data, xform)
     if rot:
         cobj.rotation_quaternion @= rot
+    if post:
+        post[0](cobj, *post[1:])
     return cobj
 
 def create_object(mu, muobj, parent):

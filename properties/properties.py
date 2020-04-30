@@ -119,6 +119,9 @@ class MuProperties(bpy.types.PropertyGroup):
     tag: StringProperty(name = "Tag", default="Untagged")
     layer: IntProperty(name = "Layer")
 
+    castShadows: BoolProperty(name = "Cast Shadows", default = True)
+    receiveShadows: BoolProperty(name = "Receive Shadows", default = True)
+
     collider: EnumProperty(items = collider_items, name = "Collider")
     isTrigger: BoolProperty(name = "Trigger")
     separate: BoolProperty(name = "Separate", description = "Force the collider to be on a separate game object when exporting")
@@ -215,6 +218,8 @@ class OBJECT_PT_MuPropertiesPanel(bpy.types.Panel):
         col.prop(muprops, "modelType")
         col.prop(muprops, "tag")
         col.prop(muprops, "layer")
+        col.prop(muprops, "castShadows")
+        col.prop(muprops, "receiveShadows")
 
 classes_to_register = (
     MuSpringProp,
