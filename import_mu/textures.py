@@ -62,8 +62,9 @@ def load_image(base, ext, path, type):
     img.alpha_mode = 'STRAIGHT'
     img.muimageprop.invertY = (ext.lower() == ".dds")
     img.muimageprop.convertNorm = False
+    img.colorspace_settings.is_data = False
     if type == 1:
-        img.colorspace_settings.name = 'Linear'
+        img.colorspace_settings.is_data = True
         for i in range(min(int(len(pixels)/4), 256)):
             c = 2*Vector(pixels[i*4:i*4+4])-Vector((1, 1, 1, 1))
             if abs(c.x*c.x + c.y*c.y + c.z*c.z - 1) > 0.05:
