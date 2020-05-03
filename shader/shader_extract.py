@@ -88,6 +88,10 @@ def record_inputs(treenode, inputs):
         ip = node.AddNewNode ("input")
         ip.AddValue ("type", input.type)
         ip.AddValue ("name", input.name)
+        if input.bl_socket_idname in ["NodeSocketFloat", "NodeSocketFloatFactor"]:
+            ip.AddValue("default_value", input.default_value)
+        elif input.bl_socket_idname in ["NodeSocketVector", "NodeSocketColor"]:
+            ip.AddValue("default_value", tuple(input.default_value))
         if hasattr (input, "min_value"):
             ip.AddValue ("min_value", input.min_value)
             ip.AddValue ("max_value", input.max_value)
