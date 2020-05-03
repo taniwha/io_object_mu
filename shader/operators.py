@@ -46,7 +46,12 @@ class KSPMU_OT_MuShaderPropAdd(bpy.types.Operator):
     def execute(self, context):
         matprops = context.material.mumatprop
         propset = getattr(matprops, self.propertyset)
-        propset.properties.add()
+        prop = propset.properties.add()
+        prop.name = "New Property"
+        for i, p in enumerate(propset.properties):
+            if p == prop:
+                propset.index = i
+                break
         return {'FINISHED'}
 
 class KSPMU_OT_MuShaderPropRemove(bpy.types.Operator):
