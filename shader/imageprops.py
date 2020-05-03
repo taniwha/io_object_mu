@@ -43,8 +43,8 @@ def image_update_flags(self, context):
                 tex.__annotations__["rgbNorm"][1]["update"](tex, ctx)
 
 class MuImageProperties(bpy.types.PropertyGroup):
-    invertY: BoolProperty(name="invertY", description="Invert Y-axis (for dds images)", default = False, update=image_update_flags)
-    convertNorm: BoolProperty(name="convertNorm", description="Convert GA normal map to RGB", default = False, update=image_update_flags)
+    invertY: BoolProperty(name="invertY", description="Invert Y-axis (for dds images). Affects only shaders, not the image editor.", default = False, update=image_update_flags)
+    convertNorm: BoolProperty(name="convertNorm", description="Convert GA normal map to RGB. Affects only shaders, not the image editor.", default = False, update=image_update_flags)
 
 class IMAGE_PT_MuImagePanel(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
