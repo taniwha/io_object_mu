@@ -74,8 +74,13 @@ def get_vertex_data(mu, mesh, obj):
         mesh.calc_normals()
     tangentsOk = True
     if full_data and mesh.uv_layers:
+        uv_layers = mesh.uv_layers
         #FIXME active UV layer?
-        uvs = list(map(lambda a: Vector(a.uv).freeze(), mesh.uv_layers[0].data))
+        uvs = list(map(lambda a: Vector(a.uv).freeze(), uv_layers[0].data))
+        if len(uv_layers) > 1:
+            uv2s = list(map(lambda a: Vector(a.uv).freeze(), uv_layers[1].data))
+        else:
+            uv2s = [None] * len(mesh.loops)
         try:
             mesh.calc_tangents(uvmap = mesh.uv_layers[0].name)
         except RuntimeError:
@@ -83,6 +88,7 @@ def get_vertex_data(mu, mesh, obj):
             mu.messages.append(({'WARNING'}, "tangents not exported due to N-gons in the mesh: " + obj.name))
     else:
         uvs = [None] * len(mesh.loops)
+        uv2s = [None] * len(mesh.loops)
     if full_data and mesh.vertex_colors:
         #FIXME active colors?
         colors = list(map(lambda a: Vector(a.color).freeze(), mesh.vertex_colors[0].data))
@@ -95,6 +101,7 @@ def get_vertex_data(mu, mesh, obj):
         else:
             n = None
         uv = uvs[i]
+        uv2 = uv2s[i]
         col = colors[i]
         if uv != None and tangentsOk:
             t = Vector(mesh.loops[i].tangent).freeze()
@@ -102,7 +109,7 @@ def get_vertex_data(mu, mesh, obj):
         else:
             t = None
             bts = None
-        vertdata[i] = (v, n, uv, t, bts, col)
+        vertdata[i] = (v, n, uv, uv2, t, bts, col)
     return vertdata
 
 def make_vertex_map(vertex_data):
@@ -133,6 +140,8 @@ def process_shape_keys(mesh, mumesh, vertex_map, vertex_data):
     # same length. Extended with 0s for better compressibility in zip files
     if (hasattr(mumesh, "uvs")):
         mumesh.uvs.extend([Vector((0, 0))] * new_verts)
+    if (hasattr(mumesh, "uv2s")):
+        mumesh.uv2s.extend([Vector((0, 0))] * new_verts)
     if (hasattr(mumesh, "colors")):
         mumesh.colors.extend([Vector((1, 1, 1, 1))] * new_verts)
 
@@ -173,15 +182,17 @@ def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
     verts = [None] * num_verts
     groups = [None] * num_verts
     uvs = [None] * num_verts
+    uv2s = [None] * num_verts
     normals = [None] * num_verts
     tangents = [None] * num_verts
     bitangents = [None] * num_verts
     colors = [None] * num_verts
     for i, vind in enumerate(vertex_map):
-        v, n, uv, t, bts, col = vertex_data[i]
+        v, n, uv, uv2, t, bts, col = vertex_data[i]
         verts[vind] = v
         normals[vind] = n
         uvs[vind] = uv
+        uv2s[vind] = uv2
         tangents[vind] = t
         bitangents[vind] = bts
         colors[vind] = col
@@ -199,6 +210,8 @@ def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
         mumesh.normals = normals
     if uvs[0] != None:
         mumesh.uvs = uvs
+    if uv2s[0] != None:
+        mumesh.uv2s = uv2s
     if tangents[0] != None:
         mumesh.tangents = tangents
     if colors[0] != None:
