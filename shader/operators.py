@@ -24,6 +24,7 @@ from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty
 from bl_operators.presets import AddPresetBase
 from .shader_extract import record_material
+from .shader import create_nodes
 
 class KSPMU_OT_MuShaderPropExpand(bpy.types.Operator):
     '''Expand/collapse mu shader property set'''
@@ -87,7 +88,20 @@ def export_material(operator, context, filepath):
     of.write("shader " + matnode.ToString())
     return {'FINISHED'}
 
-class IO_OBJECT_MU_MT_shader_export(bpy.types.Operator, ExportHelper):
+class IO_OBJECT_MU_OT_shader_rebuild(bpy.types.Operator):
+    '''Rebuild the material node tree'''
+    bl_idname = "io_object_mu.shader_rebuild"
+    bl_label = "Rebuild Shader"
+
+    @classmethod
+    def poll(cls, context):
+        return context.material != None
+
+    def execute(self, context):
+        create_nodes(context.material)
+        return {'FINISHED'}
+
+class IO_OBJECT_MU_OT_shader_export(bpy.types.Operator, ExportHelper):
     '''Save a material as a .cfg file'''
     bl_idname = "export_material.ksp_cfg"
     bl_label = "Export Material"
@@ -109,5 +123,6 @@ classes_to_register = (
     KSPMU_OT_MuShaderPropAdd,
     KSPMU_OT_MuShaderPropRemove,
     IO_OBJECT_MU_OT_shader_presets,
-    IO_OBJECT_MU_MT_shader_export,
+    IO_OBJECT_MU_OT_shader_rebuild,
+    IO_OBJECT_MU_OT_shader_export,
 )

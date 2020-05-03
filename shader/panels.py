@@ -81,7 +81,9 @@ class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
         r.operator("io_object_mu.shader_presets", text="", icon='ADD')
         r.operator("io_object_mu.shader_presets", text="", icon='REMOVE').remove_active = True
         col.prop(matprops, "name")
-        col.prop(matprops, "shaderName")
+        r = col.row(align=True)
+        r.prop(matprops, "shaderName")
+        r.operator("io_object_mu.shader_rebuild", text="", icon='FILE_REFRESH')
         draw_property_list(layout, matprops.texture, "texture")
         draw_property_list(layout, matprops.color, "color")
         draw_property_list(layout, matprops.vector, "vector")
