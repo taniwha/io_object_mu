@@ -38,6 +38,8 @@ def draw_module(layout, module, index):
                  icon='TRIA_DOWN' if module.expanded else 'TRIA_RIGHT',
                  emboss=False).index = index
     row.label(text = module.name)
+    rem_op = "object.remove_ksp_module"
+    row.operator(rem_op, icon='X', text="").index = index
     if module.expanded:
         box.separator()
         row = box.row()
@@ -46,7 +48,7 @@ def draw_module(layout, module, index):
                           "fields", module, "index",
                           item_dyntip_propname="description")
         if len(module.fields) > module.index >= 0:
-            module.draw_item(box)
+            module.draw_item(box, index)
 
 class OBJECT_PT_KSPModulesPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'

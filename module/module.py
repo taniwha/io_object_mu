@@ -60,12 +60,14 @@ available_modules_map={}
 available_modules_enum=[]
 
 class KSPField:
-    def __init__(self, name, type, default, description, items=None):
+    def __init__(self, name, type, default, description, min=None, max=None, items=None):
         self.name = name
         self.type = type
         self.default = default
         self.description = description
         self.items = items
+        self.min = min
+        self.max = max
     def property(self):
         if self.type == "bool":
             return "boolProperties"
@@ -97,37 +99,35 @@ def generate_module_properties(module_def):
     field_defs = module_def.GetNodes("field")
     fields=[]
     for field_node in field_defs:
-        fldType = field_node.GetValue("type")
-        fldName = field_node.GetValue("name")
-        fldDefault = field_node.GetValue("default")
-        fldDescription = field_node.GetValue("description")
-        if fldDescription == None:
-            fldDescription = ""
+        params = {}
+        fldType = params["type"] = field_node.GetValue("type")
+        fldName = params["name"] = field_node.GetValue("name")
+        params["default"] = field_node.GetValue("default")
+        params["description"] = field_node.GetValue("description")
+        params["min"] = None
+        params["max"] = None
+        if params["description"] == None:
+            params["description"] = ""
         if fldType == 'bool':
-            fldDefault = str2bool (fldDefault)
-            field = KSPField(fldName, fldType, fldDefault, fldDescription)
+            params["default"] = str2bool (params["default"])
         elif fldType == 'enum':
-            fldItems = parseItems(field_node.GetNode("items"))
-            field = KSPField(fldName, fldType, fldDefault, fldDescription, fldItems)
+            params["items"] = parseItems(field_node.GetNode("items"))
         elif fldType == 'float':
-            fldDefault = str2float (fldDefault)
-            field = KSPField(fldName, fldType, fldDefault, fldDescription)
+            params["min"] = str2float(field_node.GetValue("min"));
+            params["max"] = str2float(field_node.GetValue("max"));
+            params["default"] = str2float (params["default"])
         elif fldType == 'int':
-            fldDefault = str2int (fldDefault)
-            field = KSPField(fldName, fldType, fldDefault, fldDescription)
+            params["default"] = str2int (params["default"])
         elif fldType == 'Vector3':
-            fldDefault = str2vec3 (fldDefault)
-            field = KSPField(fldName, fldType, fldDefault, fldDescription)
+            params["default"] = str2vec3 (params["default"])
         elif fldType == 'string':
-            if fldDefault == None:
-                fldDefault = ""
-            field = KSPField(fldName, fldType, fldDefault, fldDescription)
-        elif fldType == 'transform':
-            field = KSPField(fldName, fldType, fldDefault, fldDescription)
-        elif fldType == 'FloatCurve':
-            field = KSPField(fldName, fldType, fldDefault, fldDescription)
+            if params["default"] == None:
+                params["default"] = ""
+        elif fldType in ["transform", "FloatCurve"]:
+            pass
         else:
             raise TypeError('Unsupported type (%s) for %s on %s' % (fldType, fldName, moduleName))
+        field = KSPField(**params)
         fields.append(field)
 
     module = KSPModule(moduleName, fields)

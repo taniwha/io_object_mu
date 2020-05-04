@@ -21,6 +21,7 @@
 
 import bpy
 from mathutils import Vector
+from bpy.utils import register_class, unregister_class
 from bpy.types import PropertyGroup
 from bpy.props import BoolProperty, BoolVectorProperty
 from bpy.props import CollectionProperty
@@ -30,11 +31,21 @@ from bpy.props import IntProperty, IntVectorProperty
 from bpy.props import PointerProperty
 from bpy.props import StringProperty
 
+from .module import available_modules_map
+
+module_active_field = {}
+
 class KSPProperty(PropertyGroup):
     bl_label = "ksp_property"
+    module: StringProperty()
     property: StringProperty()
     type: StringProperty()
     description: StringProperty()
+
+class KSPPropertyRef(PropertyGroup):
+    bl_label = "ksp_property_ref"
+    module_index: IntProperty()
+    field: StringProperty()
 
 class KSPBool(PropertyGroup):
     bl_label = "bool"
@@ -60,6 +71,74 @@ class KSPPointer(PropertyGroup):
     bl_label = "pointer"
     value: PointerProperty(type=bpy.types.Object)
 
+field_type_map = {
+    "bool": BoolProperty,
+    "float": FloatProperty,
+    "enum": EnumProperty,
+    "int": IntProperty,
+    "Vector3": FloatVectorProperty,
+    "string": StringProperty,
+    "transform": PointerProperty,
+    "FloatCurve": PointerProperty,
+}
+
+def generate_property(field):
+    print(field.module, field.name)
+    basefield = available_modules_map[field.module].field_map[field.name]
+    prop_type = field_type_map[field.type]
+    params = {}
+    params["name"] = basefield.name
+    if field.type == "enum":
+        params["items"] = basefield.items
+    elif field.type == "float":
+        if basefield.min != None:
+            params["min"] = basefield.min
+        if basefield.max != None:
+            params["max"] = basefield.max
+    elif field.type == "Vector3":
+        params["size"] = 3
+    return prop_type, params
+
+def update_field(self, context):
+    ref = self.propref
+    kspmodules = context.active_object.kspmodules
+    module = None
+    field = None
+    if len(kspmodules.modules) > ref.module_index >= 0:
+        module = kspmodules.modules[ref.module_index]
+        if ref.field in module.fields:
+            field = module.fields[ref.field]
+    if module and field:
+        prop = getattr(module, field.property)[field.name]
+        prop.value = self.value
+
+class KSPActiveField:
+    def __init__(self, module, field, mod_index):
+        self.module = module
+        self.prop_type = None
+        self.name = f"{module.name}.KSPActiveField.PropType"
+        self.set_field(field, mod_index)
+    def set_field(self, field, module_index):
+        if self.prop_type:
+            delattr(KSPModuleProps, "active_field")
+            unregister_class(self.prop_type)
+        if not field:
+            return
+        self.field = field
+        proptype, params = generate_property(field)
+        params["update"] = update_field
+        refptr = PointerProperty(type=KSPPropertyRef)
+        annotations = {"value": proptype(**params), "propref":refptr}
+        propdict = {"__annotations__": annotations, "bl_label": self.name}
+        self.prop_type = type(self.name, (PropertyGroup,), propdict)
+        register_class(self.prop_type)
+        ptr = PointerProperty(type = self.prop_type)
+        setattr(KSPModuleProps, "active_field", ptr)
+        prop = getattr(self.module, field.property)[field.name]
+        self.module.active_field.propref.module_index = module_index
+        self.module.active_field.propref.field = field.name
+        self.module.active_field.value = prop.value
+
 class KSPModuleProps(PropertyGroup):
     bl_label = "Module"
     name: StringProperty()
@@ -74,11 +153,11 @@ class KSPModuleProps(PropertyGroup):
     pointerProperties: CollectionProperty(type=KSPPointer)
 
     def initialize(self, module):
-        self.module = module
         self.name = module.name
         for f in module.fields:
             field = self.fields.add()
             field.name = f.name
+            field.module = module.name
             field.property = f.property()
             field.description = f.description
             field.type = f.type
@@ -88,12 +167,15 @@ class KSPModuleProps(PropertyGroup):
             prop.type = f.type
             prop.description = f.description
 
-    def draw_item(self, layout):
+    def draw_item(self, layout, mod_index):
         field = self.fields[self.index]
+        if self not in module_active_field:
+            module_active_field[self] = KSPActiveField(self, field, mod_index)
+        elif module_active_field[self].field != field:
+            module_active_field[self].set_field(field, mod_index)
         row = layout.row()
         col = row.column()
-        prop = getattr(self, field.property)[field.name]
-        col.prop(prop, "value", text=field.name)
+        col.prop(self.active_field, "value", text=field.name)
 
 class KSPModuleSet(PropertyGroup):
     bl_label = "Modules"
@@ -103,6 +185,7 @@ class KSPModuleSet(PropertyGroup):
 
 classes_to_register = (
     KSPProperty,
+    KSPPropertyRef,
     KSPBool,
     KSPFloat,
     KSPInt,

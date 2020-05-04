@@ -67,8 +67,20 @@ class KSPMU_OT_AddModule(bpy.types.Operator):
         kspmodules.modules.add().initialize(module)
         return {'FINISHED'}
 
+class KSPMU_OT_RemoveModule(bpy.types.Operator):
+    """Remove the KSP module from the part."""
+    bl_label = "Remove KSP Module"
+    bl_idname = "object.remove_ksp_module"
+    index: IntProperty()
+    def execute(self, context):
+        kspmodules = context.active_object.kspmodules
+        if len(kspmodules.modules) > self.index >= 0:
+            kspmodules.modules.remove(self.index)
+        return {'FINISHED'}
+
 classes_to_register = (
     KSPMU_OT_ModuleExpand,
     KSPMU_OT_ScanModuleDefs,
     KSPMU_OT_AddModule,
+    KSPMU_OT_RemoveModule,
 )
