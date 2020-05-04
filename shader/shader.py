@@ -82,7 +82,15 @@ def build_nodes(matname, node_tree, ntcfg):
             else:
                 setattr(sn, a, parse_value(v))
         if sndata.HasNode("inputs"):
-            for i,ip in enumerate(sndata.GetNode("inputs").GetNodes("input")):
+            input_nodes = sndata.GetNode("inputs").GetNodes("input")
+            if sntype == "ShaderNodeVectorMath":
+                # blender 2.82 has only 2 vector and 1 float input nodes
+                # but blender 2.90 (2.83?) has 3 vector inputs
+                # fortunately, the affects only the wrap operation which
+                # none of the shaders use
+                if len(sn.inputs) < 4:
+                    del input_nodes[2]
+            for i,ip in enumerate(input_nodes):
                 if ip.HasValue("default_value"):
                     value = ip.GetValue("default_value")
                     sn.inputs[i].default_value = parse_value(value)
