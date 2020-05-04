@@ -97,6 +97,8 @@ def generate_property(field):
             params["max"] = basefield.max
     elif field.type == "Vector3":
         params["size"] = 3
+    elif field.type in ["transform", "FloatCurve"]:
+        params["type"] = bpy.types.Object
     return prop_type, params
 
 def update_field(self, context):
