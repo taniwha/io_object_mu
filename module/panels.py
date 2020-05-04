@@ -44,7 +44,8 @@ def draw_module(layout, module, index):
         box.separator()
         row = box.row()
         col = row.column()
-        col.template_list("KSPMU_UL_KSPModuleField_list", "", module,
+        col.template_list("KSPMU_UL_KSPModuleField_list",
+                          f"{index}.{module.name}", module,
                           "fields", module, "index",
                           item_dyntip_propname="description")
         if len(module.fields) > module.index >= 0:

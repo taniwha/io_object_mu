@@ -44,8 +44,8 @@ def draw_property_list(layout, propset, propsetname):
         box.separator()
         row = box.row()
         col = row.column()
-        col.template_list("OBJECT_UL_ShaderProperty_list", "", propset,
-                          "properties", propset, "index")
+        col.template_list("OBJECT_UL_ShaderProperty_list", propset.bl_label,
+                          propset, "properties", propset, "index")
         col = row.column(align=True)
         add_op = "object.mushaderprop_add"
         rem_op = "object.mushaderprop_remove"
