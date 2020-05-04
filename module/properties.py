@@ -119,8 +119,9 @@ class KSPActiveField:
         self.name = f"{module.name}.KSPActiveField.PropType"
         self.set_field(field, mod_index)
     def set_field(self, field, module_index):
+        af_name = f"active_field{module_index}"
         if self.prop_type:
-            delattr(KSPModuleProps, "active_field")
+            delattr(KSPModuleProps, af_name)
             unregister_class(self.prop_type)
         if not field:
             return
@@ -132,12 +133,13 @@ class KSPActiveField:
         propdict = {"__annotations__": annotations, "bl_label": self.name}
         self.prop_type = type(self.name, (PropertyGroup,), propdict)
         register_class(self.prop_type)
-        ptr = PointerProperty(type = self.prop_type)
-        setattr(KSPModuleProps, "active_field", ptr)
+        ptr = PointerProperty(type=self.prop_type)
+        setattr(KSPModuleProps, af_name, ptr)
         prop = getattr(self.module, field.property)[field.name]
-        self.module.active_field.propref.module_index = module_index
-        self.module.active_field.propref.field = field.name
-        self.module.active_field.value = prop.value
+        active_field = getattr(self.module, af_name)
+        active_field.propref.module_index = module_index
+        active_field.propref.field = field.name
+        active_field.value = prop.value
 
 class KSPModuleProps(PropertyGroup):
     bl_label = "Module"
@@ -175,7 +177,8 @@ class KSPModuleProps(PropertyGroup):
             module_active_field[self].set_field(field, mod_index)
         row = layout.row()
         col = row.column()
-        col.prop(self.active_field, "value", text=field.name)
+        active_field = getattr(self, f"active_field{mod_index}")
+        col.prop(active_field, "value", text=field.name)
 
 class KSPModuleSet(PropertyGroup):
     bl_label = "Modules"
