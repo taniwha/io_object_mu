@@ -32,6 +32,7 @@ from bpy.props import PointerProperty
 from bpy.props import StringProperty
 
 from .module import ksp_module_items, build_modules, available_modules_map
+from .properties import module_active_field
 
 class KSPMU_OT_ModuleExpand(bpy.types.Operator):
     bl_label = "KSP module expand"
@@ -76,6 +77,7 @@ class KSPMU_OT_RemoveModule(bpy.types.Operator):
         kspmodules = context.active_object.kspmodules
         if len(kspmodules.modules) > self.index >= 0:
             kspmodules.modules.remove(self.index)
+            module_active_field.clear()
         return {'FINISHED'}
 
 classes_to_register = (

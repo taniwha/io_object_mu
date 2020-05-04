@@ -115,19 +115,24 @@ def update_field(self, context):
         prop.value = self.value
 
 class KSPActiveField:
-    def __init__(self, module, field, mod_index):
+    def __init__(self, module, field, mod_index, fld_index):
         self.module = module
         self.prop_type = None
         self.name = f"{module.name}.KSPActiveField.PropType"
-        self.set_field(field, mod_index)
-    def set_field(self, field, module_index):
-        af_name = f"active_field{module_index}"
+        self.set_field(field, mod_index, fld_index)
+    def __del__(self):
+        print("KSPActiveField __del__")
         if self.prop_type:
-            delattr(KSPModuleProps, af_name)
+            delattr(KSPModuleProps, self.af_name)
+            unregister_class(self.prop_type)
+    def set_field(self, field, module_index, field_index):
+        self.af_name = f"active_field{module_index}"
+        if self.prop_type:
+            delattr(KSPModuleProps, self.af_name)
             unregister_class(self.prop_type)
         if not field:
             return
-        self.field = field
+        self.field_index = field_index
         proptype, params = generate_property(field)
         params["update"] = update_field
         refptr = PointerProperty(type=KSPPropertyRef)
@@ -136,9 +141,9 @@ class KSPActiveField:
         self.prop_type = type(self.name, (PropertyGroup,), propdict)
         register_class(self.prop_type)
         ptr = PointerProperty(type=self.prop_type)
-        setattr(KSPModuleProps, af_name, ptr)
+        setattr(KSPModuleProps, self.af_name, ptr)
         prop = getattr(self.module, field.property)[field.name]
-        active_field = getattr(self.module, af_name)
+        active_field = getattr(self.module, self.af_name)
         active_field.propref.module_index = module_index
         active_field.propref.field = field.name
         active_field.value = prop.value
@@ -173,10 +178,17 @@ class KSPModuleProps(PropertyGroup):
 
     def draw_item(self, layout, mod_index):
         field = self.fields[self.index]
-        if self not in module_active_field:
-            module_active_field[self] = KSPActiveField(self, field, mod_index)
-        elif module_active_field[self].field != field:
-            module_active_field[self].set_field(field, mod_index)
+        active_object = bpy.context.active_object
+        if ("active_object" in module_active_field
+            and module_active_field["active_object"] != active_object.name):
+            module_active_field.clear()
+        module_active_field["active_object"] = active_object.name
+        if mod_index not in module_active_field:
+            af = KSPActiveField(self, field, mod_index, self.index)
+            module_active_field[mod_index] = af
+        elif module_active_field[mod_index].field_index != self.index:
+            af = module_active_field[mod_index]
+            af.set_field(field, mod_index, self.index)
         row = layout.row()
         col = row.column()
         active_field = getattr(self, f"active_field{mod_index}")
