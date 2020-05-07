@@ -72,16 +72,12 @@ def create_mesh_component(mu, muobj, mumesh, name):
     if not mu.force_mesh and not hasattr(muobj, "renderer"):
         return None
     mesh = create_mesh (mu, mumesh, name)
-    for poly in mesh.polygons:
-        poly.use_smooth = True
     if hasattr(muobj, "renderer"):
         attach_material(mesh, muobj.renderer, mu)
     return "mesh", mesh, None, (mesh_post, muobj.renderer)
 
 def create_skinned_mesh_component(mu, muobj, skin, name):
     mesh = create_mesh(mu, skin.mesh, name)
-    for poly in mesh.polygons:
-        poly.use_smooth = True
     obj = create_data_object(mu.collection, name + ".skin", mesh, None)
     create_vertex_groups(obj, skin.bones, skin.mesh.boneWeights)
     attach_material(mesh, skin, mu)
