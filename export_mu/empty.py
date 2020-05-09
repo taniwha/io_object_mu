@@ -68,6 +68,8 @@ def handle_empty(obj, muobj, mu):
         if not n.keep_transform() and not obj.children:
             return None
         muobj.transform.localRotation @= attachnode.rotation_correction
+    elif name == "thrustTransform":
+        muobj.transform.localRotation @= attachnode.rotation_correction
     elif name in ["CoMOffset", "CoPOffset", "CoLOffset"]:
         setattr(mu, name, (mu.inverse @ obj.matrix_world.col[3])[:3])
         if not obj.children:
