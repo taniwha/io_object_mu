@@ -48,6 +48,11 @@ def check_transform(obj, level, parent):
     flags += (" r" if hasattr(obj, "renderer") else "")
     flags += (" s" if hasattr(obj, "skinned_mesh_renderer") else "")
     flags += (" c" if hasattr(obj, "collider") else "")
+    if hasattr(obj, "tag_and_layer"):
+        if obj.tag_and_layer.tag and obj.tag_and_layer.tag != "Untagged":
+            flags += " " + obj.tag_and_layer.tag
+        if obj.tag_and_layer.layer:
+            flags += " " + obj.tag_and_layer.layer
     print("    " * level + obj.transform.name + flags)
     #print("    " * level + obj.transform.name + flags + "\t" + transform.to_str(False))
     #print("    " * level + "\t" + transform.to_str(True))
