@@ -27,7 +27,7 @@ import bpy
 import bpy_types
 from mathutils import Vector, Quaternion
 
-from ..mu import Mu
+from ..mu import Mu, MuAnimation, MuRenderer
 from ..shader import make_shader
 from ..utils import set_transform, create_data_object
 
@@ -41,10 +41,14 @@ from .light import create_light
 from .mesh import create_mesh
 from .textures import create_textures
 
-import_exclude = {
-    "read", "write", "children", "parent"
+def skip_component(mu, muobj, mumesh, name):
+    return None
+
+# further filled in by the modules that handle the Mu types
+type_handlers = {
+    MuAnimation: skip_component,
+    MuRenderer: skip_component,
 }
-type_handlers = {} # filled in by the modules that handle the Mu types
 
 def create_component_object(collection, component, objname, xform):
     post = None
@@ -77,14 +81,13 @@ def create_object(mu, muobj, parent):
     xform = muobj.transform
 
     component_data = []
-    for a in dir(muobj):
-        if a in import_exclude:
-            continue
-        component = getattr(muobj, a)
+    for component in muobj.components:
         if type(component) in type_handlers:
             data = type_handlers[type(component)](mu, muobj, component, xform.name)
             if data:
                 component_data.append(data)
+        else:
+            print(f"unhandled component {component}")
 
     if hasattr(muobj, "bone") and not component_data and not muobj.force_import:
         return None
