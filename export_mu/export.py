@@ -128,6 +128,7 @@ special_modelTypes = {
     'PART': {'INTERNAL':add_internal},
     'PROP': {},
     'INTERNAL': {'PROP':add_prop},
+    'STATIC': {},
 }
 
 def export_object(obj, filepath):
