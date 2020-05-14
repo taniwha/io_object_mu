@@ -52,7 +52,7 @@ def check_transform(obj, level, parent):
         if obj.tag_and_layer.tag and obj.tag_and_layer.tag != "Untagged":
             flags += " " + obj.tag_and_layer.tag
         if obj.tag_and_layer.layer:
-            flags += " " + obj.tag_and_layer.layer
+            flags += " " + str(obj.tag_and_layer.layer)
     print("    " * level + obj.transform.name + flags)
     #print("    " * level + obj.transform.name + flags + "\t" + transform.to_str(False))
     #print("    " * level + "\t" + transform.to_str(True))
