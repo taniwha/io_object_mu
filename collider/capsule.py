@@ -19,7 +19,7 @@
 
 # <pep8 compliant>
 
-from .transform import rotate, scale, translate
+from ..utils import rotate, scale, translate
 
 collider_capsule_cyl_ve = (
     [(-1.000, 0.000,-1.000), (-0.866, 0.500,-1.000), (-0.500, 0.866,-1.000),

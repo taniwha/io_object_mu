@@ -19,7 +19,7 @@
 
 # <pep8 compliant>
 
-from .transform import scale, translate
+from ..utils import scale, translate
 
 collider_wheel_ve = (
     [( 0.000,-1.000, 0.000), ( 0.000,-0.866, 0.500), ( 0.000,-0.500, 0.866),

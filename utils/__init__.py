@@ -29,4 +29,5 @@ else:
     from .object import collect_objects, collect_collections
     from .object import collect_hierarchy_objects
     from .object import collect_armature_modifiers, collect_modifiers
+    from .transform import translate, rotate, scale
 from .utils import swapyz, swizzleq, strip_nnn, vector_str

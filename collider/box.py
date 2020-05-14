@@ -19,7 +19,7 @@
 
 # <pep8 compliant>
 
-from .transform import scale, translate
+from ..utils import scale, translate
 
 collider_box_ve = (
     [(-0.5,-0.5,-0.5), (-0.5,-0.5, 0.5), (-0.5, 0.5, 0.5), (-0.5, 0.5,-0.5),
