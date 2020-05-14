@@ -26,6 +26,7 @@ from ..mu import MuMesh, MuSkinnedMeshRenderer
 from ..utils import create_data_object
 
 from .armature import create_vertex_groups, create_armature_modifier
+from .armature import create_bindPose
 
 def attach_material(mesh, renderer, mu):
     if mu.materials and renderer.materials:
@@ -77,13 +78,15 @@ def create_mesh_component(mu, muobj, mumesh, name):
     return "mesh", mesh, None, (mesh_post, muobj.renderer)
 
 def create_skinned_mesh_component(mu, muobj, skin, name):
+    create_bindPose(mu, muobj, skin)
     mesh = create_mesh(mu, skin.mesh, name)
     obj = create_data_object(mu.collection, name + ".skin", mesh, None)
     create_vertex_groups(obj, skin.bones, skin.mesh.boneWeights)
     attach_material(mesh, skin, mu)
-    obj.parent = muobj.armature_obj
-    create_armature_modifier(obj, muobj)
-    return "armature", muobj.armature_obj, None
+    obj.parent = skin.bindPose_obj
+    create_armature_modifier(obj, "BindPose", skin.bindPose_obj)
+    return "armature", skin.bindPose_obj, None
+    #return None
 
 type_handlers = {
     MuMesh: create_mesh_component,

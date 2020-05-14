@@ -33,7 +33,7 @@ from ..utils import set_transform, create_data_object
 
 from .exception import MuImportError
 from .animation import create_action, create_object_paths
-from .armature import create_armature
+from .armature import process_skins
 from .armature import is_armature, parent_to_bone
 from .camera import create_camera
 from .collider import create_collider
@@ -63,7 +63,8 @@ def create_component_object(collection, component, objname, xform):
         cobj = data
         if xform:
             set_transform(cobj, xform)
-        collection.objects.link(cobj)
+        if not cobj.name in collection.objects:
+            collection.objects.link(cobj)
     else:
         cobj = create_data_object(collection, name, data, xform)
     if rot:
@@ -89,20 +90,27 @@ def create_object(mu, muobj, parent):
         else:
             print(f"unhandled component {component}")
 
+    if muobj.transform.name == 'SkirtArmature':
+        print(dir(muobj))
     if hasattr(muobj, "bone") and not component_data and not muobj.force_import:
         return None
 
-    if len(component_data) != 1:
+    if hasattr(muobj, "armature_obj") or len(component_data) != 1:
         #empty or multiple components
         obj = None
-        #if a mesh is present, use it for the main object
-        for component in component_data:
-            if component[0] == "mesh":
-                component_data.remove(component)
-                component = (None,) + component[1:]
-                obj = create_component_object(mu.collection, component,
-                                              xform.name, xform)
-                break
+        if hasattr(muobj, "armature_obj"):
+            obj = muobj.armature_obj
+            set_transform(obj, muobj.transform)
+            mu.collection.objects.link(obj)
+        if not obj:
+            #if a mesh is present, use it for the main object
+            for component in component_data:
+                if component[0] == "mesh":
+                    component_data.remove(component)
+                    component = (None,) + component[1:]
+                    obj = create_component_object(mu.collection, component,
+                                                  xform.name, xform)
+                    break
         if not obj:
             obj = create_data_object(mu.collection, xform.name, None, xform)
         for component in component_data:
@@ -144,15 +152,6 @@ def create_object(mu, muobj, parent):
         obj.muproperties.tag = muobj.tag_and_layer.tag
         obj.muproperties.layer = muobj.tag_and_layer.layer
 
-    # prioritize any armatures so their bone objects get consumed
-    # however, unity allows for multiple skins to share one armature
-    skins = []
-    for child in muobj.children:
-        if is_armature(child):
-            skins.append(child)
-    if skins:
-        arm = create_armature(mu, skins, muobj.children)
-        arm.parent = obj
     for child in muobj.children:
         create_object(mu, child, obj)
     if hasattr(muobj, "animation"):
@@ -165,10 +164,28 @@ def create_materials(mu):
     for mumat in mu.materials:
         mumat.material = make_shader(mumat, mu)
 
+def create_armatures(mu):
+    def scan_for_skins(mu, obj):
+        # prioritize any armatures so their bone objects get consumed
+        # however, unity allows for multiple skins to share one armature
+        skins = []
+        for child in obj.children:
+            if is_armature(child):
+                skins.append(child)
+        if skins:
+            process_skins(mu, skins, obj.children)
+        for child in obj.children:
+            scan_for_skins(mu, child)
+    if is_armature(mu.obj):
+        process_skins(mu, [mu.obj], [mu.obj])
+    else:
+        scan_for_skins(mu, mu.obj)
+
 def process_mu(mu, mudir):
     create_textures(mu, mudir)
     create_materials(mu)
     create_object_paths(mu)
+    create_armatures(mu)
     mu.imported_objects = set()
     return create_object(mu, mu.obj, None)
 

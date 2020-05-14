@@ -21,7 +21,7 @@
 
 import bpy
 from mathutils import Vector, Quaternion, Matrix
-from ..utils import create_data_object
+from ..utils import create_data_object, translate, scale, rotate
 
 BONE_LENGTH = 0.1
 #matrix for converting between LHS and RHS (works either direction)
@@ -40,17 +40,14 @@ def create_vertex_groups(obj, bones, weights):
             if bweight != 0:
                 obj.vertex_groups[bind].add((vind,), bweight, 'ADD')
 
-def create_armature_modifier(obj, armobj):
-    def add_modifier(obj, name, armature):
-        mod = obj.modifiers.new(name=name, type='ARMATURE')
-        mod.use_apply_on_spline = False
-        mod.use_bone_envelopes = False
-        mod.use_deform_preserve_volume = False # silly Unity :P
-        mod.use_multi_modifier = False
-        mod.use_vertex_groups = True
-        mod.object = armature
-    add_modifier(obj, "BindPose", armobj.bindPose_obj)
-    add_modifier(obj, "Armature", armobj.armature_obj)
+def create_armature_modifier(obj, name, armature):
+    mod = obj.modifiers.new(name=name, type='ARMATURE')
+    mod.use_apply_on_spline = False
+    mod.use_bone_envelopes = False
+    mod.use_deform_preserve_volume = False # silly Unity :P
+    mod.use_multi_modifier = False
+    mod.use_vertex_groups = True
+    mod.object = armature
 
 def parent_to_bone(child, armature, bone):
     child.parent = armature
@@ -76,133 +73,141 @@ def create_bone(bone_obj, edit_bones):
     return bone
 
 def process_armature(armobj, rootBones):
-    def process_bone(obj, position, rotation):
-        obj.bone.head = rotation @ Vector(obj.position) + position
-        rot = Quaternion(obj.rotation)
-        lrot = rotation @ rot
+    def process_bone(obj, mat):
+        mat = mat @ obj.matrix
+        obj.bone.matrix = mat
         y = BONE_LENGTH
-        obj.bone.tail = obj.bone.head + lrot @ Vector((0, y, 0))
-        obj.bone.align_roll(lrot @ Vector((0, 0, 1)))
+        obj.bone.tail = mat @ Vector((0, y, 0))
         for child in obj.children:
             if hasattr(child, "armature") and child.armature == armobj:
-                process_bone(child, obj.bone.head, lrot)
+                process_bone(child, mat)
         # must not keep references to bones when the armature leaves edit mode,
         # so keep the bone's name instead (which is what's needed for bone
         # parenting anway)
         obj.bone = obj.bone.name
 
-    pos = Vector((0, 0, 0))
-    rot = Quaternion((1, 0, 0, 0))
+    mat = Matrix.Identity(4)
     #the armature object has no bone
     for rootBone in rootBones:
-        process_bone(rootBone, pos, rot)
+        process_bone(rootBone, mat)
 
-def find_bones(mu, skin, siblings):
-    bone_names = set(skin.skinned_mesh_renderer.bones)
-    for i, bname in enumerate(skin.skinned_mesh_renderer.bones):
-        bone = mu.objects[bname]
-        bp = skin.skinned_mesh_renderer.mesh.bindPoses[i]
+def create_bindPose(mu, muobj, skin):
+    bone_names = skin.bones
+    for i in range(len(skin.mesh.bindPoses)):
+        bp = skin.mesh.bindPoses[i]
         bp = Matrix((bp[0:4], bp[4:8], bp[8:12], bp[12:16]))
-        bone.bindPose = Matrix_YZ @ bp @ Matrix_YZ
-    bones = set()
+        skin.mesh.bindPoses[i] = Matrix_YZ @ bp @ Matrix_YZ
+    ctx = bpy.context
+    col = ctx.layer_collection.collection
+    name = muobj.transform.name
+    skin.bindPose = bpy.data.armatures.new(name + ".bindPose")
+    skin.bindPose.show_axes = True
+    skin.bindPose_obj = create_data_object(col, name + ".bindPose",
+                                           skin.bindPose, None)
+    ctx.view_layer.objects.active = skin.bindPose_obj
+    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+    for i, bname in enumerate(bone_names):
+        bone = mu.objects[bname]
+        m = skin.mesh.bindPoses[i].inverted()
+        pb = create_bone (bone, skin.bindPose.edit_bones)
+        pb.matrix = m
+        bone.poseBone = pb.name
+    bpy.ops.object.mode_set(mode='OBJECT')
+
     for bname in bone_names:
-        bones.add(mu.objects[bname])
+        bone = mu.objects[bname]
+        posebone = skin.bindPose_obj.pose.bones[bname]
+        constraint = posebone.constraints.new('COPY_TRANSFORMS')
+        constraint.target = bone.owner.armature_obj
+        constraint.subtarget = bname
+    # don't clutter the main collection if importing to a different collection
+    ctx.layer_collection.collection.objects.unlink(skin.bindPose_obj)
+    #however, do need to link the bindPose armature to the import collection
+    mu.collection.objects.link(skin.bindPose_obj)
 
-    prev_bones = set()
-    while bones - prev_bones:
-        prev_bones = bones
-        bones = set()
-        for b in prev_bones:
-            bones.add(b)
-            while b not in siblings:
-                b = b.parent
-                bones.add(b)
-    #print(list(map(lambda b: b.transform.name, bones)))
-
-    return bones
-
-def create_armature(mu, skins, siblings):
-    #FIXME assumes all skin transfroms and bind poses are compatible
+def find_bones(mu, skins, siblings):
     siblings = set(siblings)
-    rootBones = set()
     bones = set()
     for skin in skins:
-        bones.update(find_bones(mu, skin, siblings))
+        bone_names = skin.skinned_mesh_renderer.bones
+        for bname in bone_names:
+            bones.add(mu.objects[bname])
 
-    armobj = skins[0]
-    armobj.position = Vector(armobj.transform.localPosition)
-    armobj.rotation = Quaternion(armobj.transform.localRotation)
+    roots = set()
+    for b in bones:
+        if b.parent not in bones:
+            roots.add(b)
+    prev_roots = set()
+    while len(roots) > 1 and roots ^ prev_roots:
+        prev_roots = set(roots)
+        for b in prev_roots:
+            if b in siblings:
+                continue
+            roots.remove(b)
+            bones.add(b.parent)
+            roots.add(b.parent)
+    parents = set()
+    for b in roots:
+        parents.add(b.parent)
+    for b in bones:
+        p = b.parent
+        while p not in parents:
+            p = p.parent
+        b.owner = p
+        if not hasattr(p, "armature_bones"):
+            p.armature_bones = set()
+        p.armature_bones.add(b)
+    return bones, roots, parents
+
+def make_matrix(transform):
+    mat = rotate(transform.localRotation)
+    mat = translate(transform.localPosition) @ mat
+    return mat
+
+def create_armature(mu, armobj, roots):
+    armobj.matrix = make_matrix(armobj.transform)
 
     name = armobj.transform.name
     armobj.armature = bpy.data.armatures.new(name)
-    armobj.bindPose = bpy.data.armatures.new(name + ".bindPose")
     armobj.armature.show_axes = True
-    armobj.bindPose.show_axes = True
     ctx = bpy.context
     col = ctx.layer_collection.collection
     save_active = ctx.view_layer.objects.active
     armobj.armature_obj = create_data_object(col, name, armobj.armature,
                                              armobj.transform)
-    armobj.bindPose_obj = create_data_object(col, name + ".bindPose",
-                                             armobj.bindPose, None)
-    armobj.bindPose_obj.parent = armobj.armature_obj
 
     ctx.view_layer.objects.active = armobj.armature_obj
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-    for b in bones:
-        b.position = Vector(b.transform.localPosition)
-        b.rotation = Quaternion(b.transform.localRotation)
+    for b in armobj.armature_bones:
+        b.matrix = make_matrix(b.transform)
         b.relRotation = Quaternion((1, 0, 0, 0))
-        if b in siblings:
-            r = armobj.rotation.inverted()
-            b.rotation = r @ b.rotation
-            b.position = r @ (b.position - armobj.position)
-            b.relRotation = r
         b.armature = armobj
         b.bone = create_bone(b, armobj.armature.edit_bones)
-    for b in bones:
-        if b.parent in bones:
+    rootBones = set()
+    for b in armobj.armature_bones:
+        if b.parent in armobj.armature_bones:
             b.bone.parent = b.parent.bone
         else:
             rootBones.add(b)
         b.force_import = False
         for c in b.children:
-            if c not in bones:
+            if c not in armobj.armature_bones:
                 b.force_import = True
     process_armature(armobj, rootBones)
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    ctx.view_layer.objects.active = armobj.bindPose_obj
-    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-    for b in bones:
-        if hasattr(b, "bindPose"):
-            m = b.bindPose.inverted()
-            pb = create_bone (b, armobj.bindPose.edit_bones)
-            pb.head = m @ Vector((0, 0, 0))
-            pb.tail = m @ Vector((0, BONE_LENGTH, 0))
-            pb.align_roll(m @ Vector((0, 0, 1)))
-            b.poseBone = pb.name
-    bpy.ops.object.mode_set(mode='OBJECT')
-    for b in bones:
-        if hasattr(b, "bindPose"):
-            pb = armobj.bindPose_obj.pose.bones[b.poseBone]
-            rb = armobj.armature_obj.pose.bones[b.poseBone]
-            pb.matrix = rb.matrix
-
     # don't clutter the main collection if importing to a different collection
     ctx.layer_collection.collection.objects.unlink(armobj.armature_obj)
-    ctx.layer_collection.collection.objects.unlink(armobj.bindPose_obj)
     ctx.view_layer.objects.active = save_active
-    #however, do need to link the bindPose armature to the import collection
-    mu.collection.objects.link(armobj.bindPose_obj)
-
-    for skin in skins:
-        skin.armature = armobj.armature
-        skin.armature_obj = armobj.armature_obj
-        skin.bindPose = armobj.bindPose
-        skin.bindPose_obj = armobj.bindPose_obj
 
     return armobj.armature_obj
+
+def process_skins(mu, skins, siblings):
+    bones, roots, parents = find_bones(mu, skins, siblings)
+    for armobj in parents:
+        print(armobj.transform.name,
+              list(map(lambda b: b.transform.name, armobj.armature_bones)))
+        create_armature(mu, armobj, roots)
 
 def is_armature(obj):
     # In Unity, it seems that an object with a SkinnedMeshRenderer is the
