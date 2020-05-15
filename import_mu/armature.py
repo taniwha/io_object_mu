@@ -127,6 +127,7 @@ def create_bindPose(mu, muobj, skin):
 
 def find_bones(mu, skins, siblings):
     siblings = set(siblings)
+    skins = set(skins)
     bones = set()
     for skin in skins:
         bone_names = skin.skinned_mesh_renderer.bones
@@ -137,11 +138,13 @@ def find_bones(mu, skins, siblings):
     for b in bones:
         if b.parent not in bones:
             roots.add(b)
+    #print(list(map(lambda b: b.transform.name, bones)))
+    #print(list(map(lambda b: b.transform.name, roots)))
     prev_roots = set()
     while len(roots) > 1 and roots ^ prev_roots:
         prev_roots = set(roots)
         for b in prev_roots:
-            if b in siblings:
+            if b in siblings or b.parent in skins:
                 continue
             roots.remove(b)
             bones.add(b.parent)
@@ -149,6 +152,7 @@ def find_bones(mu, skins, siblings):
     parents = set()
     for b in roots:
         parents.add(b.parent)
+    #print(list(map(lambda b: b.transform.name, parents)))
     for b in bones:
         p = b.parent
         while p not in parents:
@@ -205,8 +209,8 @@ def create_armature(mu, armobj, roots):
 def process_skins(mu, skins, siblings):
     bones, roots, parents = find_bones(mu, skins, siblings)
     for armobj in parents:
-        print(armobj.transform.name,
-              list(map(lambda b: b.transform.name, armobj.armature_bones)))
+        #print(armobj.transform.name,
+        #      list(map(lambda b: b.transform.name, armobj.armature_bones)))
         create_armature(mu, armobj, roots)
 
 def is_armature(obj):
