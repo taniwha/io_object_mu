@@ -37,6 +37,8 @@ Matrix_YZ = Matrix(((1,0,0,0),
                     (0,1,0,0),
                     (0,0,0,1)))
 
+MU_MAX_VERTS = 65534
+
 def build_submeshes(mesh):
     submeshes = []
     submesh = []
@@ -233,6 +235,10 @@ def make_mesh(mu, obj):
     mesh = obj.data
     if not is_collider(obj) and mesh.shape_keys:
         process_shape_keys(mesh, mumesh, vertex_map, vertex_data)
+    if len(mumesh.verts) > MU_MAX_VERTS:
+        mu.messages.append(({'WARNING'}, f"Mesh has more than {MU_MAX_VERTS} "
+                            "vertices: KSP will not import it properly "
+                            + obj.name))
     return mumesh
 
 def mesh_materials(mu, mesh):
