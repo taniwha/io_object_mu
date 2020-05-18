@@ -34,8 +34,21 @@ clearflag_items = (
     ('NOTHING', "Nothing", ""),
 )
 
+default_cullingMask = (
+    True, False, False, False,
+    False, False, False, False,
+    False, False, False, False,
+    False, False, False, True,
+    False, True, False, False,
+    False, False, False, True,
+    False, False, False, False,
+    False, False, False, False,
+)
+
 class MuLightProperties(bpy.types.PropertyGroup):
-    cullingMask: BoolVectorProperty(size=32, name = "Culling Mask", subtype = 'LAYER')
+    cullingMask: BoolVectorProperty(size=32, name = "Culling Mask",
+                                    subtype = 'LAYER',
+                                    default = default_cullingMask)
 
 class OBJECT_PT_MuLightPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
