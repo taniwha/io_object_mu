@@ -388,7 +388,19 @@ class MuCurve:
         self.type = mu.read_int()
         self.wrapMode = mu.read_int(2)  # pre, post
         #print("   ", self.path, self.property, self.type, self.wrapMode)
-        num_keys = mu.read_int()
+        if self.type == 8:
+            # this is a bad PartTools export where the type did not get written
+            # so try to guess the type:
+            if self.path[:9] == "material":
+                self.type = 1
+            else:
+                #don't know, punt at transform
+                self.type = 0
+            # wrapMode ate the key count
+            num_keys = self.wrapMode[1]
+            self.wrapMode = self.type, self.wrapMode[0]
+        else:
+            num_keys = mu.read_int()
         #print(num_keys)
         self.keys = []
         for i in range(num_keys):
