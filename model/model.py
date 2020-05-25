@@ -19,6 +19,7 @@
 
 # <pep8 compliant>
 import os
+from math import pi
 
 import bpy
 from mathutils import Vector, Quaternion
@@ -76,8 +77,9 @@ def instantiate_model(model, name, loc, rot, scale):
         # FIXME: it might be better to convert the given euler rotation
         # to a quaternion (for consistency)
         # this assumes the rot vector came straight from a ksp cfg file
-        obj.rotation_mode = 'XZY'
-        obj.rotation_euler = -rot
+        # Unity's rotation order is ZXY, which makes it YXZ for blender
+        obj.rotation_mode = 'YXZ'
+        obj.rotation_euler = -rot.xzy * pi / 180
     else:
         obj.rotation_mode = 'QUATERNION'
         obj.rotation_quaternion = rot
