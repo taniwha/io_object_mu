@@ -21,6 +21,10 @@
 
 import bpy
 from mathutils import Vector, Quaternion
+from math import pi
+
+#mess with the heads of 6.28... fans :P
+tau = pi / 180
 
 property_map = {
     "m_LocalPosition.x": ("obj", "location", 0, 1, 3),
@@ -33,6 +37,9 @@ property_map = {
     "m_LocalScale.x": ("obj", "scale", 0, 1, 3),
     "m_LocalScale.y": ("obj", "scale", 2, 1, 3),
     "m_LocalScale.z": ("obj", "scale", 1, 1, 3),
+    "localEulerAnglesRaw.x": ("obj", "rotation_euler", 0, -tau, 3),
+    "localEulerAnglesRaw.y": ("obj", "rotation_euler", 2, -tau, 3),
+    "localEulerAnglesRaw.z": ("obj", "rotation_euler", 1, -tau, 3),
     "m_Intensity": ("data", "energy", 0, 1),
     "m_Color.r": ("data", "color", 0, 1),
     "m_Color.g": ("data", "color", 1, 1),
@@ -127,6 +134,8 @@ def create_action(mu, path, clip):
             print("No blender object at path: %s" % (mu_path))
             continue
 
+        if curve.property[:-2] == "localEulerAnglesRaw":
+            obj.rotation_mode = 'YXZ'
         if curve.property not in property_map:
             sp = shader_property(obj, curve.property)
             if not sp:
