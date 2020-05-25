@@ -81,7 +81,11 @@ for f in sys.argv[1:]:
             paths.sort()
             for p in paths:
                 propset = anims[o][c][p]
-                obj = mu.objects["/".join([o,p])]
+                if not p:
+                    path = o
+                else:
+                    path = "/".join([o, p])
+                obj = mu.objects[path]
                 loc = obj.transform.localPosition
                 rot = obj.transform.localRotation
                 scale = obj.transform.localScale
