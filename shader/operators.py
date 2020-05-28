@@ -100,7 +100,7 @@ class IO_OBJECT_MU_OT_shader_rebuild(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.material != None
+        return hasattr(context, "material") and context.material != None
 
     def execute(self, context):
         create_nodes(context.material)
@@ -116,7 +116,7 @@ class IO_OBJECT_MU_OT_shader_export(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context):
-        return context.material != None
+        return hasattr(context, "material") and context.material != None
 
     def execute(self, context):
         keywords = self.as_keywords (ignore=("check_existing", "filter_glob",
