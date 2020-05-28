@@ -94,6 +94,17 @@ def add_mesh_colliders(self, context, convex):
     context.preferences.edit.use_global_undo = undo
     return {'FINISHED'}
 
+def unmake_mesh_collider(self, context):
+    operator = self
+    undo = bpy.context.preferences.edit.use_global_undo
+    bpy.context.preferences.edit.use_global_undo = False
+
+    obj = context.active_object
+    obj.muproperties.collider = 'MU_COL_NONE'
+
+    context.preferences.edit.use_global_undo = undo
+    return {'FINISHED'}
+
 def make_mesh_colliders(self, context):
     operator = self
     undo = bpy.context.preferences.edit.use_global_undo
@@ -110,6 +121,23 @@ def make_mesh_colliders(self, context):
 
     context.preferences.edit.use_global_undo = undo
     return {'FINISHED'}
+
+class KSPMU_OT_UnmakeMeshCollider(bpy.types.Operator):
+    """Change a mesh collider into a normal mesh."""
+    bl_idname = "mucollider.unmake_mesh_collider"
+    bl_label = "Unmake Mesh Collider"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return (obj != None
+                and type(obj.data) == bpy.types.Mesh
+                and obj.muproperties.collider == 'MU_COL_MESH')
+
+    def execute(self, context):
+        keywords = self.as_keywords ()
+        return unmake_mesh_collider(self, context, **keywords)
 
 class KSPMU_OT_ColliderFromMesh(bpy.types.Operator):
     """Add mesh collider to selected meshes, basing the collider mesh on the original mesh"""
@@ -196,6 +224,7 @@ class KSPMU_OT_ColliderWheel(bpy.types.Operator):
         return add_collider(self, context)
 
 classes_to_register = (
+    KSPMU_OT_UnmakeMeshCollider,
     KSPMU_OT_ColliderFromMesh,
     KSPMU_OT_MeshToCollider,
     KSPMU_OT_ColliderMesh,
