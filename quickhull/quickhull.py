@@ -230,5 +230,14 @@ class QuickHull:
                             dist2 = d
                     print(f"    h:{lf.dist(point)} d1:{dist1} d2:{dist2} {lf.edges[0].touches_point(point)} {lf.edges[1].touches_point(point)} {lf.edges[2].touches_point(point)}")
                 break
+        if self.dump_faces and not connectivity.error:
+            bw = BinaryWriter(open(f"/tmp/quickhull-{iter:05d}.bin", "wb"))
+            self.mesh.write(bw)
+            faces.write(bw)
+            finalFaces.write(bw)
+            bw.write_int(-1)
+            bw.write_int(0)
+            bw.write_int(0)
+            bw.close()
         self.error = connectivity.error
         return finalFaces
