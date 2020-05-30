@@ -57,6 +57,6 @@ class FaceSet:
         return edges
 
     def write(self, bw):
-        bw.write(len(self.faces))
+        bw.write_int(len(self.faces))
         for f in self.faces:
             f.write(bw)

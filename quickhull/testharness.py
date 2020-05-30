@@ -36,7 +36,7 @@ options, datafiles = getopt.getopt(sys.argv[1:], shortopts, longopts)
 
 for opt, arg in options:
     if opt == "--dump":
-        pass
+        QuickHull.dump_faces = True
 
 error = False
 for df in datafiles:

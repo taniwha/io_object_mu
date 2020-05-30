@@ -50,7 +50,7 @@ class Triangle:
         self.n = cross(self.edges[0].vect, self.edges[1].vect)
         self.n = div(self.n, sqrt(dot(self.n, self.n)))
         self.vispoints = []
-        self.highest = None
+        self.highest = 0
         self.height = -1
         self.faceset = None
         self.light_run = 0
