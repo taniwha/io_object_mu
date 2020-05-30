@@ -19,7 +19,7 @@
 
 # <pep8 compliant>
 
-from .quickhull import get_convex_hull
+from .quickhull import QuickHull
 
 try:
     from .. import register_submodules

@@ -17,154 +17,198 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from ..utils.vect import *
+try:
+    from ..utils.vect import *
+except ImportError:
+    import sys
+    sys.path.insert(0, sys.path[0] + "/../utils")
+    from vect import *
+except ValueError:
+    import sys
+    sys.path.insert(0, sys.path[0] + "/utils")
+    from vect import *
 
-id = 0
-epsilon = 1e-5
+try:
+    from .edge import Edge
+    from .triangle import Triangle
+    from .faceset import FaceSet
+    from .connectivity import Connectivity
+    from .binary import BinaryWriter
+except ImportError:
+    from edge import Edge
+    from triangle import Triangle
+    from faceset import FaceSet
+    from connectivity import Connectivity
+    from binary import BinaryWriter
 
-class Triangle:
-    def __init__(self, mesh, a, b, c):
-        global id
-        self.id = id
-        id += 1
-        self.edges = [(a, b), (b, c), (c, a)]
-        self.redges = [(b, a), (c, b), (a, c)]
+class QuickHull:
+    dump_faces = False
+
+    def __init__(self, mesh):
         self.mesh = mesh
-        a = self.a = mesh.verts[a]
-        b = self.b = mesh.verts[b]
-        c = self.c = mesh.verts[c]
-        self.n = cross(sub(b,a), sub(c,a))
-        self.vispoints = []
-        self.highest = None
-        self.height = -1
-    def dist(self, point):
-        p = self.mesh.verts[point]
-        return dot(sub(p, self.a), self.n)
-    def can_see(self, point):
-        p = self.mesh.verts[point]
-        d = dot(sub(p, self.a), self.n)
-        return d > -epsilon
-    def add_point(self, point):
-        d = self.dist(point)
-        # use an epsilon of 1um. Even 1mm is pretty small in KSP.
-        if d > epsilon:
-            if d > self.height:
-                self.height = d
-                self.highest = len(self.vispoints)
-            self.vispoints.append(point)
-            return True
-        return False
+        self.error = False
 
-def dist2(mesh, a, b):
-    a = mesh.verts[a]
-    b = mesh.verts[b]
-    r = sub(b, a)
-    return dot(r, r)
+    def find_extreme_points(self):
+        points = [0] * 6
+        for i, v in enumerate(self.mesh.verts):
+            if v[0] < self.mesh.verts[points[0]][0]:
+                points[0] = i
+            if v[1] < self.mesh.verts[points[1]][1]:
+                points[1] = i
+            if v[2] < self.mesh.verts[points[2]][2]:
+                points[2] = i
+            if v[0] > self.mesh.verts[points[3]][0]:
+                points[0] = i
+            if v[1] > self.mesh.verts[points[4]][1]:
+                points[1] = i
+            if v[2] > self.mesh.verts[points[5]][2]:
+                points[5] = i
+        self.points = points
 
-def light_faces(faces, first_face, v):
-    lit_faces = []
-    if first_face:
-        lit_faces.append(first_face)
-    i = 0
-    while i < len(faces):
-        lf = faces[i]
-        if lf.can_see(v):
-            lit_faces.append(lf)
-            del faces[i]
-            continue
-        i += 1
-    return lit_faces
-
-def find_outer_edges(faces):
-    edges = set()
-    for f in faces:
-        for i in range(3):
-            if f.redges[i] in edges:
-                edges.remove(f.redges[i])
-            else:
-                edges.add(f.edges[i])
-    return edges
-
-def get_convex_hull(mesh):
-    # min x, y, z and max x, y, z
-    points = [0,] * 6
-    for i in range(len(mesh.verts)):
-        if mesh.verts[i][0] < mesh.verts[points[0]][0]:
-            points[0] = i
-        if mesh.verts[i][1] < mesh.verts[points[1]][1]:
-            points[1] = i
-        if mesh.verts[i][2] < mesh.verts[points[2]][2]:
-            points[2] = i
-        if mesh.verts[i][0] > mesh.verts[points[3]][0]:
-            points[3] = i
-        if mesh.verts[i][1] > mesh.verts[points[4]][1]:
-            points[4] = i
-        if mesh.verts[i][2] > mesh.verts[points[5]][2]:
-            points[5] = i
-    best = (points[0], points[1])
-    bestd = dist2(mesh, best[0], best[1])
-    for p in points:
-        for q in points:
-            if q in best:
+    def find_simplex(self):
+        a = 0
+        b = 1
+        tEdge = Edge(self.mesh, a, b)
+        bestd = dot(tEdge.vect, tEdge.vect)
+        for i in range(6):
+            p = self.points[i]
+            for j in range(6):
+                q = self.points[j]
+                if q == p or (a, b == p, q) or (a, b == q, p):
+                    continue
+                tEdge.a = p
+                tEdge.b = q
+                r = dot(tEdge.vect, tEdge.vect)
+                if r > bestd:
+                    a, b = p, q
+                    bestd = r
+        tEdge.a = a
+        tEdge.b = b
+        bestd = 0
+        c = 0
+        for i in range(6):
+            p = self.points[i]
+            if a == p or b == p:
                 continue
-            r = dist2(mesh, p, q)
+            r = tEdge.distance(p)
             if r > bestd:
-                best = (p, q)
+                c = p
                 bestd = r
-    a, b = best
-    c = None
-    bestd = 0
-    for p in points:
-        if p in (a, b):
-            continue
-        r = dist2(mesh, a, p) + dist2(mesh, b, p)
-        if r > bestd:
-            c = p
-            bestd = r
-    if c in (a, b) or c == None:
-        raise
-    bestd = 0
-    d = None
-    tri = Triangle(mesh,a,b,c)
-    for p in range(len(mesh.verts)):
-        if p in (a, b, c):
-            continue
-        r = tri.dist(p)
-        if r**2 > bestd**2:
-            d = p
-            bestd = r
-    if d in (a, b, c) or d == None:
-        raise
-    if bestd > 0:
-        b,c = c, b
-    faces = [Triangle(mesh, a, b, c),
-             Triangle(mesh, a, d, b),
-             Triangle(mesh, a, c, d),
-             Triangle(mesh, c, b, d)]
-    for p in range(len(mesh.verts)):
-        for f in faces:
-            if f.add_point(p):
-                break # process the next point
-    final_faces = []
-    itter = 0
-    while faces:
-        f = faces.pop(0)
-        if not f.vispoints:
-            final_faces.append(f)
-            continue
-        point = f.vispoints[f.highest]
-        lit_faces = light_faces(faces, f, point)
-        #light final faces as well so that face merging can be done.
-        lit_faces += light_faces(final_faces, None, point)
-        horizon_edges = find_outer_edges(lit_faces)
-        new_faces = []
-        for e in horizon_edges:
-            new_faces.append(Triangle(mesh, e[0], e[1], point))
-        for lf in lit_faces:
-            for p in lf.vispoints:
-                for nf in new_faces:
-                    if nf.add_point(p):
-                        break
-        faces.extend(new_faces)
-        itter+=1
-    return final_faces
+
+        tri = Triangle(self.mesh, a, b, c)
+        d = 0
+        bestd = 0
+        for p in range(len(self.mesh.verts)):
+            if a == p or b == p or c == p:
+                continue
+            r = tri.dist(p)
+            if r*r > bestd * bestd:
+                d = p
+                bestd = r
+        if bestd > 0:
+            b, c = c, b
+        faces = FaceSet(self.mesh)
+        faces.add(Triangle(self.mesh, a, b, c))
+        faces.add(Triangle(self.mesh, a, d, b))
+        faces.add(Triangle(self.mesh, a, c, d))
+        faces.add(Triangle(self.mesh, c, b, d))
+        return faces
+
+    def split_triangle(self, t, splitEdge, point, connectivity):
+        a = t.edges[splitEdge].a;
+        b = t.edges[splitEdge].b;
+        c = t.edges[(splitEdge + 1) % 3].b
+        faceset = t.faceset
+        t.pull()
+        connectivity.remove(t)
+        nt1 = Triangle(self.mesh, a, point, c)
+        nt2 = Triangle(self.mesh, point, b, c)
+        nt1.vispoints = t.vispoints
+        nt1.height = t.height
+        nt1.highest = t.highest
+        nt2.vispoints = list(t.vispoints)
+        nt2.height = t.height
+        nt2.highest = t.highest
+
+        faceset.add(nt1)
+        faceset.add(nt2)
+        connectivity.add(nt1)
+        connectivity.add(nt2)
+
+    def GetHull(self):
+        self.find_extreme_points()
+        faces = self.find_simplex()
+        connectivity = Connectivity(faces)
+        dupPoints = set()
+        for i in range(len(self.mesh.verts)):
+            for f in faces:
+                if f.is_dup(i):
+                    dupPoints.add(i)
+                    break;
+            if i in dupPoints:
+                continue
+            for f in faces:
+                f.add_point(i)
+
+        finalFaces = FaceSet(self.mesh)
+        donePoints = set()
+
+        iter = 0
+        bw = None
+
+        while len(faces):
+            if self.dump_faces:
+                bw = BinaryWriter(open(f"/tmp/quickhull-{iter:D5}.bin", "wb"))
+                self.mesh.write(bw)
+                faces.write(bw)
+                finalFaces.write(bw)
+            iter += 1
+            f = faces.pop()
+            if not f.vispoints:
+                finalFaces.add(f)
+                continue
+            point = f.vispoints[f.highest]
+            litFaces = connectivity.light_faces(f, point)
+            if bw:
+                bw.write_int(point)
+                litFaces.write(bw)
+            connectivity.remove(litFaces)
+            horizonEdges = litFaces.find_outer_edges()
+            newFaces = FaceSet(self.mesh)
+            for e in horizonEdges:
+                if e.touches_point(point):
+                    t = connectivity[e.reverse]
+                    splitEdge = t.touched_edge(point)
+                    if splitEdge >= 0:
+                        self.split_triangle(t, splitEdge, point, connectivity)
+                else:
+                    tri = Triangle(self.mesh, e.a, e.b, point)
+                    newFaces.add(tri)
+                    connectivity.add(tri)
+            donePoints.clear()
+            for lf in litFaces:
+                for p in lf.vispoints:
+                    if p in donePoints:
+                        continue
+                    donePoints.add(p)
+                    for nf in newFaces:
+                        if nf.is_dup(p):
+                            dupPoints.add(p)
+                            p = -1
+                            break;
+                    if p < 0:
+                        continue
+                    for nf in newFaces:
+                        nf.add_point(p)
+            if bw:
+                newFaces.write(bw)
+            for nf in set(newFaces.faces):
+                if nf.vispoints:
+                    faces.add(nf)
+                else:
+                    finalFaces.add(nf)
+            if bw:
+                bw.close()
+                bw = None
+        self.error = connectivity.error
+        return finalFaces

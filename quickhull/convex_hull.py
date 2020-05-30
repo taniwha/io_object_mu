@@ -19,7 +19,7 @@
 
 # <pep8 compliant>
 
-from .quickhull import get_convex_hull
+from .quickhull import QuickHull
 from .rawmesh import RawMesh
 
 def make_hull_mesh(mesh, hull):
@@ -27,7 +27,7 @@ def make_hull_mesh(mesh, hull):
     verts = []
     faces = []
     for f in hull:
-        t = [f.edges[0][0], f.edges[1][0], f.edges[2][0]]
+        t = [f.edges[0].a, f.edges[1].a, f.edges[2].a]
         for i in range(3):
             v = t[i]
             if vind[v] == None:
@@ -39,7 +39,7 @@ def make_hull_mesh(mesh, hull):
 
 def quickhull(mesh):
     rawmesh = RawMesh(mesh)
-    hull = get_convex_hull(rawmesh)
+    hull = QuickHull(rawmesh).GetHull()
     verts, faces = make_hull_mesh (rawmesh, hull)
     import bpy
     hullmesh = bpy.data.meshes.new("ConvexHull")

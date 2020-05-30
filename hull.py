@@ -18,7 +18,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 from mu import Mu, MuColliderMesh, MuMesh
-from quickhull import get_convex_hull
+from quickhull import QuickHull
 import sys
 
 def make_mesh(mesh, hull):
@@ -28,7 +28,7 @@ def make_mesh(mesh, hull):
     normals = []
     tris = []
     for f in hull:
-        t = [f.edges[0][0], f.edges[1][0], f.edges[2][0]]
+        t = [f.edges[0].a, f.edges[1].a, f.edges[2].a]
         for i in range(3):
             v = t[i]
             if vind[v] == None:
@@ -49,7 +49,8 @@ def make_mesh(mesh, hull):
 def find_colliders(obj, level=0):
     if hasattr(obj, "collider") and isinstance(obj.collider, MuColliderMesh):
         m=obj.collider.mesh
-        hull = get_convex_hull (obj.collider.mesh)
+        qh = QuickHull(obj.collider.mesh)
+        hull = qh.GetHull()
         obj.collider.mesh = make_mesh(obj.collider.mesh, hull)
         m=obj.collider.mesh
     for child in obj.children:

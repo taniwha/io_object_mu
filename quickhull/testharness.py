@@ -17,24 +17,42 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+import sys
+import os
+import getopt
+import gzip
+import time
 
-class RawMesh:
-    def __init__(self, mesh=None):
-        if mesh:
-            self.verts = [None] * len(mesh.vertices)
-            for i, v in enumerate(mesh.vertices):
-                self.verts[i] = v.co
-        else:
-            self.verts = []
+from binary import BinaryReader
+from rawmesh import RawMesh
+from quickhull import QuickHull
 
-    def write(self, bw):
-        bw.write_int(len(self.verts))
-        for v in self.verts:
-            bw.write_float(v)
+shortopts = ''
+longopts = [
+    'dump',
+]
 
-    def read(self, br):
-        count = br.read_int()
-        self.verts = [None] * count
-        for i in range(count):
-            self.verts[i] = br.read_float(3)
+options, datafiles = getopt.getopt(sys.argv[1:], shortopts, longopts)
+
+for opt, arg in options:
+    if opt == "--dump":
+        pass
+
+error = False
+for df in datafiles:
+    if df[-3:] == ".gz":
+        f = gzip.open(df, "rb")
+    else:
+        f = open(df, "rb")
+    br= BinaryReader(f)
+    mesh = RawMesh()
+    mesh.read(br)
+    print(f"{df} - {len(mesh.verts)} points")
+    br.close()
+    qh = QuickHull(mesh)
+    start = time.perf_counter()
+    hull = qh.GetHull()
+    error |= qh.error
+    end = time.perf_counter()
+    print(f"    - {len(hull)} faces {(end - start) * 1000}ms")
+sys.exit(1 if error else 0)
