@@ -75,7 +75,9 @@ def create_mesh_component(mu, muobj, mumesh, name):
     mesh = create_mesh (mu, mumesh, name)
     if hasattr(muobj, "renderer"):
         attach_material(mesh, muobj.renderer, mu)
-    return "mesh", mesh, None, (mesh_post, muobj.renderer)
+        return "mesh", mesh, None, (mesh_post, muobj.renderer)
+    else:
+        return "mesh", mesh, None
 
 def create_skinned_mesh_component(mu, muobj, skin, name):
     create_bindPose(mu, muobj, skin)
