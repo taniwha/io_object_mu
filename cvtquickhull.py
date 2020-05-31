@@ -1,3 +1,5 @@
+import sys
+
 from mu import Mu, MuObject, MuTransform, MuMesh, MuTagLayer
 from multiprocessing import Pool
 
@@ -60,6 +62,8 @@ def make_mesh(name, verts, faces):
     obj.shared_mesh = mesh
     return obj
 
+extra_points = set()
+
 def thread_func(parms):
     name = parms
     input = Mu()
@@ -79,12 +83,18 @@ def thread_func(parms):
     output.obj.children.append(make_mesh("lit_faces", verts, lit_faces))
     output.obj.children.append(make_mesh("new_faces", verts, new_faces))
     if (point >= 0):
-        p = make_empty("point")
+        p = make_empty(f"point-{point}")
         p.transform.localPosition = verts[point]
+        output.obj.children.append(p)
+    for ep in extra_points:
+        p = make_empty(f"epoint-{ep}")
+        p.transform.localPosition = verts[ep]
         output.obj.children.append(p)
     output.write(name+".mu")
     print(name)
 
+for a in sys.argv[1:]:
+    extra_points.add(int(a))
 i = 0
 work_queue = []
 while True:
