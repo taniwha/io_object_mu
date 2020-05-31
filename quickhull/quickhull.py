@@ -153,16 +153,16 @@ class QuickHull:
         finalFaces = FaceSet(self.mesh)
         donePoints = set()
 
-        iter = 0
+        iter = -1
         bw = None
 
         while len(faces):
+            iter += 1
             if self.dump_faces:
                 bw = BinaryWriter(open(f"/tmp/quickhull-{iter:05d}.bin", "wb"))
                 self.mesh.write(bw)
                 faces.write(bw)
                 finalFaces.write(bw)
-            iter += 1
             f = faces.pop()
             if not f.vispoints:
                 finalFaces.add(f)
@@ -232,6 +232,7 @@ class QuickHull:
                     print(f"    h:{lf.dist(point)} d1:{dist1} d2:{dist2} {lf.edges[0].touches_point(point)} {lf.edges[1].touches_point(point)} {lf.edges[2].touches_point(point)}")
                 break
         if self.dump_faces and not connectivity.error:
+            iter += 1
             bw = BinaryWriter(open(f"/tmp/quickhull-{iter:05d}.bin", "wb"))
             self.mesh.write(bw)
             faces.write(bw)
