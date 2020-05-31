@@ -123,6 +123,15 @@ class QuickHull:
         connectivity.remove(t)
         nt1 = Triangle(self.mesh, a, point, c)
         nt2 = Triangle(self.mesh, point, b, c)
+        d1 = dot(nt1.n, t.n)
+        d2 = dot(nt2.n, t.n)
+        if d1 < 0 or d2 < 0:
+            # this happens if point is outside triangle t on two edges
+            # meaning that a split should not have happened
+            print(d1, d2)
+            nt1 = Triangle(self.mesh, a, point, b)
+            nt2 = Triangle(self.mesh, a, b, c)
+            print(dot(nt1.n, t.n), dot(nt2.n, t.n))
         nt1.vispoints = t.vispoints
         nt1.height = t.height
         nt1.highest = t.highest
