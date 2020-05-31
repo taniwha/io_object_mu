@@ -177,8 +177,9 @@ class QuickHull:
             newFaces = FaceSet(self.mesh)
             for e in horizonEdges:
                 if e.touches_point(point):
-                    t = connectivity[e.reverse]
-                    splitEdge = t.touched_edge(point)
+                    re = e.reverse
+                    t = connectivity[re]
+                    splitEdge = t.find_edge(re)
                     if splitEdge >= 0:
                         self.split_triangle(t, splitEdge, point, connectivity)
                 else:

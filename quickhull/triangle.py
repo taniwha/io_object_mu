@@ -72,9 +72,9 @@ class Triangle:
     def push(self, faceset):
         self.faceset = faceset
 
-    def touched_edge(self, point):
+    def find_edge(self, edge):
         for i, e in enumerate(self.edges):
-            if e.touches_point(point):
+            if e == edge:
                 return i
         return -1
 
