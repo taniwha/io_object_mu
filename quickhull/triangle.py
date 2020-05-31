@@ -125,3 +125,6 @@ class Triangle:
         bw.write_int(self.highest)
         bw.write_int(len(self.vispoints))
         bw.write_int(self.vispoints)
+
+    def __str__(self):
+        return f"Triangle[{self.edges[0]}, {self.edges[1]}, {self.edges[2]}]"

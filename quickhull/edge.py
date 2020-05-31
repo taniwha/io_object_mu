@@ -85,3 +85,6 @@ class Edge:
         xx = dot(x, x)
         d = (vv * xx - xv * xv) / vv
         return d < 1e-5
+
+    def __str__(self):
+        return f"Edge[{self.a}, {self.b}]"
