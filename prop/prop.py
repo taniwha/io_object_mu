@@ -29,7 +29,7 @@ from bpy.props import StringProperty, EnumProperty
 from ..preferences import Preferences
 from ..cfgnode import ConfigNode, ConfigNodeError
 from ..utils import collect_objects, strip_nnn, util_collection
-from ..model import compile_model
+from ..model import compile_model, instantiate_model
 
 def loaded_props_collection():
     return util_collection("loaded_props")
@@ -89,13 +89,29 @@ def import_prop(filepath):
 
 def make_prop(obj):
     name = strip_nnn(obj.name)
-    collection = collect_objects("prop:"+name, obj)
+    obj.select_set(False)
+    prop = collect_objects("prop:"+name, obj)
     obj.muproperties.modelType = 'PROP'
-    #FIXME group instancing seems to work with the object's world location
-    #rather than its local location
-    collection.dupli_offset = obj.location #FIXME update if the prop is later moved
-    #necessary because groups don't support rotation or scale offsets
+    loc = Vector(obj.location)
+    rot = Quaternion(obj.rotation_quaternion)
+    scale = Vector(obj.scale)
+    parent = obj.parent
+    obj.location = Vector((0, 0, 0))
     obj.rotation_quaternion = Quaternion((1, 0, 0, 0))
     obj.scale = Vector((1, 1, 1))
-    collection.mumodelprops.name = name
-    collection.mumodelprops.type = "prop"
+    obj.parent = None
+    prop.mumodelprops.name = name
+    prop.mumodelprops.type = "prop"
+    loaded_props = loaded_props_collection()
+    loaded_props.children.link(prop)
+    for c in bpy.data.collections:
+        if c == prop:
+            continue
+        for o in prop.objects:
+            if o.name in c.objects:
+                c.objects.unlink(o)
+    obj = instantiate_model(prop, prop.mumodelprops.name, loc, rot, scale)
+    obj.muproperties.modelType = 'PROP'
+    bpy.context.layer_collection.collection.objects.link(obj)
+    obj.parent = parent
+    return obj

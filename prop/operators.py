@@ -30,22 +30,26 @@ from ..preferences import Preferences
 from ..cfgnode import ConfigNode, ConfigNodeError
 from ..utils import strip_nnn
 from ..model import instantiate_model
-from .prop import loaded_props_collection
+from .prop import loaded_props_collection, make_prop
 
 def import_prop_op(self, context, filepath):
     operator = self
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
 
-    for obj in bpy.context.scene.objects:
-        obj.select_set(False)
-    prop = import_prop(filepath).get_model()
-    context.layer_collection.collection.objects.link(prop)
-    prop.location = context.scene.cursor.location
-    prop.select_set(True)
-
-    bpy.context.preferences.edit.use_global_undo = undo
-    return {'FINISHED'}
+    try:
+        pass
+        for obj in bpy.context.scene.objects:
+            obj.select_set(False)
+        prop = import_prop(filepath).get_model()
+        context.layer_collection.collection.objects.link(prop)
+        prop.location = context.scene.cursor.location
+        prop.select_set(True)
+        return {'FINISHED'}
+    except:
+        raise
+    finally:
+        bpy.context.preferences.edit.use_global_undo = undo
 
 def clean_selected(selected):
     def ancestor_selected(o, sel):
@@ -62,17 +66,22 @@ def make_props(self, context):
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
 
-    selected = set()
-    for obj in bpy.context.scene.objects:
-        if obj.select_get():
-            selected.add(obj)
-    clean_selected(selected)
+    try:
+        selected = set()
+        for obj in bpy.context.scene.objects:
+            if obj.select_get():
+                selected.add(obj)
+        clean_selected(selected)
 
-    for obj in selected:
-        make_prop(obj)
-
-    bpy.context.preferences.edit.use_global_undo = undo
-    return {'FINISHED'}
+        for obj in selected:
+            o = make_prop(obj)
+            o.select_set(True)
+            context.view_layer.objects.active = o
+        return {'FINISHED'}
+    except:
+        raise
+    finally:
+        bpy.context.preferences.edit.use_global_undo = undo
 
 class KSPMU_OT_ImportProp(bpy.types.Operator, ImportHelper):
     '''Load a KSP Mu (.mu) File as a Prop'''
