@@ -244,6 +244,10 @@ def make_mesh(mu, obj):
 def mesh_materials(mu, mesh):
     materials = []
     for mat in mesh.materials:
+        if not mat:
+            mu.messages.append(({'WARNING'}, f"{mesh.name} has empty material "
+                                "slot"))
+            continue
         if mat.mumatprop.shaderName:
             if mat.name not in mu.materials:
                 mu.materials[mat.name] = make_material(mu, mat)
