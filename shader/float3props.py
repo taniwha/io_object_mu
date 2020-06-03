@@ -36,7 +36,7 @@ class MuFloat3Prop(bpy.types.PropertyGroup):
     value: FloatProperty(name="", update=float3_update)
 
 class MuMaterialFloat3PropertySet(bpy.types.PropertyGroup):
-    bl_label = "Floal3"
+    bl_label = "Float3"
     properties: CollectionProperty(type=MuFloat3Prop, name="Float3")
     index: IntProperty()
     expanded: BoolProperty()
