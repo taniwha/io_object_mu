@@ -86,6 +86,9 @@ class Triangle:
         p = self.mesh.verts[point]
         e = 1e-6
         d = sub(p, self.a)
+        h = dot(d, self.n)
+        if h * h > e:
+            return False
         if dot(d, d) < e:
             return True
         d = sub(p, self.b)
@@ -103,20 +106,17 @@ class Triangle:
         return self.dist (point) >= 0
 
     def add_point(self, point):
-        edges = self.edges
-        if point == edges[0].a or point == edges[1].a or point == edges[2].a:
-            return False
         # can_see is not used here because can_see includes points on the
         # triangle's plane (not a propblem, but subotptimal) and the height
         # is needed anyway as in the end, the highest point is desired.
         d = self.dist(point)
-        if d > 0:
-            if d > self.height:
-                self.height = d
-                self.highest_point = point
-            self.vispoints.add(point)
-            return True
-        return False
+        if d <= 0:
+            return False
+        elif d > self.height:
+            self.height = d
+            self.highest_point = point
+        self.vispoints.add(point)
+        return True
 
     def write(self, bw):
         bw.write_int(self.edges[0].a)
