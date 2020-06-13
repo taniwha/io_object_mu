@@ -220,6 +220,13 @@ class QuickHull:
                     for nf in newFaces:
                         if nf.add_point(p):
                             vert_faces[p].add(nf)
+            for p, vf in enumerate(vert_faces):
+                if not vf or p in donePoints:
+                    continue
+                donePoints.add(p)
+                for nf in newFaces:
+                    if nf.add_point(p):
+                        vert_faces[p].add(nf)
             if bw:
                 newFaces.write(bw)
             for nf in set(newFaces.faces):
