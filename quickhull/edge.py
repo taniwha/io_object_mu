@@ -84,7 +84,7 @@ class Edge:
         #FIXME see distance
         xx = dot(x, x)
         d = (vv * xx - xv * xv) / vv
-        return d < 1e-5
+        return d < 1e-6
 
     def __str__(self):
         return f"Edge[{self.a}, {self.b}]"
