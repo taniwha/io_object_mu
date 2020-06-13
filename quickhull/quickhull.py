@@ -149,6 +149,7 @@ class QuickHull:
         faces = self.find_simplex()
         connectivity = Connectivity(faces)
         dupPoints = set()
+        vert_faces = [None] * len(self.mesh.verts)
         for i in range(len(self.mesh.verts)):
             for f in faces:
                 if f.is_dup(i):
@@ -157,7 +158,10 @@ class QuickHull:
             if i in dupPoints:
                 continue
             for f in faces:
-                f.add_point(i)
+                if f.add_point(i):
+                    if vert_faces[i] == None:
+                        vert_faces[i] = set()
+                    vert_faces[i].add(f)
 
         finalFaces = FaceSet(self.mesh)
         donePoints = set()
@@ -178,11 +182,11 @@ class QuickHull:
                 iter -= 1
                 continue
             point = f.vispoints[f.highest]
-            litFaces = connectivity.light_faces(f, point)
+            litFaces = connectivity.light_faces(f, point, vert_faces)
+            connectivity.remove(litFaces)
             if bw:
                 bw.write_int(point)
                 litFaces.write(bw)
-            connectivity.remove(litFaces)
             horizonEdges = litFaces.find_outer_edges()
             newFaces = FaceSet(self.mesh)
             for e in horizonEdges:
@@ -202,6 +206,10 @@ class QuickHull:
                     if p in donePoints:
                         continue
                     donePoints.add(p)
+                    if vert_faces[p] and lf in vert_faces[p]:
+                        vert_faces[p].remove(lf)
+                    if vert_faces[p] == None:
+                        vert_faces[p] = set()
                     for nf in newFaces:
                         if nf.is_dup(p):
                             dupPoints.add(p)
@@ -210,7 +218,8 @@ class QuickHull:
                     if p < 0:
                         continue
                     for nf in newFaces:
-                        nf.add_point(p)
+                        if nf.add_point(p):
+                            vert_faces[p].add(nf)
             if bw:
                 newFaces.write(bw)
             for nf in set(newFaces.faces):

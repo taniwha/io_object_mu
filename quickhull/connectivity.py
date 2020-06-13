@@ -68,9 +68,9 @@ class Connectivity:
                     continue
                 self.light_faces_int(conface, point, lit_faces)
 
-    def light_faces(self, first_face, point):
+    def light_faces(self, first_face, point, virt_faces):
         lit_faces = FaceSet(first_face.mesh)
-        lit_faces.add(first_face)
-        self.light_run += 1
-        self.light_faces_int(first_face, point, lit_faces)
+        for f in virt_faces[point]:
+            lit_faces.add(f)
+        virt_faces[point] = None
         return lit_faces
