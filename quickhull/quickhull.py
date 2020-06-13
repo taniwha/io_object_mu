@@ -175,6 +175,7 @@ class QuickHull:
             f = faces.pop()
             if not f.vispoints:
                 finalFaces.add(f)
+                iter -= 1
                 continue
             point = f.vispoints[f.highest]
             litFaces = connectivity.light_faces(f, point)
