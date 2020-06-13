@@ -49,8 +49,8 @@ class Triangle:
         self.c = mesh.verts[c]
         self.n = cross(self.edges[0].vect, self.edges[1].vect)
         self.n = div(self.n, sqrt(dot(self.n, self.n)))
-        self.vispoints = []
-        self.highest = 0
+        self.vispoints = set()
+        self.highest_point = -1
         self.height = -1
         self.faceset = None
         self.light_run = 0
@@ -110,11 +110,11 @@ class Triangle:
         # triangle's plane (not a propblem, but subotptimal) and the height
         # is needed anyway as in the end, the highest point is desired.
         d = self.dist(point)
-        if d > epsilon:
+        if d > 0:
             if d > self.height:
                 self.height = d
-                self.highest = len(self.vispoints)
-            self.vispoints.append(point)
+                self.highest_point = point
+            self.vispoints.add(point)
             return True
         return False
 
@@ -122,7 +122,7 @@ class Triangle:
         bw.write_int(self.edges[0].a)
         bw.write_int(self.edges[1].a)
         bw.write_int(self.edges[2].a)
-        bw.write_int(self.highest)
+        bw.write_int(self.highest_point)
         bw.write_int(len(self.vispoints))
         bw.write_int(self.vispoints)
 

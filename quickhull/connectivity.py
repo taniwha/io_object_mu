@@ -49,11 +49,14 @@ class Connectivity:
 
     def remove(self, face):
         if type(face) == FaceSet:
+            vispoints = set()
             for f in face:
-                self.remove(f)
+                vispoints |= self.remove(f)
+            return vispoints
         else:
             for i in range(3):
                 del self.edgeFaces[face.edges[i]]
+            return face.vispoints
 
     def light_faces_int(self, face, point, lit_faces):
         if face.light_run == self.light_run:
@@ -72,5 +75,4 @@ class Connectivity:
         lit_faces = FaceSet(first_face.mesh)
         for f in virt_faces[point]:
             lit_faces.add(f)
-        virt_faces[point] = None
         return lit_faces

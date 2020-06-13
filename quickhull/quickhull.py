@@ -114,13 +114,13 @@ class QuickHull:
         faces.add(Triangle(self.mesh, c, b, d))
         return faces
 
-    def split_triangle(self, t, splitEdge, point, connectivity):
+    def split_triangle(self, t, splitEdge, point, connectivity, vert_faces):
         a = t.edges[splitEdge].a;
         b = t.edges[splitEdge].b;
         c = t.edges[(splitEdge + 1) % 3].b
         faceset = t.faceset
         t.pull()
-        connectivity.remove(t)
+        vispoints = connectivity.remove(t)
         nt1 = Triangle(self.mesh, a, point, c)
         nt2 = Triangle(self.mesh, point, b, c)
         d1 = dot(nt1.n, t.n)
@@ -134,10 +134,15 @@ class QuickHull:
             print(dot(nt1.n, t.n), dot(nt2.n, t.n))
         nt1.vispoints = t.vispoints
         nt1.height = t.height
-        nt1.highest = t.highest
-        nt2.vispoints = list(t.vispoints)
+        nt1.highest_point = t.highest_point
+        nt2.vispoints = set(t.vispoints)
         nt2.height = t.height
-        nt2.highest = t.highest
+        nt2.highest_point = t.highest_point
+
+        nt = {nt1, nt2}
+        for p in vispoints:
+            vert_faces[p].remove(t)
+            vert_faces[p] |= nt
 
         faceset.add(nt1)
         faceset.add(nt2)
@@ -181,9 +186,12 @@ class QuickHull:
                 finalFaces.add(f)
                 iter -= 1
                 continue
-            point = f.vispoints[f.highest]
+            point = f.highest_point
             litFaces = connectivity.light_faces(f, point, vert_faces)
-            connectivity.remove(litFaces)
+            vispoints = connectivity.remove(litFaces)
+            #print(vispoints)
+            for p in vispoints:
+                vert_faces[p] -= litFaces.faces
             if bw:
                 bw.write_int(point)
                 litFaces.write(bw)
@@ -195,7 +203,7 @@ class QuickHull:
                     t = connectivity[re]
                     splitEdge = t.find_edge(re)
                     if splitEdge >= 0:
-                        self.split_triangle(t, splitEdge, point, connectivity)
+                        self.split_triangle(t, splitEdge, point, connectivity, vert_faces)
                 else:
                     tri = Triangle(self.mesh, e.a, e.b, point)
                     newFaces.add(tri)
@@ -206,8 +214,6 @@ class QuickHull:
                     if p in donePoints:
                         continue
                     donePoints.add(p)
-                    if vert_faces[p] and lf in vert_faces[p]:
-                        vert_faces[p].remove(lf)
                     if vert_faces[p] == None:
                         vert_faces[p] = set()
                     for nf in newFaces:
