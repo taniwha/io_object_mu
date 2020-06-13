@@ -128,10 +128,8 @@ class QuickHull:
         if d1 < 0 or d2 < 0:
             # this happens if point is outside triangle t on two edges
             # meaning that a split should not have happened
-            print(d1, d2)
             nt1 = Triangle(self.mesh, a, point, b)
             nt2 = Triangle(self.mesh, a, b, c)
-            print(dot(nt1.n, t.n), dot(nt2.n, t.n))
         nt1.vispoints = t.vispoints
         nt1.height = t.height
         nt1.highest_point = t.highest_point
@@ -248,7 +246,6 @@ class QuickHull:
                 for lf in litFaces:
                     for vp in lf.vispoints:
                         vis.add(vp)
-                print(f"[Quickhull] {len(litFaces)} {len(vis)}")
                 for lf in litFaces:
                     dist1 = 1e38
                     dist2 = 1e38
@@ -261,7 +258,6 @@ class QuickHull:
                         d = sqrt(dot(v, v))
                         if d < dist2:
                             dist2 = d
-                    print(f"    h:{lf.dist(point)} d1:{dist1} d2:{dist2} {lf.edges[0].touches_point(point)} {lf.edges[1].touches_point(point)} {lf.edges[2].touches_point(point)}")
                 break
         if self.dump_faces and not connectivity.error:
             iter += 1
