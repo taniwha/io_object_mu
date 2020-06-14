@@ -34,7 +34,6 @@ except ImportError:
     from edge import Edge
 
 id = 0
-epsilon = 1e-5
 
 class Triangle:
     def __init__(self, mesh, a, b, c):
@@ -84,7 +83,7 @@ class Triangle:
 
     def is_dup(self, point):
         p = self.mesh.verts[point]
-        e = 1e-6
+        e = 1e-6    # 1mm (due to square)
         d = sub(p, self.a)
         h = dot(d, self.n)
         if h * h > e:
@@ -110,7 +109,7 @@ class Triangle:
         # triangle's plane (not a propblem, but subotptimal) and the height
         # is needed anyway as in the end, the highest point is desired.
         d = self.dist(point)
-        if d <= 0:
+        if d <= 1e-6: # 1um
             return False
         elif d > self.height:
             self.height = d
