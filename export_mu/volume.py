@@ -31,9 +31,10 @@ def calcVolume(mesh):
         b = mesh.vertices[face.vertices[1]].co
         for i in range(2, len(face.vertices)):
             c = mesh.vertices[face.vertices[i]].co
-            vp =  a.y*b.z*c.x + a.z*b.x*c.y + a.x*b.y*c.z
-            vm = -a.z*b.y*c.x - a.x*b.z*c.y - a.y*b.x*c.z
-            terms.extend([vp, vm])
+            vp = [ a.y*b.z*c.x,  a.z*b.x*c.y,  a.x*b.y*c.z]
+            vm = [-a.z*b.y*c.x, -a.x*b.z*c.y, -a.y*b.x*c.z]
+            terms.extend(vp)
+            terms.extend(vm)
             b = c
     vol = 0
     for t in sorted(terms, key=abs):
