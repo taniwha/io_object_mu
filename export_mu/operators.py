@@ -121,7 +121,7 @@ class KSPMU_OT_MuFindCoM(bpy.types.Operator):
         obj = context.active_object
         if len(context.selected_objects) == 1 and context.active_object:
             objects = collect_hierarchy_objects(context.active_object)
-            print(objects)
+            #print(objects)
         elif context.selected_objects:
             objects = context.selected_objects[:]
         pos = volume.find_com(objects)
