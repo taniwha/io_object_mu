@@ -26,17 +26,43 @@ from bpy.props import FloatVectorProperty
 from ..quickhull.convex_hull import quickhull
 from .. import properties
 from .collider import create_collider_object, build_collider
+from .points import Points
+
+def collect_points(reference):
+    w2r = reference.matrix_world.inverted()
+    points = Points()
+    if bpy.context.mode == 'EDIT_MESH':
+        for obj in bpy.context.objects_in_mode:
+            if obj.type == 'MESH':
+                o2r = w2r @ obj.matrix_world
+                points.add_verts(obj.data.vertices, o2r, True)
+    else:
+        print(bpy.context.selected_objects)
+        for obj in bpy.context.selected_objects:
+            if obj.type == 'MESH':
+                o2r = w2r @ obj.matrix_world
+                depsgraph = bpy.context.evaluated_depsgraph_get()
+                mesh = obj.evaluated_get(depsgraph).to_mesh()
+                points.add_verts(mesh.vertices, o2r)
+                obj.to_mesh_clear()
+    return points
 
 def add_collider(self, context):
     context.preferences.edit.use_global_undo = False
-    for obj in context.scene.objects:
-        obj.select_set(False)
     mesh = None
     if type(self) == KSPMU_OT_ColliderMesh:
         mesh = bpy.data.meshes.new("collider")
     obj, cobj = create_collider_object("collider", mesh)
     bpy.context.layer_collection.collection.objects.link(obj)
-    obj.location = context.scene.cursor.location
+    active_object = context.active_object
+    points = None
+    if hasattr(self, "fitSelected") and self.fitSelected and active_object:
+        obj.parent = active_object
+        points = collect_points(active_object)
+    else:
+        obj.location = context.scene.cursor.location
+    for obj in context.scene.objects:
+        obj.select_set(False)
     obj.select_set(True)
     if type(self) == KSPMU_OT_ColliderMesh:
         obj.muproperties.collider = 'MU_COL_MESH'
@@ -51,8 +77,12 @@ def add_collider(self, context):
         obj.muproperties.center = self.center
         obj.muproperties.collider = 'MU_COL_CAPSULE'
     elif type(self) == KSPMU_OT_ColliderBox:
-        obj.muproperties.size = self.size
-        obj.muproperties.center = self.center
+        if points:
+            size, center = points.calc_box()
+        else:
+            size, center = self.size, self.center
+        obj.muproperties.size = size
+        obj.muproperties.center = center
         obj.muproperties.collider = 'MU_COL_BOX'
     elif type(self) == KSPMU_OT_ColliderWheel:
         obj.muproperties.radius = self.radius
@@ -204,6 +234,10 @@ class KSPMU_OT_ColliderBox(bpy.types.Operator):
     bl_label = "Add Box Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
+    fitSelected: BoolProperty(name = "Fit Selected", 
+                    description="Fit collider to selection. Uses active "
+                    "object as parent and reference frame.",
+                    default=True)
     size: FloatVectorProperty(name = "Size", size = 3, subtype = 'XYZ',
                                min = 0.0, default = (1.0,1.0,1.0))
     center: FloatVectorProperty(name = "Center", subtype = 'XYZ')
