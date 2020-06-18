@@ -21,6 +21,7 @@
 
 import bpy
 from mathutils import Vector
+from .seb import smalest_enclosing_ball
 
 class Points:
     def __init__(self):
@@ -32,7 +33,7 @@ class Points:
         base = len(self.verts)
         self.verts = self.verts + [None] * len(verts)
         for i, v in enumerate(verts):
-            self.verts[base + i] = xform @ v.co
+            self.verts[base + i] = (xform @ v.co).freeze()
 
     def calc_box(self):
         if not self.verts:
@@ -49,3 +50,6 @@ class Points:
         size = (maxs - mins)
         center = (maxs + mins) / 2
         return size, center
+
+    def calc_sphere(self):
+        return smalest_enclosing_ball(self.verts)

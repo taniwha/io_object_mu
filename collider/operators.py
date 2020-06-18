@@ -67,8 +67,12 @@ def add_collider(self, context):
     if type(self) == KSPMU_OT_ColliderMesh:
         obj.muproperties.collider = 'MU_COL_MESH'
     elif type(self) == KSPMU_OT_ColliderSphere:
-        obj.muproperties.radius = self.radius
-        obj.muproperties.center = self.center
+        if points:
+            center, radius = points.calc_sphere()
+        else:
+            center, radius = self.center, self.radius
+        obj.muproperties.radius = radius
+        obj.muproperties.center = center
         obj.muproperties.collider = 'MU_COL_SPHERE'
     elif type(self) == KSPMU_OT_ColliderCapsule:
         obj.muproperties.radius = self.radius
@@ -207,6 +211,11 @@ class KSPMU_OT_ColliderSphere(bpy.types.Operator):
     bl_idname = "mucollider.sphere"
     bl_label = "Add Sphere Collider"
     bl_options = {'REGISTER', 'UNDO'}
+
+    fitSelected: BoolProperty(name = "Fit Selected", 
+                    description="Fit collider to selection. Uses active "
+                    "object as parent and reference frame.",
+                    default=True)
 
     radius: FloatProperty(name = "Radius", min = 0.0, default = 0.5)
     center: FloatVectorProperty(name = "Center", subtype = 'XYZ')
