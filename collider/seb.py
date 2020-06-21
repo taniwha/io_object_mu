@@ -158,7 +158,7 @@ def smalest_enclosing_ball(points):
 
     iter = 0
     while True:
-        print(f"{iter} support: {support}")
+        #print(f"{iter} support: {support}")
         iter += 1
         dropped = set()
         # for the center to be in the convex hull of the support points,
