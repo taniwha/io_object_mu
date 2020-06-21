@@ -80,6 +80,24 @@ def closest_affine_point(points, x):
     else:
         return points[0]
 
+def in_affine(points, x):
+    # NOTE assumes points form a non-degenerate simplex
+    num_points = len(points)
+    if num_points == 1:
+        return x == points[0]
+    elif num_points == 2:
+        v = points[1] - points[0]
+        d = x - points[0]
+        return (v.cross(d).length_squared / ((v @ v) * (d @ d))) < 1e-6
+    elif num_points == 3:
+        a = points[1] - points[0]
+        b = points[2] - points[0]
+        n = a.cross(b)
+        d = x - points[0]
+        return (d @ n) ** 2 < 1e-6 * ((d @ d) * (n @ n))
+    elif num_points == 4:
+        return True
+
 def barycentric_coords(points, p):
     num_points = len(points)
     lam = [None] * num_points
@@ -140,27 +158,29 @@ def smalest_enclosing_ball(points):
 
     iter = 0
     while True:
-        #print(f"{iter} support: {support}")
+        print(f"{iter} support: {support}")
         iter += 1
-        lam = barycentric_coords(support, center)
-        #print(f"    lambda: {lam}")
-        i = 0
         dropped = set()
-        while i < len(support):
-            if lam[i] < 0:
-                dropped.add(support[i])
-                del lam[i]
-                del support[i]
-            else:
-                i += 1
-        if len(support) == 4 and not dropped:
-            break
+        # for the center to be in the convex hull of the support points,
+        # it must first be in the affine hull
+        if in_affine(support, center):
+            lam = barycentric_coords(support, center)
+            #print(f"    lambda: {lam}")
+            i = 0
+            while i < len(support):
+                if lam[i] < 0:
+                    dropped.add(support[i])
+                    del lam[i]
+                    del support[i]
+                else:
+                    i += 1
+            # the center is in the convex hull, thus finished
+            if not dropped:
+                break
         affine = closest_affine_point(support, center)
         center_to_affine = affine - center
         affine_dist = center_to_affine @ center_to_affine
         #print(f"    affine: {affine}")
-        if affine_dist < 1e-6 * radius:
-            break
 
         best = None
         scale = 1
@@ -234,12 +254,16 @@ if __name__ == "__main__":
             return f"Vector(({self.x}, {self.y}, {self.z}))"
 
     points = [
-        Vector(( 1,  1,  1)),
         Vector((-1, -1,  1)),
-        Vector(( 1, -1, -1)),
+        Vector(( 1,  1,  1)),
         Vector((-1,  1, -1)),
+        Vector(( 1, -1, -1)),
+        Vector((-1, -1, -1)),
+        Vector(( 1,  1, -1)),
+        Vector((-1,  1,  1)),
+        Vector(( 1, -1,  1)),
+        Vector(( 0,  0,  0)),
     ]
-    print(smalest_enclosing_ball(points[:1]))
-    print(smalest_enclosing_ball(points[:2]))
-    print(smalest_enclosing_ball(points[:3]))
+    for i in range(len(points) - 1):
+        print(smalest_enclosing_ball(points[:i + 1]))
     print(smalest_enclosing_ball(points))
