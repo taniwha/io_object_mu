@@ -131,6 +131,9 @@ def model_volume_centroid(obj):
         ecents_x.append(v[1]*ec.x)
         ecents_y.append(v[1]*ec.y)
         ecents_z.append(v[1]*ec.z)
+        if (o.muproperties.collider
+            and o.muproperties.collider != 'MU_COL_NONE'):
+            return
         for c in o.children:
             recurse(c)
         if o.instance_collection and o.instance_type == 'COLLECTION':
