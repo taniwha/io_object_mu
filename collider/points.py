@@ -27,6 +27,10 @@ class Points:
     def __init__(self):
         self.verts = []
 
+    @property
+    def valid(self):
+        return len(self.verts) > 0
+
     def add_verts(self, verts, xform, selected=False):
         if selected:
             verts = [v for v in verts if v.select]
