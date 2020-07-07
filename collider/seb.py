@@ -198,11 +198,10 @@ def smalest_enclosing_ball(points):
                 best = p
                 scale = bound
         #print(f"    scale: {scale} best:{best}")
-        if best is None:
-            best = center
         center = center + scale * center_to_affine
-        radius = (center - best).length_squared
-        support.append(best)
+        radius = (center - support[0]).length_squared
+        if best is not None:
+            support.append(best)
         #print(f"    center: {center} radius:{sqrt(radius)}")
     best_dist = 0
     for p in points[1:]:
