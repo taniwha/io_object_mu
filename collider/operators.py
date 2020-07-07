@@ -77,7 +77,7 @@ def add_collider(self, context):
     if type(self) == KSPMU_OT_ColliderMesh:
         obj.muproperties.collider = 'MU_COL_MESH'
     elif type(self) == KSPMU_OT_ColliderSphere:
-        if points:
+        if points and points.valid:
             center, radius = points.calc_sphere()
         else:
             center, radius = self.center, self.radius
@@ -91,7 +91,7 @@ def add_collider(self, context):
         obj.muproperties.center = self.center
         obj.muproperties.collider = 'MU_COL_CAPSULE'
     elif type(self) == KSPMU_OT_ColliderBox:
-        if points:
+        if points and points.valid:
             size, center = points.calc_box()
         else:
             size, center = self.size, self.center
