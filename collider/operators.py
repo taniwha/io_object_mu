@@ -47,6 +47,17 @@ def collect_points(reference):
                 obj.to_mesh_clear()
     return points
 
+def can_fit_collider(self, context):
+    if not hasattr(self, "fitSelected") or not self.fitSelected:
+        return False
+    if not context.active_object:
+        return False
+    if context.mode == 'EDIT_MESH' and bpy.context.objects_in_mode:
+        return True
+    if context.mode == 'OBJECT' and context.selected_objects:
+        return True
+    return False
+
 def add_collider(self, context):
     context.preferences.edit.use_global_undo = False
     mesh = None
@@ -54,11 +65,10 @@ def add_collider(self, context):
         mesh = bpy.data.meshes.new("collider")
     obj, cobj = create_collider_object("collider", mesh)
     bpy.context.layer_collection.collection.objects.link(obj)
-    active_object = context.active_object
     points = None
-    if hasattr(self, "fitSelected") and self.fitSelected and active_object:
-        obj.parent = active_object
-        points = collect_points(active_object)
+    if can_fit_collider(self, context):
+        obj.parent = context.active_object
+        points = collect_points(context.active_object)
     else:
         obj.location = context.scene.cursor.location
     for obj in context.scene.objects:
@@ -212,7 +222,7 @@ class KSPMU_OT_ColliderSphere(bpy.types.Operator):
     bl_label = "Add Sphere Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
-    fitSelected: BoolProperty(name = "Fit Selected", 
+    fitSelected: BoolProperty(name = "Fit Selected",
                     description="Fit collider to selection. Uses active "
                     "object as parent and reference frame.",
                     default=True)
@@ -243,7 +253,7 @@ class KSPMU_OT_ColliderBox(bpy.types.Operator):
     bl_label = "Add Box Collider"
     bl_options = {'REGISTER', 'UNDO'}
 
-    fitSelected: BoolProperty(name = "Fit Selected", 
+    fitSelected: BoolProperty(name = "Fit Selected",
                     description="Fit collider to selection. Uses active "
                     "object as parent and reference frame.",
                     default=True)
