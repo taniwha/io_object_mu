@@ -147,9 +147,13 @@ def model_volume_centroid(obj):
     ec_x = sortedSum(ecents_x)
     ec_y = sortedSum(ecents_y)
     ec_z = sortedSum(ecents_z)
-    skincent = Vector((sc_x, sc_y, sc_z)) / skinvol - base_pos
-    extcent = Vector((ec_x, ec_y, ec_z)) / extvol - base_pos
-    return (skinvol, extvol), (skincent, extcent)
+    skincent = Vector((sc_x, sc_y, sc_z))
+    if skinvol != 0:
+        skincent /= skinvol
+    extcent = Vector((ec_x, ec_y, ec_z))
+    if extvol != 0:
+        extcent /= extvol
+    return (skinvol, extvol), (skincent - base_pos, extcent - base_pos)
 
 def model_volume(obj):
     return model_volume_centroid(obj)[0]
@@ -180,7 +184,6 @@ def find_com(objects):
     y = sortedSum(weighted_y)
     z = sortedSum(weighted_z)
     pos = Vector((x, y, z))
-    if vol > 0:
+    if vol != 0:
         pos /= vol
-    print((x,y,z),vol,pos,base_pos)
     return pos + base_pos
