@@ -62,7 +62,7 @@ def add_prop_node(node, prop):
     pnode = node.AddNewNode('PROP')
     pnode.AddValue("name", strip_nnn(prop.name))
     pnode.AddValue("position", vector_str(swapyz(prop.location)))
-    pnode.AddValue("position", vector_str(swizzleq(prop.rotation_quaternion)))
+    pnode.AddValue("rotation", vector_str(swizzleq(prop.rotation_quaternion)))
     pnode.AddValue("scale", vector_str(swapyz(prop.scale)))
 
 def generate_cfg(mu, filepath):
