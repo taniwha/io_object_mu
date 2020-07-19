@@ -66,10 +66,13 @@ def calcVolumeCentroid(mesh):
             b = c
             num_tetras += 1
     vol = sortedSum(terms) / 6
-    c_x = sortedSum(terms_x)
-    c_y = sortedSum(terms_y)
-    c_z = sortedSum(terms_z)
-    cent = Vector((c_x, c_y, c_z)) / (6 * 4 * vol)
+    if vol > 0:
+        c_x = sortedSum(terms_x)
+        c_y = sortedSum(terms_y)
+        c_z = sortedSum(terms_z)
+        cent = Vector((c_x, c_y, c_z)) / (6 * 4 * vol)
+    else:
+        cent = Vector((0, 0, 0))
 
     return vol, cent
 
