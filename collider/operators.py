@@ -37,7 +37,6 @@ def collect_points(reference):
                 o2r = w2r @ obj.matrix_world
                 points.add_verts(obj.data.vertices, o2r, True)
     else:
-        print(bpy.context.selected_objects)
         for obj in bpy.context.selected_objects:
             if obj.type == 'MESH':
                 o2r = w2r @ obj.matrix_world
@@ -61,18 +60,19 @@ def can_fit_collider(self, context):
 def add_collider(self, context):
     context.preferences.edit.use_global_undo = False
     mesh = None
+    points = None
+    if can_fit_collider(self, context):
+        points = collect_points(context.active_object)
     if type(self) == KSPMU_OT_ColliderMesh:
         mesh = bpy.data.meshes.new("collider")
     obj, cobj = create_collider_object("collider", mesh)
     bpy.context.layer_collection.collection.objects.link(obj)
-    points = None
-    if can_fit_collider(self, context):
+    if points and points.valid:
         obj.parent = context.active_object
-        points = collect_points(context.active_object)
     else:
         obj.location = context.scene.cursor.location
-    for obj in context.scene.objects:
-        obj.select_set(False)
+    for o in context.scene.objects:
+        o.select_set(False)
     obj.select_set(True)
     if type(self) == KSPMU_OT_ColliderMesh:
         obj.muproperties.collider = 'MU_COL_MESH'
