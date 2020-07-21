@@ -57,7 +57,7 @@ class ConfigNode:
                     value = ''
                     if script.tokenAvailable(False):
                         script.getLine()
-                        value = script.token
+                        value = script.token.strip()
                     node.values.append((key, value, line))
                     break
                 elif script.token == '{':
