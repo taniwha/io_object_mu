@@ -130,8 +130,12 @@ def add_mesh_colliders(self, context, convex):
             mesh = bpy.data.meshes.new_from_object(objeval)
         col = bpy.data.objects.new(name, mesh)
         context.scene.collection.objects.link(col)
+        original_collection = col.users_collection
+        if original_collection != obj.users_collection:
+            bpy.data.collections[obj.users_collection[0].name].objects.link(col)
+            original_collection[0].objects.unlink(col)
         col.parent = obj
-        col.select_set(True)
+        col.hide_set(True)
         bpy.context.view_layer.objects.active = col
         col.muproperties.collider = 'MU_COL_MESH'
 
