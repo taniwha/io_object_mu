@@ -25,23 +25,24 @@ class WORKSPACE_PT_tools_mu_collider(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Tool"
-    bl_context = ".objectmode"
+    #bl_context = ".objectmode"
     bl_label = "Add Mu Collider"
 
     def draw(self, context):
         layout = self.layout
-        col = layout.column(align=True)
-        col.label(text="Single Collider:")
-        layout.operator("mucollider.mesh", text = "Mesh")
-        layout.operator("mucollider.sphere", text = "Sphere")
-        layout.operator("mucollider.capsule", text = "Capsule")
-        layout.operator("mucollider.box", text = "Box")
-        layout.operator("mucollider.wheel", text = "Wheel")
+        if context.mode in ['EDIT_MESH', 'OBJECT']:
+            col = layout.column(align=True)
+            col.label(text="Single Collider:")
+            layout.operator("mucollider.mesh", text = "Mesh")
+            layout.operator("mucollider.sphere", text = "Sphere")
+            layout.operator("mucollider.capsule", text = "Capsule")
+            layout.operator("mucollider.box", text = "Box")
 
-        col = layout.column(align=True)
-        col.label(text="Multiple Colliders:")
-        layout.operator("mucollider.from_mesh")
-        layout.operator("mucollider.mesh_to_collider")
+        if context.mode in ['OBJECT']:
+            col = layout.column(align=True)
+            col.label(text="Multiple Colliders:")
+            layout.operator("mucollider.from_mesh")
+            layout.operator("mucollider.mesh_to_collider")
 
 class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
