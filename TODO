@@ -8,3 +8,4 @@ o  make parent inverse clearing unnecessary
 o  ???
 o  profit
 o  constraints -> simple constraints (need to get that going again)
+o  put imported models into a collection hierarchy: main(vis, collider)
