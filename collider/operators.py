@@ -20,6 +20,7 @@
 # <pep8 compliant>
 
 import bpy
+import bmesh
 from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from bpy.props import FloatVectorProperty
 
@@ -36,7 +37,8 @@ def collect_points(reference):
         for obj in bpy.context.objects_in_mode:
             if obj.type == 'MESH':
                 o2r = w2r @ obj.matrix_world
-                points.add_verts(obj.data.vertices, o2r, True)
+                mesh = bmesh.from_edit_mesh(obj.data)
+                points.add_verts(mesh.verts, o2r, True)
     else:
         for obj in bpy.context.selected_objects:
             if obj.type == 'MESH':
