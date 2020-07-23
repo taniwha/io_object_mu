@@ -21,6 +21,8 @@
 
 import bpy
 from mathutils import Vector
+
+from ..quickhull.convex_hull import quickhull
 from .seb import smalest_enclosing_ball
 
 class Points:
@@ -34,6 +36,7 @@ class Points:
     def add_verts(self, verts, xform, selected=False):
         if selected:
             verts = [v for v in verts if v.select]
+        print(selected, len(verts))
         base = len(self.verts)
         self.verts = self.verts + [None] * len(verts)
         for i, v in enumerate(verts):
@@ -57,3 +60,6 @@ class Points:
 
     def calc_sphere(self):
         return smalest_enclosing_ball(self.verts)
+
+    def calc_hull(self):
+        return quickhull(self)

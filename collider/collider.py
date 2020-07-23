@@ -56,7 +56,8 @@ def build_collider(obj, muprops):
     mesh = obj.data
     mesh_data = None
     if muprops.collider == "MU_COL_MESH":
-        mesh_data = box.mesh_data((0, 0, 0), (1, 1, 1))
+        if not len(mesh.vertices):
+            mesh_data = box.mesh_data((0, 0, 0), (1, 1, 1))
     elif muprops.collider == "MU_COL_SPHERE":
         mesh_data = sphere.mesh_data(muprops.center, muprops.radius)
     elif muprops.collider == "MU_COL_CAPSULE":

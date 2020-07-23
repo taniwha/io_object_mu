@@ -65,7 +65,10 @@ def add_collider(self, context):
     if can_fit_collider(self, context):
         points = collect_points(context.active_object)
     if type(self) == KSPMU_OT_ColliderMesh:
-        mesh = bpy.data.meshes.new("collider")
+        if points and points.valid:
+            mesh = points.calc_hull()
+        else:
+            mesh = bpy.data.meshes.new("collider")
     obj, cobj = create_collider_object("collider", mesh)
     bpy.context.layer_collection.collection.objects.link(obj)
     if points and points.valid:
@@ -218,6 +221,11 @@ class KSPMU_OT_ColliderMesh(bpy.types.Operator):
     bl_idname = "mucollider.mesh"
     bl_label = "Add Mesh Collider"
     bl_options = {'REGISTER', 'UNDO'}
+
+    fitSelected: BoolProperty(name = "Fit Selected",
+                    description="Fit collider to selection. Uses active "
+                    "object as parent and reference frame.",
+                    default=True)
 
     def execute(self, context):
         return add_collider(self, context)

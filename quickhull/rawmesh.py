@@ -22,9 +22,10 @@
 class RawMesh:
     def __init__(self, mesh=None):
         if mesh:
-            self.verts = [None] * len(mesh.vertices)
-            for i, v in enumerate(mesh.vertices):
-                self.verts[i] = v.co
+            if hasattr(mesh, "vertices"):
+                self.verts = [v.co for v in mesh.vertices]
+            else:
+                self.verts = [v for v in mesh.verts]
         else:
             self.verts = []
 
