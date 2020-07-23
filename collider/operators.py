@@ -120,9 +120,9 @@ def add_mesh_colliders(self, context, convex):
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
 
-    for obj in bpy.context.scene.objects:
-        if not obj.select_get():
-            continue
+    objects = [obj for obj in bpy.context.scene.objects if obj.select_get()]
+
+    for obj in objects:
         obj.select_set(False)
         if obj.type != 'MESH':
             continue
@@ -143,6 +143,8 @@ def add_mesh_colliders(self, context, convex):
         col.parent = obj
         if Preferences().AutohideColliders:
             col.hide_set(True)
+        else:
+            col.select_set(True)
         bpy.context.view_layer.objects.active = col
         col.muproperties.collider = 'MU_COL_MESH'
 
