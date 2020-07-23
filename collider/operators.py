@@ -23,6 +23,7 @@ import bpy
 from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from bpy.props import FloatVectorProperty
 
+from ..preferences import Preferences
 from ..quickhull.convex_hull import quickhull
 from .. import properties
 from .collider import create_collider_object, build_collider
@@ -135,7 +136,8 @@ def add_mesh_colliders(self, context, convex):
             bpy.data.collections[obj.users_collection[0].name].objects.link(col)
             original_collection[0].objects.unlink(col)
         col.parent = obj
-        col.hide_set(True)
+        if Preferences().AutohideColliders:
+            col.hide_set(True)
         bpy.context.view_layer.objects.active = col
         col.muproperties.collider = 'MU_COL_MESH'
 

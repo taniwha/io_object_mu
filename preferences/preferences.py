@@ -23,10 +23,9 @@
 
 import bpy, os
 from bpy.types import AddonPreferences
-from bpy.props import StringProperty
+from bpy.props import StringProperty, BoolProperty
 
 from . import colorpalettes
-from .. import shader
 
 package_name = __package__.split(".")[0]
 
@@ -95,9 +94,16 @@ class IOObjectMu_AddonPreferences(AddonPreferences):
         description="Path to KSP GameData tree",
         subtype='DIR_PATH')
 
+    AutohideColliders: BoolProperty(
+        name="Autohide Mesh Colliders",
+        description="Automatically hide new mesh colliders",
+        default=False)
+
     def draw(self, context):
         layout = self.layout
         box = layout.box ()
+        box.label(text="Editing:")
+        box.prop(self, "AutohideColliders")
         box.label(text="KSP:")
         box.prop(self, "GameData")
         box.label(text="Shaders:")
