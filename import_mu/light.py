@@ -33,7 +33,8 @@ def create_light(mu, muobj, mulight, name):
     light.color = mulight.color[:3]
     light.use_custom_distance = True
     light.cutoff_distance = mulight.range
-    light.energy = mulight.intensity
+    # assume Unity's baseline light intensity maps to 100W
+    light.energy = mulight.intensity * 100
     if ltype == 'SPOT' and hasattr(mulight, "spotAngle"):
         light.spot_size = mulight.spotAngle * pi / 180
     muprops = light.mulightprop

@@ -41,7 +41,8 @@ def make_light(mu, light, obj):
         mulight.range = light.cutoff_distance
     else:
         mulight.range = 10
-    mulight.intensity = light.energy
+    # assume Unity's baseline light intensity maps to 100W
+    mulight.intensity = light.energy / 100.0
     mulight.spotAngle = 0.0
     mulight.cullingMask = properties.GetPropMask(light.mulightprop.cullingMask)
     if light.type == 'SPOT':
