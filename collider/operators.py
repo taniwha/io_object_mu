@@ -91,10 +91,22 @@ def add_collider(self, context):
         obj.muproperties.center = center
         obj.muproperties.collider = 'MU_COL_SPHERE'
     elif type(self) == KSPMU_OT_ColliderCapsule:
-        obj.muproperties.radius = self.radius
-        obj.muproperties.height = self.height
-        obj.muproperties.direction = self.direction
-        obj.muproperties.center = self.center
+        if points and points.valid:
+            capsule = points.calc_capsule()
+            center, rot, direction, height, radius = capsule
+            obj.rotation_mode = 'QUATERNION'
+            obj.rotation_quaternion = rot
+            obj.location = center
+            center.zero()
+        else:
+            center = self.center
+            direction = self.direction
+            height = self.height
+            radius = self.radius
+        obj.muproperties.radius = radius
+        obj.muproperties.height = height
+        obj.muproperties.direction = direction
+        obj.muproperties.center = center
         obj.muproperties.collider = 'MU_COL_CAPSULE'
     elif type(self) == KSPMU_OT_ColliderBox:
         if points and points.valid:
@@ -256,6 +268,11 @@ class KSPMU_OT_ColliderCapsule(bpy.types.Operator):
     bl_idname = "mucollider.capsule"
     bl_label = "Add Capsule Collider"
     bl_options = {'REGISTER', 'UNDO'}
+
+    fitSelected: BoolProperty(name = "Fit Selected",
+                    description="Fit collider to selection. Uses active "
+                    "object as parent and reference frame.",
+                    default=True)
 
     radius: FloatProperty(name = "Radius", min = 0.0, default = 0.5)
     height: FloatProperty(name = "Height", min = 0.0, default = 1.0)
