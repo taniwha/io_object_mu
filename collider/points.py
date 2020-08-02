@@ -67,7 +67,7 @@ def _eigen_vectors(mat):
          - mat[0][0] * mat[1][2]**2 - mat[1][1] * mat[0][2]**2
          - mat[2][2] * mat[0][1]**2)
     L = solve_cubic(a, b, c, d)
-    L = tuple(map(lambda l: l.real, L))
+    L = [l.real for l in L]
     # Use Cayley-Hamilton to find the eigenvectors
     I = Matrix.Identity(3)
     Aa = mat - L[0] * I
@@ -92,6 +92,7 @@ def _linear_regression(verts):
     Q = _eigen_vectors(A)
     # The rotation is never more than 45 degrees as higher angles simply
     # change the principle axes
+    print(Q)
     rotation = Q.inverted().to_quaternion()
     # Note that this is not the actual axis moments, but their
     # contributions: that is, for Ixx, add moment.y and moment.z. However,
@@ -99,7 +100,25 @@ def _linear_regression(verts):
     # sqrt(m/2). More importantly, it is the moments of the point masses
     # rather than of the solid object.
     moment = Q @ A @ Q.inverted() @ Vector((1,1,1))
-    return centroid, rotation, moment
+    return centroid, rotation, moment, Q
+
+def _calc_p(x, frame):
+    """ Find properties of each point
+    Distance along the primary axis
+    Distance squared from the primary axis
+    Projection onto the primary plane (secondary axes) for SEB
+    """
+    n, s, t = frame
+    u = x @ s
+    v = x @ t
+    w = x @ n
+    return w, u**2 + v**2, (u * s, v * t)
+
+def _key_u(uv2):
+    return uv2[0]
+
+def _key_v2(uv2):
+    return uv2[1]
 
 class Points:
     def __init__(self):
@@ -140,11 +159,22 @@ class Points:
         return quickhull(self)
 
     def calc_capsule(self):
-        loc, rot, mom = _linear_regression(self.verts)
+        loc, rot, mom, Q = _linear_regression(self.verts)
         m = list(mom)
         l = max(m)
         i = m.index(l)
         axis = properties.dir_items[i][0]
         del m[i]
         r = max(m)
-        return loc, rot, axis, sqrt(l/2), sqrt(r/8)
+        # pick a frame (n, s, t) such that n is the primary axis and s,t are
+        # the secondary axes of the capsule
+        frame = Q[i], Q[(i + 1) % 3], Q[(i + 2) % 3]
+        p = [_calc_p(x - loc, frame) for x in self.verts]
+        mi, ma = min(p, key=_key_u)[0], max(p, key=_key_u)[0]
+        r2 = max(p, key=_key_v2)[1]
+        mi = min([p[0] + sqrt(r2 - p[1]) for p in p if (p[0] - mi)**2 < r2])
+        ma = max([p[0] - sqrt(r2 - p[1]) for p in p if (p[0] - ma)**2 < r2])
+        print (mi, ma)
+        r = sqrt(r2)
+        length = (ma - mi) + 2 * r
+        return loc, rot, axis, length, r
