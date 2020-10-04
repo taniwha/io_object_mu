@@ -68,10 +68,10 @@ def create_wingtool_op(self, context):
 
 def measure_wing(wing_tool):
     tools = {}
-    print(wing_tool.name, len(wing_tool.children))
     for c in wing_tool.children:
         if c.name[:10] == "wing-tool.":
             tools[strip_nnn(c.name[10:])] = c
+
     root_x = (tools["root.fore"].location.x + tools["root.aft"].location.x) / 2
     root_z = (tools["root.fore"].location.z + tools["root.aft"].location.z) / 2
     tip_x = (tools["tip.fore"].location.x + tools["tip.aft"].location.x) / 2
@@ -81,14 +81,14 @@ def measure_wing(wing_tool):
 
     MAC = (abs(root_chord) + abs(tip_chord)) / 2
     b_2 = abs (tip_x - root_x)
-    TaperRation = abs(tip_chord) / (abs(root_chord) + 1e-8)
+    TaperRatio = abs(tip_chord) / (abs(root_chord) + 1e-8)
     MidChordSweep = atan((root_z - tip_z) / b_2) * 180 / pi
     cfg = ConfigNode()
     cfg.AddValue ("name", "FARWingAerodynamicModel")
     cfg.AddValue ("MAC", "%.4g" % MAC)
     cfg.AddValue ("MidChordSweep", "%.4g" % MidChordSweep)
     cfg.AddValue ("b_2", "%.4g" % b_2)
-    cfg.AddValue ("TaperRation", "%.4g" % TaperRation)
+    cfg.AddValue ("TaperRatio", "%.4g" % TaperRatio)
     return cfg
 
 def measure_wing_op(self, context):
