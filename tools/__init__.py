@@ -25,5 +25,6 @@ submodule_names = (
     "applyscale",
     "clearinverse",
     "panels",
+    "wingtool",
 )
 register_submodules(__name__, submodule_names)

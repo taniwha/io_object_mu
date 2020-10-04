@@ -33,6 +33,7 @@ class WORKSPACE_PT_tools_mu_tools2(bpy.types.Panel):
         #col = layout.column(align=True)
         layout.operator("object.mu_apply_scale", text = "Apply Scale");
         layout.operator("object.mu_clearinverse", text = "Clear Inverse");
+        layout.operator("object.mu_calc_ping_props", text = "Measure Wing");
 
 classes_to_register = (
     WORKSPACE_PT_tools_mu_tools2,
