@@ -123,8 +123,7 @@ def calc_volumes(mu):
         mu.volumes[tag] = [sum(f) for f in zip(*volume)]
 
 def add_internal(mu, obj):
-    if not mu.internal:
-        mu.internal = obj
+    mu.internals.append(obj)
     return True
 
 def add_prop(mu, obj):
@@ -160,7 +159,7 @@ def export_object(obj, filepath):
     mu.props = []
     mu.volumes = {}
     mu.messages = []
-    mu.internal = None
+    mu.internals = []
     mu.type = obj.muproperties.modelType
     mu.CoMOffset = None
     mu.CoPOffset = None

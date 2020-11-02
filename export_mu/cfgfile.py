@@ -83,8 +83,8 @@ def generate_cfg(mu, filepath):
             node.AddValue("CoPOffset", vector_str(swapyz(mu.CoPOffset)))
         if mu.CoLOffset != None:
             node.AddValue("CoLOffset", vector_str(swapyz(mu.CoLOffset)))
-        if mu.internal:
-            add_internal_node(node, mu.internal)
+        if mu.internals:
+            add_internal_node(node, mu.internals[0])
         mu.nodes.sort()
         for n in mu.nodes:
             n.save(node)
