@@ -97,7 +97,8 @@ def make_obj_core(mu, obj, path, muobj):
         muprops = o.muproperties
         #check whether the object should be exported (eg, props should not be
         #exported as part of an IVA, and IVAs should not be exported as part
-        #of a part (that sounds odd)
+        #of a part (that sounds odd), volumes should not be exported as part
+        # of anything
         if muprops.modelType in mu.special:
             if mu.special[muprops.modelType](mu, o):
                 continue
@@ -114,6 +115,13 @@ def make_obj(mu, obj, path):
     muobj.transform = make_transform (obj)
     return make_obj_core(mu, obj, path, muobj)
 
+def calc_volumes(mu):
+    for tag in mu.volumes:
+        volume = mu.volumes[tag]
+        for i, obj in enumerate(volume):
+            volume[i] = model_volume(obj)
+        mu.volumes[tag] = [sum(f) for f in zip(*volume)]
+
 def add_internal(mu, obj):
     if not mu.internal:
         mu.internal = obj
@@ -123,12 +131,20 @@ def add_prop(mu, obj):
     mu.props.append(obj)
     return True
 
+def add_volume(mu, obj):
+    tag = obj.muproperties.tag
+    if tag not in mu.volumes:
+        mu.volumes[tag] = []
+    mu.volumes[tag].append(obj)
+    return True
+
 special_modelTypes = {
     'NONE': {},
-    'PART': {'INTERNAL':add_internal},
+    'PART': {'INTERNAL':add_internal, 'VOLUME':add_volume},
     'PROP': {},
     'INTERNAL': {'PROP':add_prop},
     'STATIC': {},
+    'VOLUME': {},
 }
 
 def export_object(obj, filepath):
@@ -142,6 +158,7 @@ def export_object(obj, filepath):
     mu.textures = {}
     mu.nodes = []
     mu.props = []
+    mu.volumes = {}
     mu.messages = []
     mu.internal = None
     mu.type = obj.muproperties.modelType
@@ -162,7 +179,8 @@ def export_object(obj, filepath):
         anim_root_obj = mu.object_paths[anim_root]
         anim_root_obj.animation = make_animations(mu, animations, anim_root)
     mu.write(filepath)
-    mu.skin_volume, mu.ext_volume = model_volume(obj)
+    mu.skin_volume, mu.ext_volume = model_volume(obj, mu.special)
+    calc_volumes(mu)
     generate_cfg(mu, filepath)
     return mu
 

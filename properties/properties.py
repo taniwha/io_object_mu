@@ -76,6 +76,7 @@ modelType_items = (
     ('PROP', "Prop", "The object and its descendants form a KSP prop model. No descendant objects are special."),
     ('INTERNAL', "Internal Space", "The object and its descendants form a KSP internal space model. Only \"Prop\" descendant objects are special."),
     ('STATIC', "KK Static", "The object and its descendants form a Kerbal Konstructs static model. No descendant objects are special."),
+    ('VOLUME', "Volume", "The object and its descendants are used for volume calcuations and are NOT exported. Use Tag to specify the volume group (may be any name, not limited to valid KSP tags) which can then be accessed in cfg template expressions."),
 )
 collider_items = (
     ('MU_COL_NONE', "", ""),

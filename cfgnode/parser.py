@@ -32,6 +32,7 @@ def build_dictionary(mu, node):
         "model":mu.name,
         "modelSkinVolume":mu.skin_volume,
         "modelExtVolume":mu.ext_volume,
+        "volumes":mu.volumes,
     }
     if mu.anim_root and mu.anim_root in mu.object_paths:
         obj = mu.object_paths[mu.anim_root]

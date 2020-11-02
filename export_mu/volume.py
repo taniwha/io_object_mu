@@ -105,7 +105,7 @@ def obj_volume_centroid(obj):
 def obj_volume(obj):
     return obj_volume_centroid(obj)[0]
 
-def model_volume_centroid(obj):
+def model_volume_centroid(obj, special={}):
     origin = Vector((0, 0, 0))
     base_pos = obj.matrix_world @ origin
     svols = []
@@ -122,6 +122,8 @@ def model_volume_centroid(obj):
         for c in g.children:
             group(c)
     def recurse(o):
+        if o.muproperties.modelType in special:
+            return
         pos = o.matrix_world @ origin
         v, c = obj_volume_centroid(o)
         svols.append(v[0])
@@ -158,8 +160,8 @@ def model_volume_centroid(obj):
         extcent /= extvol
     return (skinvol, extvol), (skincent - base_pos, extcent - base_pos)
 
-def model_volume(obj):
-    return model_volume_centroid(obj)[0]
+def model_volume(obj, special={}):
+    return model_volume_centroid(obj, special)[0]
 
 def find_com(objects):
     origin = Vector((0, 0, 0))
