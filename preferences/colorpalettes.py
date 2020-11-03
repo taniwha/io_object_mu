@@ -49,23 +49,50 @@ value_indices = (
     (1,2,0),
 )
 
-def bada55_generate (data):
+def bada55_generate(data):
     colors = []
     for inds in value_indices:
         col = tuple(map(lambda c: color_values[c]/255.0, inds))
         colors.append(col)
     return colors
 
-def html_generate (data):
+def parse_color(htmlcolor):
+    r = int(htmlcolor[0:2], 16)
+    g = int(htmlcolor[2:4], 16)
+    b = int(htmlcolor[4:6], 16)
+    a = 255
+    colvals = r, g, b, a
+    color = tuple(map(lambda c: c/255.0, colvals))
+    return color
+
+def html_generate(data):
     colors = []
     for htmlcolor in data:
-        r = int(htmlcolor[0:2], 16)
-        g = int(htmlcolor[2:4], 16)
-        b = int(htmlcolor[4:6], 16)
-        colvals = r, g, b
-        col = tuple(map(lambda c: c/255.0, colvals))
+        col = parse_color (htmlcolor)[:3]
         colors.append(col)
     return colors
+
+
+def from_srgb(color):
+    def convert(c):
+        return ((c + 0.055) / 1.055) ** 2.4
+    return tuple(map(lambda c: convert(c), color))
+
+def material_generate(prefix, data):
+    for name, color in data:
+        color = from_srgb(parse_color(color))
+        name = f"{prefix}:{name}"
+        if name in bpy.data.materials:
+            mat = bpy.data.materials[name]
+            #bpy.data.materials.remove(mat)
+        else:
+            mat = bpy.data.materials.new(name)
+        mat.use_fake_user = True
+        mat.diffuse_color = color
+        mat.use_nodes = True
+        bsdf = mat.node_tree.nodes["Principled BSDF"]
+        bsdf.inputs[0].default_value = color
+
 
 porkjet_data = [
     "b8b9b8", "919191", "c5c5c5", "333333",
@@ -103,19 +130,69 @@ general_data = [
 ]
 
 nertea_data = [
-    "8C7753", "475E74", "171717", "D9B358", "5F88AF",
-    "5D4934", "53686F", "583232", "856226", "C7974A",
-    "242424", "856C44", "9A7054", "8F5949", "B18B1B",
-    "784139", "856226", "C7974A", "AB4032", "8C8C8C",
-    "424242", "586F53", "B89F54", "A1A1A1", "222222",
-    "666666", "C78C40", "FF4F00", "A9A9A9", "2D2D2D",
-    "C66F32", "5A5A5A", "707070", "787878", "4F4F4F",
-    "DDDDDD", "404040", "C7C7C7", "5E8438", "435D28",
-    "567987", "B08D43", "D88342", "63869A", "262626",
-    "B8B8B8", "FBC189", "AB6432", "B1773C", "272E32",
-    "4F565A", "212C33", "505B63", "151718", "2B1515",
-    "494D49", "AECBAE", "A6A6A6", "496268", "333C72",
-    "723333", "464646", "CEAC5C",
+	("Antenna Copper", "8C7753"),
+	("Argon Blue", "475E74"),
+	("Battery Black", "171717"),
+	("Battery Yellow", "D9B358"),
+	("Capacitor Blue", "5F88AF"),
+	("Copper Base", "5D4934"),
+	("Cryogenic Blue", "53686F"),
+	("Cryogenic Detail Red", "583232"),
+	("Gold Foil Base", "856226"),
+	("Gold Foil Spec Base", "C7974A"),
+	("HS Black Base", "242424"),
+	("HS Brown", "856C44"),
+	("HS Inner", "9A7054"),
+	("HS Red", "8F5949"),
+	("Jeb's Yellow", "B18B1B"),
+	("KADB red", "784139"),
+	("LH2 Albedo Base", "856226"),
+	("LH2 Spec Base", "C7974A"),
+	("Lithium Red", "AB4032"),
+	("Lithium Spec Base", "8C8C8C"),
+	("Metal Grey Paint", "424242"),
+	("Methane Green", "586F53"),
+	("Monoprop Engine Yellow", "B89F54"),
+	("Nosecone Tip Grey", "A1A1A1"),
+	("Nozzle Ablative", "222222"),
+	("Nozzle Metal", "666666"),
+	("Nuclear Yellow", "C78C40"),
+	("Parachute Orange", "FF4F00"),
+	("Payload Stripes", "A9A9A9"),
+	("PJ Black", "2D2D2D"),
+	("PJ EndTank", "C66F32"),
+	("PJ Engine Grey", "5A5A5A"),
+	("PJ Grey", "707070"),
+	("PJ Light Grey", "787878"),
+	("PJ Pipe Grey", "4F4F4F"),
+	("PJ Spec Metal Average", "DDDDDD"),
+	("PJ Spec Painted", "404040"),
+	("PJ White", "C7C7C7"),
+	("Probe Core Circuits", "5E8438"),
+	("Probe Core Mainboard", "435D28"),
+	("Probe Tag Blue", "567987"),
+	("Reaction Wheel Control Cable", "B08D43"),
+	("Rockomax Orange", "D88342"),
+	("Science Blue", "63869A"),
+	("Silver Foil Base", "262626"),
+	("Silver Foil Spec", "B8B8B8"),
+	("SOFI Highlights", "FBC189"),
+	("SOFI Orange", "AB6432"),
+	("SOFI Yellow", "B1773C"),
+	("Solar Cell Adv Base", "272E32"),
+	("Solar Cell Adv Spec", "4F565A"),
+	("Solar Cell Basic Base", "212C33"),
+	("Solar Cell Basic Spec", "505B63"),
+	("Solar Cell Blanket Adv Base", "151718"),
+	("Solar Cell Conc Base", "2B1515"),
+	("Soviet Grey", "494D49"),
+	("Soviet Grey Highlight", "AECBAE"),
+	("Spec Metal Base", "A6A6A6"),
+	("Windows", "496268"),
+	("Wire Blue", "333C72"),
+	("Wire Red", "723333"),
+	("Xenon Tank", "464646"),
+	("Xenon Yellow", "CEAC5C"),
 ]
 
 palette_presets = [
@@ -126,7 +203,7 @@ palette_presets = [
     ("Tantares", html_generate, tantares_data),
     ("bada55", bada55_generate, None),
     ("General", html_generate, general_data),
-    ("Nertea", html_generate, nertea_data),
+    ("Nertea", html_generate, list(zip(*nertea_data))[1]),
 ]
 
 def install():
@@ -140,3 +217,4 @@ def install():
         for c in colors:
             col = pal.colors.new().color
             col.r, col.g, col.b = c
+    material_generate("Nertea", nertea_data)
