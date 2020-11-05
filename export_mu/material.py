@@ -22,6 +22,13 @@
 from ..mu import MuMaterial, MuTexture, MuMatTex
 
 def make_texture(mu, tex):
+    """
+    Creates a texture.
+
+    Args:
+        mu: (todo): write your description
+        tex: (str): write your description
+    """
     if tex.tex and tex.tex not in mu.textures:
         mutex = MuTexture()
         mutex.name = tex.tex
@@ -38,6 +45,12 @@ def make_texture(mu, tex):
     return mattex
 
 def make_property(blendprop):
+    """
+    Make a property object from the given property.
+
+    Args:
+        blendprop: (todo): write your description
+    """
     muprop = {}
     for item in blendprop:
         if type(item.value) is float:
@@ -47,12 +60,26 @@ def make_property(blendprop):
     return muprop
 
 def make_tex_property(mu, blendprop):
+    """
+    Make a texture property.
+
+    Args:
+        mu: (todo): write your description
+        blendprop: (todo): write your description
+    """
     muprop = {}
     for item in blendprop:
         muprop[item.name] = make_texture(mu, item)
     return muprop
 
 def make_material(mu, mat):
+    """
+    Creates a material.
+
+    Args:
+        mu: (todo): write your description
+        mat: (array): write your description
+    """
     material = MuMaterial()
     material.name = mat.name
     material.index = len(mu.materials)

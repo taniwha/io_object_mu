@@ -20,6 +20,12 @@
 # <pep8 compliant>
 
 def is_collider(obj):
+    """
+    Determine if obj is collider provider.
+
+    Args:
+        obj: (todo): write your description
+    """
     muprops = obj.muproperties
     if muprops.collider and muprops.collider != 'MU_COL_NONE':
         return True

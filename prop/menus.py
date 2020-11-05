@@ -26,6 +26,13 @@ import bpy
 from .operators import OBJECT_OT_add_ksp_prop
 
 def add_prop_menu_func(self, context):
+    """
+    Add a custom menu item to the menu.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     layout = self.layout
     if len(OBJECT_OT_add_ksp_prop._enum_item_cache) > 10:
         layout.operator_context = 'INVOKE_REGION_WIN'

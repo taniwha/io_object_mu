@@ -25,12 +25,24 @@ from mathutils import Vector
 from ..utils import collect_modifiers
 
 def sortedSum(terms):
+    """
+    Return a list of all terms.
+
+    Args:
+        terms: (todo): write your description
+    """
     sum = 0
     for t in sorted(terms, key=abs):
         sum += t
     return sum
 
 def calcVolumeCentroid(mesh):
+    """
+    Calculates of the mesh for the mesh
+
+    Args:
+        mesh: (todo): write your description
+    """
     terms=[]
     terms_x = []
     terms_y = []
@@ -77,6 +89,12 @@ def calcVolumeCentroid(mesh):
     return vol, cent
 
 def obj_volume_centroid(obj):
+    """
+    Calculate volume volume of the mesh.
+
+    Args:
+        obj: (todo): write your description
+    """
     origin = Vector((0, 0, 0))
     if type(obj.data) != bpy.types.Mesh:
         return (0, 0), (origin, origin)
@@ -103,9 +121,22 @@ def obj_volume_centroid(obj):
     return (skin_vol, ext_vol), (skin_cent, ext_cent)
 
 def obj_volume(obj):
+    """
+    Return the volume of an object obj.
+
+    Args:
+        obj: (todo): write your description
+    """
     return obj_volume_centroid(obj)[0]
 
 def model_volume_centroid(obj, special={}):
+    """
+    Generate a list.
+
+    Args:
+        obj: (todo): write your description
+        special: (todo): write your description
+    """
     origin = Vector((0, 0, 0))
     base_pos = obj.matrix_world @ origin
     svols = []
@@ -117,11 +148,23 @@ def model_volume_centroid(obj, special={}):
     ecents_y = []
     ecents_z = []
     def group(g):
+        """
+        Recursively iterate through children.
+
+        Args:
+            g: (todo): write your description
+        """
         for o in g.objects:
             recurse(o)
         for c in g.children:
             group(c)
     def recurse(o):
+        """
+        Recursively recursively recursively recursively recursively iterable.
+
+        Args:
+            o: (todo): write your description
+        """
         if o.muproperties.modelType in special:
             return
         pos = o.matrix_world @ origin
@@ -161,9 +204,22 @@ def model_volume_centroid(obj, special={}):
     return (skinvol, extvol), (skincent - base_pos, extcent - base_pos)
 
 def model_volume(obj, special={}):
+    """
+    Generate volume volume.
+
+    Args:
+        obj: (todo): write your description
+        special: (str): write your description
+    """
     return model_volume_centroid(obj, special)[0]
 
 def find_com(objects):
+    """
+    Find the center of objects.
+
+    Args:
+        objects: (todo): write your description
+    """
     origin = Vector((0, 0, 0))
     base_pos = objects[0].matrix_world @ origin
     weighted_x = [None] * len(objects)

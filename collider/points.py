@@ -29,6 +29,14 @@ from ..utils.solver import solve_cubic
 from .seb import smalest_enclosing_ball
 
 def _swap_rows(mat, r1, r2):
+    """
+    Swap the rows of the matrix.
+
+    Args:
+        mat: (array): write your description
+        r1: (array): write your description
+        r2: (todo): write your description
+    """
     mat[r1], mat[r2] = Vector(mat[r2]), Vector(mat[r1])
 
 def _canonicalize_matrix(mat):
@@ -80,6 +88,12 @@ def _eigen_vectors(mat):
     return Q
 
 def _linear_regression(verts):
+    """
+    Return the linear regression of a linear regression.
+
+    Args:
+        verts: (todo): write your description
+    """
     # Note that this is the centroid of the points, NOT the center of mass,
     # so it is not directly usable
     centroid = sum(verts, start=Vector((0, 0, 0))) / len(verts)
@@ -115,20 +129,53 @@ def _calc_p(x, frame):
     return w, u**2 + v**2, (u * s, v * t)
 
 def _key_u(uv2):
+    """
+    Return the value of the uv2.
+
+    Args:
+        uv2: (todo): write your description
+    """
     return uv2[0]
 
 def _key_v2(uv2):
+    """
+    Returns the key corresponding to use in - place.
+
+    Args:
+        uv2: (todo): write your description
+    """
     return uv2[1]
 
 class Points:
     def __init__(self):
+        """
+        Initialize the instance
+
+        Args:
+            self: (todo): write your description
+        """
         self.verts = []
 
     @property
     def valid(self):
+        """
+        Returns true if the length of the maximum number.
+
+        Args:
+            self: (todo): write your description
+        """
         return len(self.verts) > 0
 
     def add_verts(self, verts, xform, selected=False):
+        """
+        Add vertices
+
+        Args:
+            self: (todo): write your description
+            verts: (array): write your description
+            xform: (todo): write your description
+            selected: (todo): write your description
+        """
         if selected:
             verts = [v for v in verts if v.select]
         base = len(self.verts)
@@ -137,6 +184,12 @@ class Points:
             self.verts[base + i] = (xform @ v.co).freeze()
 
     def calc_box(self):
+        """
+        Calculate the bounding box of the image.
+
+        Args:
+            self: (todo): write your description
+        """
         if not self.verts:
             return Vector((0, 0, 0)), Vector((0, 0, 0))
         mins = Vector(self.verts[0])
@@ -153,12 +206,30 @@ class Points:
         return size, center
 
     def calc_sphere(self):
+        """
+        Calculate the spherical coordinates.
+
+        Args:
+            self: (todo): write your description
+        """
         return smalest_enclosing_ball(self.verts)
 
     def calc_hull(self):
+        """
+        Calculate hullh hull
+
+        Args:
+            self: (todo): write your description
+        """
         return quickhull(self)
 
     def calc_capsule(self):
+        """
+        Calculate the raiduleule angle.
+
+        Args:
+            self: (todo): write your description
+        """
         loc, rot, mom, Q = _linear_regression(self.verts)
         m = list(mom)
         l = max(m)

@@ -30,6 +30,12 @@ from ..cfgnode import ConfigNode
 shader_configs = {}
 
 def load_shader_configs(path):
+    """
+    Load all shader config files.
+
+    Args:
+        path: (str): write your description
+    """
     files = os.listdir(path)
     for f in files:
         if f[0] in [".", "_"]:

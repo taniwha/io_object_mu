@@ -83,6 +83,12 @@ field_type_map = {
 }
 
 def generate_property(field):
+    """
+    Generate a property for a given field.
+
+    Args:
+        field: (str): write your description
+    """
     print(field.module, field.name)
     basefield = available_modules_map[field.module].field_map[field.name]
     prop_type = field_type_map[field.type]
@@ -102,6 +108,13 @@ def generate_property(field):
     return prop_type, params
 
 def update_field(self, context):
+    """
+    Updates the field
+
+    Args:
+        self: (todo): write your description
+        context: (dict): write your description
+    """
     ref = self.propref
     kspmodules = context.active_object.kspmodules
     module = None
@@ -116,16 +129,41 @@ def update_field(self, context):
 
 class KSPActiveField:
     def __init__(self, module, field, mod_index, fld_index):
+        """
+        Initialize the field.
+
+        Args:
+            self: (todo): write your description
+            module: (str): write your description
+            field: (todo): write your description
+            mod_index: (int): write your description
+            fld_index: (int): write your description
+        """
         self.module = module
         self.prop_type = None
         self.name = f"{module.name}.KSPActiveField.PropType"
         self.set_field(field, mod_index, fld_index)
     def __del__(self):
+        """
+        Unregister the property
+
+        Args:
+            self: (todo): write your description
+        """
         print("KSPActiveField __del__")
         if self.prop_type:
             delattr(KSPModuleProps, self.af_name)
             unregister_class(self.prop_type)
     def set_field(self, field, module_index, field_index):
+        """
+        Set the field of the field
+
+        Args:
+            self: (todo): write your description
+            field: (todo): write your description
+            module_index: (str): write your description
+            field_index: (todo): write your description
+        """
         self.af_name = f"active_field{module_index}"
         if self.prop_type:
             delattr(KSPModuleProps, self.af_name)
@@ -162,6 +200,13 @@ class KSPModuleProps(PropertyGroup):
     pointerProperties: CollectionProperty(type=KSPPointer)
 
     def initialize(self, module):
+        """
+        Initialize the field values.
+
+        Args:
+            self: (todo): write your description
+            module: (todo): write your description
+        """
         self.name = module.name
         for f in module.fields:
             field = self.fields.add()
@@ -177,6 +222,14 @@ class KSPModuleProps(PropertyGroup):
             prop.description = f.description
 
     def draw_item(self, layout, mod_index):
+        """
+        Draw item
+
+        Args:
+            self: (todo): write your description
+            layout: (str): write your description
+            mod_index: (str): write your description
+        """
         field = self.fields[self.index]
         active_object = bpy.context.active_object
         if ("active_object" in module_active_field

@@ -58,6 +58,13 @@ class OBJECT_PT_MuLightPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
+        """
+        Poll for the given context.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         if type(context.active_object.data) in [bpy.types.PointLight,
                                                 bpy.types.SunLight,
                                                 bpy.types.SpotLight,
@@ -66,6 +73,13 @@ class OBJECT_PT_MuLightPanel(bpy.types.Panel):
         return False
 
     def draw(self, context):
+        """
+        Draw layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         muprops = context.active_object.data.mulightprop
         row = layout.row()

@@ -60,6 +60,15 @@ direction_map = {
 }
 
 def mesh_data(center, radius, height, direction):
+    """
+    Return a 2d with the given by radius.
+
+    Args:
+        center: (float): write your description
+        radius: (int): write your description
+        height: (int): write your description
+        direction: (str): write your description
+    """
     height -= 2 * radius
     r = rotate(direction_map[direction])
     r = translate(center) @ r

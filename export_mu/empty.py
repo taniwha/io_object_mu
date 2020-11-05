@@ -25,13 +25,32 @@ from . import attachnode
 from . import export
 
 def is_group_root(obj, objects):
+    """
+    Returns true if the given object is a root of the given objects.
+
+    Args:
+        obj: (todo): write your description
+        objects: (todo): write your description
+    """
     if not obj.parent:
         return True
     return obj.parent.name not in objects
 
 def collect_objects(collection):
+    """
+    Collect all objects from collection.
+
+    Args:
+        collection: (str): write your description
+    """
     objects = {}
     def collect(col):
+        """
+        Collect all the children of the given table
+
+        Args:
+            col: (todo): write your description
+        """
         for o in col.objects:
             objects[o.name] = o
         for c in col.children:
@@ -40,6 +59,14 @@ def collect_objects(collection):
     return objects
 
 def export_collection(obj, muobj, mu):
+    """
+    Export all objects from the given object.
+
+    Args:
+        obj: (todo): write your description
+        muobj: (todo): write your description
+        mu: (todo): write your description
+    """
     saved_exported_objects = set(export.exported_objects)
     group = obj.instance_collection
     objects = collect_objects(group)
@@ -56,6 +83,14 @@ def export_collection(obj, muobj, mu):
     export.exported_objects = saved_exported_objects
 
 def handle_empty(obj, muobj, mu):
+    """
+    Handle an empty empty objects.
+
+    Args:
+        obj: (todo): write your description
+        muobj: (todo): write your description
+        mu: (todo): write your description
+    """
     if obj.instance_collection:
         if obj.instance_type != 'COLLECTION':
             #FIXME flag an error? figure out something else to do?

@@ -28,6 +28,13 @@ from .exception import MuImportError
 from . import import_modules
 
 def import_mu_menu_func(self, context):
+    """
+    Imports all the import_func
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     self.layout.operator(KSPMU_OT_ImportMu.bl_idname, text="KSP Mu (.mu)")
 
 classes_to_register = (

@@ -26,6 +26,13 @@ from .part import Part
 from ..prop import Prop
 
 def recurse_tree(path, func):
+    """
+    Recursively traverse function.
+
+    Args:
+        path: (str): write your description
+        func: (todo): write your description
+    """
     files = os.listdir(path)
     files.sort()
     for f in files:
@@ -44,9 +51,23 @@ class GameData:
     ModuleManager = "ModuleManager.ConfigCache"
 
     def get_gdpath(self, path):
+        """
+        Get the path from the tree.
+
+        Args:
+            self: (todo): write your description
+            path: (str): write your description
+        """
         return path[len(self.root)+1:]
 
     def process_mu(self, path):
+        """
+        Process a single tf. gz file.
+
+        Args:
+            self: (todo): write your description
+            path: (str): write your description
+        """
         gdpath = self.get_gdpath(path)
         directory, model = os.path.split(gdpath)
         if directory not in self.model_by_path:
@@ -57,6 +78,14 @@ class GameData:
             self.models[url] = path
 
     def process_cfgnode(self, path, node):
+        """
+        Process the cfgnode node.
+
+        Args:
+            self: (todo): write your description
+            path: (str): write your description
+            node: (todo): write your description
+        """
         if node[0] == "PART":
             part = Part(path, node[1])
             if part.name in self.parts:
@@ -83,6 +112,13 @@ class GameData:
                 self.localizations[loc[0]] = loc[1]
 
     def process_cfg(self, path):
+        """
+        Process a cfgn file
+
+        Args:
+            self: (todo): write your description
+            path: (str): write your description
+        """
         if self.use_module_manager:
             return
         try:
@@ -97,6 +133,13 @@ class GameData:
             self.process_cfgnode(gdpath, node)
 
     def build_db(self, path):
+        """
+        Builds db.
+
+        Args:
+            self: (todo): write your description
+            path: (str): write your description
+        """
         path = path.replace("\\", "/")
         if path[-4:].lower() == ".cfg":
             self.process_cfg(path)
@@ -106,6 +149,13 @@ class GameData:
             return
 
     def parse_module_manager(self, mmcache):
+        """
+        Parse module manager manager.
+
+        Args:
+            self: (todo): write your description
+            mmcache: (str): write your description
+        """
         try:
             cfg = ConfigNode.loadfile(mmcache)
         except ConfigNodeError as e:
@@ -122,6 +172,12 @@ class GameData:
         return True
 
     def create_db(self):
+        """
+        Create the database.
+
+        Args:
+            self: (todo): write your description
+        """
         mmcache = "/".join((self.root, self.ModuleManager))
         if os.access(mmcache, os.F_OK):
             if self.parse_module_manager(mmcache):
@@ -131,6 +187,13 @@ class GameData:
             self.model_by_path[k].sort()
 
     def __init__(self, path):
+        """
+        Initialize the database.
+
+        Args:
+            self: (todo): write your description
+            path: (str): write your description
+        """
         self.use_module_manager = False
         path = path.replace("\\", "/")
         if path[-1:] == "/":
@@ -146,6 +209,13 @@ class GameData:
         self.create_db()
 
     def model(self, url):
+        """
+        Get a single model. model.
+
+        Args:
+            self: (todo): write your description
+            url: (str): write your description
+        """
         if url not in self.models:
             return None
         if type(self.models[url]) == type(""):

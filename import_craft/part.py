@@ -29,11 +29,22 @@ from ..model import compile_model
 from ..utils import util_collection
 
 def loaded_parts_collection():
+    """
+    Return a collection of all parts of a collection.
+
+    Args:
+    """
     return util_collection("loaded_parts")
 
 class Part:
     @classmethod
     def Preloaded(cls):
+        """
+        Return a dictionary of - preloaded.
+
+        Args:
+            cls: (todo): write your description
+        """
         preloaded = {}
         for g in bpy.data.collections:
             if g.name[:5] == "part:":
@@ -44,6 +55,14 @@ class Part:
                 preloaded[part.name] = part
         return preloaded
     def __init__(self, path, cfg):
+        """
+        Initialize the model instance.
+
+        Args:
+            self: (todo): write your description
+            path: (str): write your description
+            cfg: (todo): write your description
+        """
         self.cfg = cfg
         self.path = os.path.dirname(path)
         if not cfg.HasValue("name"):
@@ -59,6 +78,12 @@ class Part:
         if cfg.HasValue("rescaleFactor"):
             self.rescaleFactor = parse_float(cfg.GetValue("rescaleFactor"))
     def get_model(self):
+        """
+        Get model
+
+        Args:
+            self: (todo): write your description
+        """
         if not self.model:
             self.model = compile_model(self.db, self.path, "part", self.name,
                                        self.cfg, loaded_parts_collection())
@@ -71,6 +96,15 @@ class Part:
         return model
 
     def instantiate(self, loc, rot, scale):
+        """
+        Instantiates a new instance of the given location.
+
+        Args:
+            self: (todo): write your description
+            loc: (todo): write your description
+            rot: (todo): write your description
+            scale: (float): write your description
+        """
         obj = bpy.data.objects.new(self.name, None)
         obj.instance_type = 'COLLECTION'
         obj.instance_collection = self.model

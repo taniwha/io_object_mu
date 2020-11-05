@@ -28,6 +28,14 @@ from cmath import sqrt, exp, log
 w = -1/2. + sqrt(-3)/2
 
 def solve_quadratic(a, b, c):
+    """
+    Solve the quaternion.
+
+    Args:
+        a: (array): write your description
+        b: (array): write your description
+        c: (array): write your description
+    """
     #print(b/a, c/a)
     #print(a,b,c,b**2, 4*a*c, b**2-4*a*c)
     d = b**2 - 4*a*c
@@ -37,14 +45,33 @@ def solve_quadratic(a, b, c):
     return [(-b - R)/(2*a), (-b + R)/(2*a)]
 
 def sgn(x):
+    """
+    Return the sgn.
+
+    Args:
+        x: (int): write your description
+    """
     return x < 0 and -1 or x > 0 and 1 or 0
 
 def cuberoot(x):
+    """
+    Cuberootoot of x.
+
+    Args:
+        x: (todo): write your description
+    """
     if not abs(x):
         return 0
     return exp(log(abs(x)) / 3) * sgn(x)
 
 def find_z(p, q):
+    """
+    Returns the z - th z - th derivative of the quaternion z - radius z - c - c - c - c - c - c
+
+    Args:
+        p: (todo): write your description
+        q: (todo): write your description
+    """
     #print(p,q)
     P = p**3 / 27
     Q = q**2 / 4
@@ -62,6 +89,15 @@ def find_z(p, q):
     return cuberoot(-q/2+rR), cuberoot(-q/2-rR)
 
 def solve_cubic(a, b, c, d):
+    """
+    Solve the cubic equation.
+
+    Args:
+        a: (todo): write your description
+        b: (todo): write your description
+        c: (todo): write your description
+        d: (todo): write your description
+    """
     a = float(a)
     c1 = -b / a;
     c2 = c / a;
@@ -76,6 +112,16 @@ def solve_cubic(a, b, c, d):
     return [(y1 + c1 / 3), (y2 + c1 / 3), (y3 + c1 / 3)]
 
 def solve_quadric(A, B, C, D, E):
+    """
+    R calculates ayric equation.
+
+    Args:
+        A: (float): write your description
+        B: (float): write your description
+        C: (float): write your description
+        D: (float): write your description
+        E: (float): write your description
+    """
     A = float(A)
     a, b, c, d = B / A, C / A, D / A, E / A
     #print(a,b,c,d)

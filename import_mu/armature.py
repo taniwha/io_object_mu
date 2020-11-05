@@ -31,6 +31,14 @@ Matrix_YZ = Matrix(((1,0,0,0),
                     (0,0,0,1)))
 
 def create_vertex_groups(obj, bones, weights):
+    """
+    Create vertex groups for each vertex
+
+    Args:
+        obj: (todo): write your description
+        bones: (todo): write your description
+        weights: (array): write your description
+    """
     mesh = obj.data
     for bone in bones:
         obj.vertex_groups.new(name=bone)
@@ -41,6 +49,14 @@ def create_vertex_groups(obj, bones, weights):
                 obj.vertex_groups[bind].add((vind,), bweight, 'ADD')
 
 def create_armature_modifier(obj, name, armature):
+    """
+    Create a new modifier
+
+    Args:
+        obj: (todo): write your description
+        name: (str): write your description
+        armature: (todo): write your description
+    """
     mod = obj.modifiers.new(name=name, type='ARMATURE')
     mod.use_apply_on_spline = False
     mod.use_bone_envelopes = False
@@ -50,12 +66,27 @@ def create_armature_modifier(obj, name, armature):
     mod.object = armature
 
 def parent_to_bone(child, armature, bone):
+    """
+    Set child to child to the parent.
+
+    Args:
+        child: (todo): write your description
+        armature: (todo): write your description
+        bone: (todo): write your description
+    """
     child.parent = armature
     child.parent_type = 'BONE'
     child.parent_bone = bone
     child.matrix_parent_inverse[1][3] = -BONE_LENGTH
 
 def create_bone(bone_obj, edit_bones):
+    """
+    Create a new super operator
+
+    Args:
+        bone_obj: (todo): write your description
+        edit_bones: (str): write your description
+    """
     xform = bone_obj.transform
     bone = edit_bones.new(xform.name)
     # actual positions and orientations will be sorted out when building
@@ -73,7 +104,21 @@ def create_bone(bone_obj, edit_bones):
     return bone
 
 def process_armature(armobj, rootBones):
+    """
+    Process a superature.
+
+    Args:
+        armobj: (todo): write your description
+        rootBones: (todo): write your description
+    """
     def process_bone(obj, mat):
+        """
+        Process a matrix.
+
+        Args:
+            obj: (todo): write your description
+            mat: (array): write your description
+        """
         mat = mat @ obj.matrix
         obj.bone.matrix = mat
         y = BONE_LENGTH
@@ -92,6 +137,14 @@ def process_armature(armobj, rootBones):
         process_bone(rootBone, mat)
 
 def create_bindPose(mu, muobj, skin):
+    """
+    Creates a bind.
+
+    Args:
+        mu: (todo): write your description
+        muobj: (todo): write your description
+        skin: (todo): write your description
+    """
     bone_names = skin.bones
     for i in range(len(skin.mesh.bindPoses)):
         bp = skin.mesh.bindPoses[i]
@@ -126,6 +179,14 @@ def create_bindPose(mu, muobj, skin):
     mu.collection.objects.link(skin.bindPose_obj)
 
 def find_bones(mu, skins, siblings):
+    """
+    Given a set of a set of s in skins.
+
+    Args:
+        mu: (int): write your description
+        skins: (int): write your description
+        siblings: (dict): write your description
+    """
     siblings = set(siblings)
     skins = set(skins)
     bones = set()
@@ -164,11 +225,25 @@ def find_bones(mu, skins, siblings):
     return bones, roots, parents
 
 def make_matrix(transform):
+    """
+    Create a transformation matrix.
+
+    Args:
+        transform: (todo): write your description
+    """
     mat = rotate(transform.localRotation)
     mat = translate(transform.localPosition) @ mat
     return mat
 
 def create_armature(mu, armobj, roots):
+    """
+    Creates a new¡ature object.
+
+    Args:
+        mu: (str): write your description
+        armobj: (todo): write your description
+        roots: (str): write your description
+    """
     armobj.matrix = make_matrix(armobj.transform)
 
     name = armobj.transform.name
@@ -207,6 +282,14 @@ def create_armature(mu, armobj, roots):
     return armobj.armature_obj
 
 def process_skins(mu, skins, siblings):
+    """
+    Process skins.
+
+    Args:
+        mu: (array): write your description
+        skins: (todo): write your description
+        siblings: (str): write your description
+    """
     bones, roots, parents = find_bones(mu, skins, siblings)
     for armobj in parents:
         #print(armobj.transform.name,
@@ -214,6 +297,12 @@ def process_skins(mu, skins, siblings):
         create_armature(mu, armobj, roots)
 
 def is_armature(obj):
+    """
+    Check if obj is a mesh
+
+    Args:
+        obj: (todo): write your description
+    """
     # In Unity, it seems that an object with a SkinnedMeshRenderer is the
     # armature, and bones can be children of the SMR object, or even siblings
     if hasattr(obj, "skinned_mesh_renderer"):

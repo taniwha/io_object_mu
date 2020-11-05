@@ -4,6 +4,12 @@ from mu import Mu, MuObject, MuTransform, MuMesh, MuTagLayer
 from multiprocessing import Pool
 
 def read_vertices(input):
+    """
+    Reads vertices from the input array.
+
+    Args:
+        input: (todo): write your description
+    """
     count = input.read_int()
     verts = [None] * count
     for i in range(count):
@@ -14,6 +20,12 @@ class Face:
     pass
 
 def read_face(input):
+    """
+    Reads a face.
+
+    Args:
+        input: (todo): write your description
+    """
     f = Face()
     a, b, c = input.read_int(3)
     if not a:
@@ -26,6 +38,12 @@ def read_face(input):
     return f
 
 def read_facelist(input):
+    """
+    Reads a list of faces from the input array.
+
+    Args:
+        input: (todo): write your description
+    """
     count = input.read_int()
     faces = [None] * count
     for i in range(count):
@@ -33,6 +51,12 @@ def read_facelist(input):
     return faces
 
 def make_transform(name):
+    """
+    Create a new transform.
+
+    Args:
+        name: (str): write your description
+    """
     transform = MuTransform()
     transform.name = name
     transform.localPosition = (0, 0, 0)
@@ -41,6 +65,12 @@ def make_transform(name):
     return transform
 
 def make_empty(name):
+    """
+    Create an empty tag.
+
+    Args:
+        name: (str): write your description
+    """
     obj = MuObject()
     obj.transform = make_transform(name)
     obj.tag_and_layer = MuTagLayer()
@@ -49,12 +79,26 @@ def make_empty(name):
     return obj
 
 def make_tris(faces):
+    """
+    Convert a list of a list of faces.
+
+    Args:
+        faces: (list): write your description
+    """
     tris = []
     for f in faces:
         tris.append(f.tri)
     return tris
 
 def make_mesh(name, verts, faces):
+    """
+    Make a mesh from a mesh.
+
+    Args:
+        name: (str): write your description
+        verts: (str): write your description
+        faces: (todo): write your description
+    """
     obj = make_empty(name)
     mesh = MuMesh()
     mesh.verts = verts
@@ -65,6 +109,12 @@ def make_mesh(name, verts, faces):
 extra_points = set()
 
 def thread_func(parms):
+    """
+    Generate a thread
+
+    Args:
+        parms: (str): write your description
+    """
     name = parms
     input = Mu()
     input.file = open(name + ".bin", "rb");

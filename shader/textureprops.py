@@ -30,6 +30,13 @@ from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
 
 def texture_update_mapping(self, context):
+    """
+    Update the texture mapping
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     if not hasattr(context, "material") or not context.material:
         return
     mat = context.material
@@ -49,6 +56,13 @@ def texture_update_mapping(self, context):
     #    nodes[sel_name].inputs[0].default_value = float(self.rgbNorm)
 
 def texture_update_tex(self, context):
+    """
+    Updates a texture
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     if not hasattr(context, "material") or not context.material:
         return
     mat = context.material
@@ -71,6 +85,13 @@ class MuMaterialTexturePropertySet(bpy.types.PropertyGroup):
     expanded: BoolProperty()
 
     def draw_item(self, layout):
+        """
+        Draw the item
+
+        Args:
+            self: (todo): write your description
+            layout: (str): write your description
+        """
         item = self.properties[self.index]
         row = layout.row()
         col = row.column()

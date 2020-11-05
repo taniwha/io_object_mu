@@ -30,12 +30,25 @@ from ..utils import strip_nnn, util_collection
 from . import box, capsule, sphere, wheel
 
 def collider_collection(name):
+    """
+    Create a new collection.
+
+    Args:
+        name: (str): write your description
+    """
     gizmos = util_collection("collider_gizmos")
     cc = bpy.data.collections.new("collider:"+name)
     gizmos.children.link(cc)
     return cc
 
 def make_collider_mesh(mesh, vex_list):
+    """
+    Make a mesh from a mesh.
+
+    Args:
+        mesh: (todo): write your description
+        vex_list: (list): write your description
+    """
     verts = []
     edges = []
     for vex in vex_list:
@@ -53,6 +66,13 @@ def make_collider_mesh(mesh, vex_list):
     return mesh
 
 def build_collider(obj, muprops):
+    """
+    Build an object return a mesh object.
+
+    Args:
+        obj: (todo): write your description
+        muprops: (todo): write your description
+    """
     mesh = obj.data
     mesh_data = None
     if muprops.collider == "MU_COL_MESH":
@@ -70,6 +90,12 @@ def build_collider(obj, muprops):
         make_collider_mesh (mesh, mesh_data)
 
 def update_collider(obj):
+    """
+    Update the collection.
+
+    Args:
+        obj: (todo): write your description
+    """
     if not obj:
         return
     muprops = obj.muproperties
@@ -86,6 +112,12 @@ def update_collider(obj):
         build_collider(cobj, obj.muproperties)
 
 def create_collider_gizmo(name):
+    """
+    Create gizmogizmo.
+
+    Args:
+        name: (str): write your description
+    """
     mesh = bpy.data.meshes.new(name)
     cobj = bpy.data.objects.new("mesh:" + name, mesh)
     gizmo = collider_collection (name)
@@ -93,6 +125,13 @@ def create_collider_gizmo(name):
     return gizmo, cobj
 
 def create_collider_object(name, mesh):
+    """
+    Create a gizmo object.
+
+    Args:
+        name: (str): write your description
+        mesh: (list): write your description
+    """
     if mesh:
         cobj = obj = bpy.data.objects.new(name, mesh)
     else:

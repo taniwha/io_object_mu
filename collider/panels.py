@@ -29,6 +29,13 @@ class WORKSPACE_PT_tools_mu_collider(bpy.types.Panel):
     bl_label = "Add Mu Collider"
 
     def draw(self, context):
+        """
+        Draw layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         if context.mode in ['EDIT_MESH', 'OBJECT']:
             col = layout.column(align=True)
@@ -52,10 +59,24 @@ class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
+        """
+        Returns the context manager.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         muprops = context.active_object.muproperties
         return muprops.collider and muprops.collider != 'MU_COL_NONE'
 
     def draw(self, context):
+        """
+        Draw layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         muprops = context.active_object.muproperties
         row = layout.row()

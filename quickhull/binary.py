@@ -21,12 +21,33 @@ from struct import pack, unpack
 
 class BinaryReader:
     def __init__(self, file):
+        """
+        Initialize file
+
+        Args:
+            self: (todo): write your description
+            file: (str): write your description
+        """
         self.file = file
 
     def close(self):
+        """
+        Close the connection.
+
+        Args:
+            self: (todo): write your description
+        """
         self.file.close()
 
     def read_byte(self, count=1, force_list=False):
+        """
+        Read a byte from the file.
+
+        Args:
+            self: (todo): write your description
+            count: (int): write your description
+            force_list: (list): write your description
+        """
         size = 1 * count
         data = self.file.read(size)
         if len(data) < size:
@@ -37,6 +58,14 @@ class BinaryReader:
         return data
 
     def read_int(self, count=1, force_list=False):
+        """
+        Reads an integer from the stream.
+
+        Args:
+            self: (todo): write your description
+            count: (int): write your description
+            force_list: (list): write your description
+        """
         size = 4 * count
         data = self.file.read(size)
         if len(data) < size:
@@ -47,7 +76,20 @@ class BinaryReader:
         return data
 
     def read_7int(self, count=1, force_list=False):
+        """
+        Read bits as an unsigned integer.
+
+        Args:
+            self: (todo): write your description
+            count: (int): write your description
+            force_list: (list): write your description
+        """
         def readval():
+            """
+            Reads a single value from the stream.
+
+            Args:
+            """
             val = 0
             mult = 1
             while True:
@@ -65,6 +107,14 @@ class BinaryReader:
         return vals
 
     def read_uint(self, count=1, force_list=False):
+        """
+        Reads a uint8 int.
+
+        Args:
+            self: (todo): write your description
+            count: (int): write your description
+            force_list: (list): write your description
+        """
         size = 4 * count
         data = self.file.read(size)
         if len(data) < size:
@@ -75,6 +125,14 @@ class BinaryReader:
         return data
 
     def read_float(self, count=1, force_list=False):
+        """
+        Reads a float.
+
+        Args:
+            self: (todo): write your description
+            count: (int): write your description
+            force_list: (list): write your description
+        """
         size = 4 * count
         data = self.file.read(size)
         if len(data) < size:
@@ -85,12 +143,24 @@ class BinaryReader:
         return data
 
     def read_vector(self):
+        """
+        Reads the vector.
+
+        Args:
+            self: (todo): write your description
+        """
         v = self.read_float(3)
         #convert from Unity's LHS to Blender's RHS
         v = v[0], v[2], v[1]
         return v
 
     def read_quaternion(self):
+        """
+        Reads the quaternion.
+
+        Args:
+            self: (todo): write your description
+        """
         q = self.read_float(4)
         # Unity is xyzw, blender is wxyz. However, Unity is left-handed and
         # blender is right handed. To convert between LH and RH (either
@@ -99,11 +169,24 @@ class BinaryReader:
         return q
 
     def read_tangent(self):
+        """
+        Reads a tang variable.
+
+        Args:
+            self: (todo): write your description
+        """
         t = self.read_float(4)
         t = t[0], t[2], t[1], -t[3]
         return t
 
     def read_bytes(self, size):
+        """
+        Read at most size bytes from the file.
+
+        Args:
+            self: (todo): write your description
+            size: (int): write your description
+        """
         data = self.file.read(size)
         if len(data) < size:
             raise EOFError
@@ -111,23 +194,63 @@ class BinaryReader:
 
 class BinaryWriter:
     def __init__(self, file):
+        """
+        Initialize file
+
+        Args:
+            self: (todo): write your description
+            file: (str): write your description
+        """
         self.file = file
 
     def close(self):
+        """
+        Close the connection.
+
+        Args:
+            self: (todo): write your description
+        """
         self.file.close()
 
     def write_byte(self, data):
+        """
+        Write a byte to the file.
+
+        Args:
+            self: (todo): write your description
+            data: (todo): write your description
+        """
         if not hasattr(data, "__len__"):
             data = (data,)
         self.file.write(pack(("<%dB" % len(data)), *data))
 
     def write_int(self, data):
+        """
+        Writes an int to the int.
+
+        Args:
+            self: (todo): write your description
+            data: (todo): write your description
+        """
         if not hasattr(data, "__len__"):
             data = (data,)
         self.file.write(pack(("<%di" % len(data)), *data))
 
     def write_7int(self, data):
+        """
+        Write a single byte array to the device.
+
+        Args:
+            self: (todo): write your description
+            data: (todo): write your description
+        """
         def writeval(val):
+            """
+            Write a value to the value.
+
+            Args:
+                val: (str): write your description
+            """
             if val < 0:
                 val += 1 << 32
             val &= (1 << 32) - 1
@@ -141,21 +264,49 @@ class BinaryWriter:
             writeval(d)
 
     def write_uint(self, data):
+        """
+        Write an unsigned integer as an unsigned integer.
+
+        Args:
+            self: (todo): write your description
+            data: (todo): write your description
+        """
         if not hasattr(data, "__len__"):
             data = (data,)
         self.file.write(pack(("<%dI" % len(data)), *data))
 
     def write_float(self, data):
+        """
+        Writes float float to the float.
+
+        Args:
+            self: (todo): write your description
+            data: (todo): write your description
+        """
         if not hasattr(data, "__len__"):
             data = (data,)
         self.file.write(pack(("<%df" % len(data)), *data))
 
     def write_vector(self, v):
+        """
+        Write vector to vector.
+
+        Args:
+            self: (todo): write your description
+            v: (array): write your description
+        """
         #convert from Blender's RHS to Unity's LHS
         v = v[0], v[2], v[1]
         self.write_float(v)
 
     def write_quaternion(self, q):
+        """
+        Writes the quaternion to the quaternion.
+
+        Args:
+            self: (todo): write your description
+            q: (todo): write your description
+        """
         # Unity is xyzw, blender is wxyz. However, Unity is left-handed and
         # blender is right handed. To convert between LH and RH (either
         # direction), just swap y and z and reverse the rotation direction.
@@ -163,14 +314,36 @@ class BinaryWriter:
         self.write_float(q)
 
     def write_tangent(self, t):
+        """
+        Writes a tangu.
+
+        Args:
+            self: (todo): write your description
+            t: (todo): write your description
+        """
         t = t[0], t[2], t[1], -t[3]
         self.write_float(t)
 
     def write_color(self, c):
+        """
+        Writes the color.
+
+        Args:
+            self: (todo): write your description
+            c: (str): write your description
+        """
         cb = tuple(map(lambda x: int(bound(0, x, 1) * 255), c))
         self.write_byte(cb)
 
     def write_bytes(self, data, size=-1):
+        """
+        Write given bytes to the file.
+
+        Args:
+            self: (todo): write your description
+            data: (todo): write your description
+            size: (int): write your description
+        """
         if size == -1:
             size = len(data)
         self.file.write(data[:size])
@@ -178,6 +351,14 @@ class BinaryWriter:
             self.file.write(bytes(size - len(data)))
 
     def write_string(self, data, size=-1):
+        """
+        Writes a string.
+
+        Args:
+            self: (todo): write your description
+            data: (todo): write your description
+            size: (int): write your description
+        """
         data = data.encode()
         size = len(data)
         self.write_7int(size)

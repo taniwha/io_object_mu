@@ -20,13 +20,31 @@
 # <pep8 compliant>
 
 def swapyz(vec):
+    """
+    Convert a vector to a vector.
+
+    Args:
+        vec: (todo): write your description
+    """
     return vec[0], vec[2], vec[1]
 
 def swizzleq(quaternion):
+    """
+    Returns the quaternion.
+
+    Args:
+        quaternion: (todo): write your description
+    """
     # this works only for blender to unity
     return quaternion[1], quaternion[3], quaternion[2], -quaternion[0]
 
 def strip_nnn(name):
+    """
+    Strips the name of a string.
+
+    Args:
+        name: (str): write your description
+    """
     ind = name.rfind(".")
     if ind < 0 or len(name) - ind != 4:
         return name
@@ -35,6 +53,12 @@ def strip_nnn(name):
     return name[:ind]
 
 def vector_str(vec):
+    """
+    Convert a vector to a string.
+
+    Args:
+        vec: (array): write your description
+    """
     if len(vec) == 2:
         return "%.9g, %.9g" % vec
     elif len(vec) == 3:

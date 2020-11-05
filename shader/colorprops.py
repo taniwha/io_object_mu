@@ -25,6 +25,13 @@ from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
 
 def color_update(self, context):
+    """
+    Updates the color matrix.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     if not hasattr(context, "material") or not context.material:
         return
     mat = context.material
@@ -43,6 +50,13 @@ class MuMaterialColorPropertySet(bpy.types.PropertyGroup):
     expanded: BoolProperty()
 
     def draw_item(self, layout):
+        """
+        Draw the item
+
+        Args:
+            self: (todo): write your description
+            layout: (str): write your description
+        """
         item = self.properties[self.index]
         row = layout.row()
         col = row.column()

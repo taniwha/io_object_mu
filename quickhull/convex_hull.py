@@ -23,6 +23,13 @@ from .quickhull import QuickHull
 from .rawmesh import RawMesh
 
 def make_hull_mesh(mesh, hull):
+    """
+    Make a convex mesh from a mesh.
+
+    Args:
+        mesh: (todo): write your description
+        hull: (bool): write your description
+    """
     vind = [None] * len(mesh.verts)
     verts = []
     faces = []
@@ -38,6 +45,12 @@ def make_hull_mesh(mesh, hull):
     return verts, faces
 
 def quickhull(mesh):
+    """
+    Return a convex hull object.
+
+    Args:
+        mesh: (todo): write your description
+    """
     rawmesh = RawMesh(mesh)
     hull = QuickHull(rawmesh).GetHull()
     verts, faces = make_hull_mesh (rawmesh, hull)

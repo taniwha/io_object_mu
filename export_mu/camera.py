@@ -34,6 +34,14 @@ from . import export
 rotation_correction = Quaternion((0.5**0.5, -0.5**0.5, 0, 0))
 
 def make_camera(mu, camera, obj):
+    """
+    Create a camera object.
+
+    Args:
+        mu: (todo): write your description
+        camera: (todo): write your description
+        obj: (todo): write your description
+    """
     mucamera = MuCamera()
     muprops = camera.mucameraprop
     clear = muprops.clearFlags
@@ -49,6 +57,14 @@ def make_camera(mu, camera, obj):
     return mucamera
 
 def handle_camera(obj, muobj, mu):
+    """
+    Handle a camera.
+
+    Args:
+        obj: (todo): write your description
+        muobj: (todo): write your description
+        mu: (todo): write your description
+    """
     muobj.camera = make_camera(mu, obj.data, obj)
     muobj.transform.localRotation @= rotation_correction
     return muobj

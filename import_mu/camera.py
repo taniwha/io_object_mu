@@ -28,6 +28,15 @@ from ..mu import MuCamera
 from .. import properties
 
 def create_camera(mu, muobj, mucamera, name):
+    """
+    Creates a camera.
+
+    Args:
+        mu: (str): write your description
+        muobj: (todo): write your description
+        mucamera: (str): write your description
+        name: (str): write your description
+    """
     camera = bpy.data.cameras.new(name)
     #mucamera.clearFlags
     camera.type = ['PERSP', 'ORTHO'][mucamera.orthographic]

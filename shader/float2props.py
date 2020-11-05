@@ -25,6 +25,13 @@ from bpy.props import CollectionProperty
 from bpy.props import IntProperty
 
 def float2_update(self, context):
+    """
+    Update the graph2_update
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     if not hasattr(context, "material") or not context.material:
         return
     mat = context.material
@@ -42,6 +49,13 @@ class MuMaterialFloat2PropertySet(bpy.types.PropertyGroup):
     expanded: BoolProperty()
 
     def draw_item(self, layout):
+        """
+        Draw the item
+
+        Args:
+            self: (todo): write your description
+            layout: (str): write your description
+        """
         item = self.properties[self.index]
         row = layout.row()
         col = row.column()

@@ -23,6 +23,13 @@ import bpy
 from .convex_hull import quickhull
 
 def quickhull_op(self, context):
+    """
+    Create an ophull context.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     operator = self
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
@@ -54,13 +61,34 @@ class KSPMU_OT_QuickHull(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        """
+        Poll the active poll mode.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         return context.active_object and context.active_object.mode == 'OBJECT'
 
     def execute(self, context):
+        """
+        Execute a hull context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords ()
         return quickhull_op(self, context, **keywords)
 
 def convex_hull_menu_func(self, context):
+    """
+    Convex menu menu handler.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     self.layout.operator(KSPMU_OT_QuickHull.bl_idname, text = KSPMU_OT_QuickHull.bl_label, icon='PLUGIN')
 
 classes_to_register = (

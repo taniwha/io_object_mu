@@ -21,5 +21,13 @@
 
 class MuImportError(Exception):
     def __init__(self, subsys, message):
+        """
+        Initialize the message.
+
+        Args:
+            self: (todo): write your description
+            subsys: (todo): write your description
+            message: (str): write your description
+        """
         self.message = "[%s] %s" % (subsys, message)
         Exception.__init__(self, self.message)

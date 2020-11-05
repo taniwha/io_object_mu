@@ -31,14 +31,31 @@ from ..utils import util_collection
 from .gamedata import GameData, gamedata
 
 def craft_collection():
+    """
+    Returns a collection of all documents.
+
+    Args:
+    """
     return util_collection("craft_collection")
 
 def select_objects(obj):
+    """
+    Select all children of an object.
+
+    Args:
+        obj: (todo): write your description
+    """
     obj.select_set(True)
     for o in obj.children:
         select_objects(o)
 
 def import_craft(filepath):
+    """
+    Imports the blast file. md file.
+
+    Args:
+        filepath: (str): write your description
+    """
     global gamedata
     if not gamedata:
         gamedata = GameData(Preferences().GameData)
@@ -72,6 +89,14 @@ def import_craft(filepath):
     return obj
 
 def import_craft_op(self, context, filepath):
+    """
+    Imports an op from filepath.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+        filepath: (str): write your description
+    """
     operator = self
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
@@ -101,11 +126,25 @@ class KSPMU_OT_ImportCraft(bpy.types.Operator, ImportHelper):
     filter_glob: StringProperty(default="*.craft", options={'HIDDEN'})
 
     def execute(self, context):
+        """
+        Execute the given context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords (ignore=("filter_glob",
                                              "axis_forward", "axis_up"))
         return import_craft_op(self, context, **keywords)
 
 def import_craft_menu_func(self, context):
+    """
+    Import menu menu
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     self.layout.operator(KSPMU_OT_ImportCraft.bl_idname, text="KSP Craft (.craft)")
 
 classes_to_register = (

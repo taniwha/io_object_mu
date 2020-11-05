@@ -30,6 +30,14 @@ class MuSpringProp(bpy.types.PropertyGroup):
     targetPosition: FloatProperty(name = "Target")
 
     def draw(self, context, layout):
+        """
+        Draws the layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+            layout: (str): write your description
+        """
         row = layout.row()
         col = row.column()
         col.prop(self, "spring")
@@ -44,6 +52,14 @@ class MuFrictionProp(bpy.types.PropertyGroup):
     stiffness: FloatProperty(name = "Stiffness")
 
     def draw(self, context, layout):
+        """
+        Draws the layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+            layout: (str): write your description
+        """
         row = layout.row()
         col = row.column()
         col.label(text="Extremum")
@@ -96,16 +112,36 @@ method_items = (
 )
 
 def SetPropMask(prop, mask):
+    """
+    Sets the bit mask.
+
+    Args:
+        prop: (str): write your description
+        mask: (array): write your description
+    """
     for i in range(32):
        prop[i] = (mask & (1 << i)) and True or False
 
 def GetPropMask(prop):
+    """
+    Returns the bit mask of the given bit mask.
+
+    Args:
+        prop: (str): write your description
+    """
     mask = 0
     for i in range(32):
         mask |= int(prop[i]) << i;
     return mask
 
 def collider_update(self, context):
+    """
+    Collider the context.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     #FIXME
     from ..collider import update_collider
     obj = context.active_object
@@ -158,6 +194,13 @@ class OBJECT_PT_MuScenePropertyPanel(bpy.types.Panel):
     bl_label = "Mu Scene"
 
     def draw(self, context):
+        """
+        Draw the layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         scene = context.scene
         muprops = scene.musceneprops
@@ -173,6 +216,13 @@ class VIEW3D_PT_MuScenePanel(bpy.types.Panel):
     bl_label = "Mu Scene"
 
     def draw(self, context):
+        """
+        Draw the layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         scene = context.scene
         muprops = scene.musceneprops
@@ -189,10 +239,24 @@ class OBJECT_PT_MuAttachNodePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
+        """
+        Returns the current object.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         obj = context.object
         return obj and obj.type == 'EMPTY' and obj.name[:5] == "node_"
 
     def draw(self, context):
+        """
+        Draw layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         muprops = context.active_object.muproperties
         row = layout.row()
@@ -210,9 +274,23 @@ class OBJECT_PT_MuPropertiesPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
+        """
+        Poll for the given context.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         return True
 
     def draw(self, context):
+        """
+        Draw layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         muprops = context.active_object.muproperties
         row = layout.row()

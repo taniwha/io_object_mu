@@ -25,6 +25,13 @@ from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
 
 def vector_update(self, context):
+    """
+    Updates the context with context.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     pass
 
 class MuVectorProp(bpy.types.PropertyGroup):
@@ -37,6 +44,13 @@ class MuMaterialVectorPropertySet(bpy.types.PropertyGroup):
     expanded: BoolProperty()
 
     def draw_item(self, layout):
+        """
+        Draw the item
+
+        Args:
+            self: (todo): write your description
+            layout: (str): write your description
+        """
         item = self.properties[self.index]
         row = layout.row()
         col = row.column()

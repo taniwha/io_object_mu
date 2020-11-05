@@ -45,10 +45,23 @@ class QuickHull:
     dump_faces = False
 
     def __init__(self, mesh):
+        """
+        Initialize mesh.
+
+        Args:
+            self: (todo): write your description
+            mesh: (todo): write your description
+        """
         self.mesh = mesh
         self.error = False
 
     def find_extreme_points(self):
+        """
+        Finds the points for each mesh belongs to be drawn.
+
+        Args:
+            self: (todo): write your description
+        """
         points = [0] * 6
         for i, v in enumerate(self.mesh.verts):
             if v[0] < self.mesh.verts[points[0]][0]:
@@ -66,6 +79,12 @@ class QuickHull:
         self.points = points
 
     def find_simplex(self):
+        """
+        Finds the triangle of a mesh.
+
+        Args:
+            self: (todo): write your description
+        """
         a = 0
         b = 1
         tEdge = Edge(self.mesh, a, b)
@@ -115,6 +134,17 @@ class QuickHull:
         return faces
 
     def split_triangle(self, t, splitEdge, point, connectivity, vert_faces):
+        """
+        Split a triangulation into a triangulation.
+
+        Args:
+            self: (todo): write your description
+            t: (todo): write your description
+            splitEdge: (bool): write your description
+            point: (array): write your description
+            connectivity: (todo): write your description
+            vert_faces: (bool): write your description
+        """
         a = t.edges[splitEdge].a;
         b = t.edges[splitEdge].b;
         c = t.edges[(splitEdge + 1) % 3].b
@@ -148,6 +178,12 @@ class QuickHull:
         connectivity.add(nt2)
 
     def GetHull(self):
+        """
+        Return a list of the convex. gz file.
+
+        Args:
+            self: (todo): write your description
+        """
         self.find_extreme_points()
         faces = self.find_simplex()
         connectivity = Connectivity(faces)

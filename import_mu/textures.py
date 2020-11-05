@@ -26,6 +26,12 @@ import bpy
 from mathutils import Vector
 
 def load_mbm(mbmpath):
+    """
+    Load a png image.
+
+    Args:
+        mbmpath: (str): write your description
+    """
     mbmfile = open(mbmpath, "rb")
     header = mbmfile.read(20)
     magic, width, height, bump, bpp = unpack("<5i", header)
@@ -44,6 +50,15 @@ def load_mbm(mbmpath):
     return width, height, pixels
 
 def load_image(base, ext, path, type):
+    """
+    Load an image from a file.
+
+    Args:
+        base: (str): write your description
+        ext: (str): write your description
+        path: (str): write your description
+        type: (str): write your description
+    """
     name = base + ext
     if ext.lower() in [".dds", ".png", ".tga"]:
         img = bpy.data.images.load(os.path.join(path, name))
@@ -71,6 +86,13 @@ def load_image(base, ext, path, type):
                 img.muimageprop.convertNorm = True
 
 def create_textures(mu, path):
+    """
+    Create text files in text files.
+
+    Args:
+        mu: (str): write your description
+        path: (str): write your description
+    """
     extensions = [".dds", ".mbm", ".tga", ".png"]
     #texture info is in the top level object
     for tex in mu.textures:

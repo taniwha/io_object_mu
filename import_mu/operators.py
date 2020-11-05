@@ -28,6 +28,17 @@ from .exception import MuImportError
 from .import_mu import import_mu
 
 def import_mu_op(self, context, filepath, create_colliders, force_armature, force_mesh):
+    """
+    Imports an op. op_collection.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+        filepath: (str): write your description
+        create_colliders: (bool): write your description
+        force_armature: (bool): write your description
+        force_mesh: (bool): write your description
+    """
     operator = self
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
@@ -74,6 +85,13 @@ class KSPMU_OT_ImportMu(bpy.types.Operator, ImportHelper):
                         " no renderer", default=False)
 
     def execute(self, context):
+        """
+        Implements and return value.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords (ignore=("filter_glob",
                                              "axis_forward", "axis_up"))
         return import_mu_op(self, context, **keywords)

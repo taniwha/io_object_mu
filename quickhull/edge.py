@@ -30,30 +30,77 @@ except ValueError:
 
 class Edge:
     def __init__(self, mesh, a, b):
+        """
+        Initialize a mesh.
+
+        Args:
+            self: (todo): write your description
+            mesh: (todo): write your description
+            a: (int): write your description
+            b: (int): write your description
+        """
         self.mesh = mesh
         self.a = a
         self.b = b
 
     def __hash__(self):
+        """
+        Returns a and b.
+
+        Args:
+            self: (todo): write your description
+        """
         a, b = self.a, self.b
         return (a * a + a + b) if a > b else (a + b * b)
 
     def __eq__(self, other):
+        """
+        Determine if two matrices are equal.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         return self.a == other.a and self.b == other.b
 
     @property
     def reverse(self):
+        """
+        Reverse of the mesh.
+
+        Args:
+            self: (todo): write your description
+        """
         return Edge(self.mesh, self.b, self.a)
 
     @property
     def vect(self):
+        """
+        : obj : class : class : mesh.
+
+        Args:
+            self: (todo): write your description
+        """
         return sub(self.mesh.verts[self.b], self.mesh.verts[self.a])
 
     @property
     def rvect(self):
+        """
+        The convexctctctction.
+
+        Args:
+            self: (todo): write your description
+        """
         return sub(self.mesh.verts[self.a], self.mesh.verts[self.b])
 
     def distance(self, point):
+        """
+        Compute the distance between two points.
+
+        Args:
+            self: (todo): write your description
+            point: (float): write your description
+        """
         p = self.mesh.verts[self.a]
         v = sub(self.mesh.verts[self.b], p)
         x = sub(self.mesh.verts[point], p)
@@ -72,6 +119,13 @@ class Edge:
         return (vv * xx - xv * xv) / vv
 
     def touches_point(self, point):
+        """
+        Determine if a point on the mesh.
+
+        Args:
+            self: (todo): write your description
+            point: (int): write your description
+        """
         if point == self.a or point == self.b:
             return True
         p = self.mesh.verts[self.a]
@@ -87,4 +141,10 @@ class Edge:
         return d < 1e-6
 
     def __str__(self):
+        """
+        Return a string representation of this object.
+
+        Args:
+            self: (todo): write your description
+        """
         return f"Edge[{self.a}, {self.b}]"

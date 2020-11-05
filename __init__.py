@@ -67,6 +67,13 @@ registered_submodules = []
 preloaded_modules = None
 
 def register_submodules(name, submodule_names):
+    """
+    Register all submodules
+
+    Args:
+        name: (str): write your description
+        submodule_names: (str): write your description
+    """
     global preloaded_modules
     module = __import__(name=name, fromlist=submodule_names)
     submodules = [getattr(module, name) for name in submodule_names]
@@ -96,12 +103,22 @@ def register_submodules(name, submodule_names):
             registered_submodules.append(m)
 
 def register():
+    """
+    Registers the global modules.
+
+    Args:
+    """
     global preloaded_modules
     preloaded_modules = set(sys.modules.keys())
     register_submodules(__name__, submodule_names);
     preloaded_modules = None
 
 def unregister():
+    """
+    Unregister all modules.
+
+    Args:
+    """
     for mod in reversed(registered_submodules):
         for menu in reversed(mod[1]):
             menu[0].remove(menu[1])

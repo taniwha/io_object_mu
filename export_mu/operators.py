@@ -29,6 +29,14 @@ from . import export
 from . import volume
 
 def export_mu(operator, context, filepath):
+    """
+    Export all the sum of the given operator.
+
+    Args:
+        operator: (todo): write your description
+        context: (dict): write your description
+        filepath: (str): write your description
+    """
     collections = export.enable_collections()
     try:
         mu = export.export_object (context.active_object, filepath)
@@ -54,10 +62,24 @@ class KSPMU_OT_ExportMu(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context):
+        """
+        Returns the active object.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         obj = context.active_object
         return obj != None and type(obj.data) in exportable_objects
 
     def execute(self, context):
+        """
+        Implements.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords (ignore=("check_existing", "filter_glob",
                                              "axis_forward", "axis_up"))
         return export_mu(self, context, **keywords)
@@ -72,15 +94,37 @@ class KSPMU_OT_ExportMu_quick(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context):
+        """
+        Returns the active object.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         obj = context.active_object
         return obj != None and type(obj.data) in exportable_objects
 
     def execute(self, context):
+        """
+        Implements.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords (ignore=("check_existing", "filter_glob",
                                              "axis_forward", "axis_up"))
         return export_mu(self, context, **keywords)
 
     def invoke(self, context, event):
+        """
+        Invoke the command.
+
+        Args:
+            self: (todo): write your description
+            context: (todo): write your description
+            event: (todo): write your description
+        """
         obj = context.active_object
         if obj != None:
             self.filepath = strip_nnn(obj.name) + self.filename_ext
@@ -92,10 +136,24 @@ class KSPMU_OT_MuVolume(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        """
+        Returns the active object.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         obj = context.active_object
         return obj != None and type(obj.data) in exportable_objects
 
     def execute(self, context):
+        """
+        Executes the command
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         obj = context.active_object
         if obj.data and type(obj.data) == bpy.types.Mesh:
             vol = volume.obj_volume(obj)
@@ -110,6 +168,13 @@ class KSPMU_OT_MuFindCoM(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        """
+        Return true if the selected context is active.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         #print(context.selected_objects)
         if len(context.selected_objects) == 1 and context.active_object:
             return True
@@ -118,6 +183,13 @@ class KSPMU_OT_MuFindCoM(bpy.types.Operator):
         return False
 
     def execute(self, context):
+        """
+        Executes the command.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         obj = context.active_object
         if len(context.selected_objects) == 1 and context.active_object:
             objects = collect_hierarchy_objects(context.active_object)

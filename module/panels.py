@@ -25,6 +25,20 @@ from .operators import KSPMU_OT_ScanModuleDefs
 class KSPMU_UL_KSPModuleField_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data,
                   active_propname, index):
+        """
+        Draw the given item
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+            layout: (todo): write your description
+            data: (todo): write your description
+            item: (todo): write your description
+            icon: (todo): write your description
+            active_data: (bool): write your description
+            active_propname: (str): write your description
+            index: (int): write your description
+        """
         if item:
             prop = getattr(data, item.property)[item.name]
             layout.prop(prop, "name", text="", emboss=False, icon_value=icon)
@@ -32,6 +46,14 @@ class KSPMU_UL_KSPModuleField_list(bpy.types.UIList):
             layout.label(text="", icon_value=icon)
 
 def draw_module(layout, module, index):
+    """
+    Draw a module
+
+    Args:
+        layout: (str): write your description
+        module: (todo): write your description
+        index: (int): write your description
+    """
     box = layout.box()
     row = box.row()
     row.operator("object.kspmodule_expand", text="",
@@ -59,9 +81,23 @@ class OBJECT_PT_KSPModulesPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
+        """
+        Poll for the given context.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         return True
 
     def draw(self, context):
+        """
+        Draw the layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         modules = context.active_object.kspmodules.modules
         row = layout.row()

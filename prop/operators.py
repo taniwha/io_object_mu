@@ -33,6 +33,14 @@ from ..model import instantiate_model
 from .prop import loaded_props_collection, make_prop
 
 def import_prop_op(self, context, filepath):
+    """
+    Imports the given context from the given context.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+        filepath: (str): write your description
+    """
     operator = self
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
@@ -52,7 +60,20 @@ def import_prop_op(self, context, filepath):
         bpy.context.preferences.edit.use_global_undo = undo
 
 def clean_selected(selected):
+    """
+    Removes all selected objects.
+
+    Args:
+        selected: (todo): write your description
+    """
     def ancestor_selected(o, sel):
+        """
+        Return true if the given object is selected.
+
+        Args:
+            o: (todo): write your description
+            sel: (todo): write your description
+        """
         if not o:
             return False
         return ancestor_selected(o.parent, sel)
@@ -62,6 +83,13 @@ def clean_selected(selected):
             selected.remove(o)
 
 def make_props(self, context):
+    """
+    Make context properties.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     operator = self
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
@@ -94,6 +122,13 @@ class KSPMU_OT_ImportProp(bpy.types.Operator, ImportHelper):
     filter_glob: StringProperty(default="*.cfg", options={'HIDDEN'})
 
     def execute(self, context):
+        """
+        Execute the given context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords (ignore=("filter_glob",))
         return import_prop_op(self, context, **keywords)
 
@@ -104,6 +139,13 @@ class KSPMU_OT_MakeProps(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
+        """
+        Execute a single executor.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         return make_props(self, context)
 
 class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
@@ -116,6 +158,13 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
     _enum_item_cache = []
 
     def prop_enum_items(self, context):
+        """
+        Returns a list of item items to the given.
+
+        Args:
+            self: (todo): write your description
+            context: (todo): write your description
+        """
         enum_items = OBJECT_OT_add_ksp_prop._enum_item_cache
         enum_items.clear()
         for index, item in enumerate([p for p in loaded_props_collection().children
@@ -127,6 +176,13 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
                             items=prop_enum_items)
 
     def find_prop(self, context):
+        """
+        Finds the item in the item.
+
+        Args:
+            self: (todo): write your description
+            context: (todo): write your description
+        """
         prop_item = int(self.prop_item)
         for index, item in enumerate([p for p in bpy.data.collections
                                       if p.mumodelprops.type == 'prop']):
@@ -135,6 +191,13 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
         return None
 
     def execute(self, context):
+        """
+        Execute the view.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         prop = self.find_prop(context)
         self._enum_item_cache.clear()
         if prop:
@@ -154,6 +217,14 @@ class OBJECT_OT_add_ksp_prop(bpy.types.Operator):
             return {'CANCELLED'}
 
     def invoke(self, context, event):
+        """
+        Invoke the event handler.
+
+        Args:
+            self: (todo): write your description
+            context: (todo): write your description
+            event: (todo): write your description
+        """
         self.store_mouse_cursor(context, event)
         context.window_manager.invoke_search_popup(self)
         return {'CANCELLED'}

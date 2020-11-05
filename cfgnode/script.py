@@ -21,11 +21,30 @@
 
 class ScriptError(Exception):
     def __init__(self, fname, line, message):
+        """
+        Creates a function.
+
+        Args:
+            self: (todo): write your description
+            fname: (str): write your description
+            line: (str): write your description
+            message: (str): write your description
+        """
         Exception.__init__(self, "%s:%d: %s" % (fname, line, message))
         self.line = line
 
 class Script:
     def __init__(self, filename, text, single="{}()':", quotes=True):
+        """
+        Init a new text
+
+        Args:
+            self: (todo): write your description
+            filename: (str): write your description
+            text: (str): write your description
+            single: (float): write your description
+            quotes: (todo): write your description
+        """
         self.filename = filename
         if text[0:3] == "\xef\xbb\xbf":
             text = text[3:]
@@ -38,8 +57,22 @@ class Script:
         self.line = 1
         self.unget = False
     def error(self, msg):
+        """
+        Emit an error.
+
+        Args:
+            self: (todo): write your description
+            msg: (str): write your description
+        """
         raise ScriptError(self.filename, self.line, msg)
     def tokenAvailable(self, crossline=False):
+        """
+        Returns true if the next token matches the next token.
+
+        Args:
+            self: (todo): write your description
+            crossline: (todo): write your description
+        """
         if self.unget:
             return True
         while self.pos < len(self.text):
@@ -67,6 +100,12 @@ class Script:
             return True
         return False
     def getLine(self):
+        """
+        Return the next token from the input.
+
+        Args:
+            self: (todo): write your description
+        """
         start = self.pos
         end = start
         while self.pos < len(self.text):
@@ -85,6 +124,13 @@ class Script:
             self.token = self.text[start:end]
         return self.pos < len(self.text)
     def getToken(self, crossline=False):
+        """
+        Returns the next token.
+
+        Args:
+            self: (todo): write your description
+            crossline: (todo): write your description
+        """
         if self.unget:
             self.unget = False
             return self.token
@@ -118,4 +164,10 @@ class Script:
             self.token = self.text[start:self.pos]
         return self.token
     def ungetToken(self):
+        """
+        Unget the token
+
+        Args:
+            self: (todo): write your description
+        """
         self.unget = True

@@ -2,6 +2,12 @@ from mu import Mu
 import sys
 
 def dump_skin(obj):
+    """
+    Dump a trimesh mesh.
+
+    Args:
+        obj: (todo): write your description
+    """
     smr = obj.skinned_mesh_renderer
     print(smr.materials);
     print(smr.bones)
@@ -14,6 +20,12 @@ def dump_skin(obj):
         print(b.indices, b.weights)
 
 def check_obj(obj):
+    """
+    Check if obj is a builtin object.
+
+    Args:
+        obj: (todo): write your description
+    """
     if hasattr(obj, "skinned_mesh_renderer"):
         print("skin on ", obj.transform.name)
         dump_skin(obj)
@@ -21,6 +33,12 @@ def check_obj(obj):
         check_obj(o)
 
 def find_skins(fname):
+    """
+    Finds skins from a file name.
+
+    Args:
+        fname: (str): write your description
+    """
     mu = Mu()
     if not mu.read(fname):
         print("could not read: " + fname)

@@ -30,6 +30,13 @@ class TEXT_MT_templates_kspcfg(Menu):
     bl_label = "KSP config"
 
     def draw (self, context):
+        """
+        Draw the context menu
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         self.path_menu(
             bpy.utils.preset_paths(preferences.package_name + "/kspcfg"),
             "text.open",
@@ -37,6 +44,13 @@ class TEXT_MT_templates_kspcfg(Menu):
         )
 
 def text_func_templates(self, context):
+    """
+    Text templates
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     self.layout.menu("TEXT_MT_templates_kspcfg");
 
 classes_to_register = (

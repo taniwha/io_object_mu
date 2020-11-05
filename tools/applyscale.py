@@ -24,9 +24,21 @@ from bpy.props import BoolProperty
 from mathutils import Matrix
 
 def vec(v):
+    """
+    Convert a vector to a string.
+
+    Args:
+        v: (array): write your description
+    """
     return "[%5.2f %5.2f %5.2f %5.2f]" % tuple(v)
 
 def apply_scale(obj):
+    """
+    Apply scale to a scale.
+
+    Args:
+        obj: (todo): write your description
+    """
     s = obj.matrix_basis.to_scale()
     scale = Matrix(((s.x,  0,  0, 0),
                     (  0,s.y,  0, 0),
@@ -43,6 +55,13 @@ def apply_scale(obj):
     obj.scale = (1, 1, 1)
 
 def apply_scale_op(self, context):
+    """
+    Applies scale context.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     operator = self
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
@@ -64,13 +83,34 @@ class KSPMU_OT_ClearInverse(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        """
+        Poll the active poll mode.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         return context.active_object and context.active_object.mode == 'OBJECT'
 
     def execute(self, context):
+        """
+        Execute the given context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords ()
         return apply_scale_op(self, context, **keywords)
 
 def apply_scale_menu_func(self, context):
+    """
+    Applies scale function to the menu
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     self.layout.operator(KSPMU_OT_ClearInverse.bl_idname, text = KSPMU_OT_ClearInverse.bl_label, icon='PLUGIN')
 
 classes_to_register = (

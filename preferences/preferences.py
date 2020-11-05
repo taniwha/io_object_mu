@@ -30,6 +30,13 @@ from . import colorpalettes
 package_name = __package__.split(".")[0]
 
 def install_presets(dstsubdir, srcsubdir):
+    """
+    Install presence of srcsubdir.
+
+    Args:
+        dstsubdir: (str): write your description
+        srcsubdir: (str): write your description
+    """
     presets=bpy.utils.script_paths("presets")
     dst=presets[-1] + "/" + dstsubdir
     src=os.path.dirname(os.path.abspath(__file__)) + "/" + srcsubdir
@@ -53,9 +60,23 @@ class KSPMU_OT_InstallShaders(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        """
+        Poll for the given context.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         return True
 
     def execute(self, context):
+        """
+        Installs packages.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         install_presets(package_name + "/shaders", "shaders")
         self.report({'INFO'}, 'Shader presets installed.')
         return {'FINISHED'}
@@ -66,9 +87,23 @@ class KSPMU_OT_InstallCfgTemplates(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        """
+        Poll for the given context.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         return True
 
     def execute(self, context):
+        """
+        Installs packages.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         install_presets(package_name + "/kspcfg", "cfgtemplates")
         self.report({'INFO'}, 'Config templates installed.')
         return {'FINISHED'}
@@ -79,9 +114,23 @@ class KSPMU_OT_CreateColorPalettes(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        """
+        Poll for the given context.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         return True
 
     def execute(self, context):
+        """
+        Installs the given context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         colorpalettes.install()
         self.report({'INFO'}, 'Color palettes created.')
         return {'FINISHED'}
@@ -100,6 +149,13 @@ class IOObjectMu_AddonPreferences(AddonPreferences):
         default=False)
 
     def draw(self, context):
+        """
+        Draw the layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         box = layout.box ()
         box.label(text="Editing:")
@@ -120,6 +176,11 @@ class IOObjectMu_AddonPreferences(AddonPreferences):
         cbox.label(text="NOTE2: overwrites existing palettes that have the same names", icon="LAYER_USED")
 
 def Preferences():
+    """
+    Returns a list.
+
+    Args:
+    """
     preferences = bpy.context.preferences
     addons = preferences.addons
     prefs = addons[package_name]

@@ -44,5 +44,12 @@ collider_sphere_ve = (
      (30,31), (31,32), (32,33), (33,34), (34,35), (35,24)])
 
 def mesh_data(center, radius):
+    """
+    Return a 3d array into a mesh.
+
+    Args:
+        center: (float): write your description
+        radius: (int): write your description
+    """
     m = translate(center) @ scale((radius,)*3)
     return (collider_sphere_ve + (m,)),

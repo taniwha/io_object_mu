@@ -32,6 +32,13 @@ class KSPMU_OT_MuShaderPropExpand(bpy.types.Operator):
     bl_label = "Mu shader prop expand"
     propertyset: StringProperty()
     def execute(self, context):
+        """
+        Execute a dictionary of this query
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         matprops = context.material.mumatprop
         propset = getattr(matprops, self.propertyset)
         propset.expanded = not propset.expanded
@@ -44,6 +51,13 @@ class KSPMU_OT_MuShaderPropAdd(bpy.types.Operator):
     bl_label = "Mu shader prop Add"
     propertyset: StringProperty()
     def execute(self, context):
+        """
+        Execute a property : param context : param. : param context
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         matprops = context.material.mumatprop
         propset = getattr(matprops, self.propertyset)
         prop = propset.properties.add()
@@ -60,6 +74,13 @@ class KSPMU_OT_MuShaderPropRemove(bpy.types.Operator):
     bl_label = "Mu shader prop Remove"
     propertyset: StringProperty()
     def execute(self, context):
+        """
+        Execute a dictionary of the context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         matprops = context.material.mumatprop
         propset = getattr(matprops, self.propertyset)
         if propset.index >= 0:
@@ -87,6 +108,14 @@ class IO_OBJECT_MU_OT_shader_presets(AddPresetBase, bpy.types.Operator):
         ]
 
 def export_material(operator, context, filepath):
+    """
+    Export material as material
+
+    Args:
+        operator: (todo): write your description
+        context: (todo): write your description
+        filepath: (str): write your description
+    """
     mat = context.material
     matnode = record_material(mat)
     of = open(filepath,"wt")
@@ -100,9 +129,23 @@ class IO_OBJECT_MU_OT_shader_rebuild(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        """
+        Return the context manager.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         return hasattr(context, "material") and context.material != None
 
     def execute(self, context):
+        """
+        Execute nodes.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         create_nodes(context.material)
         return {'FINISHED'}
 
@@ -116,9 +159,23 @@ class IO_OBJECT_MU_OT_shader_export(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context):
+        """
+        Return the context manager.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         return hasattr(context, "material") and context.material != None
 
     def execute(self, context):
+        """
+        Execute a select context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords (ignore=("check_existing", "filter_glob",
                                              "axis_forward", "axis_up"))
         return export_material(self, context, **keywords)

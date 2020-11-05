@@ -26,11 +26,25 @@ from .. import collider, properties
 from .mesh import create_mesh
 
 def copy_spring(dst, src):
+    """
+    Copies the file or multiple times.
+
+    Args:
+        dst: (array): write your description
+        src: (array): write your description
+    """
     dst.spring = src.spring
     dst.damper = src.damper
     dst.targetPosition = src.targetPosition
 
 def copy_friction(dst, src):
+    """
+    Copy a file from one or to another.
+
+    Args:
+        dst: (array): write your description
+        src: (todo): write your description
+    """
     dst.extremumSlip = src.extremumSlip
     dst.extremumValue = src.extremumValue
     dst.asymptoteSlip = src.asymptoteSlip
@@ -38,6 +52,15 @@ def copy_friction(dst, src):
     dst.stiffness = src.stiffness
 
 def create_collider(mu, muobj, col, name):
+    """
+    Create a mesh incollider.
+
+    Args:
+        mu: (str): write your description
+        muobj: (todo): write your description
+        col: (str): write your description
+        name: (str): write your description
+    """
     if not mu.create_colliders:
         return None
     mesh = None

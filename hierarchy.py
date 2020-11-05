@@ -3,10 +3,26 @@ from utils import vect
 import sys
 
 def nice(tup):
+    """
+    Convert a string todo.
+
+    Args:
+        tup: (todo): write your description
+    """
     return "(" + ", ".join(map(lambda t:f"{t:6.3f}", tup)) + ")"
 
 class Transform:
     def __init__(self, loc, rot, scale, parent=None):
+        """
+        Initialize the image.
+
+        Args:
+            self: (todo): write your description
+            loc: (tuple): write your description
+            rot: (todo): write your description
+            scale: (float): write your description
+            parent: (todo): write your description
+        """
         rot = rot[0],rot[1:4]
         self.loc = loc
         self.rot = rot
@@ -19,20 +35,55 @@ class Transform:
             self.wrot = parent.transformRotation(rot)
             self.wscale = parent.transformScale(scale)
     def transformPoint(self, p):
+        """
+        Return a new point.
+
+        Args:
+            self: (todo): write your description
+            p: (array): write your description
+        """
         p = vect.mul(self.wscale, p)
         p = vect.qmul(self.wrot, p)
         p = vect.add(self.wloc, p)
         return p
     def transformDirection(self, d):
+        """
+        Return the rotation matrix corresponding to the transformation matrix.
+
+        Args:
+            self: (todo): write your description
+            d: (array): write your description
+        """
         return vect.qmul(self.wrot, d)
     def transformRotation(self, r):
+        """
+        Return the transformation matrix.
+
+        Args:
+            self: (todo): write your description
+            r: (float): write your description
+        """
         r = vect.qmul(self.wrot, r)
         return r
     def transformScale(self, s):
+        """
+        Return a new matrix to a.
+
+        Args:
+            self: (todo): write your description
+            s: (array): write your description
+        """
         s = vect.mul(self.wscale, s)
         s = vect.qmul(self.wrot, s)
         return s
     def to_str(self, world):
+        """
+        Convert world to string to string.
+
+        Args:
+            self: (todo): write your description
+            world: (todo): write your description
+        """
         if world:
             r = self.wrot[0:1]+self.wrot[1]
             return f"[{nice(self.wloc)}, {nice(r)}, {nice(self.wscale)}]"
@@ -41,6 +92,14 @@ class Transform:
             return f"[{nice(self.loc)}, {nice(r)}, {nice(self.scale)}]"
 
 def check_transform(obj, level, parent):
+    """
+    Check that is_transform
+
+    Args:
+        obj: (todo): write your description
+        level: (float): write your description
+        parent: (todo): write your description
+    """
     x = obj.transform
     transform = Transform(x.localPosition, x.localRotation, x.localScale, parent)
     flags = ""
@@ -63,6 +122,14 @@ def check_transform(obj, level, parent):
     return transform
 
 def check_obj(obj, parent, level = 0):
+    """
+    Check if the given object is a direct child of the given parent.
+
+    Args:
+        obj: (todo): write your description
+        parent: (todo): write your description
+        level: (int): write your description
+    """
     transform = check_transform(obj, level, parent)
     for o in obj.children:
         check_obj(o, transform, level + 1)

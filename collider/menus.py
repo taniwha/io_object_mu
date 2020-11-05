@@ -26,6 +26,13 @@ class INFO_MT_mucollider_add(bpy.types.Menu):
     bl_label = "Mu Collider"
 
     def draw(self, context):
+        """
+        Draw layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mucollider.mesh", text = "Mesh");
@@ -35,6 +42,13 @@ class INFO_MT_mucollider_add(bpy.types.Menu):
         layout.operator("mucollider.wheel", text = "Wheel");
 
 def add_collider_menu_func(self, context):
+    """
+    Add the context menu.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     self.layout.menu("INFO_MT_mucollider_add", icon='PLUGIN')
 
 classes_to_register = (
