@@ -11,6 +11,7 @@ import os
 from io_object_mu.export_mu import export_object, strip_nnn
 from io_object_mu.export_mu import enable_collections, restore_collections
 
+object_queue = []
 textures = set()
 
 blend_filepath = bpy.context.blend_data.filepath
@@ -20,15 +21,20 @@ collections = enable_collections()
 try:
     for obj in bpy.data.objects:
         if not obj.hide_render and not obj.parent and obj.children:
-            name = strip_nnn(obj.name)+".mu"
-            filepath = os.path.join(blend_filepath, name)
-            print(name, filepath)
+            object_queue.append(obj)
+    while object_queue:
+        obj = object_queue.pop(0)
+        name = strip_nnn(obj.name)+".mu"
+        filepath = os.path.join(blend_filepath, name)
+        print(name, filepath)
 
-            mu = export_object (obj, filepath)
-            for m in mu.messages:
-                print(m)
-            for tex in mu.textures:
-                textures.add(tex.name)
+        mu = export_object (obj, filepath)
+        if mu.internals:
+            object_queue.extend(mu.internals)
+        for m in mu.messages:
+            print(m)
+        for tex in mu.textures:
+            textures.add(tex.name)
 finally:
     restore_collections(collections)
 
