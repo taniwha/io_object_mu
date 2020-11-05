@@ -81,6 +81,13 @@ node_common = {
 node_groups = set()
 
 def record_inputs(treenode, inputs):
+    """
+    Record inputs.
+
+    Args:
+        treenode: (todo): write your description
+        inputs: (array): write your description
+    """
     if not inputs:
         return
     node = treenode.AddNewNode("inputs")
@@ -97,6 +104,13 @@ def record_inputs(treenode, inputs):
             ip.AddValue ("max_value", input.max_value)
 
 def record_outputs(treenode, outputs):
+    """
+    Record outputs.
+
+    Args:
+        treenode: (todo): write your description
+        outputs: (todo): write your description
+    """
     if not outputs:
         return
     node = treenode.AddNewNode("outputs")
@@ -106,6 +120,12 @@ def record_outputs(treenode, outputs):
         op.AddValue ("name", output.name)
         
 def record_texture_mapping(texmap):
+    """
+    Creates a mapping from a mapping.
+
+    Args:
+        texmap: (todo): write your description
+    """
     node = cfgnode.ConfigNode()
     node.AddValue("type", texmap.vector_type)
     node.AddValue("translation", tuple(texmap.translation))
@@ -122,6 +142,12 @@ def record_texture_mapping(texmap):
     return node
 
 def record_node_inputs(node):
+    """
+    Record inputs for inputs.
+
+    Args:
+        node: (todo): write your description
+    """
     out = cfgnode.ConfigNode()
     for input in node.inputs:
         ip = out.AddNewNode("input")
@@ -134,6 +160,12 @@ def record_node_inputs(node):
     return out
 
 def record_node_outputs(node):
+    """
+    Record outputs of outputs.
+
+    Args:
+        node: (todo): write your description
+    """
     out = cfgnode.ConfigNode()
     for output in node.outputs:
         op = out.AddNewNode("output")
@@ -146,6 +178,12 @@ def record_node_outputs(node):
     return out
 
 def record_node(node):
+    """
+    Create a node to a node.
+
+    Args:
+        node: (todo): write your description
+    """
     out = cfgnode.ConfigNode()
     out.AddValue("location", tuple(node.location))
     out.AddValue("width", node.width)
@@ -184,6 +222,13 @@ def record_node(node):
     return out
 
 def record_nodes(treenode, nodes):
+    """
+    Record a record.
+
+    Args:
+        treenode: (todo): write your description
+        nodes: (list): write your description
+    """
     if not nodes:
         return
     node = treenode.AddNewNode("nodes")
@@ -191,6 +236,12 @@ def record_nodes(treenode, nodes):
         node.AddNode(type(n).bl_rna.identifier, record_node(n))
 
 def record_link(link):
+    """
+    Create a link node.
+
+    Args:
+        link: (str): write your description
+    """
     node = cfgnode.ConfigNode()
     from_node = link.from_node
     to_node = link.to_node
@@ -204,6 +255,13 @@ def record_link(link):
     return node
 
 def record_links(treenode, links):
+    """
+    Record a list of node.
+
+    Args:
+        treenode: (todo): write your description
+        links: (str): write your description
+    """
     if not links:
             return
     node = treenode.AddNewNode("links")
@@ -211,6 +269,13 @@ def record_links(treenode, links):
         node.AddNode("link", record_link(l))
 
 def record_node_tree(node_tree, treenode):
+    """
+    Record a node tree.
+
+    Args:
+        node_tree: (str): write your description
+        treenode: (todo): write your description
+    """
     treenode.AddValue("name", node_tree.name)
     treenode.AddValue("tag", node_tree.tag)
     record_nodes(treenode, node_tree.nodes)
@@ -219,6 +284,12 @@ def record_node_tree(node_tree, treenode):
     record_outputs(treenode, node_tree.outputs)
 
 def record_material(mat):
+    """
+    Record a material.
+
+    Args:
+        mat: (array): write your description
+    """
     matnode = cfgnode.ConfigNode()
     matnode.AddValue("blend_method", mat.blend_method)
     matnode.AddValue("shadow_method", mat.shadow_method)

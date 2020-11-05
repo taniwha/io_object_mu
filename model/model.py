@@ -29,6 +29,17 @@ from ..cfgnode import parse_vector
 from ..utils import util_collection
 
 def compile_model(db, path, type, name, cfg, collection):
+    """
+    Compile a model.
+
+    Args:
+        db: (todo): write your description
+        path: (str): write your description
+        type: (str): write your description
+        name: (str): write your description
+        cfg: (todo): write your description
+        collection: (str): write your description
+    """
     nodes = cfg.GetNodes("MODEL")
     model = bpy.data.collections.new(f"{name}:{type}model")
     if nodes:
@@ -64,9 +75,24 @@ def compile_model(db, path, type, name, cfg, collection):
     return model
 
 def loaded_models_collection():
+    """
+    Return a list of all models.
+
+    Args:
+    """
     return util_collection("loaded_models")
 
 def instantiate_model(model, name, loc, rot, scale):
+    """
+    Create a new quaternion
+
+    Args:
+        model: (todo): write your description
+        name: (str): write your description
+        loc: (todo): write your description
+        rot: (todo): write your description
+        scale: (float): write your description
+    """
     obj = bpy.data.objects.new(name, None)
     obj.instance_type = 'COLLECTION'
     obj.instance_collection = model
@@ -88,6 +114,12 @@ def instantiate_model(model, name, loc, rot, scale):
 class Model:
     @classmethod
     def Preloaded(cls):
+        """
+        Return a dictionary of pre - registered pre - pre - pre - preloaded.
+
+        Args:
+            cls: (todo): write your description
+        """
         preloaded = {}
         for g in bpy.data.collections:
             if g.name[:6] == "model:":
@@ -95,6 +127,14 @@ class Model:
                 preloaded[url] = Model(None, url)
         return preloaded
     def __init__(self, path, url):
+        """
+        Initialize a quaternion.
+
+        Args:
+            self: (todo): write your description
+            path: (str): write your description
+            url: (str): write your description
+        """
         modelname = "model:" + url
         print(modelname)
         loaded_models = loaded_models_collection()
@@ -109,4 +149,14 @@ class Model:
             obj.scale = Vector((1,1,1))
         self.model = model
     def instantiate(self, name, loc, rot, scale):
+        """
+        Instantiates a model from the model.
+
+        Args:
+            self: (todo): write your description
+            name: (str): write your description
+            loc: (todo): write your description
+            rot: (todo): write your description
+            scale: (float): write your description
+        """
         return instantiate_model(self.model, name, loc, rot, scale)

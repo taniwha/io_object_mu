@@ -44,11 +44,25 @@ class OBJECT_PT_MuCameraPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
+        """
+        Return true if the given context is active.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         if type(context.active_object.data) in [bpy.types.Camera]:
             return True
         return False
 
     def draw(self, context):
+        """
+        Draw layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         muprops = context.active_object.data.mucameraprop
         row = layout.row()

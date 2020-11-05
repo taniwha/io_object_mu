@@ -32,11 +32,22 @@ from ..utils import collect_objects, strip_nnn, util_collection
 from ..model import compile_model, instantiate_model
 
 def loaded_props_collection():
+    """
+    Return a collection of all collection documents.
+
+    Args:
+    """
     return util_collection("loaded_props")
 
 class Prop:
     @classmethod
     def Preloaded(cls):
+        """
+        Return a dictionary of pre - defined in - order.
+
+        Args:
+            cls: (todo): write your description
+        """
         preloaded = {}
         for g in bpy.data.collections:
             if g.name[:5] == "prop:":
@@ -46,11 +57,25 @@ class Prop:
                 preloaded[url] = prop
         return preloaded
     def __init__(self, path, cfg):
+        """
+        Initialize the configuration.
+
+        Args:
+            self: (todo): write your description
+            path: (str): write your description
+            cfg: (todo): write your description
+        """
         self.cfg = cfg
         self.path = os.path.dirname(path)
         self.name = cfg.GetValue("name")
         self.model = None
     def get_model(self):
+        """
+        Get model
+
+        Args:
+            self: (todo): write your description
+        """
         if not self.model:
             self.model = compile_model(self.db, self.path, "prop", self.name,
                                        self.cfg, loaded_props_collection())
@@ -62,6 +87,15 @@ class Prop:
         return model
 
     def instantiate(self, loc, rot, scale):
+        """
+        Instantiates a copy of the given location.
+
+        Args:
+            self: (todo): write your description
+            loc: (todo): write your description
+            rot: (todo): write your description
+            scale: (float): write your description
+        """
         obj = bpy.data.objects.new(self.name, None)
         obj.instance_type = 'COLLECTION'
         obj.instance_collection = self.model
@@ -70,6 +104,12 @@ class Prop:
 
 gamedata = None
 def import_prop(filepath):
+    """
+    Imports a property from a file
+
+    Args:
+        filepath: (str): write your description
+    """
     global gamedata
     if not gamedata:
         from .gamedata import GameData
@@ -88,6 +128,12 @@ def import_prop(filepath):
     return Prop(path, propcfg)
 
 def make_prop(obj):
+    """
+    Create a quaternion object from an object.
+
+    Args:
+        obj: (todo): write your description
+    """
     name = strip_nnn(obj.name)
     obj.select_set(False)
     prop = collect_objects("prop:"+name, obj)

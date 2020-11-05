@@ -34,6 +34,13 @@ from .panels import WORKSPACE_PT_tools_mu_export
 from . import export_modules
 
 def export_mu_menu_func(self, context):
+    """
+    Export menu menu
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     self.layout.operator(KSPMU_OT_ExportMu.bl_idname, text="KSP Mu (.mu)")
 
 classes_to_register = (

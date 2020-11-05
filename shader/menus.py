@@ -33,6 +33,13 @@ class IO_OBJECT_MU_MT_shader_presets(bpy.types.Menu):
 
     @classmethod
     def reset_cb(cls, context):
+        """
+        Called when a signal.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         mat = context.material
         if mat.use_nodes:
             mat.node_tree.nodes.clear()
@@ -40,6 +47,13 @@ class IO_OBJECT_MU_MT_shader_presets(bpy.types.Menu):
 
     @classmethod
     def post_cb(cls, context):
+        """
+        Create a new material.
+
+        Args:
+            cls: (todo): write your description
+            context: (todo): write your description
+        """
         mat = context.material
         shader.create_nodes(mat)
 

@@ -26,12 +26,34 @@ from .operators import IO_OBJECT_MU_OT_shader_presets
 class OBJECT_UL_ShaderProperty_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data,
                   active_propname, index):
+        """
+        Draws the item
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+            layout: (todo): write your description
+            data: (todo): write your description
+            item: (todo): write your description
+            icon: (todo): write your description
+            active_data: (bool): write your description
+            active_propname: (str): write your description
+            index: (int): write your description
+        """
         if item:
             layout.prop(item, "name", text="", emboss=False, icon_value=icon)
         else:
             layout.label(text="", icon_value=icon)
 
 def draw_property_list(layout, propset, propsetname):
+    """
+    Draw a list property
+
+    Args:
+        layout: (str): write your description
+        propset: (todo): write your description
+        propsetname: (str): write your description
+    """
     box = layout.box()
     row = box.row()
     row.operator("object.mushaderprop_expand", text="",
@@ -62,15 +84,37 @@ class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
+        """
+        Return a new material.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         return context.material != None
 
     def drawtex(self, layout, texprop):
+        """
+        Draws a circle
+
+        Args:
+            self: (todo): write your description
+            layout: (str): write your description
+            texprop: (todo): write your description
+        """
         box = layout.box()
         box.prop(texprop, "tex")
         box.prop(texprop, "scale")
         box.prop(texprop, "offset")
 
     def draw(self, context):
+        """
+        Draw layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         matprops = context.material.mumatprop
         row = layout.row()

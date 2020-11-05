@@ -31,6 +31,12 @@ from .collider import create_collider_object, build_collider
 from .points import Points
 
 def collect_points(reference):
+    """
+    Collect all the reference points of the reference
+
+    Args:
+        reference: (todo): write your description
+    """
     w2r = reference.matrix_world.inverted()
     points = Points()
     if bpy.context.mode == 'EDIT_MESH':
@@ -50,6 +56,13 @@ def collect_points(reference):
     return points
 
 def can_fit_collider(self, context):
+    """
+    Checks if the context can be fetched.
+
+    Args:
+        self: (todo): write your description
+        context: (dict): write your description
+    """
     if not hasattr(self, "fitSelected") or not self.fitSelected:
         return False
     if not context.active_object:
@@ -61,6 +74,13 @@ def can_fit_collider(self, context):
     return False
 
 def add_collider(self, context):
+    """
+    Add context to context.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     context.preferences.edit.use_global_undo = False
     mesh = None
     points = None
@@ -128,6 +148,14 @@ def add_collider(self, context):
     return {'FINISHED'}
 
 def add_mesh_colliders(self, context, convex):
+    """
+    Add the context to context.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+        convex: (todo): write your description
+    """
     operator = self
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
@@ -164,6 +192,13 @@ def add_mesh_colliders(self, context, convex):
     return {'FINISHED'}
 
 def unmake_mesh_collider(self, context):
+    """
+    Unmake context manager.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     operator = self
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
@@ -175,6 +210,13 @@ def unmake_mesh_collider(self, context):
     return {'FINISHED'}
 
 def make_mesh_colliders(self, context):
+    """
+    Creates context manager.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     operator = self
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
@@ -199,12 +241,26 @@ class KSPMU_OT_UnmakeMeshCollider(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        """
+        Return the object s object.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         obj = context.active_object
         return (obj != None
                 and type(obj.data) == bpy.types.Mesh
                 and obj.muproperties.collider == 'MU_COL_MESH')
 
     def execute(self, context):
+        """
+        Execute the given keywords.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords ()
         return unmake_mesh_collider(self, context, **keywords)
 
@@ -219,6 +275,13 @@ class KSPMU_OT_ColliderFromMesh(bpy.types.Operator):
                     default=True)
 
     def execute(self, context):
+        """
+        Execute a list of the given context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords ()
         return add_mesh_colliders(self, context, **keywords)
 
@@ -229,6 +292,13 @@ class KSPMU_OT_MeshToCollider(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
+        """
+        Execute a list of this context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords ()
         return make_mesh_colliders(self, context, **keywords)
 
@@ -244,6 +314,13 @@ class KSPMU_OT_ColliderMesh(bpy.types.Operator):
                     default=True)
 
     def execute(self, context):
+        """
+        Executes the context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         return add_collider(self, context)
 
 class KSPMU_OT_ColliderSphere(bpy.types.Operator):
@@ -261,6 +338,13 @@ class KSPMU_OT_ColliderSphere(bpy.types.Operator):
     center: FloatVectorProperty(name = "Center", subtype = 'XYZ')
 
     def execute(self, context):
+        """
+        Executes the context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         return add_collider(self, context)
 
 class KSPMU_OT_ColliderCapsule(bpy.types.Operator):
@@ -280,6 +364,13 @@ class KSPMU_OT_ColliderCapsule(bpy.types.Operator):
     center: FloatVectorProperty(name = "Center", subtype = 'XYZ')
 
     def execute(self, context):
+        """
+        Executes the context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         return add_collider(self, context)
 
 class KSPMU_OT_ColliderBox(bpy.types.Operator):
@@ -297,6 +388,13 @@ class KSPMU_OT_ColliderBox(bpy.types.Operator):
     center: FloatVectorProperty(name = "Center", subtype = 'XYZ')
 
     def execute(self, context):
+        """
+        Executes the context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         return add_collider(self, context)
 
 class KSPMU_OT_ColliderWheel(bpy.types.Operator):
@@ -309,6 +407,13 @@ class KSPMU_OT_ColliderWheel(bpy.types.Operator):
     center: FloatVectorProperty(name = "Center", subtype = 'XYZ')
 
     def execute(self, context):
+        """
+        Executes the context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         return add_collider(self, context)
 
 classes_to_register = (

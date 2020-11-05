@@ -34,6 +34,12 @@ from .export_util import is_collider
 from .volume import model_volume
 
 def make_transform(obj):
+    """
+    Make a transformation object.
+
+    Args:
+        obj: (todo): write your description
+    """
     transform = MuTransform()
     transform.name = strip_nnn(obj.name)
     transform.localPosition = Vector(obj.location)
@@ -45,6 +51,12 @@ def make_transform(obj):
     return transform
 
 def make_tag_and_layer(obj):
+    """
+    Create an instance of the given object.
+
+    Args:
+        obj: (todo): write your description
+    """
     tl = MuTagLayer()
     tl.tag = obj.muproperties.tag
     tl.layer = obj.muproperties.layer
@@ -54,6 +66,12 @@ type_handlers = {} # filled in by the modules that handle the obj.data types
 exported_objects = set()
 
 def find_single_collider(objects):
+    """
+    Finds a single object.
+
+    Args:
+        objects: (list): write your description
+    """
     colliders = []
     for o in objects:
         if is_collider(o):
@@ -70,6 +88,15 @@ def find_single_collider(objects):
     return None
 
 def make_obj_core(mu, obj, path, muobj):
+    """
+    Creates a core object from the given object
+
+    Args:
+        mu: (todo): write your description
+        obj: (todo): write your description
+        path: (str): write your description
+        muobj: (todo): write your description
+    """
     if path:
         path += "/"
     path += muobj.transform.name
@@ -108,6 +135,14 @@ def make_obj_core(mu, obj, path, muobj):
     return muobj
 
 def make_obj(mu, obj, path):
+    """
+    Creates an object from an object
+
+    Args:
+        mu: (todo): write your description
+        obj: (todo): write your description
+        path: (str): write your description
+    """
     if obj in exported_objects:
         # the object has already been "exported"
         return None
@@ -116,6 +151,12 @@ def make_obj(mu, obj, path):
     return make_obj_core(mu, obj, path, muobj)
 
 def calc_volumes(mu):
+    """
+    Calculate the volume volume
+
+    Args:
+        mu: (array): write your description
+    """
     for tag in mu.volumes:
         volume = mu.volumes[tag]
         for i, obj in enumerate(volume):
@@ -123,14 +164,35 @@ def calc_volumes(mu):
         mu.volumes[tag] = [sum(f) for f in zip(*volume)]
 
 def add_internal(mu, obj):
+    """
+    Add internal method to the internal list.
+
+    Args:
+        mu: (todo): write your description
+        obj: (todo): write your description
+    """
     mu.internals.append(obj)
     return True
 
 def add_prop(mu, obj):
+    """
+    Add a property to the model.
+
+    Args:
+        mu: (todo): write your description
+        obj: (todo): write your description
+    """
     mu.props.append(obj)
     return True
 
 def add_volume(mu, obj):
+    """
+    Add a volume to the volume
+
+    Args:
+        mu: (todo): write your description
+        obj: (todo): write your description
+    """
     tag = obj.muproperties.tag
     if tag not in mu.volumes:
         mu.volumes[tag] = []
@@ -147,6 +209,13 @@ special_modelTypes = {
 }
 
 def export_object(obj, filepath):
+    """
+    Export an rdf file.
+
+    Args:
+        obj: (todo): write your description
+        filepath: (str): write your description
+    """
     exported_objects.clear()
     animations = collect_animations(obj)
     anim_root = find_path_root(animations)
@@ -184,11 +253,22 @@ def export_object(obj, filepath):
     return mu
 
 def enable_collections():
+    """
+    Enable all collections.
+
+    Args:
+    """
     collections = collect_collections(bpy.context.scene)
     for col in collections:
         col.hide_viewport = False
     return collections
 
 def restore_collections(collections):
+    """
+    Restore all collections.
+
+    Args:
+        collections: (todo): write your description
+    """
     for col in collections:
         col.hide_viewport = True

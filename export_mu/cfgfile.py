@@ -29,6 +29,13 @@ from ..cfgnode import parse_node
 from ..utils import strip_nnn, swapyz, swizzleq, vector_str
 
 def find_template(mu, filepath):
+    """
+    Returns the template of a cfgin. cfgin.
+
+    Args:
+        mu: (todo): write your description
+        filepath: (str): write your description
+    """
     base = os.path.splitext(filepath)
     cfg = base[0] + ".cfg"
 
@@ -46,6 +53,13 @@ def find_template(mu, filepath):
     return None, None
 
 def add_internal_node(node, internal):
+    """
+    Add a node to the internal node.
+
+    Args:
+        node: (todo): write your description
+        internal: (str): write your description
+    """
     # NOTE this assumes the internal is the direct child of the part's root
     # also, it assumes the internal is correctly oriented relative to the part
     # (FIXME?)
@@ -58,6 +72,13 @@ def add_internal_node(node, internal):
         inode.AddValue("scale", vector_str(swapyz(internal.scale)))
 
 def add_prop_node(node, prop):
+    """
+    Add a property to the node.
+
+    Args:
+        node: (todo): write your description
+        prop: (todo): write your description
+    """
     # NOTE this assumes the prop is the direct child of the internal's root
     pnode = node.AddNewNode('PROP')
     pnode.AddValue("name", strip_nnn(prop.name))
@@ -66,6 +87,13 @@ def add_prop_node(node, prop):
     pnode.AddValue("scale", vector_str(swapyz(prop.scale)))
 
 def generate_cfg(mu, filepath):
+    """
+    Generate cfgn file
+
+    Args:
+        mu: (str): write your description
+        filepath: (str): write your description
+    """
     cfgfile, cfgnode = find_template(mu, filepath)
     if not cfgnode:
         return

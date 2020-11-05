@@ -23,19 +23,50 @@ from .script import Script
 
 class ConfigNodeError(Exception):
     def __init__(self, fname, line, message):
+        """
+        Create a message.
+
+        Args:
+            self: (todo): write your description
+            fname: (str): write your description
+            line: (str): write your description
+            message: (str): write your description
+        """
         Exception.__init__(self, "%s:%d: %s" % (fname, line, message))
         self.message = "%s:%d: %s" % (fname, line, message)
         self.line = line
 
 def cfg_error(self, msg):
+    """
+    Emit an error message.
+
+    Args:
+        self: (todo): write your description
+        msg: (str): write your description
+    """
     raise ConfigNodeError(self.filename, self.line, msg)
 
 class ConfigNode:
     def __init__(self):
+        """
+        Initialize the values
+
+        Args:
+            self: (todo): write your description
+        """
         self.values = []
         self.nodes = []
     @classmethod
     def ParseNode(cls, node, script, top = False):
+        """
+        Parse a script.
+
+        Args:
+            cls: (todo): write your description
+            node: (todo): write your description
+            script: (todo): write your description
+            top: (todo): write your description
+        """
         while script.tokenAvailable(True):
             token_start = script.pos
             if script.getToken(True) == None:
@@ -72,6 +103,13 @@ class ConfigNode:
             cfg_error(script, "unexpected end of file")
     @classmethod
     def load(cls, text):
+        """
+        Load a list of text and returns list
+
+        Args:
+            cls: (todo): write your description
+            text: (str): write your description
+        """
         if not text:
             return []
         script = Script("", text, "{}=", False)
@@ -87,68 +125,169 @@ class ConfigNode:
             return nodes
     @classmethod
     def loadfile(cls, path):
+        """
+        Load a text file.
+
+        Args:
+            cls: (todo): write your description
+            path: (str): write your description
+        """
         bytes = open(path, "rb").read()
         text = "".join(map(lambda b: chr(b), bytes))
         return cls.load(text)
     def GetNode(self, key):
+        """
+        Returns the value of a node
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+        """
         for n in self.nodes:
             if n[0] == key:
                 return n[1]
         return None
     def GetNodeLine(self, key):
+        """
+        Return a node from the given key
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+        """
         for n in self.nodes:
             if n[0] == key:
                 return n[2]
         return None
     def GetNodes(self, key):
+        """
+        Returns a list of a given key.
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+        """
         nodes = []
         for n in self.nodes:
             if n[0] == key:
                 nodes.append(n[1])
         return nodes
     def GetValue(self, key):
+        """
+        Returns the value of a key.
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+        """
         for v in self.values:
             if v[0] == key:
                 return v[1].strip()
         return None
     def HasNode(self, key):
+        """
+        Returns true if the node with the given key.
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+        """
         for n in self.nodes:
             if n[0] == key:
                 return True
         return False
     def HasValue(self, key):
+        """
+        Returns true if the value is in the given a key.
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+        """
         for v in self.values:
             if v[0] == key:
                 return True
         return False
     def GetValueLine(self, key):
+        """
+        Returns the value of a given key.
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+        """
         for v in self.values:
             if v[0] == key:
                 return v[2]
         return None
     def GetValues(self, key):
+        """
+        Get a list of a given value.
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+        """
         values = []
         for v in self.values:
             if v[0] == key:
                 values.append(v[1])
         return values
     def AddNode(self, key, node):
+        """
+        Add a node.
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+            node: (todo): write your description
+        """
         self.nodes.append((key, node))
         return node
     def AddNewNode (self, key):
+        """
+        Add a new node
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+        """
         node = ConfigNode ()
         self.nodes.append((key, node))
         return node
 
     def AddValue(self, key, value):
+        """
+        Add an entry to the list.
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+            value: (todo): write your description
+        """
         self.values.append((key, value))
     def SetValue(self, key, value):
+        """
+        Returns the value of a given key.
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+            value: (todo): write your description
+        """
         for i in range(len(self.values)):
             if self.values[i][0] == key:
                 self.values[i] = key, value, 0
                 return
         self.AddValue(key, value)
     def ToString(self, level = 0):
+        """
+        Convert the node to text.
+
+        Args:
+            self: (todo): write your description
+            level: (int): write your description
+        """
         extra = 0
         if level >= 0:
             extra = 2

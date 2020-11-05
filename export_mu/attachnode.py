@@ -28,6 +28,14 @@ from .. import properties
 class AttachNode:
     node_types = ["stack", "attach"]
     def __init__(self, obj, inv):
+        """
+        Initialize the world
+
+        Args:
+            self: (todo): write your description
+            obj: (todo): write your description
+            inv: (todo): write your description
+        """
         self.name = strip_nnn(obj.name)
         self.parts = self.name.split("_", 2)
         ind = self.parts[1] == "stack" and 2 or 1
@@ -39,12 +47,40 @@ class AttachNode:
         self.crossfeed = obj.muproperties.nodeCrossfeed
         self.rigid = obj.muproperties.nodeRigid
     def __lt__(self, other):
+        """
+        Determine if two strings are equal.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         return self.cmp(other) < 0
     def __eq__(self, other):
+        """
+        Determine whether two : class : py : meth : ~pywbem. cim
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         return self.cmp(other) == 0
     def __gt__(self, other):
+        """
+        See : self and b.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         return self.cmp(other) > 0
     def cmp(self, other):
+        """
+        See if two types.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         # parts[0] will always be "node"
         if self.parts[1] == other.parts[1]:
             x = len(self.parts) - len(other.parts)
@@ -75,19 +111,43 @@ class AttachNode:
         else:
             return self.parts[1] > other.parts[1] and 1 or -1
     def __repr__(self):
+        """
+        Return the fully qualified name of this object.
+
+        Args:
+            self: (todo): write your description
+        """
         return self.name + self.pos.__repr__() + self.dir.__repr__()
     def methodval(self):
+        """
+        Return the value of the given enum.
+
+        Args:
+            self: (todo): write your description
+        """
         for i, enum in enumerate(properties.method_items):
             if enum[0] == self.method:
                 return i
         return 0
     def cfgstring(self):
+        """
+        Return a string representing the working directory.
+
+        Args:
+            self: (todo): write your description
+        """
         pos = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.pos))
         dir = tuple(map (lambda x: x * x > 1e-11 and x or 0, self.dir))
         flags = (self.size, self.methodval(), int(self.crossfeed),
                  int(self.rigid))
         return "%g, %g, %g, %g, %g, %g, %d, %d, %d, %d" % (pos + dir + flags)
     def cfgnode(self):
+        """
+        Str : class : class : cfgnode.
+
+        Args:
+            self: (todo): write your description
+        """
         node = ConfigNode ()
         node.AddValue ("name", self.id)
         node.AddValue ("transform", self.name)
@@ -97,8 +157,21 @@ class AttachNode:
         node.AddValue ("rigid", self.rigid)
         return node
     def keep_transform(self):
+        """
+        Return a copy of the transform.
+
+        Args:
+            self: (todo): write your description
+        """
         return self.parts[1] not in ["attach"]
     def save(self, cfg):
+        """
+        Save cfgnode
+
+        Args:
+            self: (todo): write your description
+            cfg: (todo): write your description
+        """
         if self.parts[1] in ["attach"]:
             # currently, KSP fails to check for attach NODEs so must use the
             # old format

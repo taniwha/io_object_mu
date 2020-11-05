@@ -39,6 +39,13 @@ class KSPMU_OT_ModuleExpand(bpy.types.Operator):
     bl_idname = "object.kspmodule_expand"
     index: IntProperty()
     def execute(self, context):
+        """
+        Execute the command.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         module = context.active_object.kspmodules.modules[self.index]
         module.expanded = not module.expanded
         return {'FINISHED'}
@@ -49,6 +56,13 @@ class KSPMU_OT_ScanModuleDefs(bpy.types.Operator):
     bl_label = "RELOAD"
 
     def execute(self, context):
+        """
+        Execute a dictionary of the modules.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         build_modules()
         return {'FINISHED'}
 
@@ -63,6 +77,13 @@ class KSPMU_OT_AddModule(bpy.types.Operator):
     type: EnumProperty(name="Module Type", items=ksp_module_items)
 
     def execute(self, context):
+        """
+        Execute the given context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         kspmodules = context.active_object.kspmodules
         module = available_modules_map[self.type]
         kspmodules.modules.add().initialize(module)
@@ -74,6 +95,13 @@ class KSPMU_OT_RemoveModule(bpy.types.Operator):
     bl_idname = "object.remove_ksp_module"
     index: IntProperty()
     def execute(self, context):
+        """
+        Execute the command.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         kspmodules = context.active_object.kspmodules
         if len(kspmodules.modules) > self.index >= 0:
             kspmodules.modules.remove(self.index)

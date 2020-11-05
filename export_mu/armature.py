@@ -29,6 +29,13 @@ from .export import make_obj_core, exported_objects
 from .mesh import create_skinned_mesh
 
 def bone_transform(bone, obj):
+    """
+    Transform the transformation to a transformation matrix.
+
+    Args:
+        bone: (float): write your description
+        obj: (todo): write your description
+    """
     matrix = bone.matrix_local
     if bone.parent:
         matrix = bone.parent.matrix_local.inverted() @ matrix
@@ -41,6 +48,16 @@ def bone_transform(bone, obj):
 
 
 def export_bone(bone, mu, armature, bone_children, path):
+    """
+    : parameter - > object
+
+    Args:
+        bone: (todo): write your description
+        mu: (todo): write your description
+        armature: (todo): write your description
+        bone_children: (dict): write your description
+        path: (str): write your description
+    """
     if path:
         path += "/"
     path += bone.name
@@ -62,6 +79,12 @@ def export_bone(bone, mu, armature, bone_children, path):
     return mubone
 
 def find_bone_children(obj):
+    """
+    Find all children of the given object.
+
+    Args:
+        obj: (todo): write your description
+    """
     bone_children = {}
     for child in obj.children:
         if child.parent_type == 'BONE':
@@ -70,6 +93,12 @@ def find_bone_children(obj):
     return bone_children
 
 def find_deform_children(obj):
+    """
+    Find all children of an object.
+
+    Args:
+        obj: (todo): write your description
+    """
     deform_children = []
     for child in obj.children:
         for mod in child.modifiers:
@@ -79,6 +108,12 @@ def find_deform_children(obj):
     return deform_children
 
 def find_bindpose_children(obj):
+    """
+    Finds all children of the given object.
+
+    Args:
+        obj: (todo): write your description
+    """
     bindpose_children = []
     for child in obj.children:
         if type(child.data) == bpy.types.Armature:
@@ -87,6 +122,14 @@ def find_bindpose_children(obj):
     return bindpose_children
 
 def handle_armature(obj, muobj, mu):
+    """
+    Implementation of superature.
+
+    Args:
+        obj: (todo): write your description
+        muobj: (todo): write your description
+        mu: (todo): write your description
+    """
     armature = obj.data
     bone_children = find_bone_children(obj)
     deform_children = find_deform_children(obj)

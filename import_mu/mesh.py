@@ -29,6 +29,14 @@ from .armature import create_vertex_groups, create_armature_modifier
 from .armature import create_bindPose
 
 def attach_material(mesh, renderer, mu):
+    """
+    Attach a mesh to the mesh.
+
+    Args:
+        mesh: (str): write your description
+        renderer: (todo): write your description
+        mu: (array): write your description
+    """
     if mu.materials and renderer.materials:
         #KSP supports only the first submesh and thus only the first
         #material
@@ -36,11 +44,28 @@ def attach_material(mesh, renderer, mu):
         mesh.materials.append(mumat.material)
 
 def create_uvs(mu, uvs, mesh, name):
+    """
+    Create a new uvs.
+
+    Args:
+        mu: (str): write your description
+        uvs: (str): write your description
+        mesh: (str): write your description
+        name: (str): write your description
+    """
     uv_layer = mesh.uv_layers.new(name=name).data
     for i, loop in enumerate(mesh.loops):
         uv_layer[i].uv = uvs[loop.vertex_index]
 
 def create_normals(mu, normals, mesh):
+    """
+    Create normals.
+
+    Args:
+        mu: (str): write your description
+        normals: (bool): write your description
+        mesh: (todo): write your description
+    """
     custom_normals = [None] * len(mesh.loops)
     for i, loop in enumerate(mesh.loops):
         custom_normals[i] = normals[loop.vertex_index]
@@ -48,6 +73,14 @@ def create_normals(mu, normals, mesh):
     mesh.use_auto_smooth = True
 
 def create_mesh(mu, mumesh, name):
+    """
+    Create a mesh from a mesh.
+
+    Args:
+        mu: (str): write your description
+        mumesh: (int): write your description
+        name: (str): write your description
+    """
     mesh = bpy.data.meshes.new(name)
     faces = []
     for sm in mumesh.submeshes:
@@ -66,10 +99,26 @@ def create_mesh(mu, mumesh, name):
     return mesh
 
 def mesh_post(obj, renderer):
+    """
+    Receive a mesh.
+
+    Args:
+        obj: (todo): write your description
+        renderer: (todo): write your description
+    """
     obj.muproperties.castShadows = renderer.castShadows
     obj.muproperties.receiveShadows = renderer.receiveShadows
 
 def create_mesh_component(mu, muobj, mumesh, name):
+    """
+    Creates a mesh.
+
+    Args:
+        mu: (todo): write your description
+        muobj: (todo): write your description
+        mumesh: (todo): write your description
+        name: (str): write your description
+    """
     if not mu.force_mesh and not hasattr(muobj, "renderer"):
         return None
     mesh = create_mesh (mu, mumesh, name)
@@ -80,6 +129,15 @@ def create_mesh_component(mu, muobj, mumesh, name):
         return "mesh", mesh, None
 
 def create_skinned_mesh_component(mu, muobj, skin, name):
+    """
+    Creates a mesh.
+
+    Args:
+        mu: (todo): write your description
+        muobj: (todo): write your description
+        skin: (todo): write your description
+        name: (str): write your description
+    """
     create_bindPose(mu, muobj, skin)
     mesh = create_mesh(mu, skin.mesh, name)
     obj = create_data_object(mu.collection, name + ".skin", mesh, None)

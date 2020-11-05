@@ -22,6 +22,11 @@
 import bpy
 
 def util_scene():
+    """
+    Create a scene.
+
+    Args:
+    """
     name = "mu_utils"
     if name not in bpy.data.scenes:
         scene = bpy.data.scenes.new(name)

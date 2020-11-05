@@ -50,6 +50,12 @@ value_indices = (
 )
 
 def bada55_generate(data):
+    """
+    Generate a list of colors.
+
+    Args:
+        data: (todo): write your description
+    """
     colors = []
     for inds in value_indices:
         col = tuple(map(lambda c: color_values[c]/255.0, inds))
@@ -57,6 +63,12 @@ def bada55_generate(data):
     return colors
 
 def parse_color(htmlcolor):
+    """
+    Parse a rgb color string.
+
+    Args:
+        htmlcolor: (str): write your description
+    """
     r = int(htmlcolor[0:2], 16)
     g = int(htmlcolor[2:4], 16)
     b = int(htmlcolor[4:6], 16)
@@ -66,6 +78,12 @@ def parse_color(htmlcolor):
     return color
 
 def html_generate(data):
+    """
+    Generate a list.
+
+    Args:
+        data: (str): write your description
+    """
     colors = []
     for htmlcolor in data:
         col = parse_color (htmlcolor)[:3]
@@ -74,11 +92,30 @@ def html_generate(data):
 
 
 def from_srgb(color):
+    """
+    Convert from rgb color to rgb.
+
+    Args:
+        color: (str): write your description
+    """
     def convert(c):
+        """
+        Convert c - b. 0.
+
+        Args:
+            c: (todo): write your description
+        """
         return ((c + 0.055) / 1.055) ** 2.4
     return tuple(map(lambda c: convert(c), color))
 
 def material_generate(prefix, data):
+    """
+    Generate material
+
+    Args:
+        prefix: (str): write your description
+        data: (todo): write your description
+    """
     for name, color in data:
         color = from_srgb(parse_color(color))
         name = f"{prefix}:{name}"
@@ -207,6 +244,11 @@ palette_presets = [
 ]
 
 def install():
+    """
+    Install a palette. palette.
+
+    Args:
+    """
     for palette in palette_presets:
         name, generate, data = palette
         colors = generate(data)

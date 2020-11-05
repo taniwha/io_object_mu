@@ -21,6 +21,12 @@
 from math import sqrt
 
 def circum_sphere(points):
+    """
+    Returns a sphere of a sphere.
+
+    Args:
+        points: (array): write your description
+    """
     num_points = len(points)
     if num_points == 1:
         center = (points[0], 0)
@@ -61,6 +67,13 @@ def circum_sphere(points):
     return center, radius
 
 def closest_affine_point(points, x):
+    """
+    Return the closest point in the closest point.
+
+    Args:
+        points: (array): write your description
+        x: (todo): write your description
+    """
     num_points = len(points)
     #FIXME assumes the points form a non-degenerate simplex
     if num_points == 4:
@@ -81,6 +94,13 @@ def closest_affine_point(points, x):
         return points[0]
 
 def in_affine(points, x):
+    """
+    Return true if x y - axis.
+
+    Args:
+        points: (array): write your description
+        x: (array): write your description
+    """
     # NOTE assumes points form a non-degenerate simplex
     num_points = len(points)
     if num_points == 1:
@@ -99,6 +119,13 @@ def in_affine(points, x):
         return True
 
 def barycentric_coords(points, p):
+    """
+    Bary coordinates of a set of a set of points.
+
+    Args:
+        points: (array): write your description
+        p: (todo): write your description
+    """
     num_points = len(points)
     lam = [None] * num_points
     if num_points == 1:
@@ -135,6 +162,12 @@ def barycentric_coords(points, p):
     return lam
 
 def smalest_enclosing_ball(points):
+    """
+    Finds a set of a set of points.
+
+    Args:
+        points: (array): write your description
+    """
     if not points:
         return None
     if len(points) == 1:
@@ -214,42 +247,149 @@ def smalest_enclosing_ball(points):
 if __name__ == "__main__":
     class Vector:
         def __init__(self, vals):
+            """
+            Initialize the array.
+
+            Args:
+                self: (todo): write your description
+                vals: (array): write your description
+            """
             self.x = float(vals[0])
             self.y = float(vals[1])
             self.z = float(vals[2])
         def __add__(self, b):
+            """
+            Add a new vector with the given vector.
+
+            Args:
+                self: (todo): write your description
+                b: (int): write your description
+            """
             return Vector((self.x + b.x, self.y + b.y, self.z + b.z))
         def __sub__(self, b):
+            """
+            Subtodo.
+
+            Args:
+                self: (todo): write your description
+                b: (int): write your description
+            """
             return Vector((self.x - b.x, self.y - b.y, self.z - b.z))
         def __mul__(self, s):
+            """
+            Return the vector of this vector with another vector s.
+
+            Args:
+                self: (todo): write your description
+                s: (array): write your description
+            """
             return Vector((self.x * s, self.y * s, self.z * s))
         def __rmul__(self, s):
+            """
+            Return a new vector with the vector s.
+
+            Args:
+                self: (todo): write your description
+                s: (array): write your description
+            """
             return Vector((self.x * s, self.y * s, self.z * s))
         def __div__(self, s):
+            """
+            Return a new vector.
+
+            Args:
+                self: (todo): write your description
+                s: (int): write your description
+            """
             return Vector((self.x / s, self.y / s, self.z / s))
         def __truediv__(self, s):
+            """
+            Return a vector from this vector.
+
+            Args:
+                self: (todo): write your description
+                s: (int): write your description
+            """
             return Vector((self.x / s, self.y / s, self.z / s))
         def __idiv__(self, s):
+            """
+            Return the inverse of this vector
+
+            Args:
+                self: (todo): write your description
+                s: (int): write your description
+            """
             return Vector((self.x / s, self.y / s, self.z / s))
         def __matmul__(self, b):
+            """
+            Returns : math : obj b.
+
+            Args:
+                self: (todo): write your description
+                b: (todo): write your description
+            """
             return self.x * b.x + self.y * b.y + self.z * b.z
         def __eq__(self, b):
+            """
+            Determine if a and b are equal false otherwise.
+
+            Args:
+                self: (todo): write your description
+                b: (todo): write your description
+            """
             return self.x == b.x and self.y == b.y and self.z == b.z
         def __hash__(self):
+            """
+            Return the hash of the object
+
+            Args:
+                self: (todo): write your description
+            """
             return self.x.__hash__() ^ self.y.__hash__() ^ self.z.__hash__()
         def cross(self, b):
+            """
+            Return the cross product of this vector.
+
+            Args:
+                self: (todo): write your description
+                b: (list): write your description
+            """
             return Vector((self.y * b.z - self.z * b.y,
                            self.z * b.x - self.x * b.z,
                            self.x * b.y - self.y * b.x))
         @property
         def magnitude(self):
+            """
+            Returns the magnitude of this vector.
+
+            Args:
+                self: (todo): write your description
+            """
             return sqrt(self @ self)
         @property
         def length_squared(self):
+            """
+            Returns the length of this is_squared sequence.
+
+            Args:
+                self: (todo): write your description
+            """
             return self @ self
         def __str__(self):
+            """
+            Return a string representation of this object.
+
+            Args:
+                self: (todo): write your description
+            """
             return f"[{self.x}, {self.y}, {self.z}]"
         def __repr__(self):
+            """
+            Return a repr representation of a repr__.
+
+            Args:
+                self: (todo): write your description
+            """
             return f"Vector(({self.x}, {self.y}, {self.z}))"
 
     points = [

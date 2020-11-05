@@ -29,6 +29,13 @@ class WORKSPACE_PT_tools_mu_tools2(bpy.types.Panel):
     bl_label = "Mu Hierarchy"
 
     def draw(self, context):
+        """
+        Draw layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         #col = layout.column(align=True)
         layout.operator("object.mu_apply_scale", text = "Apply Scale");

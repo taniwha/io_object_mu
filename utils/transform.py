@@ -23,9 +23,21 @@ import bpy
 from mathutils import Vector, Matrix, Quaternion
 
 def translate(d):
+    """
+    Translate a matrix.
+
+    Args:
+        d: (array): write your description
+    """
     return Matrix.Translation(Vector(d))
 
 def scale(s):
+    """
+    Return a new image by scaling.
+
+    Args:
+        s: (todo): write your description
+    """
     s = Vector(s)
     return Matrix(((s.x,  0,  0, 0),
                    (  0,s.y,  0, 0),
@@ -33,4 +45,10 @@ def scale(s):
                    (  0,  0,  0, 1)))
 
 def rotate(r):
+    """
+    Rotate a rotation matrix.
+
+    Args:
+        r: (int): write your description
+    """
     return Quaternion(r).normalized().to_matrix().to_4x4()

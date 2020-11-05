@@ -33,6 +33,12 @@ typemap = {
 }
 
 def parse_value(valstr):
+    """
+    Parses a value to a boolean.
+
+    Args:
+        valstr: (str): write your description
+    """
     valstr = valstr.strip()
     if valstr in {"False", "false"}:
         return False
@@ -43,6 +49,14 @@ def parse_value(valstr):
     return eval(valstr)
 
 def build_nodes(matname, node_tree, ntcfg):
+    """
+    Builds a list of nodes
+
+    Args:
+        matname: (str): write your description
+        node_tree: (str): write your description
+        ntcfg: (todo): write your description
+    """
     for value in ntcfg.values:
         attr, val, line = value
         if attr == "name":
@@ -114,6 +128,15 @@ def build_nodes(matname, node_tree, ntcfg):
         links.new(from_socket, to_socket)
 
 def set_tex(mu, dst, src, context):
+    """
+    Set a single vertex in place
+
+    Args:
+        mu: (todo): write your description
+        dst: (todo): write your description
+        src: (todo): write your description
+        context: (dict): write your description
+    """
     try:
         tex = mu.textures[src.index]
         if tex.name[-4:] in [".dds", ".png", ".tga", ".mbm"]:
@@ -133,6 +156,14 @@ def set_tex(mu, dst, src, context):
         dst.__annotations__["rgbNorm"][1]["update"](dst, context)
 
 def make_shader_prop(muprop, blendprop, context):
+    """
+    Creates the shader property
+
+    Args:
+        muprop: (todo): write your description
+        blendprop: (todo): write your description
+        context: (todo): write your description
+    """
     for k in muprop:
         item = blendprop.add()
         item.name = k
@@ -141,12 +172,27 @@ def make_shader_prop(muprop, blendprop, context):
             item.__annotations__["value"][1]["update"](item, context)
 
 def make_shader_tex_prop(mu, muprop, blendprop, context):
+    """
+    Creates a set of the given property.
+
+    Args:
+        mu: (todo): write your description
+        muprop: (todo): write your description
+        blendprop: (todo): write your description
+        context: (todo): write your description
+    """
     for k in muprop:
         item = blendprop.add()
         item.name = k
         set_tex(mu, item, muprop[k], context)
 
 def create_nodes(mat):
+    """
+    Creates a list of nodes.
+
+    Args:
+        mat: (str): write your description
+    """
     shaderName = mat.mumatprop.shaderName
     if shaderName in shader_configs:
         cfg = shader_configs[shaderName]
@@ -172,6 +218,13 @@ def create_nodes(mat):
         print(f"WARNING: unknown shader: {shaderName}")
 
 def make_shader4(mumat, mu):
+    """
+    Creates a matrix.
+
+    Args:
+        mumat: (todo): write your description
+        mu: (todo): write your description
+    """
     mat = bpy.data.materials.new(mumat.name)
     matprops = mat.mumatprop
     matprops.shaderName = mumat.shaderName
@@ -188,4 +241,11 @@ def make_shader4(mumat, mu):
     return mat
 
 def make_shader(mumat, mu):
+    """
+    Creates a gaussian.
+
+    Args:
+        mumat: (todo): write your description
+        mu: (todo): write your description
+    """
     return make_shader4(mumat, mu)

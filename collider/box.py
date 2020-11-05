@@ -29,5 +29,12 @@ collider_box_ve = (
       ( 6, 1), ( 5, 2), ( 7, 4), ( 3, 0)])
 
 def mesh_data(center, size):
+    """
+    Return a mesh data.
+
+    Args:
+        center: (float): write your description
+        size: (int): write your description
+    """
     m = translate(center) @ scale(size)
     return (collider_box_ve + (m,)),

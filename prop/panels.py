@@ -33,6 +33,13 @@ class WORKSPACE_PT_tools_mu_props(bpy.types.Panel):
     bl_label = "Prop Tools"
 
     def draw(self, context):
+        """
+        Draw context manager
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         #col = layout.column(align=True)
         layout.operator(KSPMU_OT_ImportProp.bl_idname, text = KSPMU_OT_ImportProp.bl_description);

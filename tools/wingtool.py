@@ -28,6 +28,12 @@ from ..utils import strip_nnn, create_data_object
 from ..cfgnode import ConfigNode
 
 def vec(v):
+    """
+    Convert a vector to a string.
+
+    Args:
+        v: (array): write your description
+    """
     return "[%5.2f %5.2f %5.2f %5.2f]" % tuple(v)
 
 objects_to_add = (
@@ -38,6 +44,12 @@ objects_to_add = (
 )
 
 def create_wingtool(collection):
+    """
+    Create a tooltooltool object.
+
+    Args:
+        collection: (str): write your description
+    """
     wing_tool = create_data_object(collection, "wing-tool", None, None)
     for ota in objects_to_add:
         obj = create_data_object(collection, ota[0], None, None)
@@ -46,6 +58,13 @@ def create_wingtool(collection):
     return wing_tool
 
 def create_wingtool_op(self, context):
+    """
+    Create an optool context.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
 
@@ -67,6 +86,12 @@ def create_wingtool_op(self, context):
         bpy.context.preferences.edit.use_global_undo = undo
 
 def measure_wing(wing_tool):
+    """
+    Return a measurement of the tool.
+
+    Args:
+        wing_tool: (todo): write your description
+    """
     tools = {}
     for c in wing_tool.children:
         if c.name[:10] == "wing-tool.":
@@ -92,6 +117,13 @@ def measure_wing(wing_tool):
     return cfg
 
 def measure_wing_op(self, context):
+    """
+    Displays the state
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     wing_tool = context.active_object
     if wing_tool.name[9] == ".":
         wing_tool = wing_tool.parent
@@ -108,9 +140,23 @@ class KSPMU_OT_AddWingTool(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        """
+        Poll the active poll mode.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         return context.active_object and context.active_object.mode == 'OBJECT'
 
     def execute(self, context):
+        """
+        Creates a new keywords.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords ()
         return create_wingtool_op(self, context, **keywords)
 
@@ -123,16 +169,37 @@ class KSPMU_OT_CalcWingProps(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        """
+        Check if the status of the active.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         if context.active_object and context.active_object.mode == 'OBJECT':
             if context.active_object.name[:9] == "wing-tool":
                 return True
         return False
 
     def execute(self, context):
+        """
+        Execute a new context.
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         keywords = self.as_keywords ()
         return measure_wing_op(self, context, **keywords)
 
 def create_wingtool_menu_func(self, context):
+    """
+    Create the widget menu
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     self.layout.operator(KSPMU_OT_AddWingTool.bl_idname, text = KSPMU_OT_AddWingTool.bl_label, icon='PLUGIN')
 
 classes_to_register = (

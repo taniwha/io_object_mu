@@ -30,5 +30,12 @@ collider_wheel_ve = (
      ( 6, 7), ( 7, 8), ( 8, 9), ( 9,10), (10,11), (11, 0)])
 
 def mesh_data(center, radius):
+    """
+    Translate a 3d.
+
+    Args:
+        center: (float): write your description
+        radius: (int): write your description
+    """
     m = translate(center) @ scale((radius,)*3)
     return (collider_wheel_ve + (m,)),

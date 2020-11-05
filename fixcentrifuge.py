@@ -1,6 +1,12 @@
 from mu import Mu
 
 def check_clip(clip):
+    """
+    Check that the clip of a clip
+
+    Args:
+        clip: (bool): write your description
+    """
     i = len(clip.curves)
     while i > 0:
         i -= 1
@@ -32,11 +38,23 @@ broken_xforms = [
 ]
 
 def check_transform(obj):
+    """
+    Check if the transform for the same name.
+
+    Args:
+        obj: (todo): write your description
+    """
     if obj.transform.name in broken_xforms:
         print("zeroing lp for " + obj.transform.name)
         obj.transform.localPosition = 0, 0, 0
 
 def check_obj(obj):
+    """
+    Check if the given object has the given crop.
+
+    Args:
+        obj: (todo): write your description
+    """
     for o in obj.children:
         check_obj(o)
     check_transform(obj)

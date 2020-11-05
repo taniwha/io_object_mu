@@ -21,6 +21,13 @@
 
 class RawMesh:
     def __init__(self, mesh=None):
+        """
+        Initialize a mesh.
+
+        Args:
+            self: (todo): write your description
+            mesh: (todo): write your description
+        """
         if mesh:
             if hasattr(mesh, "vertices"):
                 self.verts = [v.co for v in mesh.vertices]
@@ -30,11 +37,25 @@ class RawMesh:
             self.verts = []
 
     def write(self, bw):
+        """
+        Writes a bw to the screen.
+
+        Args:
+            self: (todo): write your description
+            bw: (todo): write your description
+        """
         bw.write_int(len(self.verts))
         for v in self.verts:
             bw.write_float(v)
 
     def read(self, br):
+        """
+        Reads the number of bits.
+
+        Args:
+            self: (todo): write your description
+            br: (todo): write your description
+        """
         count = br.read_int()
         self.verts = [None] * count
         for i in range(count):

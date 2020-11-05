@@ -53,12 +53,26 @@ vector_map = {
 }
 
 def property_index(properties, prop):
+    """
+    Return the index of a given property.
+
+    Args:
+        properties: (dict): write your description
+        prop: (todo): write your description
+    """
     for i, p in enumerate(properties):
         if p.name == prop:
             return i
     return None
 
 def shader_property(obj, prop):
+    """
+    Shader property for a material
+
+    Args:
+        obj: (todo): write your description
+        prop: (str): write your description
+    """
     prop = prop.split(".")
     if not obj or type(obj.data) != bpy.types.Mesh:
         return None
@@ -83,6 +97,14 @@ def shader_property(obj, prop):
     return None
 
 def create_fcurve(action, curve, propmap):
+    """
+    Creates a curve. curve.
+
+    Args:
+        action: (str): write your description
+        curve: (str): write your description
+        propmap: (str): write your description
+    """
     dp, ind, mult = propmap
     fps = bpy.context.scene.render.fps
     fc = action.fcurves.new(data_path = dp, index = ind)
@@ -107,6 +129,14 @@ def create_fcurve(action, curve, propmap):
     return fc
 
 def create_action(mu, path, clip):
+    """
+    Create a new object.
+
+    Args:
+        mu: (str): write your description
+        path: (str): write your description
+        clip: (str): write your description
+    """
     #print(clip.name)
     actions = {}
     bones = set()
@@ -183,6 +213,12 @@ def create_action(mu, path, clip):
             else:
                 for i in range(len(location[0].keyframe_points)):
                     def transformkey(kval):
+                        """
+                        Transforms a 3d to a new transform.
+
+                        Args:
+                            kval: (array): write your description
+                        """
                         xk = getattr(location[0].keyframe_points[i], kval)
                         yk = getattr(location[1].keyframe_points[i], kval)
                         zk = getattr(location[2].keyframe_points[i], kval)
@@ -207,6 +243,12 @@ def create_action(mu, path, clip):
             else:
                 for i in range(len(rotation[0].keyframe_points)):
                     def rotkey(kval):
+                        """
+                        Rotate a rotation matrix.
+
+                        Args:
+                            kval: (todo): write your description
+                        """
                         wk = getattr(rotation[0].keyframe_points[i], kval)
                         xk = getattr(rotation[1].keyframe_points[i], kval)
                         yk = getattr(rotation[2].keyframe_points[i], kval)
@@ -226,7 +268,22 @@ def create_action(mu, path, clip):
         track.strips.new(act.name, 1.0, act)
 
 def create_object_paths(mu):
+    """
+    Create a list of a list.
+
+    Args:
+        mu: (str): write your description
+    """
     def recurse (mu, obj, parent_names, parent):
+        """
+        Recursively walk recursively.
+
+        Args:
+            mu: (todo): write your description
+            obj: (todo): write your description
+            parent_names: (str): write your description
+            parent: (todo): write your description
+        """
         obj.parent = parent
         obj.mu = mu
         name = obj.transform.name

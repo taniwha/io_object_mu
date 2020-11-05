@@ -3,6 +3,15 @@ import sys
 from pprint import pprint
 
 def check_clip(clip, props, clips, path):
+    """
+    Check if a given properties exist.
+
+    Args:
+        clip: (bool): write your description
+        props: (todo): write your description
+        clips: (todo): write your description
+        path: (str): write your description
+    """
     for curve in clip.curves:
         props.add(curve.property)
 
@@ -24,6 +33,16 @@ def check_clip(clip, props, clips, path):
                     properties[curve.property][0] = f"{count} animated"
 
 def check_obj(obj, props, anims, path, mu):
+    """
+    Check if the specified paths.
+
+    Args:
+        obj: (todo): write your description
+        props: (todo): write your description
+        anims: (int): write your description
+        path: (str): write your description
+        mu: (todo): write your description
+    """
     if path:
         path = path + "/"
     path = path + obj.transform.name
@@ -36,6 +55,14 @@ def check_obj(obj, props, anims, path, mu):
             check_clip(clip, props, anims[path], path)
 
 def find_props(fname, props, anims):
+    """
+    Finds all properties of a given dataset.
+
+    Args:
+        fname: (str): write your description
+        props: (todo): write your description
+        anims: (int): write your description
+    """
     mu = Mu()
     mu.objects = {}
     if not mu.read(fname):
@@ -45,6 +72,12 @@ def find_props(fname, props, anims):
     return mu
 
 def nice(tup):
+    """
+    Convert a string todo.
+
+    Args:
+        tup: (todo): write your description
+    """
     return "(" + ", ".join(map(lambda t:f"{t:6.3f}", tup)) + ")"
 
 for f in sys.argv[1:]:

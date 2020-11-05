@@ -34,6 +34,14 @@ from . import export
 rotation_correction = Quaternion((0.5**0.5, -0.5**0.5, 0, 0))
 
 def make_light(mu, light, obj):
+    """
+    Return a light object.
+
+    Args:
+        mu: (todo): write your description
+        light: (todo): write your description
+        obj: (todo): write your description
+    """
     mulight = MuLight()
     mulight.type = ('SPOT', 'SUN', 'POINT', 'AREA').index(light.type)
     mulight.color = tuple(light.color) + (1.0,)
@@ -50,6 +58,14 @@ def make_light(mu, light, obj):
     return mulight
 
 def handle_light(obj, muobj, mu):
+    """
+    Helper function to handle.
+
+    Args:
+        obj: (todo): write your description
+        muobj: (todo): write your description
+        mu: (todo): write your description
+    """
     muobj.light = make_light(mu, obj.data, obj)
     muobj.transform.localRotation @= rotation_correction
     return muobj

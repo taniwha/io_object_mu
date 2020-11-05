@@ -22,6 +22,13 @@ from quickhull import QuickHull
 import sys
 
 def make_mesh(mesh, hull):
+    """
+    Make a mesh from a mesh.
+
+    Args:
+        mesh: (todo): write your description
+        hull: (bool): write your description
+    """
     vind = [None] * len(mesh.verts)
     verts = []
     uvs = []
@@ -47,6 +54,13 @@ def make_mesh(mesh, hull):
     return mumesh
 
 def find_colliders(obj, level=0):
+    """
+    Find all providers in the given object.
+
+    Args:
+        obj: (todo): write your description
+        level: (int): write your description
+    """
     if hasattr(obj, "collider") and isinstance(obj.collider, MuColliderMesh):
         m=obj.collider.mesh
         qh = QuickHull(obj.collider.mesh)
@@ -57,6 +71,11 @@ def find_colliders(obj, level=0):
         find_colliders(child, level+1)
 
 def main():
+    """
+    Main entry point.
+
+    Args:
+    """
     if len(sys.argv) != 3:
         print("hull.py <in-name> <out-name>")
         sys.exit(1)

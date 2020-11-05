@@ -28,6 +28,13 @@ from ..utils import strip_nnn
 from .light import light_types
 
 def shader_animations(mat, path):
+    """
+    Shader animation
+
+    Args:
+        mat: (array): write your description
+        path: (str): write your description
+    """
     animations = {}
     if not mat.animation_data:
         return animations
@@ -48,6 +55,13 @@ def shader_animations(mat, path):
     return animations
 
 def object_animations(obj, path):
+    """
+    Return a dictionary of an object
+
+    Args:
+        obj: (todo): write your description
+        path: (str): write your description
+    """
     animations = {}
     typ = "obj"
     if type(obj) in light_types:
@@ -67,12 +81,26 @@ def object_animations(obj, path):
     return animations
 
 def extend_animations(animations, anims):
+    """
+    Extend histogram with new histogram.
+
+    Args:
+        animations: (todo): write your description
+        anims: (int): write your description
+    """
     for a in anims:
         if a not in animations:
             animations[a] = []
         animations[a].extend(anims[a])
 
 def collect_animations(obj, path=""):
+    """
+    Collect all animation.
+
+    Args:
+        obj: (todo): write your description
+        path: (str): write your description
+    """
     animations = {}
     if path:
         path += "/"
@@ -89,6 +117,12 @@ def collect_animations(obj, path=""):
     return animations
 
 def find_path_root(animations):
+    """
+    Find the root path of the given animation.
+
+    Args:
+        animations: (todo): write your description
+    """
     paths = {}
     for clip in animations:
         for data in animations[clip]:
@@ -115,6 +149,13 @@ def find_path_root(animations):
     return path_root
 
 def make_key(key, mult):
+    """
+    Creates a new key.
+
+    Args:
+        key: (str): write your description
+        mult: (todo): write your description
+    """
     fps = bpy.context.scene.render.fps
     mukey = MuKey()
     x, y = key.co
@@ -166,6 +207,16 @@ vector_map={
 }
 
 def make_curve(mu, muobj, curve, path, typ):
+    """
+    R creates curve
+
+    Args:
+        mu: (todo): write your description
+        muobj: (todo): write your description
+        curve: (todo): write your description
+        path: (str): write your description
+        typ: (str): write your description
+    """
     mucurve = MuCurve()
     mucurve.path = path
     if typ in {"obj", "lit"}:
@@ -213,6 +264,12 @@ def make_curve(mu, muobj, curve, path, typ):
     return mucurve
 
 def transform_curves(muarm):
+    """
+    Calculate the current transformation matrix
+
+    Args:
+        muarm: (array): write your description
+    """
     for bone in muarm.animated_bones:
         if "location" in bone.curves:
             location = bone.curves["location"]
@@ -273,6 +330,14 @@ def transform_curves(muarm):
                         rotation[3].keys[i].tangent[j] = -tan.z
 
 def make_animations(mu, animations, anim_root):
+    """
+    Creates an animation for each animation
+
+    Args:
+        mu: (todo): write your description
+        animations: (todo): write your description
+        anim_root: (todo): write your description
+    """
     anim = MuAnimation()
     anim.clip = ""
     anim.autoPlay = False

@@ -30,6 +30,13 @@ from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
 
 def image_update_flags(self, context):
+    """
+    Update image flags.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     class Context:
         pass
     if not hasattr(context, "edit_image"):
@@ -53,10 +60,24 @@ class IMAGE_PT_MuImagePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
+        """
+        Parse an image data structure.
+
+        Args:
+            cls: (todo): write your description
+            context: (dict): write your description
+        """
         sd = context.space_data
         return sd and sd.image
 
     def draw(self, context):
+        """
+        Draw context
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         imageprops = context.space_data.image.muimageprop
         row = layout.row()

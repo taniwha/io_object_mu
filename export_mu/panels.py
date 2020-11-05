@@ -29,6 +29,13 @@ class WORKSPACE_PT_tools_mu_export(bpy.types.Panel):
     bl_label = "Export Mu"
 
     def draw(self, context):
+        """
+        Draw layout
+
+        Args:
+            self: (todo): write your description
+            context: (dict): write your description
+        """
         layout = self.layout
         #col = layout.column(align=True)
         layout.operator("export_object.ksp_mu_quick", text = "Export Mu Model");

@@ -42,6 +42,15 @@ from .mesh import create_mesh
 from .textures import create_textures
 
 def skip_component(mu, muobj, mumesh, name):
+    """
+    Todo : parameter * mu *.
+
+    Args:
+        mu: (todo): write your description
+        muobj: (todo): write your description
+        mumesh: (todo): write your description
+        name: (str): write your description
+    """
     return None
 
 # further filled in by the modules that handle the Mu types
@@ -51,6 +60,15 @@ type_handlers = {
 }
 
 def create_component_object(collection, component, objname, xform):
+    """
+    Create a component object.
+
+    Args:
+        collection: (todo): write your description
+        component: (todo): write your description
+        objname: (str): write your description
+        xform: (todo): write your description
+    """
     post = None
     if len(component) >= 4:
         post = component[3:4][0]
@@ -74,6 +92,14 @@ def create_component_object(collection, component, objname, xform):
     return cobj
 
 def create_object(mu, muobj, parent):
+    """
+    Create a new component object
+
+    Args:
+        mu: (str): write your description
+        muobj: (todo): write your description
+        parent: (todo): write your description
+    """
     if muobj in mu.imported_objects:
         # the object has already been processed (probably an armature)
         return None
@@ -160,12 +186,31 @@ def create_object(mu, muobj, parent):
     return obj
 
 def create_materials(mu):
+    """
+    Create a list of mu mu mu mu.
+
+    Args:
+        mu: (str): write your description
+    """
     #material info is in the top level object
     for mumat in mu.materials:
         mumat.material = make_shader(mumat, mu)
 
 def create_armatures(mu):
+    """
+    Recursively walkature objects.
+
+    Args:
+        mu: (str): write your description
+    """
     def scan_for_skins(mu, obj):
+        """
+        Scan for skins skins.
+
+        Args:
+            mu: (todo): write your description
+            obj: (todo): write your description
+        """
         # prioritize any armatures so their bone objects get consumed
         # however, unity allows for multiple skins to share one armature
         skins = []
@@ -182,6 +227,13 @@ def create_armatures(mu):
         scan_for_skins(mu, mu.obj)
 
 def process_mu(mu, mudir):
+    """
+    Creates : classures : param mu : mu object.
+
+    Args:
+        mu: (todo): write your description
+        mudir: (str): write your description
+    """
     create_textures(mu, mudir)
     create_materials(mu)
     create_object_paths(mu)
@@ -190,6 +242,16 @@ def process_mu(mu, mudir):
     return create_object(mu, mu.obj, None)
 
 def import_mu(collection, filepath, create_colliders, force_armature, force_mesh=False):
+    """
+    Imports a mut file.
+
+    Args:
+        collection: (str): write your description
+        filepath: (str): write your description
+        create_colliders: (bool): write your description
+        force_armature: (bool): write your description
+        force_mesh: (bool): write your description
+    """
     mu = Mu()
     mu.messages = []
     mu.create_colliders = create_colliders

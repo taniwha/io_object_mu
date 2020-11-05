@@ -29,6 +29,12 @@ from ..mu import MuSpring, MuFriction
 from .mesh import make_mesh
 
 def make_spring(spr):
+    """
+    Creates a sprite.
+
+    Args:
+        spr: (todo): write your description
+    """
     spring = MuSpring()
     spring.spring = spr.spring
     spring.damper = spr.damper
@@ -36,6 +42,12 @@ def make_spring(spr):
     return spring
 
 def make_friction(fric):
+    """
+    Make a frictionness.
+
+    Args:
+        fric: (todo): write your description
+    """
     friction = MuFriction()
     friction.extremumSlip = fric.extremumSlip
     friction.extremumValue = fric.extremumValue
@@ -45,6 +57,13 @@ def make_friction(fric):
     return friction
 
 def make_collider(mu, obj):
+    """
+    Make a mesh.
+
+    Args:
+        mu: (int): write your description
+        obj: (todo): write your description
+    """
     if (obj.muproperties.collider == 'MU_COL_MESH' and obj.data
         and type (obj.data) == bpy.types.Mesh):
         col = MuColliderMesh(True)

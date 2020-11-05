@@ -27,6 +27,13 @@ except:
     pass
 
 def build_dictionary(mu, node):
+    """
+    Builds a dictionary representation of the dictionary
+
+    Args:
+        mu: (todo): write your description
+        node: (todo): write your description
+    """
     value_dict={
         "math":math,
         "model":mu.name,
@@ -56,7 +63,21 @@ def build_dictionary(mu, node):
     return value_dict
 
 def parse_node(mu, node):
+    """
+    Parse a node.
+
+    Args:
+        mu: (todo): write your description
+        node: (todo): write your description
+    """
     def recurse(value_dict, node):
+        """
+        Recursively merges recursively.
+
+        Args:
+            value_dict: (dict): write your description
+            node: (todo): write your description
+        """
         for i,val in enumerate(node.values):
             vstr = val[1].strip()
             if vstr[:2] == "${" and vstr[-1:] == "}":
@@ -73,21 +94,45 @@ def parse_node(mu, node):
     recurse(value_dict, node)
 
 def parse_vector_string(string):
+    """
+    Parse a string into a list of integers.
+
+    Args:
+        string: (str): write your description
+    """
     s = string.split(",")
     if len(s) == 1:
         s = string.split()
     return map(lambda x: float(x), s)
 
 def parse_float(string):
+    """
+    Parse a string as a float.
+
+    Args:
+        string: (str): write your description
+    """
     #FIXME better parsing
     return float(string)
 
 def parse_vector(string):
+    """
+    Parse a vector from a string.
+
+    Args:
+        string: (str): write your description
+    """
     # blender is right-handed, KSP is left-handed
     x, z, y = parse_vector_string(string)
     return Vector((x, y, z))
 
 def parse_quaternion(string):
+    """
+    Parse a quaternion.
+
+    Args:
+        string: (str): write your description
+    """
     # blender is right-handed, KSP is left-handed
     x, z, y, w = parse_vector_string(string)
     return Quaternion((w, -x, -y, -z))

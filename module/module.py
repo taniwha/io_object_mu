@@ -26,21 +26,45 @@ from ..cfgnode import ConfigNode, ConfigNodeError
 from ..cfgnode import parse_node
 
 def str2bool(boolstr):
+    """
+    Convert a bool is true false >>> parsestr2.
+
+    Args:
+        boolstr: (str): write your description
+    """
     if not boolstr:
         return False
     return boolstr.lower() == "true"
 
 def str2float(floatstr):
+    """
+    Convert string to float.
+
+    Args:
+        floatstr: (str): write your description
+    """
     if not floatstr:
         return 0.0
     return float(floatstr)
 
 def str2int(intstr):
+    """
+    Convert a string to an integer.
+
+    Args:
+        intstr: (str): write your description
+    """
     if not intstr:
         return 0
     return int(intstr)
 
 def str2vec3(vecstr):
+    """
+    Convert a vector to float
+
+    Args:
+        vecstr: (str): write your description
+    """
     if not vecstr:
         return Vector((0, 0, 0))
     x,y,z = vecstr.split(",")
@@ -49,6 +73,12 @@ def str2vec3(vecstr):
                    str2float(z.strip())))
 
 def parseItems(items):
+    """
+    Parse a list of items.
+
+    Args:
+        items: (todo): write your description
+    """
     enum = []
     for i in items.values:
         name, desc, line = i
@@ -61,6 +91,19 @@ available_modules_enum=[]
 
 class KSPField:
     def __init__(self, name, type, default, description, min=None, max=None, items=None):
+        """
+        Initialize a new item.
+
+        Args:
+            self: (todo): write your description
+            name: (str): write your description
+            type: (str): write your description
+            default: (str): write your description
+            description: (str): write your description
+            min: (int): write your description
+            max: (int): write your description
+            items: (todo): write your description
+        """
         self.name = name
         self.type = type
         self.default = default
@@ -69,6 +112,12 @@ class KSPField:
         self.min = min
         self.max = max
     def property(self):
+        """
+        The property of the property.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.type == "bool":
             return "boolProperties"
         elif self.type == "float":
@@ -88,6 +137,14 @@ class KSPField:
 
 class KSPModule:
     def __init__(self, name, fields):
+        """
+        Initialize a new fields.
+
+        Args:
+            self: (todo): write your description
+            name: (str): write your description
+            fields: (dict): write your description
+        """
         self.name = name
         self.fields = fields
         self.field_map = {}
@@ -95,6 +152,12 @@ class KSPModule:
             self.field_map[f.name] = f
 
 def generate_module_properties(module_def):
+    """
+    Generate a dictionary of module properties.
+
+    Args:
+        module_def: (todo): write your description
+    """
     moduleName = module_def.GetValue("name")
     field_defs = module_def.GetNodes("field")
     fields=[]
@@ -137,6 +200,11 @@ def generate_module_properties(module_def):
     available_modules_enum.append(item)
     
 def build_modules():
+    """
+    Builds the modules
+
+    Args:
+    """
     available_modules.clear()
     available_modules_map.clear()
     available_modules_enum.clear()
@@ -152,4 +220,11 @@ def build_modules():
                         generate_module_properties(mod[1])
 
 def ksp_module_items(self, context):
+    """
+    Return a list of modules that are available.
+
+    Args:
+        self: (todo): write your description
+        context: (todo): write your description
+    """
     return available_modules_enum

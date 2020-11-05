@@ -23,6 +23,13 @@ import sys
 wheel_colliders = {}
 
 def find_wheels(obj, path=""):
+    """
+    Recursively in the paths.
+
+    Args:
+        obj: (todo): write your description
+        path: (str): write your description
+    """
     if not path:
         path = obj.transform.name
     else:
@@ -33,11 +40,25 @@ def find_wheels(obj, path=""):
         find_wheels(o, path)
 
 def spring_cfg(node, spring):
+    """
+    Sets a configuration.
+
+    Args:
+        node: (todo): write your description
+        spring: (str): write your description
+    """
     node.AddValue("spring", spring.spring)
     node.AddValue("damper", spring.damper)
     node.AddValue("targetPosition", spring.targetPosition)
 
 def friction_cfg(node, friction):
+    """
+    Applies a cfg.
+
+    Args:
+        node: (todo): write your description
+        friction: (todo): write your description
+    """
     node.AddValue("extremumSlip", friction.extremumSlip)
     node.AddValue("extremumValue", friction.extremumValue)
     node.AddValue("asymptoteSlip", friction.asymptoteSlip)
@@ -45,6 +66,12 @@ def friction_cfg(node, friction):
     node.AddValue("stiffness", friction.stiffness)
 
 def ValueString(val):
+    """
+    Convert a string value
+
+    Args:
+        val: (float): write your description
+    """
     if type(val) in [tuple, list]:
         vstr = str(val[0])
         for v in val[1:]:
@@ -54,6 +81,13 @@ def ValueString(val):
         return str(val)
 
 def wheel_cfg(name, wheel):
+    """
+    Create a wheel wheel wheel.
+
+    Args:
+        name: (str): write your description
+        wheel: (todo): write your description
+    """
     node = ConfigNode ()
     node.AddValue("name", name)
     node.AddValue("mass", wheel.mass)
@@ -66,13 +100,31 @@ def wheel_cfg(name, wheel):
     return node
 
 def fexp(f):
+    """
+    Fexponential function.
+
+    Args:
+        f: (int): write your description
+    """
     return (f.extremumSlip, f.extremumValue, f.asymptoteSlip, f.asymptoteValue,
             f.stiffness)
 
 def sexp(s):
+    """
+    Returns the number of bytes.
+
+    Args:
+        s: (int): write your description
+    """
     return (s.spring, s.damper, s.targetPosition)
 
 def dump_wheel(wheel):
+    """
+    Print wheel
+
+    Args:
+        wheel: (todo): write your description
+    """
     print("mass: %f" % wheel.mass)
     print("radius: %f" % wheel.radius)
     print("suspensionDistance: %f" % wheel.suspensionDistance)
@@ -82,6 +134,12 @@ def dump_wheel(wheel):
     print("sidewaysFriction: %f %f %f %f %f" % fexp(wheel.sidewaysFriction))
 
 def vector(s):
+    """
+    Convert a tuple into a tuple.
+
+    Args:
+        s: (str): write your description
+    """
     return tuple(map(lambda x: float(x),s.split(",")))
 
 wheel_fields = (
@@ -106,6 +164,12 @@ spring_fields = (
 )
 
 def adjust_wheel(wheel_node):
+    """
+    Adjust wheel wheel on wheel.
+
+    Args:
+        wheel_node: (todo): write your description
+    """
     name = wheel_node.GetValue("name")
     wheel = wheel_colliders[name]
     for f in wheel_fields:
@@ -128,6 +192,11 @@ def adjust_wheel(wheel_node):
                     setattr(fric, f[0], f[1](val))
 
 def main():
+    """
+    Main function.
+
+    Args:
+    """
     wheel_mu = sys.argv[1]
     mu = Mu()
     if not mu.read(wheel_mu):

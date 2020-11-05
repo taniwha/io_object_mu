@@ -40,6 +40,12 @@ Matrix_YZ = Matrix(((1,0,0,0),
 MU_MAX_VERTS = 65534
 
 def build_submeshes(mesh):
+    """
+    Builds a submesheshesheshes mesh.
+
+    Args:
+        mesh: (todo): write your description
+    """
     submeshes = []
     submesh = []
     for i in range(len(mesh.loop_triangles)):
@@ -48,6 +54,14 @@ def build_submeshes(mesh):
     return submeshes
 
 def make_tris(mesh, submeshes, vertex_map):
+    """
+    Make a trishes mesh.
+
+    Args:
+        mesh: (todo): write your description
+        submeshes: (todo): write your description
+        vertex_map: (str): write your description
+    """
     for sm in submeshes:
         i = 0
         while i < len(sm):
@@ -57,6 +71,12 @@ def make_tris(mesh, submeshes, vertex_map):
     return submeshes
 
 def get_mesh(obj):
+    """
+    Get the meshport of an object.
+
+    Args:
+        obj: (todo): write your description
+    """
     modifiers = collect_modifiers(obj)
     for mod in modifiers:
         mod.show_viewport = False
@@ -68,6 +88,14 @@ def get_mesh(obj):
     return mesh
 
 def get_vertex_data(mu, mesh, obj):
+    """
+    Get vertex vertex data.
+
+    Args:
+        mu: (todo): write your description
+        mesh: (todo): write your description
+        obj: (todo): write your description
+    """
     full_data = not is_collider(obj)
     vertdata = [None] * len(mesh.loops)
     if not vertdata:
@@ -115,6 +143,12 @@ def get_vertex_data(mu, mesh, obj):
     return vertdata
 
 def make_vertex_map(vertex_data):
+    """
+    Make a dictionary mapping vertex_data to vertex_data
+
+    Args:
+        vertex_data: (array): write your description
+    """
     vdict = {}
     vmap = []
     for i, v in enumerate(vertex_data):
@@ -125,16 +159,37 @@ def make_vertex_map(vertex_data):
     return vmap, len(vdict)
 
 def get_key_normals(shape_key):
+    """
+    Get the normals of the given shape.
+
+    Args:
+        shape_key: (todo): write your description
+    """
     normals = shape_key.normals_split_get()
     normals = zip(normals[0:-2:3], normals[1:-1:3], normals[2::3])
     normals = list(map(lambda n: Vector(n), normals))
     return normals
 
 def get_key_verts(shape_key):
+    """
+    Return a list of shape_key for a list of.
+
+    Args:
+        shape_key: (str): write your description
+    """
     verts = list(map(lambda data: data.co, shape_key.data))
     return verts
 
 def process_shape_keys(mesh, mumesh, vertex_map, vertex_data):
+    """
+    Process the shape keys.
+
+    Args:
+        mesh: (todo): write your description
+        mumesh: (todo): write your description
+        vertex_map: (str): write your description
+        vertex_data: (str): write your description
+    """
     num_shapes = len(mesh.shape_keys.key_blocks)
     num_verts = len(mumesh.verts)
     new_verts = (num_shapes - 1) * num_verts
@@ -181,6 +236,16 @@ def process_shape_keys(mesh, mumesh, vertex_map, vertex_data):
 
 
 def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
+    """
+    Make a mesh from a mesh.
+
+    Args:
+        mesh: (todo): write your description
+        submeshes: (todo): write your description
+        vertex_data: (array): write your description
+        vertex_map: (todo): write your description
+        num_verts: (int): write your description
+    """
     verts = [None] * num_verts
     groups = [None] * num_verts
     uvs = [None] * num_verts
@@ -221,6 +286,13 @@ def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
     return mumesh
 
 def make_mesh(mu, obj):
+    """
+    Make a mesh from a mesh
+
+    Args:
+        mu: (todo): write your description
+        obj: (todo): write your description
+    """
     mesh = get_mesh(obj)
     #mesh is always a copy of the object mesh data, but this is non-destructive
     #anyway
@@ -242,6 +314,13 @@ def make_mesh(mu, obj):
     return mumesh
 
 def mesh_materials(mu, mesh):
+    """
+    R compute the material for a mesh.
+
+    Args:
+        mu: (array): write your description
+        mesh: (todo): write your description
+    """
     materials = []
     for mat in mesh.materials:
         if not mat:
@@ -255,6 +334,14 @@ def mesh_materials(mu, mesh):
     return materials
 
 def make_renderer(mu, obj, mesh):
+    """
+    Make a mesh object from a mesh.
+
+    Args:
+        mu: (todo): write your description
+        obj: (todo): write your description
+        mesh: (todo): write your description
+    """
     rend = MuRenderer()
     #FIXME shadows
     rend.materials = mesh_materials(mu, mesh)
@@ -265,6 +352,14 @@ def make_renderer(mu, obj, mesh):
     return rend
 
 def mesh_bones(obj, mumesh, armature):
+    """
+    Calculate the weighted mesh of an object.
+
+    Args:
+        obj: (todo): write your description
+        mumesh: (todo): write your description
+        armature: (str): write your description
+    """
     boneset = set()
     for bone in armature.bones:
         boneset.add(bone.name)
@@ -296,6 +391,14 @@ def mesh_bones(obj, mumesh, armature):
     return bones, maxlen
 
 def make_bindPoses(smr, armature, bindPoses):
+    """
+    Make a bind function.
+
+    Args:
+        smr: (todo): write your description
+        armature: (todo): write your description
+        bindPoses: (todo): write your description
+    """
     smr.mesh.bindPoses = [None] * len(smr.bones)
     for i, bone in enumerate(smr.bones):
         poseBone = None
@@ -313,11 +416,28 @@ def make_bindPoses(smr, armature, bindPoses):
         smr.mesh.bindPoses[i] = mat
 
 def handle_mesh(obj, muobj, mu):
+    """
+    Handle a mesh.
+
+    Args:
+        obj: (todo): write your description
+        muobj: (todo): write your description
+        mu: (todo): write your description
+    """
     muobj.shared_mesh = make_mesh(mu, obj)
     muobj.renderer = make_renderer(mu, obj, obj.data)
     return muobj
 
 def create_skinned_mesh(obj, mu, armature, bindPoses):
+    """
+    Creates a mesh.
+
+    Args:
+        obj: (todo): write your description
+        mu: (str): write your description
+        armature: (str): write your description
+        bindPoses: (str): write your description
+    """
     smr = MuSkinnedMeshRenderer()
     smr.mesh = make_mesh(mu, obj)
     smr.bones, smr.quality = mesh_bones(obj, smr.mesh, armature)

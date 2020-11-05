@@ -28,6 +28,15 @@ from .. import properties
 from ..mu import MuLight
 
 def create_light(mu, muobj, mulight, name):
+    """
+    Create a light object.
+
+    Args:
+        mu: (str): write your description
+        muobj: (todo): write your description
+        mulight: (str): write your description
+        name: (str): write your description
+    """
     ltype = ('SPOT', 'SUN', 'POINT', 'AREA')[mulight.type]
     light = bpy.data.lights.new(name, ltype)
     light.color = mulight.color[:3]
