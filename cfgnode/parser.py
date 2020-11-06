@@ -26,8 +26,41 @@ try:
 except:
     pass
 
+permitted_builtins = {
+    "abs":abs,
+    "all":all,
+    "any":any,
+    "ascii":ascii,
+    "bin":bin,
+    "bool":bool,
+    "chr":chr,
+    "complex":complex,
+    "divmod":divmod,
+    "float":float,
+    "format":format,
+    "hash":hash,
+    "hex":hex,
+    "int":int,
+    "len":len,
+    "map":map,
+    "max":max,
+    "min":min,
+    "oct":oct,
+    "ord":ord,
+    "pow":pow,
+    "print":print,
+    "repr":repr,
+    "reversed":reversed,
+    "round":round,
+    "sorted":sorted,
+    "str":str,
+    "sum":sum,
+    "zip":zip,
+}
+
 def build_dictionary(mu, node):
     value_dict={
+        "__builtins__":permitted_builtins,
         "math":math,
         "model":mu.name,
         "modelSkinVolume":mu.skin_volume,
@@ -42,7 +75,7 @@ def build_dictionary(mu, node):
         if node.nodes[i][0] == "values":
             for val in node.nodes[i][1].values:
                 vstr = val[1].strip()
-                if vstr[:2] == "${" and vstr[-1:] == "}":
+                if vstr[:2] == "${" and vstr[-1:] == "}" and "__" not in vstr:
                     try:
                         nval=eval(vstr[2:-1], value_dict)
                     except Exception as e:
