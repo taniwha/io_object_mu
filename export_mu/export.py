@@ -143,6 +143,7 @@ special_modelTypes = {
     'PROP': {},
     'INTERNAL': {'PROP':add_prop},
     'STATIC': {},
+    'UTILITY': {},
     'VOLUME': {},
 }
 

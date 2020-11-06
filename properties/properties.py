@@ -77,6 +77,7 @@ modelType_items = (
     ('INTERNAL', "Internal Space", "The object and its descendants form a KSP internal space model. Only \"Prop\" descendant objects are special."),
     ('STATIC', "KK Static", "The object and its descendants form a Kerbal Konstructs static model. No descendant objects are special."),
     ('VOLUME', "Volume", "The object and its descendants are used for volume calcuations and are NOT exported. Use Tag to specify the volume group (may be any name, not limited to valid KSP tags) which can then be accessed in cfg template expressions."),
+    ('UTILITY', "Utility", "The object and its decendants will not be exported. Useful for bake meshes, boolean cutters, etc. Note that this affects only top-level objects when using the mass-export script: Utility objects can still be exported manually and as part of a larger model."),
 )
 collider_items = (
     ('MU_COL_NONE', "", ""),

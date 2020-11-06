@@ -20,8 +20,11 @@ print(blend_filepath)
 collections = enable_collections()
 try:
     for obj in bpy.data.objects:
-        if not obj.hide_render and not obj.parent and obj.children:
-            object_queue.append(obj)
+        if obj.parent or not obj.children:
+            continue
+        if obj.muproperties.modelType == 'UTILITY':
+            continue
+        object_queue.append(obj)
     while object_queue:
         obj = object_queue.pop(0)
         name = strip_nnn(obj.name)+".mu"
