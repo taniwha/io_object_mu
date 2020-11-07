@@ -62,6 +62,7 @@ class ConfigNode:
                     break
                 elif script.token == '{':
                     new_node = ConfigNode()
+                    new_node.line = line
                     ConfigNode.ParseNode(new_node, script, False)
                     node.nodes.append((key, new_node, line))
                     break
