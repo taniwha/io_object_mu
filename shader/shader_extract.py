@@ -125,6 +125,7 @@ def record_node_inputs(node):
     out = cfgnode.ConfigNode()
     for input in node.inputs:
         ip = out.AddNewNode("input")
+        ip.AddValue("name", input.name)
         ip.AddValue("enabled", input.enabled)
         if hasattr(input, "default_value"):
             if input.bl_idname in ["NodeSocketFloat", "NodeSocketFloatFactor"]:
@@ -198,8 +199,8 @@ def record_link(link):
     to_socket = to_node.inputs.values().index(link.to_socket)
     node.AddValue("from_node", from_node.name)
     node.AddValue("to_node", to_node.name)
-    node.AddValue("from_socket", from_socket)
-    node.AddValue("to_socket", to_socket)
+    node.AddValue("from_socket", f"{from_socket}, {link.from_socket.name}")
+    node.AddValue("to_socket", f"{to_socket}, {link.to_socket.name}")
     node.AddValue("is_hidden", link.is_hidden)
     return node
 

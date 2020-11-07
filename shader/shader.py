@@ -42,6 +42,19 @@ def parse_value(valstr):
         return valstr
     return eval(valstr)
 
+def find_socket(sockets, sock):
+    if "," in sock:
+        index, name = sock.split(",")
+        name = name.strip()
+    else:
+        index = sock
+        name = None
+    if name in [None, 'Value', 'Vector']:
+        index = int(index.strip())
+        return sockets[index]
+    else:
+        return sockets[name]
+
 def build_nodes(matname, node_tree, ntcfg):
     for value in ntcfg.values:
         attr, val, line = value
@@ -93,7 +106,11 @@ def build_nodes(matname, node_tree, ntcfg):
             for i,ip in enumerate(input_nodes):
                 if ip.HasValue("default_value"):
                     value = ip.GetValue("default_value")
-                    sn.inputs[i].default_value = parse_value(value)
+                    name = ip.GetValue("name")
+                    if name in [None, "Value", "Vector"]:
+                        sn.inputs[i].default_value = parse_value(value)
+                    else:
+                        sn.inputs[name].default_value = parse_value(value)
         if sndata.HasNode("outputs"):
             for i,op in enumerate(sndata.GetNode("outputs").GetNodes("output")):
                 if op.HasValue("default_value"):
@@ -109,8 +126,8 @@ def build_nodes(matname, node_tree, ntcfg):
     for ln in linknodes.GetNodes("link"):
         from_node = nodes[ln.GetValue("from_node")]
         to_node = nodes[ln.GetValue("to_node")]
-        from_socket = from_node.outputs[int(ln.GetValue("from_socket"))]
-        to_socket = to_node.inputs[int(ln.GetValue("to_socket"))]
+        from_socket = find_socket(from_node.outputs, ln.GetValue("from_socket"))
+        to_socket = find_socket(to_node.inputs, ln.GetValue("to_socket"))
         links.new(from_socket, to_socket)
 
 def set_tex(mu, dst, src, context):
