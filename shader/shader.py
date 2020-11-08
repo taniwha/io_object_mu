@@ -32,6 +32,8 @@ typemap = {
     'SHADER': "NodeSocketShader",
 }
 
+use_index = { None, "Vector", "Value", "Shader" }
+
 def parse_value(valstr):
     valstr = valstr.strip()
     if valstr in {"False", "false"}:
@@ -49,7 +51,7 @@ def find_socket(sockets, sock):
     else:
         index = sock
         name = None
-    if name in [None, 'Value', 'Vector']:
+    if name in use_index:
         index = int(index.strip())
         return sockets[index]
     elif name in sockets:
@@ -108,7 +110,7 @@ def build_nodes(matname, node_tree, ntcfg):
                 if ip.HasValue("default_value"):
                     value = ip.GetValue("default_value")
                     name = ip.GetValue("name")
-                    if name in [None, "Value", "Vector"]:
+                    if name in use_index:
                         sn.inputs[i].default_value = parse_value(value)
                     elif name in sn.inputs:
                         sn.inputs[name].default_value = parse_value(value)
