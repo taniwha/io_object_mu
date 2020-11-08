@@ -52,8 +52,9 @@ def find_socket(sockets, sock):
     if name in [None, 'Value', 'Vector']:
         index = int(index.strip())
         return sockets[index]
-    else:
+    elif name in sockets:
         return sockets[name]
+    return None
 
 def build_nodes(matname, node_tree, ntcfg):
     for value in ntcfg.values:
@@ -109,7 +110,7 @@ def build_nodes(matname, node_tree, ntcfg):
                     name = ip.GetValue("name")
                     if name in [None, "Value", "Vector"]:
                         sn.inputs[i].default_value = parse_value(value)
-                    else:
+                    elif name in sn.inputs:
                         sn.inputs[name].default_value = parse_value(value)
         if sndata.HasNode("outputs"):
             for i,op in enumerate(sndata.GetNode("outputs").GetNodes("output")):
@@ -128,7 +129,8 @@ def build_nodes(matname, node_tree, ntcfg):
         to_node = nodes[ln.GetValue("to_node")]
         from_socket = find_socket(from_node.outputs, ln.GetValue("from_socket"))
         to_socket = find_socket(to_node.inputs, ln.GetValue("to_socket"))
-        links.new(from_socket, to_socket)
+        if from_socket and to_socket:
+            links.new(from_socket, to_socket)
 
 def set_tex(mu, dst, src, context):
     try:
