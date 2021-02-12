@@ -54,9 +54,9 @@ def create_mesh(mu, mumesh, name):
         faces.extend(sm)
     mesh.from_pydata(mumesh.verts, [], faces)
     if mumesh.uvs:
-        create_uvs(mu, mumesh.uvs, mesh, "UV")
+        create_uvs(mu, mumesh.uvs, mesh, "UVMap")
     if mumesh.uv2s:
-        create_uvs(mu, mumesh.uv2s, mesh, "UV2")
+        create_uvs(mu, mumesh.uv2s, mesh, "UVMap2")
     if mumesh.normals:
         create_normals(mu, mumesh.normals, mesh)
     #FIXME how to set tangents?
