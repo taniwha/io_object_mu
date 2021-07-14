@@ -149,9 +149,9 @@ def set_tex(mu, dst, src, context):
     dst.scale = src.scale
     dst.offset = src.offset
     if context.material.node_tree:
-        dst.__annotations__["tex"][1]["update"](dst, context)
+        dst.__annotations__["tex"].keywords["update"](dst, context)
         #other properties are all updated in the one updater
-        dst.__annotations__["rgbNorm"][1]["update"](dst, context)
+        dst.__annotations__["rgbNorm"].keywords["update"](dst, context)
 
 def make_shader_prop(muprop, blendprop, context):
     for k in muprop:
@@ -159,7 +159,7 @@ def make_shader_prop(muprop, blendprop, context):
         item.name = k
         item.value = muprop[k]
         if context.material.node_tree:
-            item.__annotations__["value"][1]["update"](item, context)
+            item.__annotations__["value"].keywords["update"](item,ctx)
 
 def make_shader_tex_prop(mu, muprop, blendprop, context):
     for k in muprop:
