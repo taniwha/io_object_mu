@@ -159,7 +159,7 @@ def make_shader_prop(muprop, blendprop, context):
         item.name = k
         item.value = muprop[k]
         if context.material.node_tree:
-            item.__annotations__["value"].keywords["update"](item,ctx)
+            item.__annotations__["value"].keywords["update"](item, context)
 
 def make_shader_tex_prop(mu, muprop, blendprop, context):
     for k in muprop:
