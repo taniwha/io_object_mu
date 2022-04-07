@@ -223,7 +223,7 @@ def create_action(mu, path, clip):
             obj.animation_data_create()
         track = obj.animation_data.nla_tracks.new()
         track.name = clip.name
-        track.strips.new(act.name, 1.0, act)
+        track.strips.new(act.name, 1, act)
 
 def create_object_paths(mu):
     def recurse (mu, obj, parent_names, parent):
