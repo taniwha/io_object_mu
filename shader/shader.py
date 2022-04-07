@@ -158,6 +158,10 @@ def build_nodes(matname, node_tree, ntcfg):
         if from_socket and to_socket:
             links.new(from_socket, to_socket)
 
+def call_update(item, prop, context):
+    item.__annotations__[prop].keywords["update"](item, context)
+    #item.__annotations__[prop][1]["update"](item, context)
+
 def set_tex(mu, dst, src, context):
     try:
         tex = mu.textures[src.index]
@@ -173,9 +177,9 @@ def set_tex(mu, dst, src, context):
     dst.scale = src.scale
     dst.offset = src.offset
     if context.material.node_tree:
-        dst.__annotations__["tex"][1]["update"](dst, context)
+        call_update(dst, "tex", context)
         #other properties are all updated in the one updater
-        dst.__annotations__["rgbNorm"][1]["update"](dst, context)
+        call_update(dst, "rgbNorm", context)
 
 def make_shader_prop(muprop, blendprop, context):
     for k in muprop:
@@ -183,7 +187,7 @@ def make_shader_prop(muprop, blendprop, context):
         item.name = k
         item.value = muprop[k]
         if context.material.node_tree:
-            item.__annotations__["value"][1]["update"](item, context)
+            call_update(item, "value", context)
 
 def make_shader_tex_prop(mu, muprop, blendprop, context):
     for k in muprop:
