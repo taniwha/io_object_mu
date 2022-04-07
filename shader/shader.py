@@ -22,6 +22,7 @@
 import sys, traceback
 
 import bpy
+from bpy.types import bpy_prop_array
 from mathutils import Vector
 
 from .shader_config import shader_configs
@@ -44,6 +45,26 @@ def parse_value(valstr):
         return valstr
     return eval(valstr)
 
+def set_property(obj, prop, valstr):
+    attr = getattr(obj, prop)
+    if type(attr) == bool:
+        if valstr in {"False", "false"}:
+            value = False
+        if valstr in {"True", "true"}:
+            value = True
+    elif type(attr) == str:
+        if valstr and valstr[0] in ['"', "'"]:
+            value = eval(valstr)
+        else:
+            value = valstr
+    else:
+        value = eval(valstr)
+    if type(attr) == bpy_prop_array:
+        if type(value) not in [list, tuple]:
+            print(f"WARNING: {prop} simple type for array property (old cfg?)")
+            value = (value,) * len(attr)
+    setattr(obj, prop, value)
+
 def find_socket(sockets, sock):
     if "," in sock:
         index, name = sock.split(",")
@@ -63,7 +84,7 @@ def build_nodes(matname, node_tree, ntcfg):
         attr, val, line = value
         if attr == "name":
             continue
-        setattr(node_tree, attr, parse_value(val))
+        set_property(node_tree, attr, val)
     if ntcfg.HasNode("inputs"):
         inputs = ntcfg.GetNode("inputs")
         for ip in inputs.GetNodes("input"):
@@ -71,9 +92,11 @@ def build_nodes(matname, node_tree, ntcfg):
             name = ip.GetValue("name")
             input = node_tree.inputs.new(type, name)
             if ip.HasValue("min_value"):
-                input.min_value = parse_value(ip.GetValue("min_value"))
+                value = ip.GetValue("min_value")
+                set_property(input, "min_value", value)
             if ip.HasValue("max_value"):
-                input.max_value = parse_value(ip.GetValue("max_value"))
+                value = ip.GetValue("max_value")
+                set_property(input, "min_value", value)
     if ntcfg.HasNode("outputs"):
         outputs = ntcfg.GetNode("outputs")
         for op in outputs.GetNodes("output"):
@@ -96,7 +119,7 @@ def build_nodes(matname, node_tree, ntcfg):
             elif a == "node_tree":
                 sn.node_tree = bpy.data.node_groups[v]
             else:
-                setattr(sn, a, parse_value(v))
+                set_property(sn, a, v)
         if sndata.HasNode("inputs"):
             input_nodes = sndata.GetNode("inputs").GetNodes("input")
             if sntype == "ShaderNodeVectorMath":
@@ -111,14 +134,15 @@ def build_nodes(matname, node_tree, ntcfg):
                     value = ip.GetValue("default_value")
                     name = ip.GetValue("name")
                     if name in use_index:
-                        sn.inputs[i].default_value = parse_value(value)
+                        input = sn.inputs[i]
                     elif name in sn.inputs:
-                        sn.inputs[name].default_value = parse_value(value)
+                        input = sn.inputs[name]
+                    set_property (input, "default_value", value)
         if sndata.HasNode("outputs"):
             for i,op in enumerate(sndata.GetNode("outputs").GetNodes("output")):
                 if op.HasValue("default_value"):
                     value = op.GetValue("default_value")
-                    sn.outputs[i].default_value = parse_value(value)
+                    set_property(sn.outputs[i], "default_value", value)
     for r in refs:
         if r[1] == "parent" and r[2] in nodes:
             setattr(r[0], r[1], nodes[r[2]])
@@ -179,7 +203,7 @@ def create_nodes(mat):
         matcfg = cfg.GetNode("Material")
         for value in matcfg.values:
             name, val, line = value
-            setattr(mat, name, parse_value(val))
+            set_property(mat, name, val)
         if mat.use_nodes:
             links = mat.node_tree.links
             nodes = mat.node_tree.nodes
