@@ -78,14 +78,6 @@ def find_deform_children(obj):
                 deform_children.append(child)
     return deform_children
 
-def find_bindpose_children(obj):
-    bindpose_children = []
-    for child in obj.children:
-        if type(child.data) == bpy.types.Armature:
-            if child.name[-9:] == ".bindPose":
-                bindpose_children.append(child)
-    return bindpose_children
-
 def handle_armature(obj, muobj, mu):
     armature = obj.data
     bone_children = find_bone_children(obj)
@@ -94,12 +86,6 @@ def handle_armature(obj, muobj, mu):
     if len(deform_children) > 1:
         mu.messages.append(({'WARNING'}, "too many deform children, ignoring excess"))
         deform_children = deform_children[:1]
-    bindpose_children = find_bindpose_children(obj)
-    exported_objects.update(bindpose_children)
-    if len(bindpose_children) > 1:
-        mu.messages.append(({'WARNING'}, "too many bind-pose armatures, ignoring excess"))
-        bindpose_children = bindpose_children[:1]
-    bindposes = map(lambda o: o.data, bindpose_children)
     path = mu.path
     if deform_children:
         child = deform_children[0]
@@ -109,7 +95,7 @@ def handle_armature(obj, muobj, mu):
             mods[i] = (m, m.show_viewport, m.show_render)
             m.show_viewport = False
             m.show_render = False
-        smr = create_skinned_mesh(deform_children[0], mu, armature, bindposes)
+        smr = create_skinned_mesh(deform_children[0], mu, armature)
         for m in mods:
             m[0].show_viewport = m[1]
             m[0].show_render = m[2]
