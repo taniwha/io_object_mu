@@ -295,11 +295,11 @@ def mesh_bones(obj, mumesh, armature):
         mumesh.boneWeights[i] = bw
     return bones, maxlen
 
-def make_bindPoses(smr, armature):
+def make_bindPoses(smr, armature, arm_mat):
     smr.mesh.bindPoses = [None] * len(smr.bones)
     for i, bone in enumerate(smr.bones):
         poseBone = armature.bones[bone]
-        mat = poseBone.matrix_local.inverted()
+        mat = poseBone.matrix_local.inverted() @ arm_mat
         mat = Matrix_YZ @ mat @ Matrix_YZ
         mat = tuple(mat)
         mat = tuple(map(lambda v: tuple(v), mat))
@@ -315,7 +315,11 @@ def create_skinned_mesh(obj, mu, armature):
     smr = MuSkinnedMeshRenderer()
     smr.mesh = make_mesh(mu, obj)
     smr.bones, smr.quality = mesh_bones(obj, smr.mesh, armature)
-    make_bindPoses (smr, armature)
+    #armature-relative transform between armature and mesh
+    arm_mat = obj.matrix_local
+    if arm_mat != Matrix():
+        mu.messages.append(({'WARNING'}, "non-identity armature-mesh matrix"))
+    make_bindPoses (smr, armature, arm_mat)
     smr.materials = mesh_materials(mu, obj.data)
     #FIXME center, size, updateWhenOffscreen
     #however, with updateWhenOffscreen = 1, Unity will recaculate the mesh
