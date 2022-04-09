@@ -159,8 +159,12 @@ def build_nodes(matname, node_tree, ntcfg):
             links.new(from_socket, to_socket)
 
 def call_update(item, prop, context):
-    item.__annotations__[prop].keywords["update"](item, context)
-    #item.__annotations__[prop][1]["update"](item, context)
+    annotations = item.__annotations__[prop]
+    if hasattr(annotations, "keywords"):
+        keywords = annotations.keywords
+    else:
+        keywords = annotations[1]
+    keywords["update"](item, context)
 
 def set_tex(mu, dst, src, context):
     try:
