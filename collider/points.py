@@ -32,19 +32,6 @@ def _swap_rows(mat, r1, r2):
     mat[r1], mat[r2] = Vector(mat[r2]), Vector(mat[r1])
 
 def _canonicalize_matrix(mat):
-    """ Ensure the matrix is in X Y Z order and that the axes are all +ve"""
-    # mat is (assumted to be) a rotation matrix, so while the signs are not
-    # symmetric, the magnitudes are, thus finding the correct row order can be
-    # done by sorting on column 0 to get X YZ or X ZY, then sort on column 1
-    # to ensure X Y Z
-    if abs(mat[0][0]) < abs(mat[1][0]):
-        _swap_rows(mat, 0, 1)
-    if abs(mat[1][0]) < abs(mat[2][0]):
-        _swap_rows(mat, 1, 2)
-    if abs(mat[0][0]) < abs(mat[1][0]):
-        _swap_rows(mat, 0, 1)
-    if abs(mat[1][1]) < abs(mat[2][1]):
-        _swap_rows(mat, 1, 2)
     # ensure all vectors are cannonical (aligned with +ve axis)
     if mat[0][0] < 0:
         mat[0] = -mat[0]
@@ -52,6 +39,71 @@ def _canonicalize_matrix(mat):
         mat[1] = -mat[1]
     if mat[2][2] < 0:
         mat[2] = -mat[2]
+
+def equal(a, b):
+    return abs(a - b) < 1e-5
+
+def swap_rows(mat, r1, r2):
+    t = Vector(mat[r1])
+    mat[r1] = mat[2]
+    mat[2] = t
+
+def row_echelon(mat):
+    if abs(mat[0][0]) < abs(mat[1][0]):
+        swap_rows(mat, 0, 1)
+    if abs(mat[0][0]) < abs(mat[2][0]):
+        swap_rows(mat, 0, 2)
+    mat[0] /= mat[0][0]
+    mat[1] -= mat[1][0] * mat[0]
+    mat[2] -= mat[2][0] * mat[0]
+    if abs(mat[1][1]) < abs(mat[2][1]):
+        swap_rows(mat, 1, 2)
+    if equal(mat[1][1], 0):
+        mat[1][1] = 0
+        if equal(mat[1][2], 0):
+            mat[1][1] = 0
+        else:
+            mat[1] /= mat[1][2]
+    else:
+        mat[1] /= mat[1][1]
+    mat[2] -= mat[2][1] * mat[1]
+    # ensure rows that are supposed to be 0 are actually 0 ("fixes" -0.0)
+    mat[1][0] = 0
+    mat[2][0] = 0
+    mat[2][1] = 0
+    if equal(mat[2][2], 0):
+        mat[2][2] = 0
+    else:
+        mat[0][2] = 0
+        mat[1][2] = 0
+    if not equal(mat[1][1], 0):
+        mat[0] -= mat[0][1] * mat[1]
+        mat[0][1] = 0
+
+def find_nullspace(mat):
+    """Fiond the nullspace vectors of the privoded row reduced echelon form
+    3x3 matrix. NOTE: returns an empty list for the trivial nullspace"""
+    pivots = []
+    for i in range(3):
+        if 1 in mat[i]:
+            pivots.append(tuple(mat[i]).index(1))
+        else:
+            #hit a 0 row: all further rows should be 0
+            break
+    nullspace = []
+    I = Matrix.Identity(3)
+    for i in range(3):
+        if i in pivots:
+            continue
+        if not mat.col[i]:
+            nullspace.append(I[i])
+        v = -I[i]
+        for j in range(i):
+            if j not in pivots:
+                continue
+            v += mat.col[i] * mat.col[j]
+        nullspace.append(v)
+    return nullspace
 
 def _eigen_vectors(mat):
     """Return the eigen vectors as a rotation matrix.
@@ -68,14 +120,37 @@ def _eigen_vectors(mat):
          - mat[2][2] * mat[0][1]**2)
     L = solve_cubic(a, b, c, d)
     L = [l.real for l in L]
-    # Use Cayley-Hamilton to find the eigenvectors
-    I = Matrix.Identity(3)
-    Aa = mat - L[0] * I
-    Ab = mat - L[1] * I
-    Ac = mat - L[2] * I
-    Q = Matrix((max(Aa @ Ab).normalized(),
-                max(Aa @ Ac).normalized(),
-                max(Ab @ Ac).normalized()))
+    L.sort(reverse=True)
+    #print(L)
+    if equal(L[0], L[2]) and equal(L[0], L[2]):
+        # three repeated eigenvalues so any basis is good, so go for unrotated
+        return Matrix.Identity(3)
+    if equal(L[0], L[1]):
+        # two repeated eigenvalues, but they come first. make them last
+        #print("L[0] and L[1] repeated")
+        L = L[2:3] + L[0:2]
+    if equal(L[1], L[2]):
+        # two repeated eigenvalues
+        #print("L[1] and L[2] repeated")
+        I = Matrix.Identity(3)
+        Aa = mat - L[0] * I
+        Ab = mat - L[1] * I
+        row_echelon(Aa)
+        nullspace = find_nullspace(Aa)
+        row_echelon(Ab)
+        nullspace += find_nullspace(Ab)
+        nullspace[2] -= (nullspace[2] @ nullspace[1]) * nullspace[1] / (nullspace[1] @ nullspace[1])
+        nullspace = [v.normalized() for v in nullspace]
+        Q = Matrix(nullspace).transposed()
+    else:
+        # Use Cayley-Hamilton to find the eigenvectors
+        I = Matrix.Identity(3)
+        Aa = mat - L[0] * I
+        Ab = mat - L[1] * I
+        Ac = mat - L[2] * I
+        Q = Matrix((max(Aa @ Ab).normalized(),
+                    max(Aa @ Ac).normalized(),
+                    max(Ab @ Ac).normalized()))
     _canonicalize_matrix(Q)
     return Q
 
@@ -89,18 +164,19 @@ def _linear_regression(verts):
         A += Matrix(((v.x * v.x, v.x * v.y, v.x * v.z),
                      (v.x * v.y, v.y * v.y, v.y * v.z),
                      (v.x * v.z, v.y * v.z, v.z * v.z)))
+    s = max(max(A))
+    A *= (1/s)
     Q = _eigen_vectors(A)
     # The rotation is never more than 45 degrees as higher angles simply
     # change the principle axes
-    print(Q)
-    rotation = Q.inverted().to_quaternion()
+    rotation = Q.to_quaternion()
     # Note that this is not the actual axis moments, but their
     # contributions: that is, for Ixx, add moment.y and moment.z. However,
     # the size of the equivalent box edge length can be found from
     # sqrt(m/2). More importantly, it is the moments of the point masses
     # rather than of the solid object.
-    moment = Q @ A @ Q.inverted() @ Vector((1,1,1))
-    return centroid, rotation, moment, Q
+    moment = Q.inverted() @ A @ Q
+    return centroid, rotation, moment @ Vector((1,1,1)), Q.inverted()
 
 def _calc_p(x, frame):
     """ Find properties of each point
@@ -174,7 +250,7 @@ class Points:
         r2 = max(p, key=_key_v2)[1]
         mi = min([p[0] + sqrt(r2 - p[1]) for p in p if (p[0] - mi)**2 < r2])
         ma = max([p[0] - sqrt(r2 - p[1]) for p in p if (p[0] - ma)**2 < r2])
-        print (mi, ma)
+        #print (mi, ma)
         r = sqrt(r2)
         length = (ma - mi) + 2 * r
         return loc, rot, axis, length, r
