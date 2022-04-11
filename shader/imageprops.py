@@ -29,6 +29,8 @@ from bpy.props import BoolProperty, StringProperty
 from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
 
+from .shader import call_update
+
 def image_update_flags(self, context):
     class Context:
         pass
@@ -40,7 +42,7 @@ def image_update_flags(self, context):
         ctx.material = mat
         for tex in mat.mumatprop.texture.properties:
             if name == tex.tex:
-                tex.__annotations__["rgbNorm"][1]["update"](tex, ctx)
+                call_update(tex, "rgbNorm", ctx)
 
 class MuImageProperties(bpy.types.PropertyGroup):
     invertY: BoolProperty(name="invertY", description="Invert Y-axis (for dds images). Affects only shaders, not the image editor.", default = False, update=image_update_flags)
