@@ -318,7 +318,7 @@ def create_skinned_mesh(obj, mu, armature):
     #armature-relative transform between armature and mesh
     arm_mat = obj.matrix_local
     if arm_mat != Matrix():
-        mu.messages.append(({'WARNING'}, "non-identity armature-mesh matrix"))
+        mu.messages.append(({'WARNING'}, f"{obj.name}: non-identity armature-mesh matrix"))
     make_bindPoses (smr, armature, arm_mat)
     smr.materials = mesh_materials(mu, obj.data)
     #FIXME center, size, updateWhenOffscreen
