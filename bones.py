@@ -11,7 +11,7 @@ def dump_skin(obj):
     print(smr.updateWhenOffscreen);
     mesh = smr.mesh
     for b in mesh.boneWeights:
-        print(b.indices, b.weights)
+        print(b.indices, b.weights, sum(b.weights))
 
 def check_obj(obj):
     if hasattr(obj, "skinned_mesh_renderer"):
