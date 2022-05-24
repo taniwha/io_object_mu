@@ -27,14 +27,16 @@ from mathutils import Quaternion
 from .. import properties
 from ..mu import MuLight
 
+#assume Unity's light intensity is kW
+light_power = 1000
+
 def create_light(mu, muobj, mulight, name):
     ltype = ('SPOT', 'SUN', 'POINT', 'AREA')[mulight.type]
     light = bpy.data.lights.new(name, ltype)
     light.color = mulight.color[:3]
     light.use_custom_distance = True
     light.cutoff_distance = mulight.range
-    # assume Unity's baseline light intensity maps to 100W
-    light.energy = mulight.intensity * 100
+    light.energy = mulight.intensity * light_power
     if ltype == 'SPOT' and hasattr(mulight, "spotAngle"):
         light.spot_size = mulight.spotAngle * pi / 180
     muprops = light.mulightprop

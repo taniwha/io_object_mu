@@ -28,6 +28,9 @@ from .. import properties
 
 from . import export
 
+#assume Unity's light intensity is kW
+light_power = 1000
+
 # Blender points spotlights along local -Z, unity along local +Z
 # which is Blender's +Y, so rotate -90 degrees around local X to
 # go from Blender to Unity
@@ -42,7 +45,7 @@ def make_light(mu, light, obj):
     else:
         mulight.range = 10
     # assume Unity's baseline light intensity maps to 100W
-    mulight.intensity = light.energy / 100.0
+    mulight.intensity = light.energy / light_power
     mulight.spotAngle = 0.0
     mulight.cullingMask = properties.GetPropMask(light.mulightprop.cullingMask)
     if light.type == 'SPOT':

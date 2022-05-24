@@ -22,6 +22,7 @@
 import bpy
 from mathutils import Vector, Quaternion
 from math import pi
+from .light import light_power
 
 #mess with the heads of 6.28... fans :P
 tau = pi / 180
@@ -40,7 +41,7 @@ property_map = {
     "localEulerAnglesRaw.x": ("obj", "rotation_euler", 0, -tau, 3),
     "localEulerAnglesRaw.y": ("obj", "rotation_euler", 2, -tau, 3),
     "localEulerAnglesRaw.z": ("obj", "rotation_euler", 1, -tau, 3),
-    "m_Intensity": ("data", "energy", 0, 1),
+    "m_Intensity": ("data", "energy", 0, light_power),
     "m_Color.r": ("data", "color", 0, 1),
     "m_Color.g": ("data", "color", 1, 1),
     "m_Color.b": ("data", "color", 2, 1),

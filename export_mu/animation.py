@@ -25,7 +25,7 @@ from mathutils import Vector, Quaternion
 from ..mu import MuAnimation, MuClip, MuCurve, MuKey
 from ..utils import strip_nnn
 
-from .light import light_types
+from .light import light_types, light_power
 
 def shader_animations(mat, path):
     animations = {}
@@ -156,7 +156,7 @@ property_map = {
         ("m_Color.a", 1, 2),#probably not used
     ),
     "energy":(
-        ("m_Intensity", 1, 2),
+        ("m_Intensity", 1/light_power, 2),
     ),
 }
 
