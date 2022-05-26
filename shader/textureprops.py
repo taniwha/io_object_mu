@@ -33,20 +33,23 @@ def texture_update_mapping(self, context):
     if not hasattr(context, "material") or not context.material:
         return
     mat = context.material
-    #sel_name = "%s.%s:select" % (mat.name, self.name)
     nodes = mat.node_tree.nodes
     scale = Vector(self.scale)
     offset = Vector(self.offset)
+    image_convertNorm = False
     if self.name in nodes:
         if self.tex in bpy.data.images:
             img = bpy.data.images[self.tex]
             if img.muimageprop.invertY:
                 scale.y *= -1
                 offset.y = 1 - offset.y
+            image_convertNorm = img.muimageprop.convertNorm
         nodes[self.name].texture_mapping.translation.xy = offset
         nodes[self.name].texture_mapping.scale.xy = scale
-    #if sel_name in nodes:
-    #    nodes[sel_name].inputs[0].default_value = float(self.rgbNorm)
+    #if "dxtNormal" in nodes:
+    #    dxtNormal = nodes["dxtNormal"]
+    #    fac = float(image_convertNorm or not self.rgbNorm)
+    #    dxtNormal.inputs[0].default_value = fac
 
 def texture_update_tex(self, context):
     if not hasattr(context, "material") or not context.material:
