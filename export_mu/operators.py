@@ -21,7 +21,7 @@
 
 import bpy
 from bpy_extras.io_utils import ExportHelper
-from bpy.props import StringProperty
+from bpy.props import StringProperty, EnumProperty
 
 from ..utils import strip_nnn, collect_hierarchy_objects
 
@@ -86,9 +86,22 @@ class KSPMU_OT_ExportMu_quick(bpy.types.Operator, ExportHelper):
             self.filepath = strip_nnn(obj.name) + self.filename_ext
         return ExportHelper.invoke(self, context, event)
 
+volume_selection_enum = (
+    ('ACTIVE', "Active", "Calculate volume of only the active object"),
+    ('SELECTED', "Selected", "Calculate the volume of all selected objects"),
+    ('HIERARCHY', "Hierarchy", "Calculate the volume of selected objects and their descendents"),
+)
+
 class KSPMU_OT_MuVolume(bpy.types.Operator):
+    '''Calculate the volume of selected objects'''
     bl_idname = 'object.mu_volume'
     bl_label = 'Mu Volume'
+
+    bl_options = {'PRESET'}
+
+    selection: EnumProperty(name = "Selection",
+                            description = "Which objects to measure",
+                            items = volume_selection_enum)
 
     @classmethod
     def poll(cls, context):
@@ -97,10 +110,22 @@ class KSPMU_OT_MuVolume(bpy.types.Operator):
 
     def execute(self, context):
         obj = context.active_object
-        if obj.data and type(obj.data) == bpy.types.Mesh:
-            vol = volume.obj_volume(obj)
+        if self.selection == 'ACTIVE':
+            if obj.data and type(obj.data) == bpy.types.Mesh:
+                vol = volume.obj_volume(obj)
+            else:
+                vol = volume.model_volume(obj)
+        elif self.selection == 'HIERARCHY':
+            vol = (0, 0)
+            for obj in bpy.context.selected_objects:
+                v = volume.model_volume(obj)
+                vol = vol[0] + v[0], vol[1] + v[1]
         else:
-            vol = volume.model_volume(obj)
+            vol = (0, 0)
+            for obj in bpy.context.selected_objects:
+                if obj.data and type(obj.data) == bpy.types.Mesh:
+                    v = volume.obj_volume(obj)
+                    vol = vol[0] + v[0], vol[1] + v[1]
         self.report({'INFO'}, 'Skin Volume = %g m^3, Ext Volume = %g m^3' % vol)
         return {'FINISHED'}
 
