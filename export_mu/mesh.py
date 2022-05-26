@@ -222,6 +222,10 @@ def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
 
 def make_mesh(mu, obj):
     mesh = get_mesh(obj)
+    if not len(mesh.loops):
+        mu.messages.append(({'WARNING'}, f"Mesh has more ZERO vertices "
+                            + obj.name))
+        return None
     #mesh is always a copy of the object mesh data, but this is non-destructive
     #anyway
     if not mesh.loop_triangles:
