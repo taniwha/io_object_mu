@@ -134,7 +134,7 @@ def barycentric_coords(points, p):
         lam[0] = 1 - lam[1] - lam[2] - lam[3]
     return lam
 
-def smalest_enclosing_ball(points):
+def smallest_enclosing_ball(points):
     if not points:
         return None
     if len(points) == 1:
@@ -264,5 +264,5 @@ if __name__ == "__main__":
         Vector(( 0,  0,  0)),
     ]
     for i in range(len(points) - 1):
-        print(smalest_enclosing_ball(points[:i + 1]))
-    print(smalest_enclosing_ball(points))
+        print(smallest_enclosing_ball(points[:i + 1]))
+    print(smallest_enclosing_ball(points))

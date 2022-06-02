@@ -26,7 +26,7 @@ from math import sqrt
 from .. import properties
 from ..quickhull.convex_hull import quickhull
 from ..utils.solver import solve_cubic
-from .seb import smalest_enclosing_ball
+from .seb import smallest_enclosing_ball
 
 def _swap_rows(mat, r1, r2):
     mat[r1], mat[r2] = Vector(mat[r2]), Vector(mat[r1])
@@ -229,7 +229,7 @@ class Points:
         return size, center
 
     def calc_sphere(self):
-        return smalest_enclosing_ball(self.verts)
+        return smallest_enclosing_ball(self.verts)
 
     def calc_hull(self):
         return quickhull(self)
