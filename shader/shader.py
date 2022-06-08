@@ -168,6 +168,8 @@ def call_update(item, prop, context):
 
 def set_tex(mu, dst, src, context):
     try:
+        if src.index < 0:
+            raise IndexError    # ick, but it works
         tex = mu.textures[src.index]
         if tex.name[-4:] in [".dds", ".png", ".tga", ".mbm"]:
             dst.tex = tex.name[:-4]
