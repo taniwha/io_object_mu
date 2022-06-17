@@ -81,7 +81,7 @@ def find_socket(sockets, sock):
 
 def build_nodes(matname, node_tree, ntcfg):
     for value in ntcfg.values:
-        attr, val, line = value
+        attr, val = value.name, value.value
         if attr == "name":
             continue
         set_property(node_tree, attr, val)
@@ -108,10 +108,10 @@ def build_nodes(matname, node_tree, ntcfg):
     refs = []
     nodes = node_tree.nodes
     for n in ntcfg.GetNode("nodes").nodes:
-        sntype, sndata, line = n
+        sntype, sndata, line = n.name, n, n.line
         sn = nodes.new(sntype)
         for snvalue in sndata.values:
-            a, v, l = snvalue
+            a, v = snvalue.name, snvalue.value
             v = v.strip()
             if a == "parent":
                 refs.append((sn, a, v))
@@ -212,7 +212,7 @@ def create_nodes(mat):
                 build_nodes(mat.name, node_tree, extra)
         matcfg = cfg.GetNode("Material")
         for value in matcfg.values:
-            name, val, line = value
+            name, val = value.name, value.value
             set_property(mat, name, val)
         if mat.use_nodes:
             links = mat.node_tree.links

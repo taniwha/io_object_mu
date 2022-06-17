@@ -57,30 +57,30 @@ class GameData:
             self.models[url] = path
 
     def process_cfgnode(self, path, node):
-        if node[0] == "PART":
-            part = Part(path, node[1])
+        if node.name == "PART":
+            part = Part(path, node)
             if part.name in self.parts:
                 part = self.parts[part.name]
             self.parts[part.name] = part
             part.db = self
-        elif node[0] == "PROP":
-            prop = Prop(path, node[1])
+        elif node.name == "PROP":
+            prop = Prop(path, node)
             if prop.name in self.props:
                 prop = self.props[prop.name]
             prop.db = self
             self.props[prop.name] = prop
-        elif node[0] == "INTERNAL":
-            internal = Internal(path, node[1])
+        elif node.name == "INTERNAL":
+            internal = Internal(path, node)
             internal.db = self
             self.internals[internal.name] = internal
-        elif node[0] == "RESOURCE_DEFINITION":
-            res = node[1]
+        elif node.name == "RESOURCE_DEFINITION":
+            res = node
             resname = res.GetValue("name")
             self.resources[resname] = res
-        elif node[0] == "Localization":
-            locs = node[1].nodes[0][1]
+        elif node.name == "Localization":
+            locs = node.nodes[0]
             for loc in locs.values:
-                self.localizations[loc[0]] = loc[1]
+                self.localizations[loc.name] = loc.value
 
     def process_cfg(self, path):
         if self.use_module_manager:

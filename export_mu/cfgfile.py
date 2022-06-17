@@ -94,4 +94,4 @@ def generate_cfg(mu, filepath):
     # nothing meaningful for PROP
     of = open(cfgfile, "wt")
     for n in cfgnode.nodes:
-        of.write(n[0] + " " + n[1].ToString())
+        of.write(n.name + " " + n.ToString())

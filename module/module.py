@@ -52,7 +52,7 @@ def parseItems(items):
     enum = []
     for i in items.values:
         name, desc, line = i
-        enum.append((name, name, desc))
+        enum.append((i.name, i.name, i.value))
     return enum
 
 available_modules=[]
@@ -148,8 +148,8 @@ def build_modules():
                 print("Error reading", modtext.name, e.message)
             else:
                 for mod in moddefs.nodes:
-                    if mod[0] == "MODULE":
-                        generate_module_properties(mod[1])
+                    if mod.name == "MODULE":
+                        generate_module_properties(mod)
 
 def ksp_module_items(self, context):
     return available_modules_enum

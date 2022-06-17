@@ -23,8 +23,13 @@ import math
 
 try:
     from mathutils import Vector, Quaternion
-except:
+except ImportError:
     pass
+
+try:
+    from .cfgnode import ConfigValue
+except ImportError:
+    from cfgnode import ConfigValue
 
 permitted_builtins = {
     "abs":abs,
@@ -72,17 +77,17 @@ def build_dictionary(mu, node):
         value_dict["animationRoot"] = obj.transform.name
     i = 0
     while i < len(node.nodes):
-        if node.nodes[i][0] == "values":
-            for val in node.nodes[i][1].values:
-                vstr = val[1].strip()
+        if node.nodes[i].name == "values":
+            for val in node.nodes[i].values:
+                vstr = val.value.strip()
                 if vstr[:2] == "${" and vstr[-1:] == "}" and "__" not in vstr:
                     try:
                         nval=eval(vstr[2:-1], value_dict)
                     except Exception as e:
-                        print(mu.name + ":" + str(val[2]) + ": " + str(e))
+                        print(mu.name + ":" + str(val.line) + ": " + str(e))
                     else:
                         vstr = nval
-                value_dict[val[0]] = vstr
+                value_dict[val.name] = vstr
             del (node.nodes[i])
             continue
         i += 1
@@ -91,16 +96,16 @@ def build_dictionary(mu, node):
 def parse_node(mu, node):
     def recurse(value_dict, node):
         for i,val in enumerate(node.values):
-            vstr = val[1].strip()
+            vstr = val.value.strip()
             if vstr[:2] == "${" and vstr[-1:] == "}":
                 try:
                     nval=eval(vstr[2:-1], value_dict)
                 except Exception as e:
-                    print(mu.name + ":" + str(val[2]) + ": " + str(e))
+                    print(mu.name + ":" + str(val.line) + ": " + str(e))
                 else:
-                    node.values[i] = (val[0], nval, val[2])
+                    node.values[i] = ConfigValue(val.name, nval, val.line)
         for n in node.nodes:
-            recurse(value_dict, n[1])
+            recurse(value_dict, n)
 
     value_dict = build_dictionary(mu, node)
     recurse(value_dict, node)

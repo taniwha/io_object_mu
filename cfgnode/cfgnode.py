@@ -19,7 +19,10 @@
 
 # <pep8 compliant>
 
-from .script import Script
+try:
+    from .script import Script
+except ImportError:
+    from script import Script
 
 class ConfigNodeError(Exception):
     def __init__(self, fname, line, message):
@@ -30,8 +33,21 @@ class ConfigNodeError(Exception):
 def cfg_error(self, msg):
     raise ConfigNodeError(self.filename, self.line, msg)
 
+class ConfigValue:
+    def __init__(self, name, value, line, comment=""):
+        self.name = name
+        self.value = value
+        self.line = line
+        self.comment = comment
+    def ToString(self):
+        comment = f" // {self.comment}" if self.comment else ""
+        return f"{self.name} = {self.value}{comment}"
+
 class ConfigNode:
-    def __init__(self):
+    def __init__(self, name="", line=0, comment=""):
+        self.name = name
+        self.line = line
+        self.comment = comment
         self.values = []
         self.nodes = []
     @classmethod
@@ -58,13 +74,12 @@ class ConfigNode:
                     if script.tokenAvailable(False):
                         script.getLine()
                         value = script.token.strip()
-                    node.values.append((key, value, line))
+                    node.values.append(ConfigValue(key, value, line))
                     break
                 elif script.token == '{':
-                    new_node = ConfigNode()
-                    new_node.line = line
+                    new_node = ConfigNode(key, line)
                     ConfigNode.ParseNode(new_node, script, False)
-                    node.nodes.append((key, new_node, line))
+                    node.nodes.append(new_node)
                     break
                 else:
                     #cfg_error(script, "unexpected " + script.token)
@@ -79,7 +94,7 @@ class ConfigNode:
         script.error = cfg_error.__get__(script, Script)
         nodes = []
         while script.tokenAvailable(True):
-            node = ConfigNode()
+            node = ConfigNode("", script.line)
             ConfigNode.ParseNode(node, script, True)
             nodes.append(node)
         if len(nodes) == 1:
@@ -93,77 +108,83 @@ class ConfigNode:
         return cls.load(text)
     def GetNode(self, key):
         for n in self.nodes:
-            if n[0] == key:
-                return n[1]
+            if n.name == key:
+                return n
         return None
     def GetNodeLine(self, key):
         for n in self.nodes:
-            if n[0] == key:
-                return n[2]
+            if n.name == key:
+                return n.line
         return None
     def GetNodes(self, key):
         nodes = []
         for n in self.nodes:
-            if n[0] == key:
-                nodes.append(n[1])
+            if n.name == key:
+                nodes.append(n)
         return nodes
     def GetValue(self, key):
         for v in self.values:
-            if v[0] == key:
-                return v[1].strip()
+            if v.name == key:
+                return v.value.strip()
         return None
     def HasNode(self, key):
         for n in self.nodes:
-            if n[0] == key:
+            if n.name == key:
                 return True
         return False
     def HasValue(self, key):
         for v in self.values:
-            if v[0] == key:
+            if v.name == key:
                 return True
         return False
     def GetValueLine(self, key):
         for v in self.values:
-            if v[0] == key:
-                return v[2]
+            if v.name == key:
+                return v.line
         return None
     def GetValues(self, key):
         values = []
         for v in self.values:
-            if v[0] == key:
-                values.append(v[1])
+            if v.name == key:
+                values.append(v.value)
         return values
     def AddNode(self, key, node):
-        self.nodes.append((key, node))
+        node.name = key
+        self.nodes.append(node)
         return node
     def AddNewNode (self, key):
-        node = ConfigNode ()
-        self.nodes.append((key, node))
+        node = ConfigNode (key, 0)
+        self.nodes.append(node)
         return node
 
-    def AddValue(self, key, value):
-        self.values.append((key, value))
-    def SetValue(self, key, value):
+    def AddValue(self, key, value, comment=""):
+        self.values.append(ConfigValue(key, value, 0, comment))
+    def SetValue(self, key, value, comment=""):
         for i in range(len(self.values)):
-            if self.values[i][0] == key:
-                self.values[i] = key, value, 0
+            if self.values[i].name == key:
+                self.values[i] = ConfigValue(key, value, 0, comment)
                 return
-        self.AddValue(key, value)
+        self.AddValue(key, value, comment)
     def ToString(self, level = 0):
         extra = 0
         if level >= 0:
             extra = 2
         text=[None] * (len(self.values) + len(self.nodes) + extra)
         index = 0
+        comment = f" // {self.comment}" if self.comment else ""
         if level >= 0:
-            text[index] = "{\n"
+            text[index] = f"{{{comment}\n"
             index += 1
+        else:
+            if comment: 
+                text[index] = f"{comment[1:]}\n"
+                index += 1
         for val in self.values:
-            text[index] = "%s%s = %s\n" % ("    " * (level + 1), val[0], val[1])
+            text[index] = "%s%s\n" % ("    " * (level + 1), val.ToString())
             index += 1
         for node in self.nodes:
-            ntext = node[1].ToString(level + 1)
-            text[index] = "%s%s %s\n" % ("    " * (level + 1), node[0], ntext)
+            ntext = node.ToString(level + 1)
+            text[index] = "%s%s %s\n" % ("    " * (level + 1), node.name, ntext)
             index += 1
         if level >= 0:
             text[index] = "%s}\n" % ("    " * (level))
