@@ -58,12 +58,16 @@ def add_internal_node(node, internal):
         inode.AddValue("scale", vector_str(swapyz(internal.scale)))
 
 def add_prop_node(mu, node, prop):
+    path, prop = prop
+    name = strip_nnn(prop.name)
+    path = f"{path}/{name}"
     xform = mu.inverse @ prop.matrix_world
     location = xform.translation
     rotation = xform.to_quaternion()
     scale = xform.to_scale()
     pnode = node.AddNewNode('PROP')
-    pnode.AddValue("name", strip_nnn(prop.name))
+    pnode.comment = path
+    pnode.AddValue("name", name)
     pnode.AddValue("position", vector_str(swapyz(location)))
     pnode.AddValue("rotation", vector_str(swizzleq(rotation)))
     pnode.AddValue("scale", vector_str(swapyz(scale)))

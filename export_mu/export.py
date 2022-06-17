@@ -100,6 +100,7 @@ def make_obj_core(mu, obj, path, muobj):
         #of a part (that sounds odd), volumes should not be exported as part
         # of anything
         if muprops.modelType in mu.special:
+            mu.path = path  #needs to be reset as a type handler might modify it
             if mu.special[muprops.modelType](mu, o):
                 continue
         child = make_obj(mu, o, path)
@@ -127,7 +128,7 @@ def add_internal(mu, obj):
     return True
 
 def add_prop(mu, obj):
-    mu.props.append(obj)
+    mu.props.append((mu.path, obj))
     return True
 
 def add_volume(mu, obj):
