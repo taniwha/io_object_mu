@@ -57,13 +57,16 @@ def add_internal_node(node, internal):
     if internal.scale != Vector((1, 1, 1)):
         inode.AddValue("scale", vector_str(swapyz(internal.scale)))
 
-def add_prop_node(node, prop):
-    # NOTE this assumes the prop is the direct child of the internal's root
+def add_prop_node(mu, node, prop):
+    xform = mu.inverse @ prop.matrix_world
+    location = xform.translation
+    rotation = xform.to_quaternion()
+    scale = xform.to_scale()
     pnode = node.AddNewNode('PROP')
     pnode.AddValue("name", strip_nnn(prop.name))
-    pnode.AddValue("position", vector_str(swapyz(prop.location)))
-    pnode.AddValue("rotation", vector_str(swizzleq(prop.rotation_quaternion)))
-    pnode.AddValue("scale", vector_str(swapyz(prop.scale)))
+    pnode.AddValue("position", vector_str(swapyz(location)))
+    pnode.AddValue("rotation", vector_str(swizzleq(rotation)))
+    pnode.AddValue("scale", vector_str(swapyz(scale)))
 
 def generate_cfg(mu, filepath):
     cfgfile, cfgnode = find_template(mu, filepath)
@@ -90,7 +93,7 @@ def generate_cfg(mu, filepath):
             n.save(node)
     elif ntype == 'INTERNAL':
         for prop in mu.props:
-            add_prop_node(node, prop)
+            add_prop_node(mu, node, prop)
     # nothing meaningful for PROP
     of = open(cfgfile, "wt")
     for n in cfgnode.nodes:
