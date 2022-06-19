@@ -22,6 +22,9 @@
 import bpy
 from bpy.props import BoolProperty
 from mathutils import Matrix
+from math import sqrt
+
+from ..collider import update_collider
 
 def vec(v):
     return "[%5.2f %5.2f %5.2f %5.2f]" % tuple(v)
@@ -32,11 +35,40 @@ def apply_scale(obj):
                     (  0,s.y,  0, 0),
                     (  0,  0,s.z, 0),
                     (  0,  0,  0, 1)))
+    muprops = obj.muproperties
     #FIXME apply to animation data and armatures
     if type(obj.data) is bpy.types.Mesh:
         mesh = obj.data
         for v in mesh.vertices:
             v.co = scale @ v.co
+    elif muprops.collider != 'MU_COL_NONE':
+        #NOTE mesh colliders handled above
+        ct = muprops.collider
+        avg_scale = scale.median_scale
+        if ct == 'MU_COL_SPHERE':
+            muprops.radius *= avg_scale
+        elif ct == 'MU_COL_CAPSULE':
+            if muprops.direction == 'MU_X':
+                muprops.height *= s.x
+                muprops.radius *= sqrt(abs(s.y * s.z))
+            elif muprops.direction == 'MU_Y':
+                muprops.height *= s.y
+                muprops.radius *= sqrt(abs(s.z * s.x))
+            elif muprops.direction == 'MU_Z':
+                muprops.height *= s.z
+                muprops.radius *= sqrt(abs(s.x * s.y))
+        elif ct == 'MU_COL_BOX':
+            muprops.size = scale @ muprops.size
+        elif ct == 'MU_COL_WHEEL':
+            muprops.mass *= abs(s.x * s.y * s.z)
+            muprops.radius *= sqrt(abs(s.y * s.z))
+            # not sure any of these are correct, but nobody uses wheel
+            # colliders anymore anyway.
+            muprops.suspensionDistance *= abs(s.z)
+            muprops.suspensionSpring.sprint *= avg_scale
+            muprops.suspensionSpring.damper *= avg_scale
+        muprops.center = scale @ muprops.center
+        update_collider(obj)
     for child in obj.children:
         child.matrix_basis = scale @ child.matrix_basis
         apply_scale(child)
