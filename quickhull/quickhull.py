@@ -185,6 +185,16 @@ class QuickHull:
                 iter -= 1
                 continue
             point = f.highest_point
+            if f.dist(point) < 1e-12:   #FIXME epsilon varies with data
+                # the highest point is essentially on the face (possibly to
+                # the side), so all points are on the face. Thus, this face
+                # is done
+                for p in f.vispoints:
+                    vert_faces[p].remove(f)
+                f.vispoints.clear()
+                finalFaces.add(f)
+                iter -= 1
+                continue
             litFaces = connectivity.light_faces(f, point, vert_faces)
             vispoints = connectivity.remove(litFaces)
             #print(vispoints)
