@@ -109,6 +109,9 @@ class Triangle:
         # can_see is not used here because can_see includes points on the
         # triangle's plane (not a propblem, but subotptimal) and the height
         # is needed anyway as in the end, the highest point is desired.
+        for e in self.edges:
+            if e.distance(point) == 0 and not e.touches_point(point):
+                return False
         d = self.dist(point)
         if d <= 0:
             return False
