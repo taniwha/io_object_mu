@@ -53,7 +53,6 @@ class Triangle:
         self.highest_point = -1
         self.height = -1
         self.faceset = None
-        self.light_run = 0
 
     def __hash__(self):
         a, b, c = self.edges[0].a, self.edges[1].a, self.edges[2].a

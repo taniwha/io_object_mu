@@ -26,7 +26,6 @@ class Connectivity:
     def __init__(self, faces):
         self.error = False
         self.edgeFaces = {}
-        self.light_run = 0
         for f in faces:
             self.add(f)
 
@@ -58,10 +57,10 @@ class Connectivity:
                 del self.edgeFaces[face.edges[i]]
             return face.vispoints
 
-    def light_faces_int(self, face, point, lit_faces):
-        if face.light_run == self.light_run:
+    def light_faces_int(self, face, point, lit_faces, vert_faces, visited_faces):
+        if face in visited_faces or face not in vert_faces:
             return
-        face.light_run = self.light_run
+        visited_faces.add(face)
         if face.can_see(point):
             lit_faces.add(face)
             for i in range(3):
@@ -69,10 +68,10 @@ class Connectivity:
                 if not conface:
                     print(f"[Connectivity] incompletely connected face")
                     continue
-                self.light_faces_int(conface, point, lit_faces)
+                self.light_faces_int(conface, point, lit_faces, vert_faces, visited_faces)
 
-    def light_faces(self, first_face, point, virt_faces):
+    def light_faces(self, first_face, point, vert_faces):
         lit_faces = FaceSet(first_face.mesh)
-        for f in virt_faces[point]:
-            lit_faces.add(f)
+        visited_faces = set()
+        self.light_faces_int(first_face, point, lit_faces, vert_faces[point], visited_faces)
         return lit_faces
