@@ -177,10 +177,6 @@ class KSPMU_OT_MuShowTransform(bpy.types.Operator):
             location = mat.to_translation()
             scale = mat.to_scale()
             yxz_rotation = -Vector(mat.to_euler('YXZ')) * tau
-            #print(f"{obj.name}")
-            #print(f"    position = {vector_str(swapyz(location))}")
-            #print(f"    rotation = {vector_str(swapyz(-yxz_rotation * tau))}")
-            #print(f"    scale = {vector_str(swapyz(scale))}")
             self.report({'INFO'},
                         f"{obj.name}")
             self.report({'INFO'},
