@@ -166,7 +166,7 @@ def process_shape_keys(mesh, mumesh, vertex_map, vertex_data):
     for key in mesh.shape_keys.key_blocks:
         if key.name == basis.name:
             continue
-        print(key.name)
+        print(f"shape key: {key.name}")
         ref_verts = get_key_verts(key.relative_key)
         ref_normals = get_key_normals(key.relative_key)
         verts = get_key_verts(key)

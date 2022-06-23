@@ -53,7 +53,7 @@ def object_animations(obj, path):
     if type(obj) in light_types:
         typ = "lit"
     elif type(obj.data) == bpy.types.Armature:
-        print(obj.name)
+        #print(obj.name)
         typ = "arm"
     if obj.animation_data:
         for track in obj.animation_data.nla_tracks:
@@ -181,7 +181,7 @@ def make_curve(mu, muobj, curve, path, typ):
             if path and path[-1:] != "/":
                 path = path + "/"
             mucurve.path = path + bone_path
-            print(mucurve.path)
+            #print(mucurve.path)
             property, mult, ctyp  = property_map[dpath][curve.array_index]
             if not hasattr(bone, "curves"):
                 bone.curves = {}
