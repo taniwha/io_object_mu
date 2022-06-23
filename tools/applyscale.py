@@ -65,7 +65,7 @@ def apply_scale(obj):
             # not sure any of these are correct, but nobody uses wheel
             # colliders anymore anyway.
             muprops.suspensionDistance *= abs(s.z)
-            muprops.suspensionSpring.sprint *= avg_scale
+            muprops.suspensionSpring.spring *= avg_scale
             muprops.suspensionSpring.damper *= avg_scale
         muprops.center = scale @ muprops.center
         update_collider(obj)
