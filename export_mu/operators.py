@@ -22,8 +22,13 @@
 import bpy
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty, EnumProperty
+from mathutils import Vector
+from math import pi
 
-from ..utils import strip_nnn, collect_hierarchy_objects
+from ..utils import strip_nnn, collect_hierarchy_objects, swapyz, vector_str
+
+#gotta mess with the heads of 6.28 fans :)
+tau = 180 / pi
 
 from . import export
 from . import volume
@@ -151,4 +156,37 @@ class KSPMU_OT_MuFindCoM(bpy.types.Operator):
             objects = context.selected_objects[:]
         pos = volume.find_com(objects)
         bpy.context.scene.cursor.location = pos
+        return {'FINISHED'}
+
+class KSPMU_OT_MuShowTransform(bpy.types.Operator):
+    bl_idname = 'object.mu_show_transform'
+    bl_label = 'Mu Show Transform'
+
+    @classmethod
+    def poll(cls, context):
+        #print(context.selected_objects)
+        if len(context.selected_objects) == 1 and context.active_object:
+            return True
+        if context.selected_objects:
+            return True
+        return False
+
+    def execute(self, context):
+        for obj in context.selected_objects:
+            mat = obj.matrix_local
+            location = mat.to_translation()
+            scale = mat.to_scale()
+            yxz_rotation = -Vector(mat.to_euler('YXZ')) * tau
+            #print(f"{obj.name}")
+            #print(f"    position = {vector_str(swapyz(location))}")
+            #print(f"    rotation = {vector_str(swapyz(-yxz_rotation * tau))}")
+            #print(f"    scale = {vector_str(swapyz(scale))}")
+            self.report({'INFO'},
+                        f"{obj.name}")
+            self.report({'INFO'},
+                        f"    position = {vector_str(swapyz(location))}")
+            self.report({'INFO'},
+                        f"    rotation = {vector_str(swapyz(yxz_rotation))}")
+            self.report({'INFO'},
+                        f"    scale = {vector_str(swapyz(scale))}")
         return {'FINISHED'}

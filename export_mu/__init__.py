@@ -25,6 +25,7 @@ import bpy
 
 from .export import export_object, strip_nnn
 from .export import enable_collections, restore_collections
+from .operators import KSPMU_OT_MuShowTransform
 from .operators import KSPMU_OT_MuFindCoM
 from .operators import KSPMU_OT_MuVolume
 from .operators import KSPMU_OT_ExportMu
@@ -42,6 +43,7 @@ classes_to_register = (
     WORKSPACE_PT_tools_mu_export,
     KSPMU_OT_MuVolume,
     KSPMU_OT_MuFindCoM,
+    KSPMU_OT_MuShowTransform,
 )
 
 menus_to_register = (
