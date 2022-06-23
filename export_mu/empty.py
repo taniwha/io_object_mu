@@ -40,7 +40,7 @@ def collect_objects(collection):
     return objects
 
 def export_collection(obj, muobj, mu):
-    saved_exported_objects = set(export.exported_objects)
+    saved_exported_objects = set(mu.exported_objects)
     group = obj.instance_collection
     objects = collect_objects(group)
     group_objects = []
@@ -63,7 +63,7 @@ def export_collection(obj, muobj, mu):
             child = export.make_obj(mu, o, mu.path)
             if child:
                 muobj.children.append(child)
-    export.exported_objects = saved_exported_objects
+    mu.exported_objects = saved_exported_objects
     return muobj
 
 def handle_empty(obj, muobj, mu):

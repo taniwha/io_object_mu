@@ -25,7 +25,7 @@ from mathutils import Vector, Quaternion
 from ..mu import MuObject, MuTransform, MuTagLayer
 from ..utils import strip_nnn, collect_armature_modifiers
 
-from .export import make_obj_core, exported_objects
+from .export import make_obj_core
 from .mesh import create_skinned_mesh
 
 def bone_transform(bone, obj):
@@ -82,10 +82,11 @@ def handle_armature(obj, muobj, mu):
     armature = obj.data
     bone_children = find_bone_children(obj)
     deform_children = find_deform_children(obj)
-    exported_objects.update(deform_children)
+    mu.exported_objects.update(deform_children)
     if len(deform_children) > 1:
         mu.messages.append(({'WARNING'}, "too many deform children, ignoring excess"))
         deform_children = deform_children[:1]
+    print(f"handle_armature: {obj.name} {deform_children[0].name}")
     path = mu.path
     if deform_children:
         child = deform_children[0]

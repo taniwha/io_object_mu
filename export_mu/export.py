@@ -51,7 +51,6 @@ def make_tag_and_layer(obj):
     return tl
 
 type_handlers = {} # filled in by the modules that handle the obj.data types
-exported_objects = set()
 
 def find_single_collider(objects):
     colliders = []
@@ -76,7 +75,7 @@ def make_obj_core(mu, obj, path, muobj):
     mu.object_paths[path] = muobj
     muobj.tag_and_layer = make_tag_and_layer(obj)
     if is_collider(obj):
-        exported_objects.add(obj)
+        mu.exported_objects.add(obj)
         muobj.collider = make_collider(mu, obj)
         return muobj
     elif type(obj.data) in type_handlers:
@@ -85,13 +84,13 @@ def make_obj_core(mu, obj, path, muobj):
         if not muobj:
             # the handler decided the object should not be exported
             return None
-    exported_objects.add(obj)
+    mu.exported_objects.add(obj)
     col = find_single_collider(obj.children)
     if col:
-        exported_objects.add(col)
+        mu.exported_objects.add(col)
         muobj.collider = make_collider(mu, col)
     for o in obj.children:
-        if o in exported_objects:
+        if o in mu.exported_objects:
             # the object has already been exported
             continue
         child = make_obj(mu, o, path)
@@ -100,7 +99,7 @@ def make_obj_core(mu, obj, path, muobj):
     return muobj
 
 def make_obj(mu, obj, path, extra=None):
-    if obj in exported_objects:
+    if obj in mu.exported_objects:
         # the object has already been "exported"
         return None
     muprops = obj.muproperties
@@ -154,10 +153,10 @@ special_modelTypes = {
 }
 
 def export_object(obj, filepath):
-    exported_objects.clear()
     animations = collect_animations(obj)
     anim_root = find_path_root(animations)
     mu = Mu()
+    mu.exported_objects = set()
     mu.name = strip_nnn(obj.name)
     mu.object_paths = {}
     mu.materials = {}
