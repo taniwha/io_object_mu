@@ -23,10 +23,14 @@ import os
 
 import bpy
 from mathutils import Vector
+from math import pi
 
 from ..cfgnode import ConfigNode, ConfigNodeError
 from ..cfgnode import parse_node
 from ..utils import strip_nnn, swapyz, swizzleq, vector_str
+
+#gotta mess with the heads of 6.28 fans :)
+tau = 180 / pi
 
 def find_template(mu, filepath):
     base = os.path.splitext(filepath)
@@ -72,6 +76,33 @@ def add_prop_node(mu, node, prop):
     pnode.AddValue("rotation", vector_str(swizzleq(rotation)))
     pnode.AddValue("scale", vector_str(swapyz(scale)))
 
+def add_model_node(mu, node, model):
+    path, model, extra = model
+    if not extra:
+        parent = model.parent
+        matrix = model.matrix_local
+    else:
+        parent, matrix = extra
+        matrix = matrix @ model.matrix_local
+    name = strip_nnn(model.name)
+    modelPath = bpy.context.scene.musceneprops.modelPath
+    if modelPath:
+        modelPath = "/".join([modelPath, name])
+    else:
+        modelPath = name
+    path = f"{path}/{name}"
+    location = matrix.to_translation()
+    scale = matrix.to_scale()
+    yxz_rotation = Vector(matrix.to_euler('YXZ'))
+    mnode = node.AddNewNode('MODEL')
+    mnode.comment = path
+    mnode.AddValue("model", modelPath)
+    mnode.AddValue("parent", strip_nnn(parent.name))
+    mnode.AddValue("name", name)
+    mnode.AddValue("position", vector_str(swapyz(location)))
+    mnode.AddValue("rotation", vector_str(swapyz(-yxz_rotation * tau)))
+    mnode.AddValue("scale", vector_str(swapyz(scale)))
+
 def generate_cfg(mu, filepath):
     cfgfile, cfgnode = find_template(mu, filepath)
     if not cfgnode:
@@ -83,6 +114,8 @@ def generate_cfg(mu, filepath):
     if not node:
         return
     parse_node(mu, cfgnode)
+    for model in mu.models:
+        add_model_node(mu, node, model)
     if ntype == 'PART':
         if mu.CoMOffset != None:
             node.AddValue("CoMOffset", vector_str(swapyz(mu.CoMOffset)))

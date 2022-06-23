@@ -76,6 +76,7 @@ modelType_items = (
     ('PROP', "Prop", "The object and its descendants form a KSP prop model. No descendant objects are special."),
     ('INTERNAL', "Internal Space", "The object and its descendants form a KSP internal space model. Only \"Prop\" descendant objects are special."),
     ('STATIC', "KK Static", "The object and its descendants form a Kerbal Konstructs static model. No descendant objects are special."),
+    ('MODEL', "Model", "The object and its descendants form a KSP sub-model. No descendant objects are special."),
     ('VOLUME', "Volume", "The object and its descendants are used for volume calcuations and are NOT exported. Use Tag to specify the volume group (may be any name, not limited to valid KSP tags) which can then be accessed in cfg template expressions."),
     ('UTILITY', "Utility", "The object and its decendants will not be exported. Useful for bake meshes, boolean cutters, etc. Note that this affects only top-level objects when using the mass-export script: Utility objects can still be exported manually and as part of a larger model."),
 )
@@ -151,6 +152,8 @@ class MuSceneProperties(bpy.types.PropertyGroup):
     internal: PointerProperty(name="Internal root",
         description="Root object of the KSP internal model. Used for prop placement.",
         type = bpy.types.Object)
+    modelPath: StringProperty(name = "Model Path", default = "",
+        description = "Default path for models in MODEL{} nodes")
 
 class OBJECT_PT_MuScenePropertyPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -166,6 +169,7 @@ class OBJECT_PT_MuScenePropertyPanel(bpy.types.Panel):
         col = layout.column()
         col.prop(muprops, "modelType")
         col.prop(muprops, "internal")
+        col.prop(muprops, "modelPath")
 
 class VIEW3D_PT_MuScenePanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -181,6 +185,7 @@ class VIEW3D_PT_MuScenePanel(bpy.types.Panel):
         col = layout.column()
         col.prop(muprops, "modelType")
         col.prop(muprops, "internal")
+        col.prop(muprops, "modelPath")
 
 class OBJECT_PT_MuAttachNodePanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'

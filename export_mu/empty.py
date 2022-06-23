@@ -43,6 +43,7 @@ def export_collection(obj, muobj, mu):
     saved_exported_objects = set(export.exported_objects)
     group = obj.instance_collection
     objects = collect_objects(group)
+    group_objects = []
     for n in objects:
         o = objects[n]
         # while KSP models (part/prop/internal) will have only one root
@@ -50,17 +51,27 @@ def export_collection(obj, muobj, mu):
         # so support multiple group root objects
         if o.hide_render or not is_group_root(o, objects):
             continue
-        child = export.make_obj(mu, o, mu.path)
-        if child:
-            muobj.children.append(child)
+        group_objects.append(o)
+    if len(group_objects) == 1:
+        # there's only one object, so export that directly rather than the
+        # collection instance acting as a middle-man (one less game object
+        # in the hierarchy)
+        xform = (obj.parent, obj.matrix_local)
+        muobj = export.make_obj(mu, group_objects[0], mu.path, xform)
+    else:
+        for o in group_objects:
+            child = export.make_obj(mu, o, mu.path)
+            if child:
+                muobj.children.append(child)
     export.exported_objects = saved_exported_objects
+    return muobj
 
 def handle_empty(obj, muobj, mu):
     if obj.instance_collection:
         if obj.instance_type != 'COLLECTION':
             #FIXME flag an error? figure out something else to do?
             return None
-        export_collection(obj, muobj, mu)
+        return export_collection(obj, muobj, mu)
     name = strip_nnn(obj.name)
     if name[:5] == "node_":
         n = attachnode.AttachNode(obj, mu.inverse)

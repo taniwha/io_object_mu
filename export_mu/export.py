@@ -94,24 +94,24 @@ def make_obj_core(mu, obj, path, muobj):
         if o in exported_objects:
             # the object has already been exported
             continue
-        muprops = o.muproperties
-        #check whether the object should be exported (eg, props should not be
-        #exported as part of an IVA, and IVAs should not be exported as part
-        #of a part (that sounds odd), volumes should not be exported as part
-        # of anything
-        if muprops.modelType in mu.special:
-            mu.path = path  #needs to be reset as a type handler might modify it
-            if mu.special[muprops.modelType](mu, o):
-                continue
         child = make_obj(mu, o, path)
         if child:
             muobj.children.append(child)
     return muobj
 
-def make_obj(mu, obj, path):
+def make_obj(mu, obj, path, extra=None):
     if obj in exported_objects:
         # the object has already been "exported"
         return None
+    muprops = obj.muproperties
+    #check whether the object should be exported (eg, props should not be
+    #exported as part of an IVA, and IVAs should not be exported as part
+    #of a part (that sounds odd), volumes should not be exported as part
+    # of anything
+    if muprops.modelType in mu.special:
+        mu.path = path  #needs to be reset as a type handler might modify it
+        if mu.special[muprops.modelType](mu, obj, extra):
+            return None
     muobj = MuObject()
     muobj.transform = make_transform (obj)
     return make_obj_core(mu, obj, path, muobj)
@@ -123,15 +123,19 @@ def calc_volumes(mu):
             volume[i] = model_volume(obj)
         mu.volumes[tag] = [sum(f) for f in zip(*volume)]
 
-def add_internal(mu, obj):
+def add_internal(mu, obj, extra):
     mu.internals.append(obj)
     return True
 
-def add_prop(mu, obj):
+def add_prop(mu, obj, extra):
     mu.props.append((mu.path, obj))
     return True
 
-def add_volume(mu, obj):
+def add_model(mu, obj, extra):
+    mu.models.append((mu.path, obj, extra))
+    return True
+
+def add_volume(mu, obj, extra):
     tag = obj.muproperties.tag
     if tag not in mu.volumes:
         mu.volumes[tag] = []
@@ -140,9 +144,10 @@ def add_volume(mu, obj):
 
 special_modelTypes = {
     'NONE': {},
-    'PART': {'INTERNAL':add_internal, 'VOLUME':add_volume},
-    'PROP': {},
-    'INTERNAL': {'PROP':add_prop},
+    'PART': {'INTERNAL':add_internal, 'VOLUME':add_volume, 'MODEL':add_model},
+    'PROP': {'MODEL':add_model},
+    'INTERNAL': {'PROP':add_prop, 'MODEL':add_model},
+    'MODEL': {'VOLUME':add_volume},
     'STATIC': {},
     'UTILITY': {},
     'VOLUME': {},
@@ -159,6 +164,7 @@ def export_object(obj, filepath):
     mu.textures = {}
     mu.nodes = []
     mu.props = []
+    mu.models = []
     mu.volumes = {}
     mu.messages = []
     mu.internals = []
