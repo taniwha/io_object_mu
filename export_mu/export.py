@@ -168,6 +168,8 @@ def export_object(obj, filepath):
     mu.messages = []
     mu.internals = []
     mu.type = obj.muproperties.modelType
+    if mu.type == 'NONE':
+        mu.type = bpy.context.scene.musceneprops.modelType
     mu.CoMOffset = None
     mu.CoPOffset = None
     mu.CoLOffset = None
