@@ -51,7 +51,6 @@ def str2vec3(vecstr):
 def parseItems(items):
     enum = []
     for i in items.values:
-        name, desc, line = i
         enum.append((i.name, i.name, i.value))
     return enum
 
@@ -113,8 +112,10 @@ def generate_module_properties(module_def):
         elif fldType == 'enum':
             params["items"] = parseItems(field_node.GetNode("items"))
         elif fldType == 'float':
-            params["min"] = str2float(field_node.GetValue("min"));
-            params["max"] = str2float(field_node.GetValue("max"));
+            if field_node.HasValue("min"):
+                params["min"] = str2float(field_node.GetValue("min"));
+            if field_node.HasValue("max"):
+                params["max"] = str2float(field_node.GetValue("max"));
             params["default"] = str2float (params["default"])
         elif fldType == 'int':
             params["default"] = str2int (params["default"])
@@ -126,7 +127,8 @@ def generate_module_properties(module_def):
         elif fldType in ["transform", "FloatCurve"]:
             pass
         else:
-            raise TypeError('Unsupported type (%s) for %s on %s' % (fldType, fldName, moduleName))
+            m = f"Unsupported type (fldType) for {fldName} on {moduleName}"
+            raise TypeError(m)
         field = KSPField(**params)
         fields.append(field)
 
@@ -135,7 +137,7 @@ def generate_module_properties(module_def):
     available_modules_map[moduleName] = module
     item = (module.name, module.name, module.name)
     available_modules_enum.append(item)
-    
+
 def build_modules():
     available_modules.clear()
     available_modules_map.clear()

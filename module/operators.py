@@ -65,7 +65,8 @@ class KSPMU_OT_AddModule(bpy.types.Operator):
     def execute(self, context):
         kspmodules = context.active_object.kspmodules
         module = available_modules_map[self.type]
-        kspmodules.modules.add().initialize(module)
+        model_index = len(kspmodules.modules)
+        kspmodules.modules.add().initialize(module, model_index)
         return {'FINISHED'}
 
 class KSPMU_OT_RemoveModule(bpy.types.Operator):

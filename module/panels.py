@@ -49,7 +49,7 @@ def draw_module(layout, module, index):
                           "fields", module, "index",
                           item_dyntip_propname="description")
         if len(module.fields) > module.index >= 0:
-            module.draw_item(box, index)
+            module.draw_item(box)
 
 class OBJECT_PT_KSPModulesPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'

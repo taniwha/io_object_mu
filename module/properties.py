@@ -19,6 +19,7 @@
 
 # <pep8 compliant>
 
+import math
 import bpy
 from mathutils import Vector
 from bpy.utils import register_class, unregister_class
@@ -93,8 +94,12 @@ def generate_property(field):
     elif field.type == "float":
         if basefield.min != None:
             params["min"] = basefield.min
+        else:
+            params["min"] = -math.inf
         if basefield.max != None:
             params["max"] = basefield.max
+        else:
+            params["max"] = math.inf
     elif field.type == "Vector3":
         params["size"] = 3
     elif field.type in ["transform", "FloatCurve"]:
@@ -150,9 +155,10 @@ class KSPActiveField:
 
 class KSPModuleProps(PropertyGroup):
     bl_label = "Module"
+    module_index:IntProperty()
     name: StringProperty()
     fields: CollectionProperty(type=KSPProperty)
-    index:IntProperty()
+    index:IntProperty(update=lambda self, ctx: self.update_active_field(ctx))
     expanded: BoolProperty(default=True)
     boolProperties: CollectionProperty(type=KSPBool)
     floatProperties: CollectionProperty(type=KSPFloat)
@@ -161,7 +167,8 @@ class KSPModuleProps(PropertyGroup):
     vectorProperties: CollectionProperty(type=KSPVector)
     pointerProperties: CollectionProperty(type=KSPPointer)
 
-    def initialize(self, module):
+    def initialize(self, module, module_index):
+        self.module_index = module_index
         self.name = module.name
         for f in module.fields:
             field = self.fields.add()
@@ -175,23 +182,28 @@ class KSPModuleProps(PropertyGroup):
             prop.value = f.default
             prop.type = f.type
             prop.description = f.description
+        self.update_active_field(bpy.context)
 
-    def draw_item(self, layout, mod_index):
-        field = self.fields[self.index]
+    def update_active_field(self, context):
         active_object = bpy.context.active_object
+        #FIXME this is a horrible way of keeping track of the active object
         if ("active_object" in module_active_field
             and module_active_field["active_object"] != active_object.name):
             module_active_field.clear()
         module_active_field["active_object"] = active_object.name
-        if mod_index not in module_active_field:
-            af = KSPActiveField(self, field, mod_index, self.index)
-            module_active_field[mod_index] = af
-        elif module_active_field[mod_index].field_index != self.index:
-            af = module_active_field[mod_index]
-            af.set_field(field, mod_index, self.index)
+        field = self.fields[self.index]
+        if self.module_index not in module_active_field:
+            af = KSPActiveField(self, field, self.module_index, self.index)
+            module_active_field[self.module_index] = af
+        elif module_active_field[self.module_index].field_index != self.index:
+            af = module_active_field[self.module_index]
+            af.set_field(field, self.module_index, self.index)
+
+    def draw_item(self, layout):
+        field = self.fields[self.index]
         row = layout.row()
         col = row.column()
-        active_field = getattr(self, f"active_field{mod_index}")
+        active_field = getattr(self, f"active_field{self.module_index}")
         col.prop(active_field, "value", text=field.name)
 
 class KSPModuleSet(PropertyGroup):
