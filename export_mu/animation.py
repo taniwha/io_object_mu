@@ -158,6 +158,11 @@ property_map = {
     "energy":(
         ("m_Intensity", 1/light_power, 2),
     ),
+    "rotation_euler":(
+        ("localEulerAnglesRaw.x", 1, 0),
+        ("localEulerAnglesRaw.z", 1, 0),
+        ("localEulerAnglesRaw.y", 1, 0),
+    )
 }
 
 vector_map={
