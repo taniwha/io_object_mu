@@ -25,7 +25,7 @@ from bpy.props import StringProperty, EnumProperty
 from mathutils import Vector
 from math import pi
 
-from ..utils import strip_nnn, collect_hierarchy_objects, swapyz, vector_str
+from ..utils import strip_nnn, collect_hierarchy_objects, swapyz, vector_str, swizzleq
 
 #gotta mess with the heads of 6.28 fans :)
 tau = 180 / pi
@@ -177,12 +177,15 @@ class KSPMU_OT_MuShowTransform(bpy.types.Operator):
             location = mat.to_translation()
             scale = mat.to_scale()
             yxz_rotation = -Vector(mat.to_euler('YXZ')) * tau
+            quat_rot = mat.to_quaternion()
             self.report({'INFO'},
                         f"{obj.name}")
             self.report({'INFO'},
                         f"    position = {vector_str(swapyz(location))}")
             self.report({'INFO'},
-                        f"    rotation = {vector_str(swapyz(yxz_rotation))}")
+                        f"    rotation = {vector_str(swapyz(yxz_rotation))} //euler")
+            self.report({'INFO'},
+                        f"    rotation = {vector_str(swizzleq(quat_rot))} //quaternion")
             self.report({'INFO'},
                         f"    scale = {vector_str(swapyz(scale))}")
         return {'FINISHED'}
