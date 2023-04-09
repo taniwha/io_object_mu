@@ -55,6 +55,7 @@ def create_collider(mu, muobj, col, name):
         obj.muproperties.isTrigger = col.isTrigger
     if type(col) == MuColliderMesh:
         obj.muproperties.collider = 'MU_COL_MESH'
+        obj.muproperties.isConvex = col.convex
     elif type(col) == MuColliderSphere:
         obj.muproperties.radius = col.radius
         obj.muproperties.center = col.center

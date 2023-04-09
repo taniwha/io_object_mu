@@ -128,6 +128,7 @@ class MuProperties(bpy.types.PropertyGroup):
 
     collider: EnumProperty(items = collider_items, name = "Collider")
     isTrigger: BoolProperty(name = "Trigger")
+    isConvex: BoolProperty(name = "Convex", default = True, description = "Specify to Unity that this is a convex mesh collider. NOTE: not checked for accuracy.")
     separate: BoolProperty(name = "Separate", description = "Force the collider to be on a separate game object when exporting")
     center: FloatVectorProperty(name = "Center", subtype = 'XYZ', update=collider_update)
     radius: FloatProperty(name = "Radius", update=collider_update)

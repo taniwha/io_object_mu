@@ -49,7 +49,7 @@ def make_collider(mu, obj):
         and type (obj.data) == bpy.types.Mesh):
         col = MuColliderMesh(True)
         col.isTrigger = obj.muproperties.isTrigger
-        col.convex = True #FIXME calculate
+        col.convex = obj.muproperties.isConvex
         col.mesh = make_mesh (mu, obj)
     elif obj.muproperties.collider == 'MU_COL_SPHERE':
         col = MuColliderSphere(True)

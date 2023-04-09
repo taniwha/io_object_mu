@@ -65,6 +65,7 @@ class OBJECT_PT_MuColliderPanel(bpy.types.Panel):
         if muprops.collider == 'MU_COL_MESH':
             row = col.row()
             row.prop(muprops, "isTrigger")
+            row.prop(muprops, "isConvex")
             row.prop(muprops, "separate")
             row = col.row()
             row.operator("mucollider.unmake_mesh_collider", text = "Normal Mesh")
