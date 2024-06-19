@@ -72,8 +72,6 @@ def get_vertex_data(mu, mesh, obj):
     vertdata = [None] * len(mesh.loops)
     if not vertdata:
         return vertdata
-    if mesh.loops[0].normal == Vector():
-        mesh.calc_normals()
     tangentsOk = True
     if full_data and mesh.uv_layers:
         uv_layers = mesh.uv_layers
@@ -223,8 +221,7 @@ def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
 def make_mesh(mu, obj):
     mesh = get_mesh(obj)
     if not len(mesh.loops):
-        mu.messages.append(({'WARNING'}, f"Mesh has more ZERO vertices "
-                            + obj.name))
+        mu.messages.append(({'WARNING'}, f"Mesh has ZERO vertices {obj.name}"))
         return None
     #mesh is always a copy of the object mesh data, but this is non-destructive
     #anyway
