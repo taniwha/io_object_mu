@@ -50,6 +50,11 @@ type_handlers = {
     MuRenderer: skip_component,
 }
 
+def create_protected_data_object(collection, name, data, xform):
+    # protect the imported name from blender's duplicate name extension
+    name += "∧"
+    return create_data_object(collection, name, data, xform)
+
 def create_component_object(collection, component, objname, xform):
     post = None
     if len(component) >= 4:
@@ -66,7 +71,7 @@ def create_component_object(collection, component, objname, xform):
         if not cobj.name in collection.objects:
             collection.objects.link(cobj)
     else:
-        cobj = create_data_object(collection, name, data, xform)
+        cobj = create_protected_data_object(collection, name, data, xform)
     if rot:
         cobj.rotation_quaternion @= rot
     if post:
@@ -112,7 +117,7 @@ def create_object(mu, muobj, parent):
                                                   xform.name, xform)
                     break
         if not obj:
-            obj = create_data_object(mu.collection, xform.name, None, xform)
+            obj = create_protected_data_object(mu.collection, xform.name, None, xform)
         for component in component_data:
             cobj = create_component_object(mu.collection, component,
                                            xform.name, None)

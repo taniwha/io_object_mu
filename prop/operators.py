@@ -28,7 +28,6 @@ from bpy.props import StringProperty, EnumProperty
 
 from ..preferences import Preferences
 from ..cfgnode import ConfigNode, ConfigNodeError
-from ..utils import strip_nnn
 from ..model import instantiate_model
 from .prop import loaded_props_collection, make_prop
 

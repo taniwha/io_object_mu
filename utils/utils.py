@@ -27,6 +27,14 @@ def swizzleq(quaternion):
     return quaternion[1], quaternion[3], quaternion[2], -quaternion[0]
 
 def strip_nnn(name):
+    # ∧ separates the export name from the modeling name
+    ind = name.rfind("∧")
+    if ind >= 0:
+        return name[:ind]
+    # legacy check for blender's duplicate name separator
+    # causes problems for naming schemes that includ the part size
+    # but forcing people to add ∧ after all their objects isn't a
+    # great idea, so it's useful anyway.
     ind = name.rfind(".")
     if ind < 0 or len(name) - ind != 4:
         return name
