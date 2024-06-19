@@ -89,11 +89,18 @@ def get_vertex_data(mu, mesh, obj):
     else:
         uvs = [None] * len(mesh.loops)
         uv2s = [None] * len(mesh.loops)
-    if full_data and mesh.vertex_colors:
-        #FIXME active colors?
-        colors = list(map(lambda a: Vector(a.color).freeze(), mesh.vertex_colors[0].data))
-    else:
-        colors = [None] * len(mesh.loops)
+    colors = [None] * len(mesh.loops)
+    if full_data and mesh.color_attributes:
+        color_layer = mesh.color_attributes.active_color
+        if color_layer.name != "∧default":
+            print(f"color_layer: {color_layer.name}")
+            if color_layer.domain == 'POINT':
+                for i, l in enumerate (mesh.loops):
+                    c = color_layer.data[l.vertex_index]
+                    colors[i] = Vector(c.color).freeze()
+            else:
+                for i, c in enumerate (color_layer.data):
+                    colors[i] = Vector(c.color).freeze()
     for i in range(len(mesh.loops)):
         v = mesh.loops[i].vertex_index
         if full_data:

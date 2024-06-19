@@ -47,6 +47,18 @@ def create_normals(mu, normals, mesh):
     mesh.normals_split_custom_set(custom_normals)
     mesh.use_auto_smooth = True
 
+def create_colors(mu, colors, mesh):
+    if not mesh.color_attributes:
+        name = "colors" if colors else "∧default"
+        mesh.color_attributes.new(name, 'FLOAT_COLOR', 'POINT')
+    color_layer = mesh.color_attributes.active_color
+    if colors:
+        for i, c in enumerate(mesh.colors):
+            color_layer.data[i] = c
+    else:
+        for i in range(len(color_layer.data)):
+            color_layer.data[i].color = (1,1,1,1)
+
 def create_mesh(mu, mumesh, name):
     mesh = bpy.data.meshes.new(name)
     faces = []
@@ -59,6 +71,7 @@ def create_mesh(mu, mumesh, name):
         create_uvs(mu, mumesh.uv2s, mesh, "UVMap2")
     if mumesh.normals:
         create_normals(mu, mumesh.normals, mesh)
+    create_colors(mu, mumesh.colors, mesh)
     #FIXME how to set tangents?
     #if mumesh.tangents:
     #    for i, t in enumerate(mumesh.tangents):
