@@ -46,6 +46,9 @@ def parse_value(valstr):
     return eval(valstr)
 
 def set_property(obj, prop, valstr):
+    if not hasattr(obj, prop):
+        print(f"WARNING: {obj} {prop} unknown property (old cfg?)")
+        return
     attr = getattr(obj, prop)
     if type(attr) == bool:
         if valstr in {"False", "false"}:
@@ -61,7 +64,7 @@ def set_property(obj, prop, valstr):
         value = eval(valstr)
     if type(attr) == bpy_prop_array:
         if type(value) not in [list, tuple]:
-            print(f"WARNING: {prop} simple type for array property (old cfg?)")
+            print(f"WARNING: {obj} {prop} simple type for array property (old cfg?)")
             value = (value,) * len(attr)
     setattr(obj, prop, value)
 
@@ -79,18 +82,16 @@ def find_socket(sockets, sock):
         return sockets[name]
     return None
 
-def build_nodes(matname, node_tree, ntcfg):
-    for value in ntcfg.values:
-        attr, val = value.name, value.value
-        if attr == "name":
-            continue
-        set_property(node_tree, attr, val)
+def build_interface(matname, node_tree, ntcfg):
     if ntcfg.HasNode("inputs"):
         inputs = ntcfg.GetNode("inputs")
         for ip in inputs.GetNodes("input"):
             type = typemap[ip.GetValue("type")]
             name = ip.GetValue("name")
-            input = node_tree.inputs.new(type, name)
+            desc = ip.GetValue("description") or ""
+            input = node_tree.interface.new_socket(name, description=desc,
+                                                   in_out="INPUT",
+                                                   socket_type=type)
             if ip.HasValue("min_value"):
                 value = ip.GetValue("min_value")
                 set_property(input, "min_value", value)
@@ -102,7 +103,17 @@ def build_nodes(matname, node_tree, ntcfg):
         for op in outputs.GetNodes("output"):
             type = typemap[op.GetValue("type")]
             name = op.GetValue("name")
-            node_tree.outputs.new(type, name)
+            desc = ip.GetValue("description") or ""
+            input = node_tree.interface.new_socket(name, description=desc,
+                                                   in_out="OUTPUT",
+                                                   socket_type=type)
+
+def build_nodes(matname, node_tree, ntcfg):
+    for value in ntcfg.values:
+        attr, val = value.name, value.value
+        if attr == "name":
+            continue
+        set_property(node_tree, attr, val)
     if not ntcfg.HasNode("nodes"):
         return
     refs = []
@@ -131,16 +142,23 @@ def build_nodes(matname, node_tree, ntcfg):
                     del input_nodes[2]
             for i,ip in enumerate(input_nodes):
                 if ip.HasValue("default_value"):
+                    if sntype == "NodeReroute":
+                        continue
                     value = ip.GetValue("default_value")
                     name = ip.GetValue("name")
                     if name in use_index:
                         input = sn.inputs[i]
                     elif name in sn.inputs:
                         input = sn.inputs[name]
+                    else:
+                        print(f"WARNING: {name} unknown input (old cfg?)")
+                        continue
                     set_property (input, "default_value", value)
         if sndata.HasNode("outputs"):
             for i,op in enumerate(sndata.GetNode("outputs").GetNodes("output")):
                 if op.HasValue("default_value"):
+                    if sntype == "NodeReroute":
+                        continue
                     value = op.GetValue("default_value")
                     set_property(sn.outputs[i], "default_value", value)
     for r in refs:
@@ -205,11 +223,12 @@ def create_nodes(mat):
     shaderName = mat.mumatprop.shaderName
     if shaderName in shader_configs:
         cfg = shader_configs[shaderName]
-        for extra in cfg.GetNodes("node_tree"):
-            ntname = extra.GetValue("name")
+        for node_tree_cfg in cfg.GetNodes("node_tree"):
+            ntname = node_tree_cfg.GetValue("name")
             if not ntname in bpy.data.node_groups:
                 node_tree = bpy.data.node_groups.new(ntname, "ShaderNodeTree")
-                build_nodes(mat.name, node_tree, extra)
+                build_interface(mat.name, node_tree, node_tree_cfg)
+                build_nodes(mat.name, node_tree, node_tree_cfg)
         matcfg = cfg.GetNode("Material")
         for value in matcfg.values:
             name, val = value.name, value.value
