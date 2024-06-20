@@ -42,7 +42,7 @@ def create_collider(mu, muobj, col, name):
         return None
     mesh = None
     if type(col) == MuColliderMesh:
-        name = name + ".collider"
+        name = name + "∧collider"
         mesh = create_mesh(mu, col.mesh, name)
     obj, cobj = collider.create_collider_object(name, mesh)
 
