@@ -20,12 +20,13 @@
 try:
     from ..utils.vect import *
 except ImportError:
-    import sys
-    sys.path.insert(0, sys.path[0] + "/../utils")
-    from vect import *
-except ValueError:
-    import sys
-    sys.path.insert(0, sys.path[0] + "/utils")
+    import sys, os
+    path = sys.path[0]
+    if os.path.isfile(path+'/../utils/vect.py'):
+        path = path+'/../utils'
+    elif os.path.isfile(path+'/utils/vect.py'):
+        path = path+'/utils'
+    sys.path.insert(0, path)
     from vect import *
 
 try:

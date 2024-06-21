@@ -23,7 +23,7 @@ from .quickhull import QuickHull
 
 try:
     from .. import register_submodules
-except ValueError:
+except ImportError:
     pass
 else:
     submodule_names = (
