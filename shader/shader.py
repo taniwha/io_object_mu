@@ -262,7 +262,6 @@ def make_shader4(mumat, mu):
     mat = bpy.data.materials.new(mumat.name)
     matprops = mat.mumatprop
     matprops.shaderName = mumat.shaderName
-    print(mumat.shaderName)
     create_nodes(mat)
     class Context:
         pass

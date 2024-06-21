@@ -95,8 +95,6 @@ def create_object(mu, muobj, parent):
         else:
             print(f"unhandled component {component}")
 
-    if muobj.transform.name == 'SkirtArmature':
-        print(dir(muobj))
     if hasattr(muobj, "bone") and not component_data and not muobj.force_import:
         return None
 
