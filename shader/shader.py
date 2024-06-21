@@ -66,6 +66,10 @@ def set_property(obj, prop, valstr):
         if type(value) not in [list, tuple]:
             print(f"WARNING: {obj} {prop} simple type for array property (old cfg?)")
             value = (value,) * len(attr)
+    elif type(attr) == float:
+        if type(value) in [list, tuple]:
+            print(f"WARNING: {obj} {prop} array type for simple property (old blender?)")
+            value = value[0]
     setattr(obj, prop, value)
 
 def find_socket(sockets, sock):
@@ -258,6 +262,7 @@ def make_shader4(mumat, mu):
     mat = bpy.data.materials.new(mumat.name)
     matprops = mat.mumatprop
     matprops.shaderName = mumat.shaderName
+    print(mumat.shaderName)
     create_nodes(mat)
     class Context:
         pass
