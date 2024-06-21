@@ -66,7 +66,7 @@ def create_bone(bone_obj, edit_bones):
     bone.use_inherit_rotation = True
     bone.use_envelope_multiply = False
     bone.use_deform = True
-    bone.use_inherit_scale = True
+    bone.inherit_scale = 'FULL'
     bone.use_local_location = False
     bone.use_relative_parent = False
     bone.use_cyclic_offset = False
