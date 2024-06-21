@@ -30,7 +30,7 @@ def load_mbm(mbmpath):
     header = mbmfile.read(20)
     magic, width, height, bump, bpp = unpack("<5i", header)
     if magic != 0x50534b03: # "\x03KSP" as little endian
-        raise
+        return 0, 0, []
     if bpp == 32:
         pixels = mbmfile.read(width * height * 4)
     elif bpp == 24:
@@ -40,13 +40,16 @@ def load_mbm(mbmpath):
             l = i * 4
             pixels[l:l+3] = list(p)
     else:
-        raise
+        return 0, 0, []
     return width, height, pixels
 
 def load_image(base, ext, path, type):
     name = base + ext
+    path = os.path.join(path, name)
+    if not os.path.isfile(path):
+        return False
     if ext.lower() in [".dds", ".png", ".tga"]:
-        img = bpy.data.images.load(os.path.join(path, name))
+        img = bpy.data.images.load(path)
         img.name = base
         img.muimageprop.invertY = False
         if ext.lower() == ".dds":
@@ -55,7 +58,9 @@ def load_image(base, ext, path, type):
         if base[-2:].lower() == "_n" or base[-3:].lower() == "nrm":
             type = 1
     elif ext.lower() == ".mbm":
-        w,h, pixels = load_mbm(os.path.join(path, name))
+        w,h, pixels = load_mbm(path)
+        if not pixels:
+            return False
         img = bpy.data.images.new(base, w, h)
         img.pixels[:] = map(lambda x: x / 255.0, pixels)
         img.pack()
@@ -69,6 +74,7 @@ def load_image(base, ext, path, type):
             c = 2*Vector(pixels[i*4:i*4+4])-Vector((1, 1, 1, 1))
             if abs(c.x*c.x + c.y*c.y + c.z*c.z - 1) > 0.05:
                 img.muimageprop.convertNorm = True
+    return True
 
 def create_textures(mu, path):
     extensions = [".dds", ".mbm", ".tga", ".png"]
@@ -80,11 +86,6 @@ def create_textures(mu, path):
             ind = extensions.index(ext)
         lst = extensions[ind:] + extensions[:ind]
         for e in lst:
-            try:
-                load_image(base, e, path, tex.type)
+            if load_image(base, e, path, tex.type):
                 break
-            except FileNotFoundError:
-                continue
-            except RuntimeError:
-                continue
     pass
