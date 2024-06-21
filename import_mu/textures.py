@@ -61,7 +61,7 @@ def load_image(base, ext, path, type):
         w,h, pixels = load_mbm(path)
         if not pixels:
             return False
-        img = bpy.data.images.new(base, w, h)
+        img = bpy.data.images.new(base, w, h, alpha=True)
         img.pixels[:] = map(lambda x: x / 255.0, pixels)
         img.pack()
     img.alpha_mode = 'STRAIGHT'
