@@ -82,6 +82,19 @@ def find_socket(sockets, sock):
         return sockets[name]
     return None
 
+def create_socket(node_tree, name, desc, dir, type):
+    if hasattr(node_tree, "interface"):
+        # new API as of blender 4.0
+        return node_tree.interface.new_socket(name, description=desc,
+                                              in_out=dir, socket_type=type)
+    else:
+        if dir == 'INPUT':
+            return node_tree.inputs.new(type, name)
+        elif dir == 'OUTPUT':
+            return node_tree.outputs.new(type, name)
+        else:
+            raise RuntimeError
+
 def build_interface(matname, node_tree, ntcfg):
     if ntcfg.HasNode("inputs"):
         inputs = ntcfg.GetNode("inputs")
@@ -89,9 +102,7 @@ def build_interface(matname, node_tree, ntcfg):
             type = typemap[ip.GetValue("type")]
             name = ip.GetValue("name")
             desc = ip.GetValue("description") or ""
-            input = node_tree.interface.new_socket(name, description=desc,
-                                                   in_out="INPUT",
-                                                   socket_type=type)
+            input = create_socket(node_tree, name, desc, "INPUT", type)
             if ip.HasValue("min_value"):
                 value = ip.GetValue("min_value")
                 set_property(input, "min_value", value)
@@ -104,9 +115,7 @@ def build_interface(matname, node_tree, ntcfg):
             type = typemap[op.GetValue("type")]
             name = op.GetValue("name")
             desc = ip.GetValue("description") or ""
-            input = node_tree.interface.new_socket(name, description=desc,
-                                                   in_out="OUTPUT",
-                                                   socket_type=type)
+            create_socket(node_tree, name, desc, "OUTPUT", type)
 
 def build_nodes(matname, node_tree, ntcfg):
     for value in ntcfg.values:
