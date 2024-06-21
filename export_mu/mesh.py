@@ -23,7 +23,7 @@ import bpy
 from mathutils import Vector, Matrix
 
 from ..mu import MuMesh, MuRenderer, MuSkinnedMeshRenderer, MuBoneWeight
-from ..utils import collect_modifiers
+from ..utils import collect_modifiers, collect_armature_modifiers
 
 from .material import make_material
 
@@ -315,8 +315,25 @@ def make_bindPoses(smr, armature, arm_mat):
         smr.mesh.bindPoses[i] = mat
 
 def handle_mesh(obj, muobj, mu):
-    muobj.shared_mesh = make_mesh(mu, obj)
-    muobj.renderer = make_renderer(mu, obj, obj.data)
+    mods = collect_armature_modifiers(obj)
+    if len(mods) > 1:
+        mu.messages.append(({'WARNING'}, f"{obj.name} too many "
+                            "armatures, ignoring excess"))
+    if mods:
+        armature = mods[0].object.data
+        for i in range(len(mods)):
+            m = mods[i]
+            mods[i] = (m, m.show_viewport, m.show_render)
+            m.show_viewport = False
+            m.show_render = False
+        smr = create_skinned_mesh(obj, mu, armature)
+        for m in mods:
+            m[0].show_viewport = m[1]
+            m[0].show_render = m[2]
+        muobj.skinned_mesh_renderer = smr
+    else:
+        muobj.shared_mesh = make_mesh(mu, obj)
+        muobj.renderer = make_renderer(mu, obj, obj.data)
     return muobj
 
 def create_skinned_mesh(obj, mu, armature):

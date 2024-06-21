@@ -81,26 +81,7 @@ def find_deform_children(obj):
 def handle_armature(obj, muobj, mu):
     armature = obj.data
     bone_children = find_bone_children(obj)
-    deform_children = find_deform_children(obj)
-    mu.exported_objects.update(deform_children)
-    if len(deform_children) > 1:
-        mu.messages.append(({'WARNING'}, "too many deform children, ignoring excess"))
-        deform_children = deform_children[:1]
-    print(f"handle_armature: {obj.name} {deform_children[0].name}")
     path = mu.path
-    if deform_children:
-        child = deform_children[0]
-        mods = collect_armature_modifiers(child)
-        for i in range(len(mods)):
-            m = mods[i]
-            mods[i] = (m, m.show_viewport, m.show_render)
-            m.show_viewport = False
-            m.show_render = False
-        smr = create_skinned_mesh(deform_children[0], mu, armature)
-        for m in mods:
-            m[0].show_viewport = m[1]
-            m[0].show_render = m[2]
-        muobj.skinned_mesh_renderer = smr
     muobj.bone_paths = {}
     muobj.animated_bones = set()
     muobj.path = path
