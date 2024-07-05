@@ -45,7 +45,12 @@ def create_normals(mu, normals, mesh):
     for i, loop in enumerate(mesh.loops):
         custom_normals[i] = normals[loop.vertex_index]
     mesh.normals_split_custom_set(custom_normals)
-    mesh.use_auto_smooth = True
+    if hasattr(mesh, "use_auto_smooth"):
+        # From blender 4.1 release notes:
+        #  use_auto_smooth is removed. Face corner normals are now used
+        #  automatically if there are mixed smooth vs. not smooth tags.
+        #  Meshes now always use custom normals if they exist.
+        mesh.use_auto_smooth = True
 
 def create_colors(mu, colors, mesh):
     if not mesh.color_attributes:
