@@ -66,6 +66,7 @@ class Prop:
         obj.instance_type = 'COLLECTION'
         obj.instance_collection = self.model
         obj.location = loc
+        obj.muproperties.modelType = 'PROP'
         return obj
 
 gamedata = None
