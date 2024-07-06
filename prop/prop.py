@@ -70,22 +70,27 @@ class Prop:
 
 gamedata = None
 def import_prop(filepath):
-    global gamedata
-    if not gamedata:
-        from .gamedata import GameData
-        gamedata = GameData(Preferences().GameData)
     try:
         propcfg = ConfigNode.loadfile(filepath)
     except ConfigNodeError as e:
         print(filepath+e.message)
         return
+    global gamedata
+    if not gamedata:
+        from ..import_craft.gamedata import GameData
+        gamedata = GameData(Preferences().GameData)
     if filepath[:len(gamedata.root)] == gamedata.root:
         #the prop is in GameData
         propnode = propcfg.GetNode("PROP")
         name = propnode.GetValue("name")
         return gamedata.props[name]
     # load it directly
-    return Prop(path, propcfg)
+    propnode = propcfg.GetNode("PROP")
+    if not propnode:
+        return None
+    prop = Prop(filepath, propnode)
+    prop.db = gamedata
+    return prop
 
 def make_prop(obj):
     name = strip_nnn(obj.name)

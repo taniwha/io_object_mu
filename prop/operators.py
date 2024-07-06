@@ -29,7 +29,7 @@ from bpy.props import StringProperty, EnumProperty
 from ..preferences import Preferences
 from ..cfgnode import ConfigNode, ConfigNodeError
 from ..model import instantiate_model
-from .prop import loaded_props_collection, make_prop
+from .prop import loaded_props_collection, make_prop, import_prop
 
 def import_prop_op(self, context, filepath):
     operator = self
