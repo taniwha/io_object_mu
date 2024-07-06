@@ -37,13 +37,13 @@ def import_prop_op(self, context, filepath):
     bpy.context.preferences.edit.use_global_undo = False
 
     try:
-        pass
         for obj in bpy.context.scene.objects:
             obj.select_set(False)
         prop = import_prop(filepath).get_model()
         context.layer_collection.collection.objects.link(prop)
         prop.location = context.scene.cursor.location
         prop.select_set(True)
+        context.view_layer.objects.active = prop
         return {'FINISHED'}
     except:
         raise
