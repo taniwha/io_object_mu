@@ -58,8 +58,8 @@ def create_colors(mu, colors, mesh):
         mesh.color_attributes.new(name, 'FLOAT_COLOR', 'POINT')
     color_layer = mesh.color_attributes.active_color
     if colors:
-        for i, c in enumerate(mesh.colors):
-            color_layer.data[i] = c
+        for i, c in enumerate(colors):
+            color_layer.data[i].color = c
     else:
         for i in range(len(color_layer.data)):
             color_layer.data[i].color = (1,1,1,1)
