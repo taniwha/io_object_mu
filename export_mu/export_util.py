@@ -20,7 +20,13 @@
 # <pep8 compliant>
 
 def is_collider(obj):
-    muprops = obj.muproperties
-    if muprops.collider and muprops.collider != 'MU_COL_NONE':
-        return True
-    return False
+    def check_collider(single_obj):
+        muprops = single_obj.muproperties
+        if muprops.collider and muprops.collider != 'MU_COL_NONE':
+            return True
+        return False
+
+    if isinstance(obj, list):
+        return [check_collider(single_obj) for single_obj in obj]
+    else:
+        return check_collider(obj)
