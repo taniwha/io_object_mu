@@ -24,3 +24,9 @@ including [installation](https://github.com/taniwha/io_object_mu/wiki/Installati
 The KSP Forum with discussions about this is located here:
 * https://forum.kerbalspaceprogram.com/index.php?/topic/40056-12-14-blender-mu-importexport-addon/&
 
+BUGS:
+for now im only notice two bugs:
+- the size is twice as original file
+- we need to fix some animations on some parts that is connecting with armature and armature_obj
+
+For now no more exceptions or crashes during import / export 😊
