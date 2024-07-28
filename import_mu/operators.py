@@ -32,7 +32,7 @@ def import_mu_op(self, context, filepath, create_colliders, force_armature, forc
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
 
-    collection = bpy.context.layer_collection.collection
+    collection = bpy.context.view_layer.active_layer_collection.collection
     try:
         ret = import_mu(collection, filepath, create_colliders, force_armature, force_mesh)
     except MuImportError as e:
@@ -40,13 +40,19 @@ def import_mu_op(self, context, filepath, create_colliders, force_armature, forc
         return {'CANCELLED'}
     else:
         obj, mu = ret
+        if not isinstance(obj, bpy.types.Object):
+            operator.report({'ERROR'}, "Imported item is not an object.")
+            return {'CANCELLED'}
+        
         for o in bpy.context.scene.objects:
             o.select_set(False)
+        
         bpy.context.view_layer.objects.active = obj
         obj.location = context.scene.cursor.location
         obj.rotation_quaternion = Quaternion((1, 0, 0, 0))
         obj.scale = Vector((1, 1, 1))
         obj.select_set(True)
+        
         for m in mu.messages:
             operator.report(m[0], m[1])
         return {'FINISHED'}
