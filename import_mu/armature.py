@@ -50,10 +50,15 @@ def create_armature_modifier(obj, name, armature):
     mod.object = armature
 
 def parent_to_bone(child, armature, bone):
+    if not child or not armature or not bone:
+        return
+    if child == armature:
+        return
     child.parent = armature
     child.parent_type = 'BONE'
     child.parent_bone = bone
-    child.matrix_parent_inverse[1][3] = -BONE_LENGTH
+    if child.matrix_parent_inverse and len(child.matrix_parent_inverse) >= 2:
+        child.matrix_parent_inverse[1][3] = -BONE_LENGTH
 
 def create_bone(bone_obj, edit_bones):
     xform = bone_obj.transform
@@ -109,7 +114,7 @@ def create_bindPose(mu, muobj, skin):
     for i, bname in enumerate(bone_names):
         bone = mu.objects[bname]
         m = skin.mesh.bindPoses[i].inverted()
-        pb = create_bone (bone, skin.bindPose.edit_bones)
+        pb = create_bone(bone, skin.bindPose.edit_bones)
         pb.matrix = m
         bone.poseBone = pb.name
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -132,35 +137,54 @@ def find_bones(mu, skins, siblings):
     for skin in skins:
         bone_names = skin.skinned_mesh_renderer.bones
         for bname in bone_names:
-            bones.add(mu.objects[bname])
-
+            if bname in mu.objects:
+                bone = mu.objects[bname]
+                if bone:
+                    bones.add(bone)
     roots = set()
     for b in bones:
-        if b.parent not in bones:
+        if b.parent and b.parent not in bones:
             roots.add(b)
-    #print(list(map(lambda b: b.transform.name, bones)))
-    #print(list(map(lambda b: b.transform.name, roots)))
+    #print(list(map(lambda b: b.transform.name if b.transform else 'None', bones)))
+    #print(list(map(lambda b: b.transform.name if b.transform else 'None', roots)))
     prev_roots = set()
     while len(roots) > 1 and roots ^ prev_roots:
         prev_roots = set(roots)
         for b in prev_roots:
-            if b in siblings or b.parent in skins:
+            if b and (b in siblings or (b.parent and b.parent in skins)):
                 continue
-            roots.remove(b)
-            bones.add(b.parent)
-            roots.add(b.parent)
+            if b:
+                roots.remove(b)
+                if b.parent:
+                    bones.add(b.parent)
+                    roots.add(b.parent)  
+
     parents = set()
     for b in roots:
-        parents.add(b.parent)
-    #print(list(map(lambda b: b.transform.name, parents)))
+        if b and b.parent:
+            parents.add(b.parent)
+    #print(list(map(lambda b: b.transform.name if b.transform else 'None', parents)))
     for b in bones:
-        p = b.parent
-        while p not in parents:
-            p = p.parent
-        b.owner = p
-        if not hasattr(p, "armature_bones"):
-            p.armature_bones = set()
-        p.armature_bones.add(b)
+        if b and b.parent:
+            p = b.parent
+            while p and p not in parents:
+                p = p.parent
+            b.owner = p
+            if p:
+                if not hasattr(p, "armature_bones"):
+                    p.armature_bones = set()
+                if b not in p.armature_bones:
+                    p.armature_bones.add(b)
+                    # Ensure armature_obj is set (OPTIONAL)
+                    if not hasattr(p, 'armature_obj'):
+                        p.armature_obj = p
+
+    # Ensure all bones' owners have their armature_obj set (OPTIONAL)
+    for bone in bones:
+        if hasattr(bone, 'owner') and bone.owner:
+            if not hasattr(bone.owner, 'armature_obj'):
+                bone.owner.armature_obj = bone.owner
+
     return bones, roots, parents
 
 def make_matrix(transform):
@@ -177,8 +201,7 @@ def create_armature(mu, armobj, roots):
     ctx = bpy.context
     col = ctx.layer_collection.collection
     save_active = ctx.view_layer.objects.active
-    armobj.armature_obj = create_data_object(col, name, armobj.armature,
-                                             armobj.transform)
+    armobj.armature_obj = create_data_object(col, name, armobj.armature, armobj.transform)
 
     ctx.view_layer.objects.active = armobj.armature_obj
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -204,13 +227,18 @@ def create_armature(mu, armobj, roots):
     ctx.layer_collection.collection.objects.unlink(armobj.armature_obj)
     ctx.view_layer.objects.active = save_active
 
+    # Ensure armature_obj is set on all bones (OPTIONAL)
+    for b in armobj.armature_bones:
+        if not hasattr(b, 'armature_obj'):
+            b.armature_obj = armobj.armature_obj
+
     return armobj.armature_obj
 
 def process_skins(mu, skins, siblings):
     bones, roots, parents = find_bones(mu, skins, siblings)
     for armobj in parents:
         #print(armobj.transform.name,
-        #      list(map(lambda b: b.transform.name, armobj.armature_bones)))
+              #list(map(lambda b: b.transform.name, armobj.armature_bones)))
         create_armature(mu, armobj, roots)
 
 def is_armature(obj):
