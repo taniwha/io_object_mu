@@ -40,33 +40,42 @@ def bone_transform(bone, obj):
     return transform
 
 
-def export_bone(bone, mu, armature, bone_children, path):
+def export_bone(bone, mu, armature, bone_children, path, parent_tag_and_layer=None):
     if path:
         path += "/"
     path += bone.name
     mubone = MuObject()
     obj = bone_children.get(bone.name)
     armature.bone_paths[f'pose.bones["{bone.name}"]'] = path
-    mubone.transform = bone_transform (bone, obj)
+    mubone.transform = bone_transform(bone, obj)
+    
     if obj:
         make_obj_core(mu, obj, path, mubone)
     else:
         mubone.tag_and_layer = MuTagLayer()
-        #FIXME inherit parent tag and layer
-        mubone.tag_and_layer.tag = "Untagged"
-        mubone.tag_and_layer.layer = 0
+        if parent_tag_and_layer:
+            # inherent parent tag and layer
+            mubone.tag_and_layer.tag = parent_tag_and_layer.tag
+            mubone.tag_and_layer.layer = parent_tag_and_layer.layer
+        else:
+            mubone.tag_and_layer.tag = "Untagged"
+            mubone.tag_and_layer.layer = 0
+    
     mu.object_paths[path] = mubone
+    
     for child in bone.children:
-        muchild = export_bone(child, mu, armature, bone_children, path)
+        muchild = export_bone(child, mu, armature, bone_children, path, mubone.tag_and_layer)
         mubone.children.append(muchild)
+    
     return mubone
 
 def find_bone_children(obj):
     bone_children = {}
     for child in obj.children:
         if child.parent_type == 'BONE':
-            #FIXME(?) for now, only one direct child is suported
-            bone_children[child.parent_bone] = child
+            if child.parent_bone not in bone_children:
+                bone_children[child.parent_bone] = []
+            bone_children[child.parent_bone].append(child)
     return bone_children
 
 def find_deform_children(obj):
