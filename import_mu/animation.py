@@ -125,56 +125,51 @@ def create_action(mu, path, clip):
                 print("Unknown path: %s" % (mu_path))
             continue
         muobj = mu.object_paths[mu_path]
-        
-        #FIXME dont working all animations but models 3D is loading, missimg Armatures
-        #FIXME maybe it is in function find_bones()
-        if hasattr(muobj, "armature") and hasattr(muobj.armature, "armature_obj"):
-            dppref = ""
-            if hasattr(muobj, "bone"):
+        dppref = ""
+        if hasattr(muobj, "bone"):
+            #FIXME dont working all animations but models 3D is loading, missimg Armatures
+            #FIXME maybe it is in function find_bones()
+            if hasattr(muobj, "armature") and hasattr(muobj.armature, "armature_obj"):
                 obj = muobj.armature.armature_obj
                 dppref = f'pose.bones["{muobj.bone}"].'
-            elif hasattr(muobj, "bobj"):
-                obj = muobj.bobj
             else:
-                print("No blender object at path: %s" % (mu_path))
+                print("Warning: No armature_obj for bone at path: %s" % (mu_path))
                 continue
-            if curve.property[:-2] == "localEulerAnglesRaw":
-                obj.rotation_mode = 'YXZ'
-            if curve.property not in property_map:
-                sp = shader_property(obj, curve.property)
-                if not sp:
-                    print("%s: Unknown property: %s" % (mu_path, curve.property))
-                    continue
-                obj, dp, rnaIndex = sp
-                propmap = dp, rnaIndex, 1
-                subpath = "obj"
-            else:
-                propmap = property_map[curve.property]
-                subpath, propmap = propmap[0], propmap[1:]
-            fullpropmap = (dppref + propmap[0],) +  propmap[1:3]
-        
-            objname = ".".join([obj.name, subpath])
-        
-            if subpath != "obj":
-                obj = getattr (obj, subpath)
-        
-            name = objname
-            actpath = "/".join([curve.path, name])
-            if actpath not in actions:
-                actions[actpath] = bpy.data.actions.new(name), obj
-            act, obj = actions[actpath]
-            fcurve = create_fcurve(act, curve, fullpropmap)
-            if hasattr(muobj, "bone"):
-                if not hasattr(muobj, "fcurves"):
-                    muobj.fcurves = {}
-                if propmap[0] not in muobj.fcurves:
-                    muobj.fcurves[propmap[0]] = [None] * propmap[3]
-                muobj.fcurves[propmap[0]][propmap[1]] = fcurve
-                bones.add(muobj)
+        elif hasattr(muobj, "bobj"):
+            obj = muobj.bobj
         else:
-            print(f"Warning: Armature or armature_obj not set for {mu_path}")
+            print("No blender object at path: %s" % (mu_path))
             continue
-
+        if curve.property[:-2] == "localEulerAnglesRaw":
+            obj.rotation_mode = 'YXZ'
+        if curve.property not in property_map:
+            sp = shader_property(obj, curve.property)
+            if not sp:
+                print("%s: Unknown property: %s" % (mu_path, curve.property))
+                continue
+            obj, dp, rnaIndex = sp
+            propmap = dp, rnaIndex, 1
+            subpath = "obj"
+        else:
+            propmap = property_map[curve.property]
+            subpath, propmap = propmap[0], propmap[1:]
+        fullpropmap = (dppref + propmap[0],) +  propmap[1:3]
+        objname = ".".join([obj.name, subpath])
+        if subpath != "obj":
+            obj = getattr (obj, subpath)
+        name = objname
+        actpath = "/".join([curve.path, name])
+        if actpath not in actions:
+            actions[actpath] = bpy.data.actions.new(name), obj
+        act, obj = actions[actpath]
+        fcurve = create_fcurve(act, curve, fullpropmap)
+        if hasattr(muobj, "bone"):
+            if not hasattr(muobj, "fcurves"):
+                muobj.fcurves = {}
+            if propmap[0] not in muobj.fcurves:
+                muobj.fcurves[propmap[0]] = [None] * propmap[3]
+            muobj.fcurves[propmap[0]][propmap[1]] = fcurve
+            bones.add(muobj)
     for muobj in bones:
         xform = muobj.transform
         rrot = muobj.relRotation
