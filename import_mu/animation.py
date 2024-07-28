@@ -172,7 +172,7 @@ def create_action(mu, path, clip):
                 muobj.fcurves[propmap[0]][propmap[1]] = fcurve
                 bones.add(muobj)
         else:
-            #print(f"Warning: Armature or armature_obj not set for {mu_path}")
+            print(f"Warning: Armature or armature_obj not set for {mu_path}")
             continue
 
     for muobj in bones:
