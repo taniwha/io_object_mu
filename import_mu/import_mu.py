@@ -150,10 +150,13 @@ def create_object(mu, muobj, parent):
         set_transform(obj, None)
         # Ensure armature_obj is set on armature (OPTIONAL)
         if not hasattr(muobj.armature, 'armature_obj'):
-            print(f"[create_object] Warning: armature_obj not found for armature: {muobj.armature}")
-            muobj.armature.armature_obj = obj
-            # muobj.armature.armature_obj = create_data_object(mu.collection, xform.name, None, xform)
-        parent_to_bone(obj, muobj.armature.armature_obj, muobj.bone)
+            try:
+                muobj.armature.armature_obj = obj
+            except Exception as e:
+                print(f"ERROR: {e}, for armature: {muobj.armature}")
+                #FIXME add handle to no attribute 'armature_obj'
+        else:
+            parent_to_bone(obj, muobj.armature.armature_obj, muobj.bone)
     else:
         obj.parent = parent
 
