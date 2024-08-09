@@ -37,7 +37,7 @@ for now im only notice two bugs:
 <br />HeatShield.mu, turboJet.mu, turboRamJet.mu, AeroSpike.mu, Ant.mu, Spider.mu, TerrierV2.mu, liquidEngineLV-N
 liquidEngineLV-T45, LqdEnginePoodle_v2.mu, skipper_v2.mu, SSME.mu, solidBoosterS2-17.mu, solidBoosterS2-33.mu
 SolidBoosterF3S0.mu, SolidBoosterFM1.mu, MiniDrill.mu, commDish88-88, mediumDishAntenna.mu, GrapplingArm.mu
-launchClamp1, light_08.mu, light_12.mu
+launchClamp1, light_08.mu, light_12.mu, TriBitDrillInt.mu
 <br />
 <br />Squad Expansion:
 <br />GoExOb.mu, IonExperiment.mu, seismicSensor.mu, WeatherStation.mu, ROCArm_01.mu, ROCArm_02.mu, ROCArm_03.mu
