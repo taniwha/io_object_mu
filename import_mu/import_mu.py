@@ -25,9 +25,10 @@ from math import pi, sqrt
 
 import bpy
 import bpy_types
+import mathutils
 from mathutils import Vector, Quaternion
 
-from ..mu import Mu, MuAnimation, MuRenderer
+from ..mu import Mu, MuAnimation, MuRenderer, MuParticles
 from ..shader import make_shader
 from ..utils import set_transform, create_data_object
 
@@ -48,6 +49,7 @@ def skip_component(mu, muobj, mumesh, name):
 type_handlers = {
     MuAnimation: skip_component,
     MuRenderer: skip_component,
+    MuParticles: skip_component
 }
 
 def create_protected_data_object(collection, name, data, xform):
@@ -64,7 +66,7 @@ def create_component_object(collection, component, objname, xform):
         name = ".".join([objname, name])
     else:
         name = objname
-    if type(data) == bpy_types.Object:
+    if type(data) == bpy.types.Object: #if type(data) == bpy_types.Object:
         cobj = data
         if xform:
             set_transform(cobj, xform)
@@ -80,7 +82,7 @@ def create_component_object(collection, component, objname, xform):
 
 def create_object(mu, muobj, parent):
     if muobj in mu.imported_objects:
-        # the object has already been processed (probably an armature)
+        # The object has already been processed (probably an armature)
         return None
     mu.imported_objects.add(muobj)
 
@@ -99,55 +101,62 @@ def create_object(mu, muobj, parent):
         return None
 
     if hasattr(muobj, "armature_obj") or len(component_data) != 1:
-        #empty or multiple components
+        # empty or multiple components
         obj = None
         if hasattr(muobj, "armature_obj"):
             obj = muobj.armature_obj
             set_transform(obj, muobj.transform)
-            mu.collection.objects.link(obj)
+            if obj.name not in mu.collection.objects:
+                mu.collection.objects.link(obj)
         if not obj:
-            #if a mesh is present, use it for the main object
+            # if a mesh is present, use it for the main object
             for component in component_data:
                 if component[0] == "mesh":
                     component_data.remove(component)
                     component = (None,) + component[1:]
-                    obj = create_component_object(mu.collection, component,
-                                                  xform.name, xform)
+                    obj = create_component_object(mu.collection, component, xform.name, xform)
                     break
         if not obj:
             obj = create_protected_data_object(mu.collection, xform.name, None, xform)
         for component in component_data:
-            cobj = create_component_object(mu.collection, component,
-                                           xform.name, None)
+            cobj = create_component_object(mu.collection, component, xform.name, None)
             cobj.parent = obj
     else:
         component = component_data[0]
         component = (None,) + component[1:]
-        obj = create_component_object(mu.collection, component, xform.name,
-                                      xform)
+        obj = create_component_object(mu.collection, component, xform.name, xform)
+    
     if obj.name not in mu.collection.objects:
         mu.collection.objects.link(obj)
 
     if not obj.data:
         if xform.name[:5] == "node_":
-            #print(name, xform.name[:5])
+            # print(name, xform.name[:5])
             obj.empty_display_type = 'SINGLE_ARROW'
-            #print(obj.empty_display_type)
+            # print(obj.empty_display_type)
             # Blender's empties use the +Z axis for single-arrow
             # display, so that is the most natural orientation for
             # nodes in blender.
             # However, KSP uses the transform's +Z (Unity) axis which
             # is Blender's +Y, so rotate -90 degrees around local X to
             # go from KSP to Blender
-            #print(obj.rotation_quaternion)
+            # print(obj.rotation_quaternion)
             rot = Quaternion((0.5**0.5, -(0.5**0.5), 0, 0))
             obj.rotation_quaternion @= rot
-            #print(obj.rotation_quaternion)
+            # print(obj.rotation_quaternion)
 
     muobj.bobj = obj
     if hasattr(muobj, "bone") and hasattr(muobj, "armature"):
         set_transform(obj, None)
-        parent_to_bone(obj, muobj.armature.armature_obj, muobj.bone)
+        # Ensure armature_obj is set on armature (OPTIONAL)
+        if not hasattr(muobj.armature, 'armature_obj'):
+            try:
+                muobj.armature.armature_obj = obj
+            except Exception as e:
+                print(f"ERROR: {e}, for armature: {muobj.armature}")
+                #FIXME add handle to no attribute 'armature_obj'
+        else:
+            parent_to_bone(obj, muobj.armature.armature_obj, muobj.bone)
     else:
         obj.parent = parent
 
@@ -160,6 +169,7 @@ def create_object(mu, muobj, parent):
     if hasattr(muobj, "animation"):
         for clip in muobj.animation.clips:
             create_action(mu, muobj.path, clip)
+    
     return obj
 
 def create_materials(mu):
@@ -204,3 +214,43 @@ def import_mu(collection, filepath, create_colliders, force_armature, force_mesh
                                   % (mu.magic, mu.version))
 
     return process_mu(mu, os.path.dirname(filepath)), mu
+
+# Add a handler for MuParticles
+def handle_mu_particles(mu, muobj, component, objname):
+    # Create a new mesh object to which the particle system will be attached
+    part_sys_name = f"{objname}_particles"
+    particles_obj = bpy.data.objects.new(part_sys_name, bpy.data.meshes.new(part_sys_name))
+    mu.collection.objects.link(particles_obj)
+    
+    # Create a new particle system
+    psys = particles_obj.modifiers.new(name=part_sys_name, type='PARTICLE_SYSTEM').particle_system
+    psettings = psys.settings
+
+    # Calculate the magnitude of worldVelocity manually
+    world_velocity_magnitude = mathutils.Vector(component.worldVelocity).length
+
+    # Set some example parameters (these should ideally come from the component)
+    psettings.count = component.count
+    psettings.frame_start = 1
+    psettings.frame_end = 200
+    psettings.lifetime = component.energy[1]
+    psettings.emit_from = 'VOLUME'
+    psettings.physics_type = 'NEWTON'
+    
+    # Velocity settings
+    psettings.normal_factor = world_velocity_magnitude
+
+    # Setting other properties from the MuParticles component
+    psettings.render_type = 'HALO'
+    psettings.particle_size = component.size[1]
+
+    # Mapping other potential settings
+    psettings.emit_from = 'VOLUME'
+    psettings.render_type = 'HALO'
+    psettings.use_emit_random = True
+    psettings.lifetime_random = component.energy[0] / component.energy[1]
+
+    return ("particles", particles_obj, None)
+
+# Register the handler
+type_handlers[MuParticles] = handle_mu_particles

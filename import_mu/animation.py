@@ -127,14 +127,19 @@ def create_action(mu, path, clip):
         muobj = mu.object_paths[mu_path]
         dppref = ""
         if hasattr(muobj, "bone"):
-            obj = muobj.armature.armature_obj
-            dppref = f'pose.bones["{muobj.bone}"].'
+            #FIXME dont working all animations but models 3D is loading, missimg Armatures
+            #FIXME maybe it is in function find_bones()
+            if hasattr(muobj, "armature") and hasattr(muobj.armature, "armature_obj"):
+                obj = muobj.armature.armature_obj
+                dppref = f'pose.bones["{muobj.bone}"].'
+            else:
+                print("Warning: No armature_obj for bone at path: %s" % (mu_path))
+                continue
         elif hasattr(muobj, "bobj"):
             obj = muobj.bobj
         else:
             print("No blender object at path: %s" % (mu_path))
             continue
-
         if curve.property[:-2] == "localEulerAnglesRaw":
             obj.rotation_mode = 'YXZ'
         if curve.property not in property_map:
@@ -149,12 +154,9 @@ def create_action(mu, path, clip):
             propmap = property_map[curve.property]
             subpath, propmap = propmap[0], propmap[1:]
         fullpropmap = (dppref + propmap[0],) +  propmap[1:3]
-
         objname = ".".join([obj.name, subpath])
-
         if subpath != "obj":
             obj = getattr (obj, subpath)
-
         name = objname
         actpath = "/".join([curve.path, name])
         if actpath not in actions:

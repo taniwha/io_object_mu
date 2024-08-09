@@ -45,10 +45,25 @@ def make_transform(obj):
     return transform
 
 def make_tag_and_layer(obj):
-    tl = MuTagLayer()
-    tl.tag = obj.muproperties.tag
-    tl.layer = obj.muproperties.layer
-    return tl
+    def create_tag_layer(single_obj):
+        try:
+            # ORIGINAL code - working animations (patch 1)
+            tl = MuTagLayer()
+            tl.tag = single_obj.muproperties.tag # original: tl.tag = obj.muproperties.tag
+            tl.layer = single_obj.muproperties.layer # original: tl.layer = obj.muproperties.layer
+            return tl
+        except AttributeError as e:
+            print(f"Error processing object: {e}")
+            return None
+    # ALTERNATIVE code - handle damaged animations to export !!! (patch 1)
+    try:
+        if isinstance(obj, list):
+            return [create_tag_layer(single_obj) for single_obj in obj if create_tag_layer(single_obj) is not None]
+        else:
+            return create_tag_layer(obj)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
 type_handlers = {} # filled in by the modules that handle the obj.data types
 
@@ -69,35 +84,80 @@ def find_single_collider(objects):
     return None
 
 def make_obj_core(mu, obj, path, muobj):
-    if path:
-        path += "/"
-    path += muobj.transform.name
-    mu.object_paths[path] = muobj
-    muobj.tag_and_layer = make_tag_and_layer(obj)
-    if is_collider(obj):
+    try:
+        # ORIGINAL code - working animations (patch 2)
+        if path:
+            path += "/"
+        path += muobj.transform.name
+        mu.object_paths[path] = muobj
+        muobj.tag_and_layer = make_tag_and_layer(obj)
+        if is_collider(obj):
+            mu.exported_objects.add(obj)
+            muobj.collider = make_collider(mu, obj)
+            return muobj
+        elif type(obj.data) in type_handlers:
+            mu.path = path  #needs to be reset as a type handler might modify it
+            muobj = type_handlers[type(obj.data)](obj, muobj, mu)
+            if not muobj:
+                # the handler decided the object should not be exported
+                return None
         mu.exported_objects.add(obj)
-        muobj.collider = make_collider(mu, obj)
+        col = find_single_collider(obj.children)
+        if col:
+            mu.exported_objects.add(col)
+            muobj.collider = make_collider(mu, col)
+        for o in obj.children:
+            if o in mu.exported_objects:
+                # the object has already been exported
+                continue
+            child = make_obj(mu, o, path)
+            if child:
+                muobj.children.append(child)
         return muobj
-    elif type(obj.data) in type_handlers:
-        mu.path = path  #needs to be reset as a type handler might modify it
-        muobj = type_handlers[type(obj.data)](obj, muobj, mu)
-        if not muobj:
-            # the handler decided the object should not be exported
-            return None
-    mu.exported_objects.add(obj)
-    col = find_single_collider(obj.children)
-    if col:
-        mu.exported_objects.add(col)
-        muobj.collider = make_collider(mu, col)
-    for o in obj.children:
-        if o in mu.exported_objects:
-            # the object has already been exported
-            continue
-        child = make_obj(mu, o, path)
-        if child:
-            muobj.children.append(child)
-    return muobj
+    except TypeError as e:
+        if "unhashable type: 'list'" in str(e):
+            print(f"Warning: {e}. Switching to alternative code.")
+            # ALTERNATIVE code - handle damaged animations to export !!! (patch 2)
+            def process_single_obj(single_obj, muobj):
+                if path:
+                    current_path = path + "/"
+                else:
+                    current_path = ""
+                current_path += single_obj.name  # Changed from single_obj.transform.name to single_obj.name
+                mu.object_paths[current_path] = muobj
+                muobj.tag_and_layer = make_tag_and_layer(single_obj)
+                if is_collider(single_obj):
+                    mu.exported_objects.add(single_obj)
+                    muobj.collider = make_collider(mu, single_obj)
+                    return muobj
+                elif type(single_obj.data) in type_handlers:
+                    mu.path = current_path  # needs to be reset as a type handler might modify it
+                    updated_muobj = type_handlers[type(single_obj.data)](single_obj, muobj, mu)
+                    if not updated_muobj:
+                        # the handler decided the object should not be exported
+                        return None
+                    muobj = updated_muobj
+                mu.exported_objects.add(single_obj)
+                col = find_single_collider(single_obj.children)
+                if col:
+                    mu.exported_objects.add(col)
+                    muobj.collider = make_collider(mu, col)
+                for o in single_obj.children:
+                    if o in mu.exported_objects:
+                        # the object has already been exported
+                        continue
+                    child = make_obj(mu, o, current_path)
+                    if child:
+                        muobj.children.append(child)
+                return muobj
 
+            if isinstance(obj, list):
+                for single_obj in obj:
+                    muobj = process_single_obj(single_obj, muobj)
+            else:
+                muobj = process_single_obj(obj, muobj)
+            return muobj
+            
 def make_obj(mu, obj, path, extra=None):
     if obj in mu.exported_objects:
         # the object has already been "exported"

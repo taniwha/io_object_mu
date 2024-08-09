@@ -64,8 +64,12 @@ def set_property(obj, prop, valstr):
         value = eval(valstr)
     if type(attr) == bpy_prop_array:
         if type(value) not in [list, tuple]:
-            print(f"WARNING: {obj} {prop} simple type for array property (old cfg?)")
-            value = (value,) * len(attr)
+            # Attempt to convert scalar to tuple of the correct length
+            try:
+                value = (value,) * len(attr)
+            except Exception as e:
+                print(f"WARNING: {obj} {prop} simple type for array property could not be converted: {e}")
+                value = None
     elif type(attr) == float:
         if type(value) in [list, tuple]:
             print(f"WARNING: {obj} {prop} array type for simple property (old blender?)")
@@ -163,6 +167,9 @@ def build_nodes(matname, node_tree, ntcfg):
                         input = sn.inputs[i]
                     elif name in sn.inputs:
                         input = sn.inputs[name]
+                    elif sntype == "ShaderNodeVectorMath" and name == "Scale":
+                        input = sn.inputs[1]
+                        set_property(input, "default_value", value)
                     else:
                         print(f"WARNING: {name} unknown input (old cfg?)")
                         continue
@@ -200,22 +207,30 @@ def call_update(item, prop, context):
 def set_tex(mu, dst, src, context):
     try:
         if src.index < 0:
-            raise IndexError    # ick, but it works
+            raise IndexError  # ick, but it works
         tex = mu.textures[src.index]
         if tex.name[-4:] in [".dds", ".png", ".tga", ".mbm"]:
             dst.tex = tex.name[:-4]
         else:
             dst.tex = tex.name
-        dst.type = tex.type
+        
+        # Ensure tex.type is 0/1 or True/False
+        if tex.type in [0, 1]:
+            dst.type = tex.type
+        else:
+            # Convert to a boolean or 0/1
+            dst.type = bool(tex.type)
+        
     except IndexError:
         pass
+    
     if dst.tex in bpy.data.images:
         dst.rgbNorm = not bpy.data.images[dst.tex].muimageprop.convertNorm
     dst.scale = src.scale
     dst.offset = src.offset
     if context.material.node_tree:
         call_update(dst, "tex", context)
-        #other properties are all updated in the one updater
+        # other properties are all updated in the one updater
         call_update(dst, "rgbNorm", context)
 
 def make_shader_prop(muprop, blendprop, context):

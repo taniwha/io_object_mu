@@ -118,7 +118,11 @@ def create_bindPose(mu, muobj, skin):
         bone = mu.objects[bname]
         posebone = skin.bindPose_obj.pose.bones[bname]
         constraint = posebone.constraints.new('COPY_TRANSFORMS')
-        constraint.target = bone.owner.armature_obj
+        try:
+            constraint.target = bone.owner.armature_obj
+        except Exception as e:
+            print(f"ERROR: {e}, for armature: {muobj.armature}")
+            #FIXME add handle to no attribute 'armature_obj'
         constraint.subtarget = bname
     # don't clutter the main collection if importing to a different collection
     ctx.layer_collection.collection.objects.unlink(skin.bindPose_obj)
@@ -132,35 +136,47 @@ def find_bones(mu, skins, siblings):
     for skin in skins:
         bone_names = skin.skinned_mesh_renderer.bones
         for bname in bone_names:
-            bones.add(mu.objects[bname])
-
+            if bname in mu.objects:
+                bone = mu.objects[bname]
+                if bone:
+                    bones.add(bone)
     roots = set()
     for b in bones:
-        if b.parent not in bones:
+        if b.parent and b.parent not in bones:
             roots.add(b)
-    #print(list(map(lambda b: b.transform.name, bones)))
-    #print(list(map(lambda b: b.transform.name, roots)))
+    #print(list(map(lambda b: b.transform.name if b.transform else 'None', bones)))
+    #print(list(map(lambda b: b.transform.name if b.transform else 'None', roots)))
     prev_roots = set()
     while len(roots) > 1 and roots ^ prev_roots:
         prev_roots = set(roots)
         for b in prev_roots:
-            if b in siblings or b.parent in skins:
+            if b and (b in siblings or (b.parent and b.parent in skins)):
                 continue
-            roots.remove(b)
-            bones.add(b.parent)
-            roots.add(b.parent)
+            if b:
+                roots.remove(b)
+                if b.parent:
+                    bones.add(b.parent)
+                    roots.add(b.parent)  
     parents = set()
     for b in roots:
-        parents.add(b.parent)
-    #print(list(map(lambda b: b.transform.name, parents)))
+        if b and b.parent:
+            parents.add(b.parent)
+    #print(list(map(lambda b: b.transform.name if b.transform else 'None', parents)))
     for b in bones:
-        p = b.parent
-        while p not in parents:
-            p = p.parent
-        b.owner = p
-        if not hasattr(p, "armature_bones"):
-            p.armature_bones = set()
-        p.armature_bones.add(b)
+        if b and b.parent:
+            p = b.parent
+            while p and p not in parents:
+                p = p.parent
+            b.owner = p
+            if p:
+                if not hasattr(p, "armature_bones"):
+                    p.armature_bones = set()
+                if b not in p.armature_bones:
+                    p.armature_bones.add(b)
+                    # Ensure armature_obj is set (OPTIONAL)
+                    if not hasattr(p, 'armature_obj'):
+                        p.armature_obj = p
+
     return bones, roots, parents
 
 def make_matrix(transform):

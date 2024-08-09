@@ -279,27 +279,41 @@ def transform_curves(muarm):
 
 def make_animations(mu, animations, anim_root):
     anim = MuAnimation()
-    anim.clip = ""
     anim.autoPlay = False
+    default_clip_name = None
+    clip_names = set()
+    
     for clip_name in animations:
+        if clip_name in clip_names:
+            continue
+        clip_names.add(clip_name)
         clip = MuClip()
-        if not anim.clip:   #FIXME how to select when multiple?
-            anim.clip = clip_name
+        if default_clip_name is None:
+            default_clip_name = clip_name
         clip.name = clip_name
         clip.lbCenter = (0, 0, 0)
         clip.lbSize = (0, 0, 0)
-        clip.wrapMode = 0   #FIXME
+        clip.wrapMode = 1
+        #print(f"Creating clip: {clip_name}") # Debug clip animations
+        
         for data in animations[clip_name]:
             track, path, typ = data
-            muobj = mu.object_paths[path]
+            muobj = mu.object_paths.get(path)
+            if not muobj:
+                print(f"Object path not found: {path}")
+                continue
             path = path[len(anim_root) + 1:]
-            if type(track) is bpy.types.Action:
-                action = track
-            else:
-                action = track.strips[0].action
-            for curve in action.fcurves:
-                clip.curves.append(make_curve(mu, muobj, curve, path, typ))
-            if hasattr(muobj, "animated_bones"):
-                transform_curves(muobj)
+            action = track if isinstance(track, bpy.types.Action) else track.strips[0].action
+            if action:
+                for curve in action.fcurves:
+                    curve_data = make_curve(mu, muobj, curve, path, typ)
+                    if curve_data:
+                        clip.curves.append(curve_data)
+                if hasattr(muobj, "animated_bones"):
+                    transform_curves(muobj)
         anim.clips.append(clip)
+    
+    if default_clip_name:
+        anim.clip = default_clip_name
+    #print(f"Created animation: {anim}") # Debug animations
     return anim
