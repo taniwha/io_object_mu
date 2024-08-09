@@ -22,13 +22,15 @@ Further Reading
 including [installation](https://github.com/taniwha/io_object_mu/wiki/Installation).
 
 The KSP Forum with discussions about this is located here:
-* https://forum.kerbalspaceprogram.com/index.php?/topic/40056-12-14-blender-mu-importexport-addon/&
+* https://forum.kerbalspaceprogram.com/index.php?/topic/40056-12-14-blender-mu-importexport-addon/& 
 
 Bugs
 ===============
+
+*
 for now im only notice two bugs:
-- the size is twice as original file
-- we need to fix some animations on some parts that is connecting with armature and armature_obj
+1. the size is twice as original file
+2. we need to fix some animations on some parts that is connecting with armature and armature_obj
 All stock parts will export and import now (702 parts)
 List parts with bugged exported animations (some could work either):
 HeatShield.mu, turboJet.mu, turboRamJet.mu, AeroSpike.mu, Ant.mu, Spider.mu, TerrierV2.mu, liquidEngineLV-N
