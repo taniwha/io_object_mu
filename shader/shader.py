@@ -64,8 +64,12 @@ def set_property(obj, prop, valstr):
         value = eval(valstr)
     if type(attr) == bpy_prop_array:
         if type(value) not in [list, tuple]:
-            print(f"WARNING: {obj} {prop} simple type for array property (old cfg?)")
-            value = (value,) * len(attr)
+            # Attempt to convert scalar to tuple of the correct length
+            try:
+                value = (value,) * len(attr)
+            except Exception as e:
+                print(f"WARNING: {obj} {prop} simple type for array property could not be converted: {e}")
+                value = None
     elif type(attr) == float:
         if type(value) in [list, tuple]:
             print(f"WARNING: {obj} {prop} array type for simple property (old blender?)")
@@ -163,6 +167,9 @@ def build_nodes(matname, node_tree, ntcfg):
                         input = sn.inputs[i]
                     elif name in sn.inputs:
                         input = sn.inputs[name]
+                    elif sntype == "ShaderNodeVectorMath" and name == "Scale":
+                        input = sn.inputs[1]
+                        set_property(input, "default_value", value)
                     else:
                         print(f"WARNING: {name} unknown input (old cfg?)")
                         continue
