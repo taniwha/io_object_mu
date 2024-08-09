@@ -50,15 +50,10 @@ def create_armature_modifier(obj, name, armature):
     mod.object = armature
 
 def parent_to_bone(child, armature, bone):
-    if not child or not armature or not bone:
-        return
-    if child == armature:
-        return
     child.parent = armature
     child.parent_type = 'BONE'
     child.parent_bone = bone
-    if child.matrix_parent_inverse and len(child.matrix_parent_inverse) >= 2:
-        child.matrix_parent_inverse[1][3] = -BONE_LENGTH
+    child.matrix_parent_inverse[1][3] = -BONE_LENGTH
 
 def create_bone(bone_obj, edit_bones):
     xform = bone_obj.transform
@@ -114,7 +109,7 @@ def create_bindPose(mu, muobj, skin):
     for i, bname in enumerate(bone_names):
         bone = mu.objects[bname]
         m = skin.mesh.bindPoses[i].inverted()
-        pb = create_bone(bone, skin.bindPose.edit_bones)
+        pb = create_bone (bone, skin.bindPose.edit_bones)
         pb.matrix = m
         bone.poseBone = pb.name
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -123,7 +118,11 @@ def create_bindPose(mu, muobj, skin):
         bone = mu.objects[bname]
         posebone = skin.bindPose_obj.pose.bones[bname]
         constraint = posebone.constraints.new('COPY_TRANSFORMS')
-        constraint.target = bone.owner.armature_obj
+        try:
+            constraint.target = bone.owner.armature_obj
+        except Exception as e:
+            print(f"ERROR: {e}, for armature: {muobj.armature}")
+            #FIXME add handle to no attribute 'armature_obj'
         constraint.subtarget = bname
     # don't clutter the main collection if importing to a different collection
     ctx.layer_collection.collection.objects.unlink(skin.bindPose_obj)
@@ -158,7 +157,6 @@ def find_bones(mu, skins, siblings):
                 if b.parent:
                     bones.add(b.parent)
                     roots.add(b.parent)  
-
     parents = set()
     for b in roots:
         if b and b.parent:
@@ -179,12 +177,6 @@ def find_bones(mu, skins, siblings):
                     if not hasattr(p, 'armature_obj'):
                         p.armature_obj = p
 
-    # Ensure all bones' owners have their armature_obj set (OPTIONAL)
-    for bone in bones:
-        if hasattr(bone, 'owner') and bone.owner:
-            if not hasattr(bone.owner, 'armature_obj'):
-                bone.owner.armature_obj = bone.owner
-
     return bones, roots, parents
 
 def make_matrix(transform):
@@ -201,7 +193,8 @@ def create_armature(mu, armobj, roots):
     ctx = bpy.context
     col = ctx.layer_collection.collection
     save_active = ctx.view_layer.objects.active
-    armobj.armature_obj = create_data_object(col, name, armobj.armature, armobj.transform)
+    armobj.armature_obj = create_data_object(col, name, armobj.armature,
+                                             armobj.transform)
 
     ctx.view_layer.objects.active = armobj.armature_obj
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -227,18 +220,13 @@ def create_armature(mu, armobj, roots):
     ctx.layer_collection.collection.objects.unlink(armobj.armature_obj)
     ctx.view_layer.objects.active = save_active
 
-    # Ensure armature_obj is set on all bones (OPTIONAL)
-    for b in armobj.armature_bones:
-        if not hasattr(b, 'armature_obj'):
-            b.armature_obj = armobj.armature_obj
-
     return armobj.armature_obj
 
 def process_skins(mu, skins, siblings):
     bones, roots, parents = find_bones(mu, skins, siblings)
     for armobj in parents:
         #print(armobj.transform.name,
-              #list(map(lambda b: b.transform.name, armobj.armature_bones)))
+        #      list(map(lambda b: b.transform.name, armobj.armature_bones)))
         create_armature(mu, armobj, roots)
 
 def is_armature(obj):
