@@ -46,9 +46,10 @@ def compile_model(db, path, type, name, cfg, collection):
             if n.HasValue("scale"):
                 scale = parse_vector(n.GetValue("scale"))
             mdl = db.model(submodelname)
-            obj = mdl.instantiate(f"{name}:submodel", position, rotation, scale)
-            model.objects.link(obj)
-            obj.parent = root
+            if mdl: # import wont fall if something can't be loaded, it will skip these parts of craft
+                obj = mdl.instantiate(f"{name}:submodel", position, rotation, scale)
+                model.objects.link(obj)
+                obj.parent = root
     else:
         mesh = db.model_by_path[path][0]
         url = '/'.join((path, mesh))
