@@ -65,9 +65,12 @@ class Part:
             props = self.model.mumodelprops
             props.config = self.cfg.ToString(-1)
         scale = self.rescaleFactor
-        model = self.instantiate(Vector((0, 0, 0)),
-                                 Quaternion((1,0,0,0)),
-                                 Vector((1, 1, 1)) * scale)
+        try:
+            model = self.instantiate(Vector((0, 0, 0)),
+                                     Quaternion((1,0,0,0)),
+                                     Vector((1, 1, 1)) * scale)
+        except:
+            model = None
         return model
 
     def instantiate(self, loc, rot, scale):
