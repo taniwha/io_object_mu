@@ -88,8 +88,7 @@ def solve_quadric(A, B, C, D, E):
         t = 0
     #print("t=",t,"y1=",y1)
     t = sqrt(t).real
-    #T = t != 0 and (a*y1/2-c)/t or sqrt(y1**2/4 - d).real
-    T = t != 0 and (a*y1/2-c)/t or 0
+    T = (a*y1/2-c)/t if t != 0 else sqrt(y1**2/4 - d).real
     #print(f"t={t} T={T} sqrt(y1**2/4 - d)={sqrt(y1**2/4 - d).real} a*y1/2-c={a*y1/2-c}")
     #T = sqrt(y1**2/4 - d).real * (a*y1/2-c < 0 and -1 or 1)
     #print(a,t,T,y1)
@@ -101,5 +100,8 @@ if __name__ == "__main__":
     print(solve_quadric(1,10,35,50,24))
     print(solve_quadric(4,4,1,-3,-3))
     print(solve_quadric(1,4,6,4,1))
+    print(solve_quadric(1,0,0,0,-1))
+    print(solve_quadric(1,0,-2,0,1))
+    print(solve_quadric(1,0,-6,0,25))
     print(solve_quadric(1,3,4,3,1))
     print(solve_quadric(1,5,8,5,1))
