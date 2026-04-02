@@ -107,6 +107,7 @@ def unregister():
             menu[0].remove(menu[1])
         for cls in reversed(mod[0]):
             unregister_class(cls)
+    registered_submodules.clear()
 
 if __name__ == "__main__":
     register()

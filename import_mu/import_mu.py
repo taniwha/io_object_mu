@@ -97,9 +97,6 @@ def create_object(mu, muobj, parent):
         else:
             print(f"unhandled component {component}")
 
-    if hasattr(muobj, "bone") and not component_data and not muobj.force_import:
-        return None
-
     if hasattr(muobj, "armature_obj") or len(component_data) != 1:
         # empty or multiple components
         obj = None
