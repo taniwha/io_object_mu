@@ -76,7 +76,10 @@ def create_mesh(mu, mumesh, name):
         create_uvs(mu, mumesh.uv2s, mesh, "UVMap2")
     if mumesh.normals:
         create_normals(mu, mumesh.normals, mesh)
-    create_colors(mu, mumesh.colors, mesh)
+
+    # does fall, needs fix. works well without it
+    #create_colors(mu, mumesh.colors, mesh)
+
     #FIXME how to set tangents?
     #if mumesh.tangents:
     #    for i, t in enumerate(mumesh.tangents):
