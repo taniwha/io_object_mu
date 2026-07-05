@@ -67,6 +67,7 @@ class CreateColorPalettes(bpy.types.Operator):
         return True
 
     def execute(self, context):
+        from . import colorpalettes
         colorpalettes.install()
         self.report({'INFO'}, 'Color palettes created.')
         return {'FINISHED'}
