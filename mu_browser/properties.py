@@ -119,14 +119,59 @@ def _reset_part_selection(br):
         except Exception:
             pass
 
-def _update_category(self, context):
-    """Aktualizacja kategorii - odświeża cache i resetuje wybór"""
+# category name → last parts_index (session memory for 8×8 grid)
+_CAT_LAST_INDEX = {}
+_LAST_CATEGORY = ""
+
+
+def _remember_category_index(br):
     try:
-        import time
-        # Wymuś odświeżenie cache
+        cat = str(getattr(br, "category", "") or "")
+        idx = int(getattr(br, "parts_index", 0) or 0)
+        if cat:
+            _CAT_LAST_INDEX[cat] = idx
+    except Exception:
+        pass
+
+
+def _restore_category_index(br):
+    """Restore last parts_index for this category (selection; scroll is Blender-limited)."""
+    try:
+        cat = str(getattr(br, "category", "") or "")
+        n = len(br.parts)
+        if not cat or n <= 0:
+            return
+        idx = int(_CAT_LAST_INDEX.get(cat, 0) or 0)
+        if idx < 0 or idx >= n:
+            idx = 0
+        br.parts_index = idx
+        try:
+            target = _enum_cache_string("PART_%d" % idx)
+            br.part_preview = target
+        except Exception:
+            try:
+                br.part_preview = "PART_%d" % idx
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
+def _update_category(self, context):
+    """Aktualizacja kategorii — odświeża listę i przywraca ostatni index w tej kategorii."""
+    global _LAST_CATEGORY
+    try:
+        # Zapamiętaj index poprzedniej kategorii (przed rebuild listy)
+        br = getattr(context.window_manager, "ksp_mu_browser", None)
+        if br is not None and _LAST_CATEGORY:
+            try:
+                _CAT_LAST_INDEX[_LAST_CATEGORY] = int(getattr(br, "parts_index", 0) or 0)
+            except Exception:
+                pass
+
         _CATEGORY_CACHE['items'] = None
         _CATEGORY_CACHE['timestamp'] = 0
-        
+
         from . import operators
         operators.refresh_part_list(context)
         from . import thumbnails
@@ -143,24 +188,26 @@ def _update_category(self, context):
             _PREVIEW_ENUM_CACHE["items"] = None
         except Exception:
             pass
-        
-        br = getattr(
-            context.window_manager,
-            "ksp_mu_browser",
-            None,
-        )
+
+        br = getattr(context.window_manager, "ksp_mu_browser", None)
         if br is None:
             return
-        
-        # Zresetuj wybór części - to wyczyści starą miniaturkę
-        _reset_part_selection(br)
-        
-        # Wymuś odświeżenie UI
+
+        cat = str(getattr(br, "category", "") or "")
+        _LAST_CATEGORY = cat
+        # Przywróć ostatni wybór w tej kategorii (selection). Scroll 8×8
+        # template_icon_view nie ma publicznego API — Blender resetuje go sam.
+        try:
+            _restore_category_index(br)
+        except Exception:
+            _reset_part_selection(br)
+
         if context.area:
             context.area.tag_redraw()
-            
+
     except Exception as e:
         print(f"[mu_browser] Błąd w _update_category: {e}")
+
 
 def _safe_text(value):
     if value is None:
@@ -211,28 +258,69 @@ _PREVIEW_ENUM_CACHE = {
 _VARIANT_TAG_CACHE = {}
 
 
-def _variant_source_tag(cfg_path: str) -> str:
+def _variant_source_tag(cfg_path: str, mu_path: str = "") -> str:
     """Return [B9] and/or [V] if the part.cfg declares those switch modules.
 
     Overlay on 8×8 thumbs is not possible without regenerating PNGs, so we
     mark the label under the icon instead (template_icon_view show_labels).
+    Falls back to a sibling .cfg next to the .mu when cfg_path is empty.
     """
-    if not cfg_path:
+    import os
+    paths = []
+    if cfg_path:
+        paths.append(cfg_path)
+    if mu_path:
+        stem, _ = os.path.splitext(mu_path)
+        for cand in (
+            stem + ".cfg",
+            os.path.join(os.path.dirname(mu_path), "part.cfg"),
+        ):
+            if cand not in paths:
+                paths.append(cand)
+    if not paths:
         return ""
-    if cfg_path in _VARIANT_TAG_CACHE:
-        return _VARIANT_TAG_CACHE[cfg_path]
+    # Cache key = first existing path or cfg_path
+    cache_key = None
+    for p in paths:
+        if p in _VARIANT_TAG_CACHE:
+            return _VARIANT_TAG_CACHE[p]
+        if os.path.isfile(p):
+            cache_key = p
+            break
+    if not cache_key:
+        for p in paths:
+            _VARIANT_TAG_CACHE[p] = ""
+        return ""
     tag = ""
     try:
-        import os
-        if not os.path.isfile(cfg_path):
-            _VARIANT_TAG_CACHE[cfg_path] = ""
-            return ""
-        # Only need MODULE names — first 48 KiB covers almost every part.cfg
-        with open(cfg_path, "r", encoding="utf-8", errors="ignore") as fh:
-            head = fh.read(49152)
+        # MODULE names — first 128 KiB covers long BDB/ReStock part.cfg files
+        with open(cache_key, "r", encoding="utf-8", errors="ignore") as fh:
+            head = fh.read(131072)
         low = head.lower()
-        has_b9 = "moduleb9partswitch" in low
-        has_v = "modulepartvariants" in low
+        has_b9 = (
+            "moduleb9partswitch" in low
+            or "name = moduleb9partswitch" in low
+            or "name=moduleb9partswitch" in low
+            or "b9partswitch" in low
+        )
+        has_v = (
+            "modulepartvariants" in low
+            or "name = modulepartvariants" in low
+            or "name=modulepartvariants" in low
+        )
+        # Stock often uses baseVariant + VARIANT { without repeating the module
+        # type in every snippet; treat as [V] when VARIANT blocks exist.
+        if not has_v and "basevariant" in low and "variant" in low:
+            has_v = True
+        # ReStock / BDB: meshSwitch* / textureSwitch* MODULE blocks are B9 even
+        # when the type string is only in a ModuleManager patch outside this file.
+        if not has_b9 and "subtype" in low and (
+            "meshswitch" in low
+            or "textureswitch" in low
+            or "meshtoggle" in low
+            or "switcherdescription" in low
+        ):
+            has_b9 = True
         if has_b9 and has_v:
             tag = "[B9][V]"
         elif has_b9:
@@ -241,7 +329,10 @@ def _variant_source_tag(cfg_path: str) -> str:
             tag = "[V]"
     except Exception:
         tag = ""
-    _VARIANT_TAG_CACHE[cfg_path] = tag
+    _VARIANT_TAG_CACHE[cache_key] = tag
+    for p in paths:
+        if p != cache_key:
+            _VARIANT_TAG_CACHE.setdefault(p, tag)
     return tag
 
 
@@ -279,7 +370,10 @@ def _preview_items(self, context):
     rev = int(_PREVIEW_ENUM_CACHE.get("icon_rev") or 0)
     # Signature: length + first/last name + icon revision
     try:
-        sig = (n, parts[0].name, parts[n - 1].name, rev)
+        # Include first/last variant_tag so [B9]/[V] label updates invalidate cache
+        t0 = getattr(parts[0], "variant_tag", "") or ""
+        t1 = getattr(parts[n - 1], "variant_tag", "") or ""
+        sig = (n, parts[0].name, parts[n - 1].name, rev, t0, t1)
     except Exception:
         sig = (n, rev)
 
@@ -299,9 +393,19 @@ def _preview_items(self, context):
         # Tag stock ModulePartVariants [V] and B9PartSwitch [B9] in the label
         # (template_icon_view shows this text under the 8×8 thumb — no regen).
         raw_title = _safe_text(item.title) or _safe_text(item.name) or "?"
-        tag = _variant_source_tag(getattr(item, "cfg_path", "") or "")
-        if tag and tag not in raw_title:
-            raw_title = "%s %s" % (raw_title, tag)
+        # Strip any previous tag then re-apply so cache rebuilds stay clean
+        for t in ("[B9][V] ", "[B9] ", "[V] "):
+            if raw_title.startswith(t):
+                raw_title = raw_title[len(t):]
+                break
+        tag = (getattr(item, "variant_tag", "") or "").strip()
+        if not tag:
+            tag = _variant_source_tag(
+                getattr(item, "cfg_path", "") or "",
+                getattr(item, "mu_path", "") or "",
+            )
+        if tag:
+            raw_title = "%s %s" % (tag, raw_title)
         title = _enum_cache_string(raw_title)
         name = _enum_cache_string(_safe_text(item.name))
         icon_id = 0
@@ -310,6 +414,7 @@ def _preview_items(self, context):
                 icon_id = int(peek(item.mu_path, item.name) or 0)
             except Exception:
                 icon_id = 0
+        # identifier, name(label under icon), description, icon, index
         items[i] = (identifier, title, name, icon_id, i)
 
     _PREVIEW_ENUM_CACHE["sig"] = sig
@@ -333,6 +438,14 @@ def _update_preview(self, context):
     if index >= len(self.parts):
         return
     self.parts_index = index
+    try:
+        cat = str(getattr(self, "category", "") or "")
+        if cat:
+            _CAT_LAST_INDEX[cat] = index
+            global _LAST_CATEGORY
+            _LAST_CATEGORY = cat
+    except Exception:
+        pass
 
 def _update_include_stock_thumbs(self, context):
     try:
@@ -380,6 +493,12 @@ def _update_include_stock_thumbs(self, context):
 
 def _update_show_attach_points(self, context):
     try:
+        from ..tools.display import _in_undo_redo
+        if _in_undo_redo():
+            return
+    except Exception:
+        pass
+    try:
         from . import operators as _ops
         _ops.update_attach_point_markers(context, bool(self.show_attach_points))
     except Exception as e:
@@ -414,6 +533,11 @@ class KSPMU_PG_MuPartItem(PropertyGroup):
     cfg_path: StringProperty(
         name="Cfg Path",
         subtype="FILE_PATH",
+    )
+    variant_tag: StringProperty(
+        name="Variant Tag",
+        description="[V] ModulePartVariants / [B9] B9PartSwitch",
+        default="",
     )
     attach_rules: StringProperty(
         name="Attach Rules",

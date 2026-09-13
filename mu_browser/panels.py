@@ -2724,9 +2724,30 @@ class VIEW3D_PT_mu_part_browser(bpy.types.Panel):
                     pass
 
             row = layout.row(align=True)
-            op = row.operator("object.ksp_mu_browser_import_part", text="Import", icon="IMPORT")
-            if 0 <= br.parts_index < len(br.parts):
-                op.part_name = br.parts[br.parts_index].name
+            try:
+                from .operators import ZIP_BUTTON as _zip_mode
+            except Exception:
+                _zip_mode = 0
+            if int(_zip_mode) > 0:
+                # 7/8 Import + 1/8 ZIP
+                split = row.split(factor=0.875, align=True)
+                left = split.row(align=True)
+                right = split.row(align=True)
+                op = left.operator(
+                    "object.ksp_mu_browser_import_part", text="Import", icon="IMPORT"
+                )
+                zop = right.operator(
+                    "object.ksp_mu_browser_zip_part", text="ZIP", icon="FILE_ARCHIVE"
+                )
+                if 0 <= br.parts_index < len(br.parts):
+                    op.part_name = br.parts[br.parts_index].name
+                    zop.part_name = br.parts[br.parts_index].name
+            else:
+                op = row.operator(
+                    "object.ksp_mu_browser_import_part", text="Import", icon="IMPORT"
+                )
+                if 0 <= br.parts_index < len(br.parts):
+                    op.part_name = br.parts[br.parts_index].name
             if 0 <= br.parts_index < len(br.parts):
                 item = br.parts[br.parts_index]
                 box = layout.box()

@@ -23,25 +23,39 @@ from struct import unpack
 import os.path
 
 import bpy
-from mathutils import Vector
+
+# Absolute-path → image name cache across primary + secondary MODEL imports.
+# Avoids re-decoding the same DDS when a part has multiple MODEL blocks /
+# shared skins. Cleared only when Blender session ends (images may persist).
+_PATH_IMAGE_CACHE = {}
+
 
 def load_mbm(mbmpath):
     mbmfile = open(mbmpath, "rb")
     header = mbmfile.read(20)
     magic, width, height, bump, bpp = unpack("<5i", header)
-    if magic != 0x50534b03: # "\x03KSP" as little endian
+    if magic != 0x50534b03:  # "\x03KSP" as little endian
         return 0, 0, []
     if bpp == 32:
         pixels = mbmfile.read(width * height * 4)
     elif bpp == 24:
-        pixels = [0, 0, 0, 255] * width * height
-        for i in range(width * height):
-            p = mbmfile.read(3)
-            l = i * 4
-            pixels[l:l+3] = list(p)
+        raw = mbmfile.read(width * height * 3)
+        # Build RGBA bytearray once (faster than per-pixel Python lists)
+        out = bytearray(width * height * 4)
+        ri = 0
+        oi = 0
+        for _ in range(width * height):
+            out[oi] = raw[ri]
+            out[oi + 1] = raw[ri + 1]
+            out[oi + 2] = raw[ri + 2]
+            out[oi + 3] = 255
+            ri += 3
+            oi += 4
+        pixels = out
     else:
         return 0, 0, []
     return width, height, pixels
+
 
 def _bump_type_from_name(base, type):
     # Squad often uses "..._Normal" / "..._Bump"; mu type flag is frequently 0.
@@ -52,69 +66,128 @@ def _bump_type_from_name(base, type):
     return type
 
 
+def _normpath_key(full):
+    try:
+        return os.path.normcase(os.path.normpath(os.path.abspath(full)))
+    except Exception:
+        return os.path.normcase(os.path.normpath(full or ""))
+
+
+def _find_cached_image(full):
+    """Reuse image already loaded from the same absolute path (any datablock name)."""
+    key = _normpath_key(full)
+    name = _PATH_IMAGE_CACHE.get(key)
+    if name and name in bpy.data.images:
+        return bpy.data.images[name]
+    # Fallback scan (first import after cache miss / rename)
+    for img in bpy.data.images:
+        try:
+            fp = bpy.path.abspath(img.filepath) if img.filepath else ""
+        except Exception:
+            fp = ""
+        if fp and _normpath_key(fp) == key:
+            _PATH_IMAGE_CACHE[key] = img.name
+            return img
+    return None
+
+
+def _register_cached_image(full, img):
+    if img is None:
+        return
+    try:
+        _PATH_IMAGE_CACHE[_normpath_key(full)] = img.name
+    except Exception:
+        pass
+
+
 def load_image(base, ext, path, type):
     """Load image; return resolved type (0/1) on success, False if missing/failed."""
     name = base + ext
     full = os.path.join(path, name)
     if not os.path.isfile(full):
         return False
-    # Reuse only when the existing image is the same file on disk.
-    # Name-only reuse breaks sequential imports / thumbnails (shared basenames).
+
+    want = _normpath_key(full)
+
+    # 1) Path-keyed cache (shared skins across MODEL / secondary imports)
+    cached = _find_cached_image(full)
+    if cached is not None:
+        # Do NOT rename datablocks — materials may still reference the old
+        # name (bluedog_Helios_Mesh) while cache holds .001 after a second load.
+        # cfg_preview._find_image_datablock resolves both forms on restore.
+        return _bump_type_from_name(base, type)
+
+    # 2) Same base name already pointing at this file
     if base in bpy.data.images:
         img = bpy.data.images[base]
         try:
             existing = bpy.path.abspath(img.filepath) if img.filepath else ""
         except Exception:
             existing = ""
-        want = os.path.normcase(os.path.normpath(os.path.abspath(full)))
-        have = os.path.normcase(os.path.normpath(existing)) if existing else ""
+        have = _normpath_key(existing) if existing else ""
         if have and have == want:
+            _register_cached_image(full, img)
             return _bump_type_from_name(base, type)
-        # Packed / empty filepath, or different file: free the name for the new load.
-        # Export of objects still using this block keeps the datablock (just renamed).
+        # Different file occupies the name — free the slot
         try:
             img.name = base + ".stale"
         except Exception:
             pass
+
     if ext.lower() in [".dds", ".png", ".tga"]:
         img = bpy.data.images.load(full)
         img.name = base
-        img.muimageprop.invertY = False
-        if ext.lower() == ".dds":
-            img.muimageprop.invertY = True
-        pixels = img.pixels[:1024]  # 256 pixels
+        # NOTE: do NOT touch img.pixels here — that forces a full CPU decode
+        # of DDS/PNG (often the majority of import time). Type comes from name.
         type = _bump_type_from_name(base, type)
     elif ext.lower() == ".mbm":
         w, h, pixels = load_mbm(full)
         if not pixels:
             return False
         img = bpy.data.images.new(base, w, h, alpha=True)
-        img.pixels[:] = map(lambda x: x / 255.0, pixels)
+        # bytearray/bytes → floats without intermediate map() list
+        if isinstance(pixels, (bytes, bytearray)):
+            img.pixels = [p / 255.0 for p in pixels]
+        else:
+            img.pixels[:] = map(lambda x: x / 255.0, pixels)
         img.pack()
+        type = _bump_type_from_name(base, type)
     else:
         return False
+
     # CHANNEL_PACKED: keep gloss/GA in alpha without premultiplying RGB to ~0
     # (Squad diffuse DDS often has near-zero alpha; STRAIGHT/premul looks black in EEVEE Next)
-    img.alpha_mode = 'CHANNEL_PACKED'
+    img.alpha_mode = "CHANNEL_PACKED"
     img.muimageprop.invertY = (ext.lower() == ".dds")
     img.muimageprop.convertNorm = False
     img.colorspace_settings.is_data = False
     if type == 1:
         img.colorspace_settings.is_data = True
-        # Sample from the Blender image (0..1), not raw MBM bytes.
-        img.muimageprop.convertNorm = _detect_ga_normal(img.pixels)
+        # NEVER read img.pixels during import — that forces full DDS decode
+        # (often 90% of load time). GA vs RGB normals from name only.
+        img.muimageprop.convertNorm = _ga_normal_from_name(base)
+    _register_cached_image(full, img)
     return type
 
 
-def _detect_ga_normal(pixels, n=512):
-    """True only when the map looks DXT5nm (GA), not RGB tangent normals.
+def _ga_normal_from_name(base):
+    """Heuristic DXT5nm (GA) flag without touching image pixels.
 
-    Old heuristic tripped on a few non-unit RGB texels (compression) and then
-    forced GA unpack → gray 'ghost shadow' shading on stock parts.
-
-    InflatableAirlock ``airlock_N`` is GA with R≈1, B≈0.5 (flat blue-ish RGB
-    decode) — that used to look RGB-unit and was mis-classified.
+    Prefer False (RGB tangent) — modern mods. Opt-in True for common GA
+    naming patterns used by Squad / older packs. User can still toggle
+    convertNorm on the image if a specific map is wrong.
     """
+    bl = (base or "").lower()
+    if "dxt5nm" in bl or bl.endswith("_nm") or bl.endswith("-nm"):
+        return True
+    # Explicit "ga" token in the name
+    if "_ga" in bl or bl.endswith("ga"):
+        return True
+    return False
+
+
+# Keep old name for any external callers
+def _detect_ga_normal(pixels, n=512):
     tot = min(int(len(pixels) / 4), n)
     if tot <= 0:
         return False
@@ -133,18 +206,15 @@ def _detect_ga_normal(pixels, n=512):
             r_high += 1
         if 0.35 <= b <= 0.65:
             b_mid += 1
-    # DXT5nm / GA: R channel often ~1 (unused) and B sits mid-gray, not Z≈1
     if (r_high / tot) >= 0.55 and (b_mid / tot) >= 0.40 and (b_high / tot) < 0.25:
         return True
-    # RGB normals: mostly unit-length and B≈1 (Z) on flat / mild areas
     if rgb_unit / tot >= 0.65 and b_high / tot >= 0.45:
         return False
-    # GA-packed: RGB decode is rarely unit-length
     return (rgb_unit / tot) < 0.45
+
 
 def create_textures(mu, path):
     extensions = [".dds", ".mbm", ".tga", ".png"]
-    #texture info is in the top level object
     try:
         from .progress_util import mu_tick_items
     except Exception:
@@ -167,4 +237,3 @@ def create_textures(mu, path):
             if resolved is not False:
                 tex.type = resolved
                 break
-    pass

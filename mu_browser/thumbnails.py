@@ -22,62 +22,114 @@ import bpy
 from bpy.utils import previews
 
 
-_CACHE_CLEARED = True
+_CACHE_CLEARED = True # Clear not used thumbs cache, every Blender run
 
 _pcoll = None
-_ICON_SIZE = 128  # TEST SIZE: change manually to 128 / 256 / 512 when benchmarking render time
-_DEFAULT_THUMB_NAME = "_default_thumbnail.png"
+_ICON_SIZE = 128
+THUMB_FORMAT = "WEBP" # PNG / WEBP / AVIF
+THUMB_QUALITY = 90   # -1 = lossless or 0 to 100 to get compression
+THUMB_EXTENSION = "." + THUMB_FORMAT.lower()
+_DEFAULT_THUMB_NAME = "_default_thumbnail" + THUMB_EXTENSION
 _DEFAULT_PREVIEW_KEY = "__MU_DEFAULT_THUMB__"
 
-# ---------------------------------------------------------------------------
-# Tunables (edit here)
-# ---------------------------------------------------------------------------
-# Extra padding around the fitted orthographic frame (1.0 = tight, 1.1 = 10%)
-THUMB_FRAME_MARGIN = 1.3
+THUMB_FRAME_MARGIN = 1.72 # Extra padding around the fitted orthographic frame
+THUMB_BRIGHTNESS_FACTOR = 1.2 # Scene lighting multiplier (Brightness)
+THUMB_SOLID_BRIGHTNESS_FACTOR = 2.0 # Workbench/solid recovery shading brightness
+THUMB_SHARPNESS = 20.0 # Shadow / sun-disk sharpness
 
-# FX-only tunables. These are deliberately independent from normal-part framing.
-FX_FRAME_MARGIN = 2.5      # padding when framing FX objects only (not full mesh)
-FX_BRIGHTNESS_FACTOR = 0.35  # scale FX object emission only (not scene lights/world)
+# FX-only tunables.
+FX_FRAME_MARGIN = 1.5 # padding when framing FX objects only (not full mesh)
+FX_BRIGHTNESS_FACTOR = 0.35 # FX object emission only (not scene lights/world)
 
 # KSP-like attach point marker tunables.
 ATTACH_POINT_RADIUS = 0.06
 ATTACH_POINT_ALPHA = 0.45
 ATTACH_POINT_COLOR = (0.05, 1.0, 0.10, 1.0)
 
-# Fixed isometric-ish camera direction (normalized later)
-THUMB_CAM_DIR = (0.9, -1.1, 0.7)
+THUMB_CAM_DIR = (0.9, -1.1, 0.7) # Fixed isometric-ish camera direction (normalized later)
 
 # Render validation / retry thresholds. A file existing on disk is NOT enough
-# to call a thumbnail valid: Blender can legitimately write a nearly-empty
-# transparent PNG when the camera fit is pathological.
-THUMB_MIN_CONTENT_PIXELS = 32
+THUMB_MIN_CONTENT_PIXELS = 180
 THUMB_MIN_CONTENT_BBOX_AREA = 40
 THUMB_EDGE_TOLERANCE = 1
 THUMB_ALPHA_THRESHOLD = 0.02
 THUMB_MAX_RETRIES = 2
 THUMB_RETRY_MARGIN = 1.60
 
+# --- Border / tight-frame detection (tweak these; leave THUMB_FRAME_MARGIN alone) ---
+THUMB_BORDER_PX = 3 # floor (px) at any resolution (eg. 64→3  128→4  192→6  256→8  512→15, when set to 3)
+THUMB_BORDER_FRAC = 0.03 # 3% of icon edge
+THUMB_BORDER_ALPHA = 0.005 # Soft alpha for edge scan (catches AA fringes under THUMB_ALPHA_THRESHOLD).
+THUMB_SPAN_TIGHT = 0.94 # Reject if content bbox spans this fraction of image H or W (extreme only).
+THUMB_BORDER_FILL_MIN = 0.18 # Min fill to reject on border-touch alone (tall tanks have fill~0.3–0.4).
+THUMB_EDGE_MIN_PIXELS = 3 # Min soft-opaque pixels on one edge band (scales with ICON/128).
+THUMB_SPAN_SOFT = 0.80 # After a "valid" render, still widen once if span exceeds this (~5% margin).
+THUMB_WIDER_ORTHO = 1.90 # Ortho widen factor on touches_border / soft-span retry.
+
 # Developer diagnostics: render framing guides directly into generated thumbnails.
-# 0 = normal thumbnails, 1 = show all framing guides.
-DEV_OVERLAY = 0
-# DEV console: 0 = only errors/critical diagnostics, 1 = compact fix-oriented diagnostics.
-DEV_LOG_LEVEL = 0
+DEV_OVERLAY = 0 # Overlay, 0 = normal thumbnails, 1 = draw AABB/sphere/camera guides into PNG / WEBP / AVIF.
+DEV_LOG_LEVEL = 0 # Console logs for thumbnail generation, 0 = quiet (errors only), 1 = full log.
+
+# Last thumbnail-generation log lines (for ZIP_BUTTON mode 4 debug packs).
+_CURRENT_THUMB_PART = None
+_THUMB_LOG_BY_PART = {}  # part_name -> list[str]
+_THUMB_LOG_MAX = 80
+
+
+def _thumb_log_capture(line: str) -> None:
+    """Store a line under the active part name for later zip export."""
+    global _THUMB_LOG_BY_PART
+    key = _CURRENT_THUMB_PART or "_last"
+    buf = _THUMB_LOG_BY_PART.setdefault(key, [])
+    buf.append(line)
+    if len(buf) > _THUMB_LOG_MAX:
+        del buf[: len(buf) - _THUMB_LOG_MAX]
 
 
 def _dev_info(*args, **kwargs):
-    """Compact developer-only log; kept intentionally quiet for batch runs."""
-    if DEV_OVERLAY and DEV_LOG_LEVEL:
-        print("[mu_thumb][DEV]", *args, flush=True)
+    """Console log when DEV_LOG_LEVEL=1 — independent of DEV_OVERLAY."""
+    msg = " ".join(str(a) for a in args)
+    line = "[mu_thumb][DEV] " + msg
+    _thumb_log_capture(line)
+    if DEV_LOG_LEVEL:
+        print(line, flush=True)
 
 
 def _info(*args, **kwargs):
-    """Normal informational log; suppressed in DEV batch mode."""
-    if not DEV_OVERLAY:
-        print(*args, **kwargs)
+    """Normal informational log; always available (not gated by overlay)."""
+    msg = " ".join(str(a) for a in args)
+    if msg.startswith("[mu_thumb]") or msg.startswith("plane-fit") or "ortho=" in msg:
+        _thumb_log_capture(msg if msg.startswith("[") else "[mu_thumb] " + msg)
+    print(*args, **kwargs)
+
+
+def get_thumb_debug_log(part_name: str = None):
+    """Return captured [mu_thumb] lines for part (or last run)."""
+    if part_name and part_name in _THUMB_LOG_BY_PART:
+        return list(_THUMB_LOG_BY_PART[part_name])
+    if _CURRENT_THUMB_PART and _CURRENT_THUMB_PART in _THUMB_LOG_BY_PART:
+        return list(_THUMB_LOG_BY_PART[_CURRENT_THUMB_PART])
+    if "_last" in _THUMB_LOG_BY_PART:
+        return list(_THUMB_LOG_BY_PART["_last"])
+    # any most recent
+    if _THUMB_LOG_BY_PART:
+        return list(next(reversed(_THUMB_LOG_BY_PART.values())))
+    return []
+
+
+def _apply_thumb_format_settings(scene):
+    settings = scene.render.image_settings
+    settings.file_format = THUMB_FORMAT
+    settings.color_mode = "RGBA"
+    if THUMB_FORMAT == "PNG":
+        settings.compression = 15 # PNG is always lossless.
+    elif THUMB_FORMAT == "WEBP":
+        settings.quality = 100 if THUMB_QUALITY < 0 else THUMB_QUALITY # quality 0..100; -1 = lossless.
+    elif THUMB_FORMAT == "AVIF":
+        settings.quality = 100 if THUMB_QUALITY < 0 else THUMB_QUALITY # Blender exposes quality, but no AVIF lossless flag.
 
 
 # Persistent browser thumbnail preferences. Stored in Blender's user config,
-# not in the .blend, so the value survives Blender restarts.
 _THUMB_PREFS_FILE = Path(bpy.utils.user_resource("CONFIG", path="io_object_mu", create=True)) / "thumbnail_prefs.json"
 _INCLUDE_STOCK_THUMBS_DEFAULT = True
 
@@ -167,7 +219,7 @@ def _cache_path(mu_path: str, part_name: str = "") -> str:
         _new_cache_basename(
             mu_path,
             part_name,
-        ) + ".png",
+        ) + THUMB_EXTENSION,
     )
 
 
@@ -178,14 +230,14 @@ def _unique_write_path(mu_path: str, part_name: str = "") -> str:
     )
     primary = os.path.join(
         _cache_dir(),
-        base + ".png",
+        base + THUMB_EXTENSION,
     )
     if not os.path.isfile(primary):
         return primary
     for i in range(1, 1000):
         cand = os.path.join(
             _cache_dir(),
-            "%s_%d.png" % (base, i),
+            "%s_%d%s" % (base, i, THUMB_EXTENSION),
         )
         if not os.path.isfile(cand):
             return cand
@@ -656,7 +708,7 @@ def reload_browser_icons(br=None, *, force: bool = True):
     """Drop cached preview entries and reload icons from disk.
 
     Required after background Thumbs/Regen: ImagePreview keeps the old
-    pixels for the same key even when the PNG on disk was overwritten.
+    pixels for the same key even when the PNG / WEBP / AVIF on disk was overwritten.
     """
     global _preview_warmup_active, _preview_warmup_queue, _preview_warmup_pos
     pcoll = ensure_previews()
@@ -775,39 +827,54 @@ def invalidate_preview_icons():
     _preview_warmup_pos = 0
 
 
+def _is_cfg_marker_not_fx(name: str) -> bool:
+    """Anything that is NOT a particle FX host (CoM, endcaps, clones, colliders)."""
+    n = (name or "").lower()
+    if not n:
+        return False
+    markers = (
+        "coloffset", "comoffset", "copoffset",
+        "co_l", "co_m", "co_p",
+        "attach_point", "attachpoint",
+        "node_stack", "node_attach", "node_collider",
+        "endcap", "(clone)", "mirrored", "flipper",
+        "endcapdummy", "endcapfoil", "commonhatch",
+        "_collider", "boxcollider", "spherecollider",
+        "collider",
+    )
+    return any(m in n for m in markers)
+
+
 def _is_fx_preview_obj(o):
-    """
-    Recognizes particle/FX objects used by the MU importer.
-    IMPORTANT:
-    Do not rely solely on mu_fx_preview, as some
-    objects imported by MU only have mu_particles or the emitter name.
+    """Thumbnail FX mode: ONLY real Blender particle systems or explicit .fx_* names.
+
+    Secondary MODEL endcaps used to trip FX mode via mu_particles/mu_fx_preview
+    custom properties and forced FX autozoom → transparent/edge-biased thumbs.
     """
     if o is None:
         return False
     try:
-        if o.get("mu_particles"):
-            return True
-    except Exception:
-        pass
-    try:
-        if o.get("mu_fx_preview"):
-            return True
-    except Exception:
-        pass
-    try:
         name = o.name or ""
     except Exception:
         name = ""
+    if _is_cfg_marker_not_fx(name):
+        return False
     lname = name.lower()
-    if ".fx_preview" in lname:
-        return True
-    if ".fx_emitter" in lname:
-        return True
     if ".cfg_preview" in lname:
+        return False
+    # Real particle systems only
+    try:
+        psys = getattr(o, "particle_systems", None)
+        if psys is not None and len(psys) > 0:
+            return True
+    except Exception:
+        pass
+    if ".fx_preview" in lname or ".fx_emitter" in lname:
         return True
-    # MU particle emitters
-    if "emitter" in lname:
+    if (lname.endswith("emitter") or ".emitter" in lname or "_emitter" in lname):
         return True
+    # Do NOT trust mu_particles / mu_fx_preview alone — endcaps/clones often
+    # inherit truthy flags without being particle FX.
     return False
 
 
@@ -1025,6 +1092,9 @@ def _should_exclude_from_thumbnail(
             return True
     if "cfg_preview" in n or "fx_preview" in n:
         return True
+    # Do NOT exclude cloud/fog/smoke/billboard meshes — those ARE the visible
+    # geometry for many FX-only or atmosphere parts. Wrongly treating them as
+    # helpers produced "NO MESH" placeholders in the thumbnail grid.
     # Collider patterns — keep precise (do NOT use bare startswith "col",
     # that false-positives colony/collector/color/etc.).
     if (
@@ -1076,7 +1146,8 @@ def _collect_frame_points(objs, *, keep_shroud: bool = False,
                           keep_fairing: bool = False,
                           include_evaluated: bool = True,
                           include_raw: bool = True,
-                          include_helpers: bool = False):
+                          include_helpers: bool = False,
+                          ignore_hide: bool = False):
     """Collect conservative world-space bounds for rendered MU geometry.
 
     IMPORTANT: evaluated and raw bounds are collected independently. The old
@@ -1089,6 +1160,11 @@ def _collect_frame_points(objs, *, keep_shroud: bool = False,
     collection returns empty: it ignores collider/helper exclusion and hide
     flags so pure-collider, FreeIVA shell, transform-only or empty-mesh
     assets still produce a framed thumbnail instead of hard-failing.
+
+    ignore_hide=True (preferred for *camera framing*): include meshes that are
+    currently hide_viewport / hide_render because of B9 exclusive transforms.
+    Framing the full structural AABB prevents 2–3× over-zoom when only a small
+    transform is active; the *render* still uses the default variant visibility.
     """
     from mathutils import Vector
 
@@ -1104,6 +1180,22 @@ def _collect_frame_points(objs, *, keep_shroud: bool = False,
             oname = o.name or ""
         except Exception:
             continue
+        # Always skip B9 exclusive / variant-hidden meshes (alternative shells).
+        # ignore_hide only re-includes viewport-hidden colliders helpers, NOT
+        # mu_variant_hidden alternatives (those inflate AABB → too-small thumbs).
+        try:
+            if o.get("mu_variant_hidden") and not include_helpers:
+                continue
+        except Exception:
+            pass
+        if not ignore_hide and not include_helpers:
+            try:
+                if getattr(o, "hide_viewport", False) or getattr(o, "hide_render", False):
+                    continue
+                if hasattr(o, "visible_get") and not o.visible_get():
+                    continue
+            except Exception:
+                pass
 
         # Last-resort: also use EMPTY / ARMATURE origins so transform-only
         # hierarchies still yield a non-empty point set (then may still fall
@@ -1122,16 +1214,20 @@ def _collect_frame_points(objs, *, keep_shroud: bool = False,
                 oname, keep_shroud=keep_shroud, keep_fairing=keep_fairing
             ):
                 continue
-            try:
-                if bool(getattr(o, "hide_render", False)):
-                    continue
-            except Exception:
-                pass
-            try:
-                if bool(o.hide_get()):
-                    continue
-            except Exception:
-                pass
+            nl = (oname or "").lower().split("∧")[0].split(".")[0].strip()
+            if nl in ("plane", "node_bot", "node_top", "node_stack"):
+                continue
+            if not ignore_hide:
+                try:
+                    if bool(getattr(o, "hide_render", False)):
+                        continue
+                except Exception:
+                    pass
+                try:
+                    if bool(o.hide_get()):
+                        continue
+                except Exception:
+                    pass
 
         if include_evaluated and depsgraph is not None:
             try:
@@ -1175,6 +1271,63 @@ def _collect_frame_points(objs, *, keep_shroud: bool = False,
     return points
 
 
+def _filter_outlier_frame_points(points, *, keep_ratio=0.88):
+    """Drop spatial outliers that blow up the thumbnail AABB.
+
+    Distant helper Plane / node meshes (ReStock hemisphere) or a single
+    mis-parented shell can expand extents 5–10× and leave the real part
+    looking tiny. Keep the densest central cloud (~keep_ratio of points).
+    """
+    if not points or len(points) < 12:
+        return points
+    try:
+        from mathutils import Vector
+        xs = sorted(float(p.x) for p in points)
+        ys = sorted(float(p.y) for p in points)
+        zs = sorted(float(p.z) for p in points)
+        mid = len(xs) // 2
+        cx, cy, cz = xs[mid], ys[mid], zs[mid]
+        dists = []
+        for p in points:
+            dx = float(p.x) - cx
+            dy = float(p.y) - cy
+            dz = float(p.z) - cz
+            dists.append((dx * dx + dy * dy + dz * dz, p))
+        dists.sort(key=lambda t: t[0])
+        n_keep = max(8, int(len(dists) * float(keep_ratio)))
+        n_keep = min(n_keep, len(dists))
+        # Also reject anything beyond 4× the median distance among kept set
+        med_d = dists[n_keep // 2][0] ** 0.5 if n_keep else 0.0
+        limit = (med_d * 4.0) ** 2 if med_d > 1e-8 else dists[n_keep - 1][0]
+        kept = [p for d2, p in dists[:n_keep] if d2 <= limit * 1.01]
+        if len(kept) < 8:
+            kept = [p for d2, p in dists[:n_keep]]
+        if len(kept) < len(points) * 0.5:
+            # Too aggressive — fall back
+            return points
+        return kept
+    except Exception:
+        return points
+
+
+def _frame_extent(points):
+    """Max axis-aligned half-extent (for comparing visible vs full AABB)."""
+    if not points:
+        return 0.0
+    try:
+        xs = [float(p.x) for p in points]
+        ys = [float(p.y) for p in points]
+        zs = [float(p.z) for p in points]
+        return 0.5 * max(
+            max(xs) - min(xs),
+            max(ys) - min(ys),
+            max(zs) - min(zs),
+            1e-9,
+        )
+    except Exception:
+        return 0.0
+
+
 def _frame_stats(points):
     """Return finite 3D AABB stats used to detect pathological bounds."""
     if not points:
@@ -1195,7 +1348,7 @@ def _frame_stats(points):
 
 
 def _load_render_metrics(path: str):
-    """Validate rendered PNG dimensions and detect fully black / fully transparent frames.
+    """Validate rendered PNG / WEBP / AVIF dimensions and detect fully black / fully transparent frames.
 
     Crop/tiny geometric detection stays in the framing stage. Here we only reject
     pathological outputs that are 100% transparent (empty render / out-of-frame /
@@ -1260,13 +1413,161 @@ def _load_render_metrics(path: str):
                     "opaque_pixels": opaque,
                     "non_black_pixels": non_black,
                 }
-            return {
+            # Reject frames where content is glued to a border (classic
+            # full-AABB / visible-subset mismatch).  COM of opaque pixels
+            # must sit near the icon centre.
+            try:
+                step2 = step
+                sx = sy = sn = 0
+                minx = miny = 10**9
+                maxx = maxy = -1
+                for i in range(0, n, step2):
+                    base = i * 4
+                    if px[base + 3] <= alpha_thr:
+                        continue
+                    x = i % w
+                    y = i // w
+                    sx += x; sy += y; sn += 1
+                    if x < minx: minx = x
+                    if y < miny: miny = y
+                    if x > maxx: maxx = x
+                    if y > maxy: maxy = y
+                if sn > 0:
+                    com_x = sx / sn
+                    com_y = sy / sn
+                    # distance from centre in pixels
+                    dist = ((com_x - w * 0.5) ** 2 + (com_y - h * 0.5) ** 2) ** 0.5
+                    # content bbox fill of the icon
+                    bw = max(1, maxx - minx + 1)
+                    bh = max(1, maxy - miny + 1)
+                    fill = (bw * bh) / float(w * h)
+                    # edge glue: COM far from centre AND content small
+                    if dist > min(w, h) * 0.28 and fill < 0.35:
+                        return {
+                            "valid": False,
+                            "reason": "edge_biased",
+                            "size": (w, h),
+                            "opaque_pixels": opaque,
+                            "com": (com_x, com_y),
+                            "dist": dist,
+                            "fill": fill,
+                        }
+                    # Border / tight-frame check (tunables: THUMB_BORDER_*).
+                    border = max(
+                        int(THUMB_BORDER_PX),
+                        int(round(float(w) * float(THUMB_BORDER_FRAC))),
+                    )
+                    edge_a = float(THUMB_BORDER_ALPHA)
+                    min_edge = max(
+                        int(THUMB_EDGE_MIN_PIXELS),
+                        int(round(float(w) / 128.0 * float(THUMB_EDGE_MIN_PIXELS))),
+                    )
+                    # Count soft-opaque pixels in each edge band (catches AA).
+                    left = right = top = bottom = 0
+                    for i in range(0, n, step2):
+                        base = i * 4
+                        if px[base + 3] <= edge_a:
+                            continue
+                        x = i % w
+                        y = i // w
+                        if x <= border:
+                            left += 1
+                        if x >= (w - 1 - border):
+                            right += 1
+                        if y <= border:
+                            top += 1
+                        if y >= (h - 1 - border):
+                            bottom += 1
+                    if step2 > 1:
+                        left *= step2; right *= step2
+                        top *= step2; bottom *= step2
+                    edge_hit = {
+                        "left": left, "right": right,
+                        "top": top, "bottom": bottom,
+                    }
+                    touches = (
+                        left >= min_edge or right >= min_edge
+                        or top >= min_edge or bottom >= min_edge
+                        or minx <= border or miny <= border
+                        or maxx >= (w - 1 - border) or maxy >= (h - 1 - border)
+                    )
+                    span_h = (maxy - miny + 1) / float(h)
+                    span_w = (maxx - minx + 1) / float(w)
+                    tight_axis = (
+                        span_h >= float(THUMB_SPAN_TIGHT)
+                        or span_w >= float(THUMB_SPAN_TIGHT)
+                    )
+                    # Asymmetric pad: e.g. Oscar top≈31px bottom=0 while span<SOFT
+                    # → soft pullback never fired. Reject when one side is flush
+                    # and the opposite has large empty margin.
+                    m_left = minx
+                    m_right = (w - 1 - maxx)
+                    m_bottom = miny   # Blender pixels: y=0 is bottom
+                    m_top = (h - 1 - maxy)
+                    side_margins = (m_left, m_right, m_bottom, m_top)
+                    min_m = min(side_margins)
+                    max_m = max(side_margins)
+                    asymmetric = (
+                        min_m <= border
+                        and max_m >= max(border * 4, int(h * 0.12))
+                    )
+                    if asymmetric:
+                        touches = True
+                    if (touches or tight_axis) and (
+                        fill > float(THUMB_BORDER_FILL_MIN) or tight_axis or asymmetric
+                    ):
+                        line = (
+                            "[mu_thumb][DEV] border edges L=%d R=%d T=%d B=%d "
+                            "margins LTRB=%s bbox=%s span=(%.3f,%.3f) fill=%.3f asym=%s"
+                            % (left, right, top, bottom,
+                               (m_left, m_top, m_right, m_bottom),
+                               (minx, miny, maxx, maxy), span_w, span_h, fill,
+                               asymmetric)
+                        )
+                        _thumb_log_capture(line)
+                        if DEV_LOG_LEVEL:
+                            print(line, flush=True)
+                        return {
+                            "valid": False,
+                            "reason": "touches_border",
+                            "size": (w, h),
+                            "opaque_pixels": opaque,
+                            "fill": fill,
+                            "bbox": (minx, miny, maxx, maxy),
+                            "span": (span_w, span_h),
+                            "edges": edge_hit,
+                            "margins": {
+                                "left": m_left, "right": m_right,
+                                "bottom": m_bottom, "top": m_top,
+                            },
+                            "asymmetric": asymmetric,
+                        }
+            except Exception:
+                pass
+            # Include span/bbox on success so soft-span pullback can react.
+            ok = {
                 "valid": True,
                 "reason": "ok",
                 "size": (w, h),
                 "opaque_pixels": opaque,
                 "non_black_pixels": non_black,
             }
+            try:
+                if sn > 0:
+                    ok["bbox"] = (minx, miny, maxx, maxy)
+                    ok["span"] = (
+                        (maxx - minx + 1) / float(w),
+                        (maxy - miny + 1) / float(h),
+                    )
+                    if DEV_LOG_LEVEL and max(ok["span"]) >= float(THUMB_SPAN_SOFT) * 0.95:
+                        print(
+                            "[mu_thumb][DEV] ok but tight span=%s bbox=%s"
+                            % (ok["span"], ok["bbox"]),
+                            flush=True,
+                        )
+            except Exception:
+                pass
+            return ok
         except Exception as e:
             # If pixel inspect fails, still accept on dimensions alone.
             return {
@@ -1283,7 +1584,7 @@ def _load_render_metrics(path: str):
             except Exception:
                 pass
 
-def _fit_ortho_camera(cam_obj, cam_data, world_coords, margin=1.30):
+def _fit_ortho_camera(cam_obj, cam_data, world_coords, margin=1.30, center_coords=None):
     """Fit an orthographic camera to the actual camera-plane extents.
 
     The old sphere fit is guaranteed not to crop only if *all rendered
@@ -1297,6 +1598,10 @@ def _fit_ortho_camera(cam_obj, cam_data, world_coords, margin=1.30):
     if not world_coords:
         return False
 
+    # Scale bounds from world_coords; look-at centre preferably from
+    # *visible* content (center_coords). Using full AABB centre while the
+    # rendered mesh is a small off-centre subset is what stuck station cores
+    # / Ranger on the frame edge.
     mn = Vector((
         min(p.x for p in world_coords),
         min(p.y for p in world_coords),
@@ -1307,7 +1612,18 @@ def _fit_ortho_camera(cam_obj, cam_data, world_coords, margin=1.30):
         max(p.y for p in world_coords),
         max(p.z for p in world_coords),
     ))
-    center = (mn + mx) * 0.5
+    c_src = center_coords if center_coords else world_coords
+    c_mn = Vector((
+        min(p.x for p in c_src),
+        min(p.y for p in c_src),
+        min(p.z for p in c_src),
+    ))
+    c_mx = Vector((
+        max(p.x for p in c_src),
+        max(p.y for p in c_src),
+        max(p.z for p in c_src),
+    ))
+    center = (c_mn + c_mx) * 0.5
 
     view_dir = Vector(tuple(float(v) for v in THUMB_CAM_DIR))
     if view_dir.length < 1e-8:
@@ -1336,25 +1652,43 @@ def _fit_ortho_camera(cam_obj, cam_data, world_coords, margin=1.30):
     except Exception:
         pass
 
-    # Measure the actual world points in the camera plane. This is the
-    # quantity an ORTHO camera really crops against; no 3-D diagonal guess.
-    min_x = float("inf")
-    max_x = float("-inf")
-    min_y = float("inf")
-    max_y = float("-inf")
-    for p in world_coords:
-        q = p - center
-        x = q.dot(right)
-        y = q.dot(up)
-        min_x = min(min_x, x)
-        max_x = max(max_x, x)
-        min_y = min(min_y, y)
-        max_y = max(max_y, y)
+    # Plane extents for ORTHO scale: always from world_coords (may be full AABB).
+    # 2D look-at centre: from center_src only (visible mesh). Mixing these is
+    # required when scale uses full bounds but the rendered mesh is a subset.
+    center_src = c_src  # already set above from center_coords or world_coords
 
+    def _plane_minmax(pts, origin):
+        lo_x = lo_y = float("inf")
+        hi_x = hi_y = float("-inf")
+        for p in pts:
+            q = p - origin
+            x = q.dot(right)
+            y = q.dot(up)
+            lo_x = min(lo_x, x); hi_x = max(hi_x, x)
+            lo_y = min(lo_y, y); hi_y = max(hi_y, y)
+        return lo_x, hi_x, lo_y, hi_y
+
+    # Shift look-at so the *visible* content is centred in the camera plane
+    c_min_x, c_max_x, c_min_y, c_max_y = _plane_minmax(center_src, center)
+    cx2 = 0.5 * (c_min_x + c_max_x)
+    cy2 = 0.5 * (c_min_y + c_max_y)
+    if abs(cx2) > 1e-8 or abs(cy2) > 1e-8:
+        center = center + right * cx2 + up * cy2
+        cam_obj.location = center + view_dir * distance
+        cam_obj.rotation_euler = (
+            center - cam_obj.location
+        ).to_track_quat("-Z", "Y").to_euler()
+
+    # Scale from full world_coords relative to the (possibly shifted) centre
+    min_x, max_x, min_y, max_y = _plane_minmax(world_coords, center)
     width = max(max_x - min_x, 0.05)
     height = max(max_y - min_y, 0.05)
     half_extent = max(width, height) * 0.5
-    ortho = max(2.0 * half_extent * float(margin), 0.1)
+    # Tall/thin parts (fuel tanks): projected aspect is high; a uniform margin
+    # still clips AA soft edges on the long axis. Bump scale by aspect.
+    aspect = max(width, height) / max(min(width, height), 1e-6)
+    elong = 1.0 + 0.10 * min(max(aspect - 1.2, 0.0), 2.5)  # up to +25%
+    ortho = max(2.0 * half_extent * float(margin) * elong, 0.1)
 
     cam_data.type = "ORTHO"
     cam_data.ortho_scale = ortho
@@ -1397,7 +1731,7 @@ def _dev_overlay_framing(scene, world_coords, center, view_dir, right, up, ortho
 
     from mathutils import Vector
 
-    # Simple emission materials so guides remain visible on transparent PNGs.
+    # Simple emission materials so guides remain visible on transparent PNG / WEBP / AVIFs.
     def mat(name, rgba):
         m = bpy.data.materials.new(name)
         m.diffuse_color = (*rgba, 1.0)
@@ -1665,10 +1999,12 @@ def _add_sun(col, name, location, target, energy, color=(1.0, 1.0, 1.0)):
         name,
         "SUN",
     )
-    data.energy = energy
+    data.energy = float(energy) * float(THUMB_BRIGHTNESS_FACTOR)
     data.color = color
     try:
-        data.angle = 0.15
+        # Higher THUMB_SHARPNESS → smaller sun disk → harder shadows
+        base_angle = 0.15
+        data.angle = max(0.02, base_angle / max(float(THUMB_SHARPNESS), 0.25))
     except Exception:
         pass
 
@@ -1905,7 +2241,7 @@ def _overlay_for_points(scene, points, cam_obj, cam_data):
 
 
 def _render_to_path(scene, path):
-    """Render one thumbnail to a temporary PNG and validate it."""
+    """Render one thumbnail to a temporary PNG / WEBP / AVIF and validate it."""
     # Do not inherit resolution/border settings from the imported MU scene.
     # Blender's RenderSettings resolution_percentage and render-region flags directly
     # affect the actual output size.
@@ -1939,9 +2275,11 @@ def _render_to_path(scene, path):
     try:
         bpy.ops.render.render(write_still=True)
     except Exception as e:
+        _dev_info("render failed:", type(e).__name__, e)
         print("[mu_thumb] render failed:", type(e).__name__, e)
         return False, {"valid": False, "reason": "render_error:%s" % e}
     if not os.path.isfile(path) or os.path.getsize(path) <= 64:
+        _dev_info("render missing_or_tiny_file", os.path.basename(path))
         return False, {"valid": False, "reason": "missing_or_tiny_file"}
     metrics = _load_render_metrics(path)
     _dev_info("validation", os.path.basename(path), metrics)
@@ -1996,6 +2334,9 @@ def generate_thumbnail(
         except Exception:
             pass
 
+    global _CURRENT_THUMB_PART
+    _CURRENT_THUMB_PART = part_name or Path(mu_path).stem or "_last"
+    _THUMB_LOG_BY_PART[_CURRENT_THUMB_PART] = []
     _dev_info("generate", os.path.basename(mu_path), part_name or "?")
     _p(0.05, "prepare")
 
@@ -2300,9 +2641,49 @@ def generate_thumbnail(
         except Exception:
             pass
 
+        # Default ModulePartVariants / B9: apply base subtype and wait for
+        # depsgraph so GAMEOBJECTS visibility + textures match the in-game
+        # default before framing/render (avoids mixed White+Metal meshes).
+        _p(0.35, "variant")
+        try:
+            from ..import_mu.cfg_preview import (
+                ensure_default_variant_for_preview,
+                find_variant_root,
+            )
+            vroot = find_variant_root(root) or root
+            if ensure_default_variant_for_preview(vroot, scene=scene):
+                print("[mu_thumb] default variant applied")
+            # Extra settle for secondary MODEL visibility / materials
+            try:
+                scene.frame_set(int(getattr(scene, "frame_current", 1) or 1))
+            except Exception:
+                pass
+            try:
+                bpy.context.view_layer.update()
+            except Exception:
+                pass
+            try:
+                dg = bpy.context.evaluated_depsgraph_get()
+                if dg is not None:
+                    dg.update()
+            except Exception:
+                pass
+        except Exception as e:
+            print("[mu_thumb] variant setup:", type(e).__name__, e)
+
         fx_objects = _collect_fx_objects(
             root
         )
+        # Drop non-particle objects (endcaps, clones, CoM, colliders)
+        raw_fx = list(fx_objects or [])
+        fx_objects = [o for o in raw_fx if _is_fx_preview_obj(o)]
+        if raw_fx and not fx_objects:
+            print(
+                "[mu_thumb][DEV] FX candidates dropped (not real particles):",
+                len(raw_fx),
+                [getattr(o, "name", "?") for o in raw_fx[:8]],
+                flush=True,
+            )
         is_fx = bool(fx_objects)
         if is_fx:
             print(
@@ -2478,10 +2859,53 @@ def generate_thumbnail(
             except Exception:
                 pass
 
-            use_coords = _collect_frame_points(
-                objs, keep_shroud=keep_shroud, keep_fairing=keep_fairing
+            # Framing strategy:
+            #  1) visible meshes (what will actually render after default variant)
+            #  2) full structural AABB (ignore_hide) for when exclusive B9 left
+            #     only a tiny shell visible (over-zoom case)
+            #  3) drop spatial outliers (distant Plane / mis-parented mesh)
+            # Prefer visible when extents are similar; use full only when
+            # visible is << full (ratio < 0.4).
+            center_coords = None
+            vis_coords = _collect_frame_points(
+                objs, keep_shroud=keep_shroud, keep_fairing=keep_fairing,
             )
-
+            full_coords = _collect_frame_points(
+                objs, keep_shroud=keep_shroud, keep_fairing=keep_fairing,
+                ignore_hide=True,
+            )
+            vis_coords = _filter_outlier_frame_points(vis_coords)
+            full_coords = _filter_outlier_frame_points(full_coords)
+            use_coords = None
+            ve = _frame_extent(vis_coords)
+            fe = _frame_extent(full_coords)
+            center_coords = None
+            if vis_coords and full_coords:
+                # Prefer VISIBLE bounds for scale. full AABB (ignore_hide) used to
+                # include B9-hidden alternatives (AIMP Flat vs Points) → ~2× small.
+                # Only use full when visible is pathologically tiny.
+                if ve > 1e-6 and len(vis_coords) >= 24 and ve >= max(0.08, 0.15 * fe):
+                    use_coords = vis_coords
+                    if fe > 1e-6 and (ve / fe) < 0.55:
+                        print(
+                            "[mu_thumb] frame=vis (skip full inflate ve=%.3f fe=%.3f ratio=%.2f)"
+                            % (ve, fe, ve / fe),
+                            flush=True,
+                        )
+                elif ve > 1e-6 and fe > 1e-6 and (ve / fe) < 0.15 and len(vis_coords) < 24:
+                    use_coords = full_coords
+                    center_coords = vis_coords
+                    print(
+                        "[mu_thumb] frame=full+vis_center emergency (ve=%.3f fe=%.3f)"
+                        % (ve, fe),
+                        flush=True,
+                    )
+                else:
+                    use_coords = vis_coords if vis_coords else full_coords
+            elif vis_coords:
+                use_coords = vis_coords
+            elif full_coords:
+                use_coords = full_coords
             if not use_coords:
                 # Last-resort: include helpers/colliders (and ignore hide flags)
                 # so pure-collider, FreeIVA shell, transform-only or empty-mesh
@@ -2491,6 +2915,7 @@ def generate_thumbnail(
                     include_evaluated=True, include_raw=True,
                     include_helpers=True,
                 )
+                use_coords = _filter_outlier_frame_points(use_coords)
                 if use_coords:
                     print(
                         "[mu_thumb][DEV] no visible frame points -> "
@@ -2550,7 +2975,9 @@ def generate_thumbnail(
                     return None
 
             ok = _fit_ortho_camera(
-                cam_obj, cam_data, use_coords, margin=float(THUMB_FRAME_MARGIN)
+                cam_obj, cam_data, use_coords,
+                margin=float(THUMB_FRAME_MARGIN),
+                center_coords=center_coords,
             )
             if not ok:
                 label = _classify_empty_geometry(objs, root)
@@ -2689,7 +3116,7 @@ def generate_thumbnail(
         scene.render.resolution_y = _ICON_SIZE
         scene.render.resolution_percentage = 100
         scene.render.filepath = out
-        scene.render.image_settings.file_format = ("PNG")
+        _apply_thumb_format_settings(scene)
         scene.render.film_transparent = True
         try:
             scene.render.engine = ("BLENDER_EEVEE_NEXT")
@@ -2737,7 +3164,7 @@ def generate_thumbnail(
         # BEFORE the render because it is now guaranteed to use the exact same
         # point set/camera framing. This removes the old second render pass and
         # makes large DEV batches roughly 2x faster on the rendering portion.
-        tmp_out = out + ".tmp.png"
+        tmp_out = out + ".tmp" + THUMB_EXTENSION
         if os.path.isfile(tmp_out):
             try:
                 os.remove(tmp_out)
@@ -2750,6 +3177,11 @@ def generate_thumbnail(
         if not is_fx:
             fit_sets = [
                 (use_coords, float(THUMB_FRAME_MARGIN), "combined"),
+                (_collect_frame_points(objs, keep_shroud=keep_shroud,
+                                       keep_fairing=keep_fairing,
+                                       include_evaluated=False, include_raw=True,
+                                       ignore_hide=True),
+                 float(THUMB_RETRY_MARGIN), "raw-only-full"),
                 (_collect_frame_points(objs, keep_shroud=keep_shroud,
                                        keep_fairing=keep_fairing,
                                        include_evaluated=False, include_raw=True),
@@ -2789,6 +3221,33 @@ def generate_thumbnail(
                 _p(0.70, "render")
                 valid, metrics = _render_to_path(scene, tmp_out)
                 if valid:
+                    # Soft pullback: still too tight on long axis even if
+                    # border pixels stayed under alpha threshold (AA).
+                    span = (metrics or {}).get("span")
+                    if not span:
+                        try:
+                            bbox = (metrics or {}).get("bbox")
+                            if bbox and len(bbox) == 4:
+                                bw = bbox[2] - bbox[0] + 1
+                                bh = bbox[3] - bbox[1] + 1
+                                span = (bw / float(_ICON_SIZE), bh / float(_ICON_SIZE))
+                        except Exception:
+                            span = None
+                    if span and max(span) >= float(THUMB_SPAN_SOFT):
+                        try:
+                            cam_data.ortho_scale = (
+                                float(cam_data.ortho_scale) * float(THUMB_WIDER_ORTHO)
+                            )
+                            print(
+                                "[mu_thumb] soft-span pullback ortho=%.3f span=%s"
+                                % (cam_data.ortho_scale, span),
+                                flush=True,
+                            )
+                            valid2, metrics2 = _render_to_path(scene, tmp_out)
+                            if valid2:
+                                valid, metrics = valid2, metrics2
+                        except Exception as e:
+                            print("[mu_thumb] soft-span pullback failed:", e)
                     break
                 reason = (metrics or {}).get("reason", "")
                 if reason in ("fully_transparent", "fully_black"):
@@ -2805,7 +3264,7 @@ def generate_thumbnail(
                 chosen_points = None
         else:
             chosen_points = fx_fit_points if fx_fit_points else None
-            valid, metrics = _render_to_path(scene, tmp_out) if not DEV_OVERLAY else (False, None)
+            valid, metrics = _render_to_path(scene, tmp_out)
             if not valid:
                 # FX camera has its own framing logic; retry with a more generous
                 # scale if the first render is suspicious.
@@ -2834,12 +3293,50 @@ def generate_thumbnail(
 
         if not valid:
             reason = (metrics or {}).get("reason", "")
-            if reason in ("fully_transparent", "fully_black", "empty_pixels"):
+            # Too zoomed / edge-biased: pull camera back (larger ortho) and retry
+            if reason in ("touches_border", "edge_biased"):
+                try:
+                    cam_data.ortho_scale = float(cam_data.ortho_scale) * float(THUMB_WIDER_ORTHO)
+                    print(
+                        "[mu_thumb] retry wider ortho=%.3f after %s"
+                        % (cam_data.ortho_scale, reason),
+                        flush=True,
+                    )
+                    valid, metrics = _render_to_path(scene, tmp_out)
+                    reason = (metrics or {}).get("reason", "") if not valid else ""
+                except Exception as e:
+                    print("[mu_thumb] wider-ortho retry failed:", e)
+            # Recovery ladder before any labeled text placeholder:
+            #  1) unhide all non-colliders  → EEVEE
+            #  2) same                       → Workbench solid (transparent bg)
+            #  3) unhide everything incl. colliders → EEVEE
+            #  4) same                       → Workbench solid (transparent bg)
+            # Only if all four fail do we write ODD MESH / ONLY COLLIDER / etc.
+            if not valid:
+                try:
+                    print(
+                        "[mu_thumb] recovery ladder after reason=%s"
+                        % ((metrics or {}).get("reason", "")),
+                        flush=True,
+                    )
+                    valid, metrics = _try_recovery_renders(
+                        scene,
+                        cam_obj,
+                        cam_data,
+                        objs,
+                        tmp_out,
+                        keep_shroud=keep_shroud,
+                        keep_fairing=keep_fairing,
+                    )
+                except Exception as e:
+                    print("[mu_thumb] recovery ladder failed:", type(e).__name__, e)
+            if not valid:
+                reason = (metrics or {}).get("reason", "")
                 label = _classify_empty_geometry(objs, root)
                 print(
-                    "[mu_thumb][DEV] render empty/black after retries -> "
-                    "empty-geometry placeholder label=%s metrics=%s"
-                    % (label, metrics),
+                    "[mu_thumb][DEV] render failed after recovery -> "
+                    "empty-geometry placeholder label=%s reason=%s metrics=%s"
+                    % (label, reason, metrics),
                     flush=True,
                 )
                 try:
@@ -2849,16 +3346,22 @@ def generate_thumbnail(
                     pass
                 if _write_empty_geometry_placeholder(out, label):
                     return out
-            print("[mu_thumb] FAIL: rendered PNG validation failed:", metrics)
-            try:
-                if os.path.isfile(tmp_out):
-                    os.remove(tmp_out)
-            except OSError:
-                pass
-            return None
+                print("[mu_thumb] FAIL: rendered PNG / WEBP / AVIF validation failed:", metrics)
+                try:
+                    if os.path.isfile(tmp_out):
+                        os.remove(tmp_out)
+                except OSError:
+                    pass
+                return None
+            # valid became True after retry/recovery — fall through to commit
 
         _p(0.90, "commit")
         if not _commit_render(tmp_out, out):
+            print(
+                "[mu_thumb] FAIL: commit_render failed tmp=%s out=%s exists_tmp=%s"
+                % (tmp_out, out, os.path.isfile(tmp_out) if tmp_out else False),
+                flush=True,
+            )
             try:
                 if os.path.isfile(tmp_out):
                     os.remove(tmp_out)
@@ -2866,7 +3369,10 @@ def generate_thumbnail(
                 pass
             return None
 
-        _dev_info("OK", os.path.basename(out), "bytes=", os.path.getsize(out))
+        print(
+            "[mu_thumb][DEV] OK", os.path.basename(out),
+            "bytes=", os.path.getsize(out), flush=True,
+        )
         return out
 
     finally:
@@ -2942,10 +3448,246 @@ def generate_thumbnail(
 
 
 # ---------------------------------------------------------------------------
+# Recovery before labeled placeholders (unhide → solid → text)
+# ---------------------------------------------------------------------------
+
+def _name_looks_like_collider(name: str) -> bool:
+    """True for KSP collider meshes — kept hidden in the first recovery pass."""
+    n = (name or "").lower()
+    if not n:
+        return False
+    return (
+        "collider" in n
+        or ".collider" in n
+        or "collision" in n
+        or n.startswith("col_")
+        or n.startswith("col1")
+        or n.startswith("col2")
+        or n.startswith("col3")
+        or n.startswith("col4")
+        or n.startswith("col5")
+        or n.startswith("col6")
+    )
+
+
+def _recovery_unhide(objs, *, include_colliders: bool = False) -> int:
+    """Unhide meshes for recovery renders. Returns how many objects were touched."""
+    n = 0
+    for o in objs or []:
+        try:
+            if getattr(o, "type", "") != "MESH":
+                continue
+            name = o.name or ""
+            if not include_colliders and _name_looks_like_collider(name):
+                continue
+            o.hide_set(False)
+            o.hide_viewport = False
+            o.hide_render = False
+            try:
+                o["mu_variant_hidden"] = False
+            except Exception:
+                pass
+            n += 1
+        except Exception:
+            pass
+    try:
+        bpy.context.view_layer.update()
+    except Exception:
+        pass
+    return n
+
+
+def _push_solid_shading(scene):
+    """Switch to Workbench solid shading; always keep film transparent.
+
+    Returns a state dict for _pop_solid_shading. Used when material/EEVEE
+    renders are empty (shader-only FX, broken alpha, etc.).
+    """
+    state = {
+        "engine": getattr(scene.render, "engine", None),
+        "film_transparent": bool(getattr(scene.render, "film_transparent", True)),
+    }
+    try:
+        sh = scene.display.shading
+        state["light"] = getattr(sh, "light", None)
+        state["color_type"] = getattr(sh, "color_type", None)
+        try:
+            state["single_color"] = tuple(sh.single_color)
+        except Exception:
+            state["single_color"] = None
+        try:
+            state["show_shadows"] = bool(getattr(sh, "show_shadows", False))
+        except Exception:
+            state["show_shadows"] = None
+    except Exception:
+        pass
+    try:
+        scene.render.engine = "BLENDER_WORKBENCH"
+    except Exception:
+        pass
+    # Transparent background is mandatory for thumbnails (solid or not).
+    try:
+        scene.render.film_transparent = True
+    except Exception:
+        pass
+    try:
+        sh = scene.display.shading
+        try:
+            sh.light = "STUDIO"
+        except Exception:
+            try:
+                sh.light = "FLAT"
+            except Exception:
+                pass
+        try:
+            sh.color_type = "SINGLE"
+        except Exception:
+            pass
+        try:
+            f = max(0.15, float(THUMB_SOLID_BRIGHTNESS_FACTOR))
+            c = min(1.0, 0.70 * f)
+            sh.single_color = (c, min(1.0, c * 1.02), min(1.0, c * 1.05))
+        except Exception:
+            pass
+        try:
+            sh.show_shadows = True
+        except Exception:
+            pass
+    except Exception:
+        pass
+    return state
+
+
+def _pop_solid_shading(scene, state):
+    """Restore engine / shading after a solid recovery render."""
+    if not state:
+        return
+    eng = state.get("engine")
+    if eng:
+        try:
+            scene.render.engine = eng
+        except Exception:
+            try:
+                scene.render.engine = "BLENDER_EEVEE_NEXT"
+            except Exception:
+                try:
+                    scene.render.engine = "BLENDER_EEVEE"
+                except Exception:
+                    pass
+    try:
+        scene.render.film_transparent = bool(state.get("film_transparent", True))
+    except Exception:
+        pass
+    try:
+        sh = scene.display.shading
+        if state.get("light") is not None:
+            try:
+                sh.light = state["light"]
+            except Exception:
+                pass
+        if state.get("color_type") is not None:
+            try:
+                sh.color_type = state["color_type"]
+            except Exception:
+                pass
+        if state.get("single_color") is not None:
+            try:
+                sh.single_color = state["single_color"]
+            except Exception:
+                pass
+        if state.get("show_shadows") is not None:
+            try:
+                sh.show_shadows = state["show_shadows"]
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
+def _try_recovery_renders(
+    scene,
+    cam_obj,
+    cam_data,
+    objs,
+    tmp_out,
+    *,
+    keep_shroud: bool = False,
+    keep_fairing: bool = False,
+):
+    """Before labeled placeholder: unhide → solid, then all (incl. colliders) → solid.
+
+    Returns (valid, metrics) of the first successful recovery render, or the
+    last failed metrics.
+    """
+    steps = (
+        (False, False, "unhide_non_collider"),
+        (False, True, "unhide_non_collider+solid"),
+        (True, False, "unhide_all"),
+        (True, True, "unhide_all+solid"),
+    )
+    last_metrics = {"valid": False, "reason": "recovery_exhausted"}
+    for include_colliders, solid, label in steps:
+        solid_state = None
+        try:
+            n = _recovery_unhide(objs, include_colliders=include_colliders)
+            _dev_info(
+                "recovery",
+                label,
+                "unhid=%d" % n,
+                "solid=%s" % bool(solid),
+            )
+            # Reframe from whatever is now visible (helpers/colliders when full).
+            pts = _collect_frame_points(
+                objs,
+                keep_shroud=keep_shroud if not include_colliders else True,
+                keep_fairing=keep_fairing if not include_colliders else True,
+                include_evaluated=True,
+                include_raw=True,
+                include_helpers=include_colliders,
+                ignore_hide=True,
+            )
+            pts = _filter_outlier_frame_points(pts)
+            if pts:
+                _fit_ortho_camera(
+                    cam_obj,
+                    cam_data,
+                    pts,
+                    margin=float(THUMB_FRAME_MARGIN),
+                )
+            if solid:
+                solid_state = _push_solid_shading(scene)
+            valid, metrics = _render_to_path(scene, tmp_out)
+            last_metrics = metrics or last_metrics
+            if valid:
+                _dev_info("recovery OK", label)
+                return True, metrics
+            reason = (metrics or {}).get("reason", "")
+            _dev_info("recovery miss", label, reason)
+        except Exception as e:
+            _dev_info("recovery error", label, type(e).__name__, e)
+            last_metrics = {
+                "valid": False,
+                "reason": "recovery_error:%s" % e,
+            }
+        finally:
+            if solid_state is not None:
+                try:
+                    _pop_solid_shading(scene, solid_state)
+                except Exception:
+                    pass
+            # Always re-assert transparent film after solid attempts.
+            try:
+                scene.render.film_transparent = True
+            except Exception:
+                pass
+    return False, last_metrics
+
+
+# ---------------------------------------------------------------------------
 # Empty-geometry classification + labeled transparent placeholders
 # ---------------------------------------------------------------------------
 # When a .mu has no renderable mesh (pure collider, depth mask, empty root,
-# transform-only, etc.) we still write a valid cache PNG: transparent background
+# transform-only, etc.) we still write a valid cache PNG / WEBP / AVIF: transparent background
 # with a short white label (1px black outline) so the browser grid is never blank
 # and the user sees *why* there is no model preview.
 
@@ -3043,7 +3785,10 @@ def _classify_empty_geometry(objs, root) -> str:
         return "EMPTY MESH"
     if mesh_with_verts == 0:
         return "NO MESH"
-    return "NO MESH"
+    # Has real mesh vertices — should not have reached the empty path.
+    # Flat billboards / cloud cards / fog planes / shader-only FX still count
+    # as geometry; label them distinctly when the empty/placeholder path runs.
+    return "ODD MESH" if mesh_with_verts > 0 else "NO MESH"
 
 
 def _draw_label_pixels(size: int, lines) -> list:
@@ -3054,7 +3799,7 @@ def _draw_label_pixels(size: int, lines) -> list:
     overwrite the previous pixel's white fill, leaving the whole glyph black.
     """
     # scale so multi-line labels fit inside the icon with padding
-    scale = 2
+    scale = round(2 * size / 128)
     glyph_w, glyph_h = 5 * scale, 7 * scale
     gap = 1 * scale
     line_gap = 3 * scale
@@ -3126,7 +3871,7 @@ def _draw_label_pixels(size: int, lines) -> list:
 
 
 def _write_empty_geometry_placeholder(out_path: str, label: str) -> bool:
-    """Write a transparent PNG with a white outlined label. Returns True on success."""
+    """Write a transparent PNG / WEBP / AVIF with a white outlined label. Returns True on success."""
     try:
         # Split long labels into up to 3 lines for readability
         words = (label or "NO MESH").upper().split()
@@ -3157,7 +3902,7 @@ def _write_empty_geometry_placeholder(out_path: str, label: str) -> bool:
         except Exception:
             pass
         img.filepath_raw = out_path
-        img.file_format = "PNG"
+        img.file_format = THUMB_FORMAT
         try:
             os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
         except Exception:
@@ -3215,7 +3960,7 @@ def _ensure_default_thumbnail() -> str:
     img.pixels = pixels
 
     img.filepath_raw = path
-    img.file_format = "PNG"
+    img.file_format = THUMB_FORMAT
 
     img.save()
 

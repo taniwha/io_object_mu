@@ -180,7 +180,7 @@ def main():
 
     done = 0
     failed = 0
-    dev = bool(getattr(thumbs, "DEV_OVERLAY", 0))
+    dev = bool(getattr(thumbs, "DEV_LOG_LEVEL", 0)) or bool(getattr(thumbs, "DEV_OVERLAY", 0))
     for i, (path, name) in enumerate(jobs):
         label = name or os.path.basename(path) or "?"
 

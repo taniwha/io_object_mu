@@ -20,6 +20,13 @@ from bpy.props import StringProperty, BoolProperty, IntProperty
 JOB_POLL_INTERVAL = 0.25   # seconds between progress-bar / worker polls (file I/O)
 THUMB_MAX_WORKERS = 6      # background Blender processes for Thumbs/Regen
 THUMB_WORKER_BELOW_NORMAL = True  # reduce UI contention while workers start/render
+# ZIP button next to Import for save to Desktop selected files (MU browser):
+# 0 = disabled (hidden)
+# 1 = only .mu
+# 2 = .mu + .cfg + textures referenced by cfg/mu
+# 3 = full pack (hierarchy for in-game load: all related .mu/.cfg/textures/sounds)
+# 4 = debug pack: main .mu + main .cfg + rendered thumb .png (+ short log)
+ZIP_BUTTON = 3
 
 
 # ---------------------------------------------------------------------------
@@ -288,7 +295,11 @@ def _job_update(current, total=None, title=None, force_ui=False):
     _job["current"] = cur
     tot = int(_job.get("total") or 1)
     base = (_job.get("base_title") or "").strip() or "Generate Thumbnails"
-    display = _format_thumb_progress_title(base, cur, tot)
+    # Catalog finish line already embeds counts + timing — show as-is
+    if base.startswith("Categories ready"):
+        display = base
+    else:
+        display = _format_thumb_progress_title(base, cur, tot)
     _job["title"] = display
     last_c = _job.get("last_ui_current")
     last_t = _job.get("last_ui_total")
@@ -423,22 +434,40 @@ def _job_timer_tick_impl():
 
 def _poll_catalog_job():
     from . import catalog as cat
+    # Hold "Categories ready …" on the blue bar briefly after finish
+    if _job.pop("_catalog_done_hold", None):
+        _job_end()
+        _job["timer_registered"] = False
+        return None
     running = cat.catalog_scan_running()
     cur, tot, title, active = cat.catalog_scan_progress()
     if running or active:
         if tot > 0:
             if title and "/" not in title and "Categories ready" not in title:
                 _job["base_title"] = title
-            _job_update(cur, tot, title=None, force_ui=True)
+            # Never show Loading… at 100% — reserve that for "Categories ready"
+            show_cur = cur
+            if title and "Categories ready" not in (title or "") and tot > 1:
+                if show_cur >= tot:
+                    show_cur = tot - 1
+            _job_update(show_cur, tot, title=None, force_ui=True)
         else:
             soft = min(int(_job.get("current") or 0) + 1, max(1, int(_job.get("total") or 100) - 1))
             _job_update(soft, _job.get("total") or 100, title=None)
         return float(JOB_POLL_INTERVAL)
 
-    # Scan finished
+    # Scan finished — show "Categories ready N/N in X.Y s [from cache]"
     if title and "Categories ready" in title:
         _job["base_title"] = title
-    _job_update(tot if tot else 1, tot if tot else 1, title=None, force_ui=True)
+        _job_update(
+            tot if tot else 1,
+            tot if tot else 1,
+            title=title,
+            force_ui=True,
+        )
+    else:
+        n = tot if tot else 1
+        _job_update(n, n, title=None, force_ui=True)
     try:
         from . import properties as props
         props.reset_category_cache()
@@ -448,6 +477,10 @@ def _poll_catalog_job():
         _populate_part_list_from_cache(bpy.context)
     except Exception:
         pass
+    # Leave the ready line on the bar for one more tick, then clear
+    if title and "Categories ready" in title:
+        _job["_catalog_done_hold"] = True
+        return 0.8
     _job_end()
     _job["timer_registered"] = False
     return None
@@ -497,7 +530,7 @@ def _poll_thumbs_job():
     if getattr(_job, "get", lambda *a: None)("kind") in ("thumbs", "regen"):
         try:
             from . import thumbnails as _thumbs
-            if bool(getattr(_thumbs, "DEV_OVERLAY", 0)):
+            if bool(getattr(_thumbs, "DEV_LOG_LEVEL", 0)):
                 for p in procs:
                     print("[mu_thumb][DEV] WORKER EXIT: pid=%s returncode=%s" % (getattr(p, "pid", "?"), p.returncode), flush=True)
         except Exception:
@@ -564,11 +597,16 @@ def _populate_part_list_from_cache(context):
     filt = (br.filter or "").strip().lower()
 
     br.parts.clear()
-    for entry in catalog.parts_in_category(cat):
-        if filt:
-            blob = "%s %s %s" % (entry.name, entry.title, entry.manufacturer)
-            if filt not in blob.lower():
-                continue
+
+    def _matches(entry):
+        if not filt:
+            return True
+        blob = "%s %s %s %s" % (
+            entry.name, entry.title, entry.manufacturer, entry.category or "",
+        )
+        return filt in blob.lower()
+
+    def _add(entry):
         item = br.parts.add()
         item.name = entry.name
         item.title = entry.title
@@ -576,7 +614,42 @@ def _populate_part_list_from_cache(context):
         item.mu_path = entry.mu_path
         item.cfg_path = entry.cfg_path
         item.attach_rules = ",".join(str(x) for x in (entry.attach_rules or ()))
+        try:
+            from .properties import _variant_source_tag
+            item.variant_tag = _variant_source_tag(
+                entry.cfg_path or "", entry.mu_path or ""
+            )
+        except Exception:
+            try:
+                item.variant_tag = ""
+            except Exception:
+                pass
 
+    if filt:
+        # Global search: active category first, then everything else
+        primary = []
+        rest = []
+        for entry in catalog.all_parts():
+            if not _matches(entry):
+                continue
+            if (entry.category or "") == cat:
+                primary.append(entry)
+            else:
+                rest.append(entry)
+        for entry in primary:
+            _add(entry)
+        for entry in rest:
+            _add(entry)
+    else:
+        for entry in catalog.parts_in_category(cat):
+            _add(entry)
+
+    try:
+        from .properties import _PREVIEW_ENUM_CACHE
+        _PREVIEW_ENUM_CACHE["sig"] = None
+        _PREVIEW_ENUM_CACHE["items"] = None
+    except Exception:
+        pass
     from . import thumbnails
     thumbnails.schedule_preview_warmup(br)
 
@@ -765,7 +838,7 @@ def _sort_thumb_queue_heaviest_first(queue):
 def _thumb_queue(br, *, force: bool, max_count: int):
     from . import thumbnails
     queue = []
-    dev = bool(getattr(thumbnails, "DEV_OVERLAY", 0))
+    dev = bool(getattr(thumbnails, "DEV_LOG_LEVEL", 0))
     for idx, item in enumerate(br.parts):
         path = item.mu_path
         name = item.name or ""
@@ -868,14 +941,19 @@ def _spawn_thumb_workers(queue_need, force, gamedata, max_workers=None, show_att
     del procs[:]
     del progress_files[:]
 
-    dev = False
+    # Console logs from workers are independent of DEV_OVERLAY (PNG guides).
+    # DEV_LOG_LEVEL=1 → inherit stdout/stderr so [mu_thumb][DEV] appears in Blender console.
+    # DEV_OVERLAY=1 alone also inherits (so overlay debug is visible).
+    dev_log = False
     try:
         from . import thumbnails as _thumbs
-        dev = bool(getattr(_thumbs, "DEV_OVERLAY", 0))
+        dev_log = bool(getattr(_thumbs, "DEV_LOG_LEVEL", 0)) or bool(
+            getattr(_thumbs, "DEV_OVERLAY", 0)
+        )
     except Exception:
         pass
 
-    if dev:
+    if dev_log:
         popen_kwargs = {"stdout": None, "stderr": None}
     else:
         popen_kwargs = {
@@ -884,7 +962,9 @@ def _spawn_thumb_workers(queue_need, force, gamedata, max_workers=None, show_att
         }
 
     if sys.platform == "win32":
-        flags = 0x00000200 if dev else (0x00000200 | 0x00000008)
+        # CREATE_NEW_PROCESS_GROUP; omit CREATE_NO_WINDOW when logging so
+        # worker prints land in the parent console.
+        flags = 0x00000200 if dev_log else (0x00000200 | 0x00000008)
         if THUMB_WORKER_BELOW_NORMAL:
             flags |= 0x00004000  # BELOW_NORMAL_PRIORITY_CLASS
         popen_kwargs["creationflags"] = flags
@@ -936,7 +1016,7 @@ def _spawn_thumb_workers(queue_need, force, gamedata, max_workers=None, show_att
                     continue
                 procs.append(proc)
                 progress_files.append(progfile)
-                if dev:
+                if dev_log:
                     print(
                         "[mu_thumb][DEV] WORKER START: pid=%s jobs=%d jobfile=%s"
                         % (getattr(proc, "pid", "?"), n_jobs, jobfile),
@@ -1239,19 +1319,28 @@ def _make_attach_marker(col, location, index, label, *, parent=None, local_pos=N
 
     if parent is not None:
         try:
+            from mathutils import Vector
+            # Parent first with identity inverse so location is pure parent-local.
             obj.parent = parent
+            obj.matrix_parent_inverse.identity()
             if local_pos is not None:
-                obj.location = local_pos
+                obj.location = Vector(local_pos)
             else:
-                # Keep world position at *location* under this parent.
-                from mathutils import Matrix, Vector
-                mw = Matrix.Translation(Vector(location))
-                obj.matrix_world = mw
-                # Re-express as parent-local after parenting.
-                obj.matrix_parent_inverse = parent.matrix_world.inverted()
-                obj.location = parent.matrix_world.inverted() @ Vector(location)
-                obj.rotation_euler = (0, 0, 0)
-                obj.scale = (1, 1, 1)
+                # Convert desired world *location* into parent-local space so the
+                # marker rides animated parents (suspension arms / hinges).
+                try:
+                    inv = parent.matrix_world.inverted()
+                    obj.location = inv @ Vector(location)
+                except Exception:
+                    obj.location = Vector(location)
+            obj.rotation_euler = (0, 0, 0)
+            obj.scale = (1, 1, 1)
+            # Clear leftover constraints that could pin marker to root
+            for c in list(obj.constraints):
+                try:
+                    obj.constraints.remove(c)
+                except Exception:
+                    pass
         except Exception:
             try:
                 obj.location = location
@@ -1265,8 +1354,24 @@ def _make_attach_marker(col, location, index, label, *, parent=None, local_pos=N
     return obj
 
 
+def _plain_obj_name(obj):
+    try:
+        n = (obj.name or "").split("\u2227")[0].strip()
+    except Exception:
+        return ""
+    if "." in n:
+        b, s = n.rsplit(".", 1)
+        if s.isdigit():
+            n = b
+    return n
+
+
 def _find_node_empty(root, node_key):
-    """Match CFG node name to an imported EMPTY (e.g. node_stack_top)."""
+    """Match CFG node name to hierarchy object (EMPTY preferred, any type OK).
+
+    Prefers the deepest / animated match so markers parent to a transform under
+    a moving suspension arm instead of a static root-level duplicate.
+    """
     if root is None or not node_key:
         return None
     key = str(node_key).lower().strip()
@@ -1274,21 +1379,99 @@ def _find_node_empty(root, node_key):
         objs = [root] + list(getattr(root, "children_recursive", []) or [])
     except Exception:
         objs = [root]
+    matches = []
     for obj in objs:
         try:
-            if getattr(obj, "type", None) != "EMPTY":
+            if obj == root:
                 continue
+            plain = _plain_obj_name(obj).lower()
             n = (obj.name or "").lower()
-            # Exact / startswith — Blender may suffix .001
-            if n == key or n.startswith(key + ".") or n.startswith(key + "_"):
-                return obj
+            if not (
+                plain == key
+                or n == key
+                or plain.startswith(key + ".")
+                or n.startswith(key + ".")
+                or plain.startswith(key + "_")
+                or n.startswith(key + "_")
+            ):
+                continue
+            depth = 0
+            p = obj.parent
+            while p is not None:
+                depth += 1
+                p = p.parent
+            anim = 0
+            ad = getattr(obj, "animation_data", None)
+            if ad and (ad.nla_tracks or ad.action):
+                anim = 50
+            type_bonus = 10 if getattr(obj, "type", "") == "EMPTY" else 0
+            matches.append((depth + anim + type_bonus, obj))
         except Exception:
             pass
-    return None
+    if not matches:
+        return None
+    matches.sort(key=lambda t: t[0], reverse=True)
+    return matches[0][1]
+
+
+def _iter_visible_node_empties(root):
+    """Yield (label, empty_obj) for currently visible node_* under *root*.
+
+    Variant / B9 switches often hide alternate stack nodes; only unhidden
+    empties should drive markers so positions refresh with the active variant.
+    """
+    if root is None:
+        return
+    stack = [root]
+    seen = set()
+    while stack:
+        o = stack.pop()
+        if o is None:
+            continue
+        try:
+            key = o.as_pointer()
+        except Exception:
+            key = id(o)
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            stack.extend(list(o.children))
+        except Exception:
+            pass
+        try:
+            name = o.name or ""
+        except Exception:
+            continue
+        plain = name.split("\u2227", 1)[0].strip()
+        low = plain.lower()
+        if not (low.startswith("node_") or low.startswith("node.") or ".node" in low):
+            continue
+        # Skip hidden (variant / B9 disabled transforms)
+        try:
+            if bool(o.hide_get()):
+                continue
+        except Exception:
+            pass
+        try:
+            if bool(getattr(o, "hide_viewport", False)):
+                continue
+        except Exception:
+            pass
+        label = plain
+        if not label.lower().startswith("node_"):
+            # keep original cfg-style name when possible
+            label = plain
+        yield label, o
 
 
 def update_attach_point_markers(context, enabled):
-    """Show/hide green attach markers. Never changes the user's selection."""
+    """Show/hide green attach markers. Never changes the user's selection.
+
+    Positions follow the active part variant when node empties are toggled by
+    ModulePartVariants / B9PartSwitch (visible node_* only). Falls back to
+    static node_* lines from the part .cfg when no matching EMPTY exists.
+    """
     scene = bpy.context.scene
 
     # Snapshot selection + active — sphere ops used to steal both.
@@ -1313,30 +1496,129 @@ def update_attach_point_markers(context, enabled):
         roots = []
         for obj in scene.objects:
             try:
-                if obj.parent is None and obj.get("ksp_mu_path") and obj.get("ksp_part_name"):
+                if obj.parent is None and (
+                    obj.get("ksp_mu_path")
+                    or obj.get("mu_variants")
+                    or obj.get("mu_cfg_path")
+                ):
                     roots.append(obj)
             except Exception:
                 pass
+        # Also consider active selection root (non-browser imports)
+        try:
+            ao = getattr(context, "active_object", None)
+            if ao is not None:
+                r = ao
+                while r.parent is not None:
+                    r = r.parent
+                if r not in roots:
+                    roots.append(r)
+        except Exception:
+            pass
         col = _attach_collection(scene)
         for root in roots:
+            placed = set()
+            # 0) B9 / variant NODE positions stored on root[mu_variants]
+            variant_nodes = {}
+            try:
+                raw = root.get("mu_variants")
+                if raw:
+                    import json as _json
+                    vdata = _json.loads(raw)
+                    active = vdata.get("active") or vdata.get("base") or ""
+                    for v in vdata.get("variants") or []:
+                        if v.get("name") == active:
+                            variant_nodes = dict(v.get("nodes") or {})
+                            break
+            except Exception:
+                variant_nodes = {}
+            if variant_nodes:
+                from mathutils import Vector as _V
+                for nname, ndata in variant_nodes.items():
+                    if not isinstance(ndata, dict):
+                        continue
+                    pos = ndata.get("position")
+                    tform = ndata.get("transform")
+                    key = tform or (
+                        nname if (nname or "").lower().startswith("node_")
+                        else f"node_stack_{nname}" if nname in ("top", "bottom")
+                        else f"node_{nname}"
+                    )
+                    klow = (key or "").lower()
+                    if klow in placed:
+                        continue
+                    node_empty = _find_node_empty(root, key)
+                    if node_empty is None and tform:
+                        node_empty = _find_node_empty(root, tform)
+                    if node_empty is None:
+                        node_empty = _find_node_empty(root, nname)
+                    if node_empty is not None:
+                        try:
+                            if bool(node_empty.hide_get()) or bool(
+                                getattr(node_empty, "hide_viewport", False)
+                            ):
+                                continue
+                        except Exception:
+                            pass
+                        placed.add(klow)
+                        _make_attach_marker(
+                            col, node_empty.matrix_world.translation, count, key,
+                            parent=node_empty, local_pos=(0.0, 0.0, 0.0),
+                        )
+                        count += 1
+                    elif pos is not None and len(pos) >= 3:
+                        placed.add(klow)
+                        local = _V((float(pos[0]), float(pos[1]), float(pos[2])))
+                        world = root.matrix_world @ local
+                        _make_attach_marker(
+                            col, world, count, key,
+                            parent=root, local_pos=local,
+                        )
+                        count += 1
+            # 1) Live hierarchy: visible node empties track variant switches
+            for key, node_empty in _iter_visible_node_empties(root):
+                klow = (key or "").lower()
+                if klow in placed:
+                    continue
+                placed.add(klow)
+                _make_attach_marker(
+                    col, node_empty.matrix_world.translation, count, key,
+                    parent=node_empty, local_pos=(0.0, 0.0, 0.0),
+                )
+                count += 1
+            # 2) CFG fallback for nodes that have no EMPTY in the .mu
             cfg = str(
                 root.get("ksp_cfg_path")
-                or Path(str(root.get("ksp_mu_path"))).with_suffix(".cfg")
+                or root.get("mu_cfg_path")
+                or (
+                    Path(str(root.get("ksp_mu_path"))).with_suffix(".cfg")
+                    if root.get("ksp_mu_path")
+                    else ""
+                )
             )
             for key, pos in _parse_cfg_attach_nodes(cfg):
+                klow = (key or "").lower()
+                if klow in placed:
+                    continue
                 local = Vector(pos)
-                # Prefer the real node EMPTY so markers ride node/armature anim.
                 node_empty = _find_node_empty(root, key)
-                parent = node_empty if node_empty is not None else root
-                # CFG coords are model-space relative to the part root.
-                # If parent is a node empty, put marker at local origin (empty
-                # already sits on the attach point). If parent is root, use CFG pos.
+                # If the EMPTY exists but is hidden by the active variant, skip
+                # (variant-aware path already handled visible ones).
                 if node_empty is not None:
+                    try:
+                        if bool(node_empty.hide_get()) or bool(
+                            getattr(node_empty, "hide_viewport", False)
+                        ):
+                            continue
+                    except Exception:
+                        pass
+                    placed.add(klow)
                     _make_attach_marker(
                         col, node_empty.matrix_world.translation, count, key,
                         parent=node_empty, local_pos=(0.0, 0.0, 0.0),
                     )
                 else:
+                    placed.add(klow)
                     world = root.matrix_world @ local
                     _make_attach_marker(
                         col, world, count, key,
@@ -1460,6 +1742,342 @@ class KSPMU_OT_MuBrowserSelectIndex(bpy.types.Operator):
         return {"FINISHED"}
 
 
+
+def _zip_resolve_cfg(entry) -> str:
+    """Find PART .cfg when catalog left cfg_path empty (Assets / orphan .mu)."""
+    cfg = (getattr(entry, "cfg_path", None) or "").replace(chr(92), "/").strip()
+    if cfg and os.path.isfile(cfg):
+        return cfg
+    mu = (getattr(entry, "mu_path", None) or "").replace(chr(92), "/").strip()
+    if not mu:
+        return ""
+    folder = os.path.dirname(mu)
+    stem = os.path.splitext(os.path.basename(mu))[0]
+    # 1) same basename next to .mu
+    cand = os.path.join(folder, stem + ".cfg")
+    if os.path.isfile(cand):
+        return cand.replace(chr(92), "/")
+    # 2) any .cfg in the same folder that mentions this model stem
+    try:
+        cfgs = [
+            os.path.join(folder, fn)
+            for fn in os.listdir(folder)
+            if fn.lower().endswith(".cfg")
+        ]
+    except Exception:
+        cfgs = []
+    needle = stem.lower()
+    mu_leaf = os.path.basename(mu).lower()
+    for c in cfgs:
+        try:
+            with open(c, "r", encoding="utf-8", errors="replace") as fh:
+                head = fh.read(65536).lower()
+        except Exception:
+            continue
+        if needle in head or mu_leaf in head or ("model" in head and needle in head):
+            return c.replace(chr(92), "/")
+    # 3) parent folder (one level) — some packs put cfg above mesh subdir
+    parent = os.path.dirname(folder)
+    if parent and parent != folder:
+        cand = os.path.join(parent, stem + ".cfg")
+        if os.path.isfile(cand):
+            return cand.replace(chr(92), "/")
+        try:
+            for fn in os.listdir(parent):
+                if not fn.lower().endswith(".cfg"):
+                    continue
+                c = os.path.join(parent, fn)
+                try:
+                    with open(c, "r", encoding="utf-8", errors="replace") as fh:
+                        head = fh.read(65536).lower()
+                except Exception:
+                    continue
+                if needle in head or mu_leaf in head:
+                    return c.replace(chr(92), "/")
+        except Exception:
+            pass
+    return ""
+
+
+def _zip_collect_files(entry, mode: int):
+    """Return list of (abs_path, arcname) for the ZIP pack."""
+    files = []
+    seen = set()
+
+    def add(src, arc=None):
+        if not src or not os.path.isfile(src):
+            return
+        key = os.path.normcase(os.path.normpath(src))
+        if key in seen:
+            return
+        seen.add(key)
+        if arc is None:
+            arc = os.path.basename(src)
+        files.append((src, arc.replace(chr(92), "/")))
+
+    mu = (entry.mu_path or "").replace(chr(92), "/")
+    cfg = _zip_resolve_cfg(entry)
+    name = entry.name or "part"
+
+    if mode >= 1:
+        add(mu)
+    if mode in (2, 3, 4) and cfg:
+        add(cfg)
+    elif mode in (2, 3, 4) and not cfg:
+        print("[mu_zip] WARNING: no .cfg found for", mu or name, flush=True)
+
+    if mode == 4:
+        # Prefer *our* generated cache PNG (not official KSP @thumbs) for debug.
+        try:
+            from . import thumbnails as th
+            thumb = None
+            if hasattr(th, "_cache_path"):
+                cand = th._cache_path(mu, name)
+                if cand and os.path.isfile(cand) and os.path.getsize(cand) > 64:
+                    thumb = cand
+            if thumb is None and hasattr(th, "_resolve_cache_path"):
+                thumb = th._resolve_cache_path(mu, name)
+            if thumb and os.path.isfile(thumb):
+                add(thumb, os.path.basename(thumb))
+            else:
+                print("[mu_zip] WARNING: no thumbnail PNG for", name, flush=True)
+        except Exception as e:
+            print("[mu_zip] thumb resolve:", type(e).__name__, e, flush=True)
+        return files
+
+    if mode in (2, 3):
+        # Textures next to mu / referenced in cfg (simple heuristics)
+        folder = os.path.dirname(mu) if mu else (os.path.dirname(cfg) if cfg else "")
+        tex_ext = {".dds", ".png", ".mbm", ".tga", ".jpg", ".jpeg"}
+        if folder and os.path.isdir(folder):
+            for fn in os.listdir(folder):
+                if os.path.splitext(fn)[1].lower() in tex_ext:
+                    add(os.path.join(folder, fn), fn)
+        if mode == 2:
+            return files
+
+    if mode == 3:
+        # Full hierarchy under the part folder (and sibling MODEL paths from cfg)
+        base = os.path.dirname(cfg or mu or "")
+        if base and os.path.isdir(base):
+            for dirpath, dirnames, filenames in os.walk(base):
+                dirnames[:] = [d for d in dirnames if d and d[0] not in "._"]
+                for fn in filenames:
+                    low = fn.lower()
+                    if low.endswith((
+                        ".mu", ".cfg", ".dds", ".png", ".mbm", ".tga",
+                        ".wav", ".ogg", ".mp3", ".jpg", ".jpeg",
+                    )):
+                        full = os.path.join(dirpath, fn)
+                        rel = os.path.relpath(full, base).replace(chr(92), "/")
+                        add(full, rel)
+        # Nested MODEL= paths in cfg text
+        if cfg and os.path.isfile(cfg):
+            try:
+                with open(cfg, "r", encoding="utf-8", errors="replace") as fh:
+                    txt = fh.read()
+            except Exception:
+                txt = ""
+            import re
+            gd = ""
+            try:
+                from ..preferences.preferences import Preferences
+                gd = (Preferences().GameData or "").strip().replace(chr(92), "/")
+            except Exception:
+                pass
+            for m in re.finditer(
+                r"(?im)^\\s*(?:model|texture|textureURL|mainTextureURL)\\s*=\\s*(.+)$",
+                txt,
+            ):
+                url = m.group(1).split("//")[0].strip().strip('"').replace(chr(92), "/")
+                if not url or not gd:
+                    continue
+                cand = os.path.join(gd, url)
+                if not cand.lower().endswith((".mu", ".dds", ".png", ".mbm")):
+                    for ext in (".mu", ".dds", ".png", ".mbm"):
+                        if os.path.isfile(cand + ext):
+                            cand = cand + ext
+                            break
+                if os.path.isfile(cand):
+                    # Keep GameData-relative path in archive
+                    rel = os.path.relpath(cand, gd).replace(chr(92), "/")
+                    add(cand, rel)
+        return files
+
+    return files
+
+
+class KSPMU_OT_MuBrowserZipPart(bpy.types.Operator):
+    bl_idname = "object.ksp_mu_browser_zip_part"
+    bl_label = "ZIP Part"
+    bl_description = (
+        "Pack selected part files to a zip (mode from ZIP_BUTTON tunable)"
+    )
+    bl_options = {"REGISTER"}
+
+    part_name: StringProperty(default="")
+
+    def execute(self, context):
+        from . import catalog
+        import zipfile
+        import tempfile
+        import datetime
+
+        mode = int(ZIP_BUTTON)
+        if mode <= 0:
+            self.report({"WARNING"}, "ZIP button disabled (ZIP_BUTTON=0)")
+            return {"CANCELLED"}
+
+        br = context.window_manager.ksp_mu_browser
+        name = self.part_name
+        if not name:
+            if 0 <= br.parts_index < len(br.parts):
+                name = br.parts[br.parts_index].name
+        entry = catalog.find_part(name)
+        if entry is None:
+            self.report({"ERROR"}, "Part not found")
+            return {"CANCELLED"}
+
+        # Mode 4 = debug pack: force-regen this part's thumb first so
+        # mu_zip_log gets fresh [mu_thumb] lines + up-to-date PNG.
+        if mode == 4:
+            try:
+                from . import thumbnails as th
+                mu = entry.mu_path or ""
+                pname = entry.name or ""
+                if mu and os.path.isfile(mu):
+                    show_ap = bool(getattr(br, "show_attach_points", False))
+                    print(
+                        "[mu_zip] mode4 auto-regen thumb: %s (%s)"
+                        % (pname, os.path.basename(mu)),
+                        flush=True,
+                    )
+                    th.generate_thumbnail(
+                        mu, pname, force=True, show_attach_points=show_ap,
+                    )
+                else:
+                    print("[mu_zip] mode4 auto-regen skipped: no .mu", flush=True)
+            except Exception as e:
+                print(
+                    "[mu_zip] mode4 auto-regen failed: %s: %s"
+                    % (type(e).__name__, e),
+                    flush=True,
+                )
+
+        files = _zip_collect_files(entry, mode)
+        if not files:
+            self.report({"ERROR"}, "No files to pack")
+            return {"CANCELLED"}
+
+        safe = "".join(
+            c if c.isalnum() or c in "-_." else "_"
+            for c in (entry.name or "part")
+        )[:60] or "part"
+        stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        out_name = "mu_debug_%s_mode%d_%s.zip" % (safe, mode, stamp)
+
+        # Desktop if available, else home
+        desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+        if not os.path.isdir(desktop):
+            desktop = os.path.expanduser("~")
+        out_path = os.path.join(desktop, out_name)
+
+        resolved_cfg = _zip_resolve_cfg(entry)
+        log_lines = [
+            "mu_zip mode=%d" % mode,
+            "part=%s" % (entry.name or ""),
+            "title=%s" % (entry.title or ""),
+            "mu=%s" % (entry.mu_path or ""),
+            "cfg=%s" % (resolved_cfg or entry.cfg_path or ""),
+            "cfg_catalog=%s" % (entry.cfg_path or ""),
+            "category=%s" % (entry.category or ""),
+            "files=%d" % len(files),
+        ]
+        for src, arc in files:
+            try:
+                sz = os.path.getsize(src)
+            except Exception:
+                sz = -1
+            log_lines.append("  + %s  (%d bytes) <- %s" % (arc, sz, src))
+
+        if mode == 4:
+            log_lines.append("")
+            log_lines.append("--- thumbnail debug ---")
+            try:
+                from . import thumbnails as th
+                from pathlib import Path as _P
+                tlog = []
+                if hasattr(th, "get_thumb_debug_log"):
+                    tlog = th.get_thumb_debug_log(entry.name or "") or []
+                    if not tlog and entry.mu_path:
+                        tlog = th.get_thumb_debug_log(_P(entry.mu_path).stem) or []
+                if tlog:
+                    log_lines.extend(tlog)
+                else:
+                    log_lines.append(
+                        "(no mu_thumb log after auto-regen — see console)"
+                    )
+                png = None
+                for src, arc in files:
+                    if str(arc).lower().endswith(".png"):
+                        png = src
+                        break
+                if png and os.path.isfile(png):
+                    try:
+                        img = bpy.data.images.load(png, check_existing=False)
+                        w, h = int(img.size[0]), int(img.size[1])
+                        px = list(img.pixels)
+                        thr = 0.02
+                        minx = miny = 10**9
+                        maxx = maxy = -1
+                        n = len(px) // 4
+                        for i in range(n):
+                            if px[i * 4 + 3] <= thr:
+                                continue
+                            x = i % w
+                            y = i // w
+                            if x < minx: minx = x
+                            if y < miny: miny = y
+                            if x > maxx: maxx = x
+                            if y > maxy: maxy = y
+                        try:
+                            bpy.data.images.remove(img)
+                        except Exception:
+                            pass
+                        if maxx >= 0:
+                            log_lines.append(
+                                "[mu_thumb] png probe size=%dx%d bbox=(%d,%d,%d,%d) "
+                                "margins LTRB=(%d,%d,%d,%d) span=(%.3f,%.3f)"
+                                % (
+                                    w, h, minx, miny, maxx, maxy,
+                                    minx, h - 1 - maxy, w - 1 - maxx, miny,
+                                    (maxx - minx + 1) / float(w),
+                                    (maxy - miny + 1) / float(h),
+                                )
+                            )
+                    except Exception as e:
+                        log_lines.append("[mu_thumb] png probe failed: %s" % e)
+            except Exception as e:
+                log_lines.append("thumb log attach failed: %s" % e)
+
+        try:
+            with zipfile.ZipFile(out_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+                for src, arc in files:
+                    zf.write(src, arcname=arc)
+                if mode == 4:
+                    zf.writestr("mu_zip_log.txt", "\n".join(log_lines) + "\n")
+        except Exception as e:
+            self.report({"ERROR"}, "ZIP failed: %s" % e)
+            print("[mu_zip] fail:", e, flush=True)
+            return {"CANCELLED"}
+
+        for line in log_lines:
+            print("[mu_zip]", line, flush=True)
+        print("[mu_zip] wrote", out_path, flush=True)
+        self.report({"INFO"}, "ZIP: %s (%d files)" % (out_name, len(files)))
+        return {"FINISHED"}
+
+
 classes_to_register = (
     KSPMU_OT_MuBrowserSelectIndex,
     KSPMU_OT_MuBrowserRefresh,
@@ -1467,5 +2085,6 @@ classes_to_register = (
     KSPMU_OT_MuBrowserRegenThumbs,
     KSPMU_OT_MuBrowserSelect,
     KSPMU_OT_MuBrowserImportPart,
+    KSPMU_OT_MuBrowserZipPart,
 )
 

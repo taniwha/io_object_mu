@@ -517,6 +517,16 @@ def process_mu(mu, mudir):
     except Exception as e:
         print(f"WARNING: particles preview finalize: {e}")
     try:
+        if root is not None:
+            src = getattr(mu, "source_filepath", None) or ""
+            if src:
+                root["ksp_mu_path"] = src
+            stem = getattr(mu, "filepath_stem", None) or ""
+            if stem:
+                root["ksp_mu_name"] = stem
+    except Exception:
+        pass
+    try:
         from .cfg_preview import attach_cfg_viewport_markers
         # Prefer on-disk basename for cfg lookup — mu.read() overwrites mu.name
         # with the Unity transform (Size1.5_…) which breaks underscore cfg match.
@@ -652,6 +662,7 @@ def import_mu(collection, filepath, create_colliders, force_armature, force_mesh
     mu.name = root_name
     # Survives mu.read() overwriting mu.name with the embedded transform name.
     mu.filepath_stem = root_name
+    mu.source_filepath = os.path.abspath(filepath)
     main_col, vis_col, col_col = _setup_collection_hierarchy(collection, root_name)
     mu.collection = vis_col  # default link target during import
     mu.main_collection = main_col

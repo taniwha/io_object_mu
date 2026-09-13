@@ -17,22 +17,268 @@ import os
 
 import bpy
 
+# ---------------------------------------------------------------------------
+# Undo/redo guard — RNA update on Scene.mu_*_variant fires during undo and
+# must not re-run apply_variant on half-restored / deleted Object IDs (crash).
+# ---------------------------------------------------------------------------
+_UNDO_REDO_DEPTH = 0
 
-def _update_part_variant(self, context):
-    """Scene enum → apply ModulePartVariants GAMEOBJECTS visibility."""
-    name = getattr(self, "mu_active_variant", "") or ""
+
+def _in_undo_redo():
+    return _UNDO_REDO_DEPTH > 0
+
+
+def _undo_pre(_scene=None):
+    global _UNDO_REDO_DEPTH
+    _UNDO_REDO_DEPTH += 1
+
+
+def _undo_post(_scene=None):
+    global _UNDO_REDO_DEPTH
+    _UNDO_REDO_DEPTH = max(0, _UNDO_REDO_DEPTH - 1)
+
+
+def _object_alive(obj):
+    """False if Object was removed (undo) or is None."""
+    if obj is None:
+        return False
+    try:
+        # Touch a basic RNA property — raises ReferenceError on freed IDs
+        _ = obj.name
+        return True
+    except ReferenceError:
+        return False
+    except Exception:
+        return False
+
+
+
+
+def _apply_variant_name(context, name):
+    """Apply a variant name on the selected import root."""
     if not name or name == "NONE":
         return
+    if _in_undo_redo():
+        return
     try:
-        from ..import_mu.cfg_preview import apply_variant, find_variant_root
+        from ..import_mu import cfg_preview as _cp
+        if getattr(_cp, "_VARIANT_APPLY_DEPTH", 0) > 0:
+            return
+        apply_variant = _cp.apply_variant
+        find_variant_root = _cp.find_variant_root
     except Exception:
         return
-    root = find_variant_root(
-        getattr(context, "active_object", None), context=context
-    )
-    if root is None:
+    try:
+        active = getattr(context, "active_object", None)
+        if not _object_alive(active):
+            active = None
+        root = find_variant_root(active, context=context)
+    except ReferenceError:
         return
-    apply_variant(root, name)
+    except Exception:
+        return
+    if root is None or not _object_alive(root):
+        return
+    try:
+        apply_variant(root, name)
+    except ReferenceError:
+        return
+    except Exception:
+        return
+    try:
+        br = getattr(context.window_manager, "ksp_mu_browser", None)
+        show = bool(getattr(br, "show_attach_points", False)) if br else False
+        if show:
+            from ..mu_browser.operators import update_attach_point_markers
+            update_attach_point_markers(context, True)
+    except ReferenceError:
+        pass
+    except Exception:
+        pass
+
+
+def _update_part_variant(self, context):
+    """Legacy single enum (MPV / combined)."""
+    if _in_undo_redo():
+        return
+    _apply_variant_name(context, getattr(self, "mu_active_variant", "") or "")
+
+
+def _update_mesh_variant(self, context):
+    """B9 / MPV mesh switch — independent of paint (slot 1 / Dome)."""
+    if _in_undo_redo():
+        return
+    _apply_variant_name(context, getattr(self, "mu_mesh_variant", "") or "")
+    _sync_mesh_paint_enums_from_id(context)
+
+
+def _update_mesh_variant_2(self, context):
+    if _in_undo_redo():
+        return
+    _apply_variant_name(context, getattr(self, "mu_mesh_variant_2", "") or "")
+    _sync_mesh_paint_enums_from_id(context)
+
+
+def _update_mesh_variant_3(self, context):
+    if _in_undo_redo():
+        return
+    _apply_variant_name(context, getattr(self, "mu_mesh_variant_3", "") or "")
+    _sync_mesh_paint_enums_from_id(context)
+
+
+def _update_mesh_variant_4(self, context):
+    if _in_undo_redo():
+        return
+    _apply_variant_name(context, getattr(self, "mu_mesh_variant_4", "") or "")
+    _sync_mesh_paint_enums_from_id(context)
+
+
+def _update_paint_variant(self, context):
+    """B9 texture/paint switch — independent of mesh."""
+    if _in_undo_redo():
+        return
+    _apply_variant_name(context, getattr(self, "mu_paint_variant", "") or "")
+
+
+def _sync_mesh_paint_enums_from_id(context):
+    """Align Mesh/Paint dropdowns with last apply without re-running apply.
+
+    Source of truth: ID props written by apply_variant, then paint_by_model
+    on the selected import root. RNA assignment runs under the depth guard.
+    """
+    if _in_undo_redo():
+        return
+    scene = getattr(context, "scene", None)
+    if scene is None:
+        return
+    try:
+        from ..import_mu import cfg_preview as _cp
+    except Exception:
+        return
+    if getattr(_cp, "_VARIANT_APPLY_DEPTH", 0) > 0:
+        return
+
+    want_mesh = None
+    want_paint = None
+    try:
+        want_mesh = scene.get("mu_mesh_variant_sync")
+    except Exception:
+        want_mesh = None
+    try:
+        want_paint = scene.get("mu_paint_variant_sync")
+    except Exception:
+        want_paint = None
+
+    # Fallback from JSON only when sync ID props are empty.  Never overwrite
+    # mu_mesh_variant_sync with the *first* active_modules mesh entry — parts
+    # with multiple independent mesh modules (Delta IV upper/lower endcaps)
+    # would always snap the dropdown back to meshSwitchEndsUpper/*.
+    try:
+        root = _cp.find_variant_root(
+            getattr(context, "active_object", None), context=context
+        )
+        if root is not None and _cp.MU_VARIANTS_KEY in root:
+            import json
+            data = json.loads(root[_cp.MU_VARIANTS_KEY])
+            leaf = data.get("active_mesh_leaf") or "__primary__"
+            pbm = data.get("paint_by_model") or {}
+            if not want_paint:
+                want_paint = pbm.get(leaf) or _cp._default_paint_variant_name(
+                    data
+                )
+            if not want_mesh:
+                # Prefer last-applied mesh subtype stored as active
+                active_mesh = data.get("active") or ""
+                if active_mesh:
+                    for v in data.get("variants") or []:
+                        if v.get("name") == active_mesh and _cp._variant_is_mesh_switch(
+                            v, data.get("variants") or []
+                        ):
+                            want_mesh = active_mesh
+                            break
+                if not want_mesh:
+                    # Last resort: any active_modules mesh entry (stable order
+                    # by moduleID so UI is deterministic, not "first in list")
+                    am = data.get("active_modules") or {}
+                    mesh_hits = []
+                    for v in data.get("variants") or []:
+                        if not _cp._variant_is_mesh_switch(
+                            v, data.get("variants") or []
+                        ):
+                            continue
+                        mid = v.get("b9_moduleID") or ""
+                        bare = am.get(mid)
+                        if bare and (
+                            v.get("name", "").endswith("/" + bare)
+                            or v.get("name") == bare
+                        ):
+                            mesh_hits.append(v.get("name"))
+                    if mesh_hits:
+                        want_mesh = mesh_hits[-1]
+    except Exception:
+        pass
+
+    slot_wants = [("mu_mesh_variant", want_mesh), ("mu_paint_variant", want_paint)]
+    try:
+        root = _cp.find_variant_root(
+            getattr(context, "active_object", None), context=context
+        )
+        if root is not None and _cp.MU_VARIANTS_KEY in root:
+            import json
+            data = json.loads(root[_cp.MU_VARIANTS_KEY])
+            groups = _cp.get_mesh_switch_groups(root=root, data=data)
+            am = data.get("active_modules") or {}
+            rna_slots = (
+                "mu_mesh_variant",
+                "mu_mesh_variant_2",
+                "mu_mesh_variant_3",
+                "mu_mesh_variant_4",
+            )
+            for i, g in enumerate(groups[:4]):
+                mid = g.get("module_id") or ""
+                if mid and mid != "_mesh":
+                    bare = am.get(mid)
+                    if bare:
+                        full = "%s/%s" % (mid, bare)
+                        ids = {it[0] for it in (g.get("items") or [])}
+                        if full in ids:
+                            slot_wants.append((rna_slots[i], full))
+                        elif bare in ids:
+                            slot_wants.append((rna_slots[i], bare))
+    except Exception:
+        pass
+
+    for rna_name, want in slot_wants:
+        if not want or not hasattr(scene, rna_name):
+            continue
+        try:
+            cur = getattr(scene, rna_name, None)
+        except Exception:
+            continue
+        if cur == want:
+            continue
+        _cp._VARIANT_APPLY_DEPTH += 1
+        try:
+            setattr(scene, rna_name, want)
+        except Exception:
+            # Invalid enum id — try bare subtype name
+            try:
+                bare = want.split("/")[-1]
+                for item in (getattr(scene, rna_name + "_items", None) or []):
+                    pass
+                setattr(scene, rna_name, bare)
+            except Exception:
+                pass
+        finally:
+            _cp._VARIANT_APPLY_DEPTH = max(0, getattr(_cp, "_VARIANT_APPLY_DEPTH", 1) - 1)
+
+    # Ensure redraw so the dropdown shows the new value immediately
+    try:
+        for area in context.screen.areas:
+            if area.type == "VIEW_3D":
+                area.tag_redraw()
+    except Exception:
+        pass
 
 
 def _update_active_flag(self, context):
@@ -127,6 +373,46 @@ def _variant_enum_items(self, context):
         return get_variant_items(self, context)
     except Exception:
         return [("NONE", "(no variants)", "")]
+
+
+def _mesh_variant_enum_items(self, context):
+    try:
+        from ..import_mu.cfg_preview import get_mesh_variant_items
+        return get_mesh_variant_items(self, context)
+    except Exception:
+        return [("NONE", "(no mesh variants)", "")]
+
+
+def _mesh_variant_2_enum_items(self, context):
+    try:
+        from ..import_mu.cfg_preview import get_mesh_variant_2_items
+        return get_mesh_variant_2_items(self, context)
+    except Exception:
+        return [("NONE", "(none)", "")]
+
+
+def _mesh_variant_3_enum_items(self, context):
+    try:
+        from ..import_mu.cfg_preview import get_mesh_variant_3_items
+        return get_mesh_variant_3_items(self, context)
+    except Exception:
+        return [("NONE", "(none)", "")]
+
+
+def _mesh_variant_4_enum_items(self, context):
+    try:
+        from ..import_mu.cfg_preview import get_mesh_variant_4_items
+        return get_mesh_variant_4_items(self, context)
+    except Exception:
+        return [("NONE", "(none)", "")]
+
+
+def _paint_variant_enum_items(self, context):
+    try:
+        from ..import_mu.cfg_preview import get_paint_variant_items
+        return get_paint_variant_items(self, context)
+    except Exception:
+        return [("NONE", "(no paint variants)", "")]
 
 
 def _flag_enum_items(self, context):
@@ -356,13 +642,153 @@ def _refresh_preview_clip_frame(context, force_rest):
             pass
 
 
+def _track_action_clip_names(track):
+    """Clip names carried by strips on this NLA track (mu_clip_name / strip action)."""
+    names = set()
+    try:
+        for strip in getattr(track, "strips", []) or []:
+            act = getattr(strip, "action", None)
+            if act is None:
+                continue
+            try:
+                cn = act.get("mu_clip_name")
+                if cn:
+                    names.add(str(cn))
+            except Exception:
+                pass
+            try:
+                an = getattr(act, "name", "") or ""
+                if an:
+                    names.add(an)
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return names
+
+
+def _collect_related_preview_clip_names(scope, mode):
+    """Tracks that should play together with *mode*.
+
+    Suspension / deploy animations are often split across several Mu clips and
+    NLA tracks (wheel mesh on one track, axle + damper on others). Exact name
+    match alone leaves sibling transforms frozen. Collect:
+
+    1. Exact track name == mode
+    2. Actions tagged mu_clip_name == mode
+    3. Any other non-FX track that co-exists on the same Object (or its
+       direct children/parents in scope) that also hosts *mode* — so selecting
+       the wheel fold clip also drives the axle/strut tracks on the same branch.
+    """
+    related = {mode}
+    if not mode or mode in ("NONE", "ALL"):
+        return related
+
+    # Keyword groups: suspension travel + deploy often need simultaneous play
+    mode_l = mode.lower()
+    keyword_groups = [
+        ("suspension", "suspensiontravel", "travel", "amort"),
+        ("deploy", "retract", "stow", "extend", "fold"),
+    ]
+    active_groups = []
+    for group in keyword_groups:
+        if any(k in mode_l for k in group):
+            active_groups.append(group)
+
+    # Pass 1: expand via mu_clip_name / action name
+    objs_with_mode = []
+    for id_data in scope:
+        ad = getattr(id_data, "animation_data", None)
+        if not ad or not ad.nla_tracks:
+            continue
+        has_mode = False
+        for track in ad.nla_tracks:
+            tn = track.name or ""
+            if _is_fx_nla_source(id_data, track):
+                continue
+            clip_names = _track_action_clip_names(track)
+            if tn == mode or mode in clip_names:
+                related.add(tn)
+                related.update(clip_names)
+                has_mode = True
+        if has_mode and isinstance(id_data, bpy.types.Object):
+            objs_with_mode.append(id_data)
+
+    if not objs_with_mode:
+        return related
+
+    # Pass 2: sibling tracks on the same animated objects / close hierarchy
+    obj_set = set()
+    for o in objs_with_mode:
+        obj_set.add(o.as_pointer())
+        try:
+            if o.parent is not None:
+                obj_set.add(o.parent.as_pointer())
+            for ch in list(getattr(o, "children", []) or []):
+                obj_set.add(ch.as_pointer())
+        except Exception:
+            pass
+
+    for id_data in scope:
+        if not isinstance(id_data, bpy.types.Object):
+            continue
+        try:
+            if id_data.as_pointer() not in obj_set:
+                # Also include objects that share a common parent with mode hosts
+                p = id_data.parent
+                share = False
+                while p is not None:
+                    if p.as_pointer() in obj_set:
+                        share = True
+                        break
+                    p = p.parent
+                if not share:
+                    continue
+        except Exception:
+            continue
+        ad = getattr(id_data, "animation_data", None)
+        if not ad or not ad.nla_tracks:
+            continue
+        for track in ad.nla_tracks:
+            if _is_fx_nla_source(id_data, track):
+                continue
+            tn = track.name or ""
+            if not tn:
+                continue
+            related.add(tn)
+            related.update(_track_action_clip_names(track))
+
+    # Pass 3: keyword group expansion across entire scope
+    if active_groups:
+        for id_data in scope:
+            ad = getattr(id_data, "animation_data", None)
+            if not ad or not ad.nla_tracks:
+                continue
+            for track in ad.nla_tracks:
+                if _is_fx_nla_source(id_data, track):
+                    # still include SuspensionTravel synthetic tracks by name
+                    tn = track.name or ""
+                    tnl = tn.lower()
+                    if any(any(k in tnl for k in g) for g in active_groups):
+                        related.add(tn)
+                    continue
+                tn = track.name or ""
+                tnl = tn.lower()
+                if any(any(k in tnl for k in g) for g in active_groups):
+                    related.add(tn)
+                    related.update(_track_action_clip_names(track))
+    return related
+
+
 def _set_preview_clip_active(context, clip_name):
     """Apply Preview Clip selection to NLA tracks in scope.
 
     NONE — mute all non-FX clips and reset to rest at frame_start (not frozen).
     ALL  — unmute all non-FX clips (import-style default visibility) at frame_start.
     Dust/Rocks (MuParticles host) — force-show that FX group; mute Mu clips.
-    else — unmute only the chosen clip; FX preview stays frame-gated.
+    else — unmute the chosen clip *and* related tracks that share the same
+    animated branch (suspension fold: wheel + axle + damper), via mu_clip_name
+    and co-hosted NLA on the hierarchy; FX preview stays frame-gated.
     """
     mode = clip_name or "NONE"
     mute_all = mode == "NONE"
@@ -371,6 +797,9 @@ def _set_preview_clip_active(context, clip_name):
     objs = [x for x in scope if isinstance(x, bpy.types.Object)]
     fx_hosts = dict(_particle_fx_hosts_in_scope(objs))
     fx_mode = mode in fx_hosts
+    related = set()
+    if not mute_all and not unmute_all and not fx_mode and mode != "ColorChangerLights":
+        related = _collect_related_preview_clip_names(scope, mode)
 
     for id_data in scope:
         ad = getattr(id_data, "animation_data", None)
@@ -391,8 +820,27 @@ def _set_preview_clip_active(context, clip_name):
                             or mode.startswith("ColorChangerLights")
                         )
                 else:
+                    # SuspensionTravel: gated by Options checkbox (off by default)
+                    is_susp = tn.startswith("Suspension") or (
+                        track.get("mu_suspension_preview")
+                        if hasattr(track, "get")
+                        else False
+                    )
+                    if is_susp:
+                        try:
+                            susp_on = bool(
+                                getattr(
+                                    context.scene, "mu_suspension_preview", False
+                                )
+                            )
+                        except Exception:
+                            susp_on = False
+                        # Also on when user picks SuspensionTravel in Preview Clip
+                        if mode.startswith("Suspension"):
+                            susp_on = True
+                        track.mute = not susp_on
                     # MuParticles swarm tracks: unmute only for selected host
-                    if mute_all:
+                    elif mute_all:
                         track.mute = True
                     elif fx_mode:
                         host = fx_hosts.get(mode)
@@ -414,7 +862,14 @@ def _set_preview_clip_active(context, clip_name):
                 elif mode == "ColorChangerLights":
                     track.mute = not tn.startswith("ColorChangerLights")
                 else:
-                    track.mute = (tn != mode)
+                    clip_names = _track_action_clip_names(track)
+                    match = (
+                        tn == mode
+                        or tn in related
+                        or mode in clip_names
+                        or bool(clip_names & related)
+                    )
+                    track.mute = not match
         try:
             ad.action = None
         except Exception:
@@ -741,6 +1196,10 @@ class KSPMU_OT_ToggleColliders(bpy.types.Operator):
             hidden = sum(1 for o in objs if o.hide_viewport)
             hide = hidden < len(objs) / 2
         n = _set_collider_hide(objs, hide)
+        try:
+            context.scene["mu_colliders_hidden"] = bool(hide)
+        except Exception:
+            pass
         self.report({'INFO'},
                     f"{'Hidden' if hide else 'Shown'} {n} collider(s)")
         return {'FINISHED'}
@@ -790,6 +1249,10 @@ class KSPMU_OT_ToggleShroudFairing(bpy.types.Operator):
             hidden = sum(1 for o in objs if o.hide_viewport)
             hide = hidden < len(objs) / 2
         n = _set_shroud_fairing_hide(objs, hide)
+        try:
+            context.scene["mu_shrouds_hidden"] = bool(hide)
+        except Exception:
+            pass
         self.report(
             {'INFO'},
             f"{'Hidden' if hide else 'Shown'} {n} shroud/fairing object(s)",
@@ -1097,7 +1560,7 @@ class KSPMU_OT_RemovePartVariant(bpy.types.Operator):
         if not remove_active_variant(root):
             self.report(
                 {'WARNING'},
-                "Cannot remove Stock / last / base-only variant",
+                "Cannot remove Stock / B9-from-cfg / last / base-only variant",
             )
             return {'CANCELLED'}
         active = get_active_variant_name(root)
@@ -1392,6 +1855,119 @@ class KSPMU_OT_AddAnimSound(bpy.types.Operator):
         return {'FINISHED'}
 
 
+
+def _iter_suspension_preview_tracks(context):
+    """Yield (obj, track) for SuspensionTravel / mu_suspension_preview NLA tracks."""
+    roots = _preview_clip_hierarchy_roots(context) if context else []
+    if not roots:
+        # Fallback: scan scene
+        try:
+            roots = [
+                o for o in bpy.context.scene.objects
+                if o.parent is None
+            ]
+        except Exception:
+            roots = []
+    seen = set()
+    for root in roots:
+        try:
+            stack = [root] + list(getattr(root, "children_recursive", []) or [])
+        except Exception:
+            stack = [root]
+        for obj in stack:
+            if obj is None:
+                continue
+            try:
+                key = obj.as_pointer()
+            except Exception:
+                key = id(obj)
+            if key in seen:
+                continue
+            seen.add(key)
+            ad = getattr(obj, "animation_data", None)
+            if not ad or not ad.nla_tracks:
+                continue
+            for track in ad.nla_tracks:
+                tn = track.name or ""
+                is_susp = False
+                try:
+                    if track.get("mu_suspension_preview"):
+                        is_susp = True
+                except Exception:
+                    pass
+                if not is_susp and tn.startswith("Suspension"):
+                    is_susp = True
+                if not is_susp:
+                    # action tag
+                    try:
+                        for strip in track.strips:
+                            act = strip.action
+                            if act is not None and (
+                                act.get("mu_fx_preview")
+                                and "suspension" in (act.name or "").lower()
+                            ):
+                                is_susp = True
+                                break
+                    except Exception:
+                        pass
+                if is_susp:
+                    yield obj, track
+
+
+def _set_suspension_preview_enabled(context, enabled):
+    """Mute/unmute SuspensionTravel tracks and optionally drive active action."""
+    enabled = bool(enabled)
+    for obj, track in _iter_suspension_preview_tracks(context):
+        try:
+            track.mute = not enabled
+        except Exception:
+            pass
+        if enabled:
+            # Assign first strip action so scrubbing works without NLA solo
+            try:
+                act = None
+                for strip in track.strips:
+                    if strip.action is not None:
+                        act = strip.action
+                        break
+                if act is not None:
+                    if not obj.animation_data:
+                        obj.animation_data_create()
+                    # Keep NLA evaluation; clear exclusive action if it blocks NLA
+                    # Blender uses NLA when action is None
+                    obj.animation_data.action = None
+            except Exception:
+                pass
+        else:
+            try:
+                if obj.animation_data and obj.animation_data.action:
+                    act = obj.animation_data.action
+                    if act and (
+                        act.get("mu_fx_preview")
+                        or "suspension" in (act.name or "").lower()
+                    ):
+                        obj.animation_data.action = None
+            except Exception:
+                pass
+    # Force eval so mute takes effect immediately
+    try:
+        scene = context.scene if context else bpy.context.scene
+        if scene is not None:
+            scene.frame_set(int(scene.frame_current))
+    except Exception:
+        pass
+    try:
+        bpy.context.view_layer.update()
+    except Exception:
+        pass
+
+
+def _update_suspension_preview(self, context):
+    _set_suspension_preview_enabled(
+        context, bool(getattr(self, "mu_suspension_preview", False))
+    )
+
+
 class WORKSPACE_PT_mu_options(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -1404,14 +1980,65 @@ class WORKSPACE_PT_mu_options(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
+        # RNA props can be missing after partial reload — re-register on the fly
+        try:
+            ensure_scene_props()
+        except Exception as e:
+            col.label(text="Props register error: %s" % e)
+            return
         # Keep dropdown in sync with the selected import root's active variant
         _sync_variant_enum_to_selection(context)
         _sync_flag_enum_to_selection(context)
+        _sync_mesh_paint_enums_from_id(context)
         col.label(text="Part Variant")
-        col.prop(context.scene, "mu_active_variant", text="")
-        row = col.row(align=True)
-        row.operator("object.mu_add_part_variant", text="Add Variant")
-        row.operator("object.mu_remove_part_variant", text="Remove")
+        # Always prefer split Mesh / Paint when both exist on the part
+        has_mesh = has_paint = False
+        try:
+            from ..import_mu.cfg_preview import (
+                get_mesh_variant_items,
+                get_paint_variant_items,
+            )
+            mi = get_mesh_variant_items(context.scene, context)
+            pi = get_paint_variant_items(context.scene, context)
+            has_mesh = bool(mi) and mi[0][0] != "NONE"
+            has_paint = bool(pi) and pi[0][0] != "NONE"
+        except Exception as e:
+            print("WARNING: variant UI split:", e)
+        # B9 multi-module → split Mesh / Paint.  Stock ModulePartVariants
+        # (and single-list parts) → one combined dropdown so no variants vanish.
+        # Independent B9 mesh modules → one dropdown each (Dome, Rim, …)
+        mesh_groups = []
+        try:
+            from ..import_mu.cfg_preview import get_mesh_switch_groups
+            mesh_groups = get_mesh_switch_groups(context=context) or []
+        except Exception:
+            mesh_groups = []
+        rna_slots = (
+            "mu_mesh_variant",
+            "mu_mesh_variant_2",
+            "mu_mesh_variant_3",
+            "mu_mesh_variant_4",
+        )
+        if mesh_groups:
+            for i, g in enumerate(mesh_groups[:4]):
+                col.label(text=g.get("label") or "Mesh")
+                col.prop(context.scene, rna_slots[i], text="")
+            if has_paint:
+                col.label(text="Paint")
+                col.prop(context.scene, "mu_paint_variant", text="")
+        elif has_mesh and has_paint:
+            col.label(text="Mesh")
+            col.prop(context.scene, "mu_mesh_variant", text="")
+            col.label(text="Paint")
+            col.prop(context.scene, "mu_paint_variant", text="")
+        elif has_mesh:
+            col.label(text="Mesh")
+            col.prop(context.scene, "mu_mesh_variant", text="")
+        elif has_paint:
+            col.label(text="Paint")
+            col.prop(context.scene, "mu_paint_variant", text="")
+        else:
+            col.prop(context.scene, "mu_active_variant", text="")
         try:
             from ..preferences import Preferences
             prefs = Preferences()
@@ -1431,10 +2058,46 @@ class WORKSPACE_PT_mu_options(bpy.types.Panel):
         col.operator("object.ksp_mu_add_anim_sound", text="Add Animation Sound…")
         col.separator()
         col.label(text="Flag Decal")
-        col.prop(context.scene, "mu_active_flag", text="")
+        if hasattr(context.scene, "mu_active_flag"):
+            col.prop(context.scene, "mu_active_flag", text="")
         col.separator()
         col.label(text="Preview Clip")
-        col.prop(context.scene, "mu_preview_clip", text="")
+        if hasattr(context.scene, "mu_preview_clip"):
+            col.prop(context.scene, "mu_preview_clip", text="")
+        # SuspensionTravel is synthetic FX (viewport) — off by default
+        row = col.row(align=True)
+        row.prop(
+            context.scene,
+            "mu_suspension_preview",
+            text="SuspensionTravel",
+        )
+        # Hint: multi-MODEL secondaries live in part.variants (read-only FX)
+        try:
+            from ..import_mu.cfg_preview import find_variant_root, MU_VARIANTS_KEY
+            import json as _json
+            _r = find_variant_root(getattr(context, "active_object", None), context=context)
+            if _r is not None and int(_r.get("mu_secondary_models") or 0) > 0:
+                col.label(text="Extra MODEL variants in .variants (viewport only)")
+            if _r is not None and _r.get("mu_secondary_model"):
+                col.label(text="Secondary MODEL — edit its .mu separately")
+        except Exception:
+            pass
+        col.separator()
+        col.label(text="CFG Parameters")
+        col.prop(context.scene, "mu_cfg_filter", text="Filter")
+        col.prop(context.scene, "mu_cfg_param", text="")
+        try:
+            from ..import_mu.cfg_store import get_cfg_tree
+        except Exception:
+            get_cfg_tree = None
+        try:
+            from ..import_mu.cfg_preview import find_variant_root as _fvr
+            _root = _fvr(getattr(context, "active_object", None), context=context)
+            data = get_cfg_tree(_root) if get_cfg_tree and _root else None
+            if data:
+                col.label(text=f"{data.get('count', 0)} keys stored from part.cfg")
+        except Exception:
+            pass
         col.separator()
         col.label(text="Colliders")
         try:
@@ -1515,23 +2178,83 @@ class WORKSPACE_PT_mu_options(bpy.types.Panel):
         op.force = 'TOGGLE'
 
 
-def register():
-    if not hasattr(bpy.types.Scene, "mu_active_variant"):
-        bpy.types.Scene.mu_active_variant = bpy.props.EnumProperty(
+def ensure_scene_props():
+    """Register Scene RNA props if missing (safe after partial addon reload)."""
+    S = bpy.types.Scene
+    def _add(name, prop):
+        if hasattr(S, name):
+            return
+        try:
+            setattr(S, name, prop)
+        except Exception as e:
+            print("WARNING: register Scene.%s: %s" % (name, e))
+
+    _add(
+        "mu_active_variant",
+        bpy.props.EnumProperty(
             name="Part Variant",
             description="Active ModulePartVariants / B9PartSwitch preview (viewport only)",
             items=_variant_enum_items,
             update=_update_part_variant,
-        )
-    if not hasattr(bpy.types.Scene, "mu_active_flag"):
-        bpy.types.Scene.mu_active_flag = bpy.props.EnumProperty(
+        ),
+    )
+    _add(
+        "mu_mesh_variant",
+        bpy.props.EnumProperty(
+            name="Mesh Variant",
+            description="First mesh switch module (e.g. Dome)",
+            items=_mesh_variant_enum_items,
+            update=_update_mesh_variant,
+        ),
+    )
+    _add(
+        "mu_mesh_variant_2",
+        bpy.props.EnumProperty(
+            name="Mesh Variant 2",
+            description="Second mesh switch module (e.g. Rim)",
+            items=_mesh_variant_2_enum_items,
+            update=_update_mesh_variant_2,
+        ),
+    )
+    _add(
+        "mu_mesh_variant_3",
+        bpy.props.EnumProperty(
+            name="Mesh Variant 3",
+            description="Third mesh switch module",
+            items=_mesh_variant_3_enum_items,
+            update=_update_mesh_variant_3,
+        ),
+    )
+    _add(
+        "mu_mesh_variant_4",
+        bpy.props.EnumProperty(
+            name="Mesh Variant 4",
+            description="Fourth mesh switch module",
+            items=_mesh_variant_4_enum_items,
+            update=_update_mesh_variant_4,
+        ),
+    )
+    _add(
+        "mu_paint_variant",
+        bpy.props.EnumProperty(
+            name="Paint Variant",
+            description="Texture / paint switch (independent of mesh)",
+            items=_paint_variant_enum_items,
+            update=_update_paint_variant,
+        ),
+    )
+    _add(
+        "mu_active_flag",
+        bpy.props.EnumProperty(
             name="Flag Decal",
             description="Active FlagDecal preview texture (viewport only)",
             items=_flag_enum_items,
             update=_update_active_flag,
-        )
-    if not hasattr(bpy.types.Scene, "mu_preview_clip"):
-        bpy.types.Scene.mu_preview_clip = bpy.props.EnumProperty(
+        ),
+    )
+    _add(
+        "mu_preview_clip",
+        bpy.props.EnumProperty(
             name="Preview Clip",
             description=(
                 "NLA preview on selected hierarchy: none=mute+rest, "
@@ -1539,7 +2262,29 @@ def register():
             ),
             items=_preview_clip_enum_items,
             update=_update_preview_clip,
-        )
+        ),
+    )
+    _add(
+        "mu_suspension_preview",
+        bpy.props.BoolProperty(
+            name="SuspensionTravel",
+            description=(
+                "Enable synthetic SuspensionTravel NLA (viewport FX). "
+                "Off by default — not a real MuAnimation, skipped on export"
+            ),
+            default=False,
+            update=_update_suspension_preview,
+        ),
+    )
+    try:
+        from ..import_mu.cfg_store import register_cfg_ui
+        register_cfg_ui()
+    except Exception as e:
+        print("WARNING: cfg UI register:", e)
+
+
+def register():
+    ensure_scene_props()
     try:
         from ..import_mu.flag_preview import (
             register_flag_previews,
@@ -1554,13 +2299,50 @@ def register():
         register_sfx_handlers()
     except Exception:
         pass
+    # Undo/redo: suppress variant RNA updates that crash on freed IDs
+    for hlist, fn in (
+        (bpy.app.handlers.undo_pre, _undo_pre),
+        (bpy.app.handlers.undo_post, _undo_post),
+        (bpy.app.handlers.redo_pre, _undo_pre),
+        (bpy.app.handlers.redo_post, _undo_post),
+    ):
+        try:
+            if fn not in hlist:
+                hlist.append(fn)
+        except Exception:
+            pass
 
 
 def unregister():
+    for hlist, fn in (
+        (bpy.app.handlers.undo_pre, _undo_pre),
+        (bpy.app.handlers.undo_post, _undo_post),
+        (bpy.app.handlers.redo_pre, _undo_pre),
+        (bpy.app.handlers.redo_post, _undo_post),
+    ):
+        try:
+            while fn in hlist:
+                hlist.remove(fn)
+        except Exception:
+            pass
     if hasattr(bpy.types.Scene, "mu_preview_clip"):
         del bpy.types.Scene.mu_preview_clip
+    if hasattr(bpy.types.Scene, "mu_suspension_preview"):
+        del bpy.types.Scene.mu_suspension_preview
+    try:
+        from ..import_mu.cfg_store import unregister_cfg_ui
+        unregister_cfg_ui()
+    except Exception:
+        pass
     if hasattr(bpy.types.Scene, "mu_active_variant"):
         del bpy.types.Scene.mu_active_variant
+    if hasattr(bpy.types.Scene, "mu_mesh_variant"):
+        del bpy.types.Scene.mu_mesh_variant
+    for _slot in ("mu_mesh_variant_2", "mu_mesh_variant_3", "mu_mesh_variant_4"):
+        if hasattr(bpy.types.Scene, _slot):
+            delattr(bpy.types.Scene, _slot)
+    if hasattr(bpy.types.Scene, "mu_paint_variant"):
+        del bpy.types.Scene.mu_paint_variant
     if hasattr(bpy.types.Scene, "mu_active_flag"):
         del bpy.types.Scene.mu_active_flag
     try:

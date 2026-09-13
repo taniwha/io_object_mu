@@ -12,6 +12,11 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 from ..cfgnode import ConfigNode, ConfigNodeError
+from .thumbnails import THUMB_EXTENSION
+
+# Disk catalog cache limits
+DISK_CACHE_MAX_FILES = 10          # max .pkl files; oldest overwritten
+DISK_CACHE_MAX_BYTES = 100 * 1024 * 1024  # 100 MB per file
 
 
 STOCK_CATEGORY_ORDER = (
@@ -225,12 +230,256 @@ def _mu_from_part_cfg(cfg_path: str, cfg, gamedata_root: str) -> str:
 
 
 def _walk_cfgs(root: str):
-    """Yield all .cfg files below GameData."""
+    """Yield all .cfg files below GameData (skip hidden / @thumbs)."""
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d and d[0] not in "._"]
+        dirnames[:] = [
+            d for d in dirnames
+            if d and d[0] not in "._" and d != "@thumbs"
+        ]
         for fn in filenames:
             if fn.lower().endswith(".cfg"):
                 yield os.path.join(dirpath, fn)
+
+
+def _cfg_needs_full_parse(path: str) -> bool:
+    """Cheap pre-filter: skip configs without PART / INTERNAL / Localization."""
+    try:
+        with open(path, "rb") as fh:
+            head = fh.read(49152)
+    except Exception:
+        return True
+    low = head.lower()
+    return b"part" in low or b"internal" in low or b"localization" in low
+
+
+def _load_cfg_safe(cfg_path: str):
+    """Worker-safe ConfigNode load → (path, node|None).
+
+    Single disk read: pre-filter on the same buffer, then parse in-memory.
+    Avoids the old 2× I/O (pre-filter open + loadfile open).
+    """
+    p = cfg_path.replace(chr(92), "/")
+    try:
+        with open(p, "rb") as fh:
+            data = fh.read()
+    except Exception:
+        return p, None
+    head = data[:49152].lower()
+    if (
+        b"part" not in head
+        and b"internal" not in head
+        and b"localization" not in head
+    ):
+        return p, None
+    try:
+        if data.startswith(b"\xef\xbb\xbf"):
+            data = data[3:]
+        text = data.decode("utf-8", errors="replace")
+        # Prefer string load to skip a second disk read
+        if hasattr(ConfigNode, "load"):
+            node = ConfigNode.load(text)
+        else:
+            node = ConfigNode.loadfile(p)
+        # load() may return list of nodes — normalize to a root-like object
+        if isinstance(node, list):
+            root = ConfigNode("")
+            root.nodes = node
+            return p, root
+        return p, node
+    except Exception:
+        try:
+            return p, ConfigNode.loadfile(p)
+        except Exception:
+            return p, None
+
+
+def _disk_cache_dir() -> str:
+    """Stable cache dir (NOT bpy.app.tempdir — that changes every Blender session)."""
+    # Prefer addon-local cache/ so it travels with the install
+    try:
+        base = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "cache",
+        )
+        os.makedirs(base, exist_ok=True)
+        if os.path.isdir(base):
+            return base
+    except Exception:
+        pass
+    base = os.path.join(os.path.expanduser("~"), ".cache", "io_object_mu")
+    try:
+        os.makedirs(base, exist_ok=True)
+    except Exception:
+        base = os.path.expanduser("~")
+    return base
+
+
+def _disk_cache_path(root: str) -> str:
+    # NEVER use built-in hash() — PYTHONHASHSEED changes every process.
+    import hashlib
+    key = os.path.normcase(os.path.normpath(root)).encode("utf-8", "replace")
+    h = hashlib.md5(key).hexdigest()[:16]
+    return os.path.join(_disk_cache_dir(), "mu_catalog_%s.pkl" % h)
+
+
+def _fingerprint_gamedata(root: str) -> tuple:
+    """Fast invalidation key: cfg count + max mtime of top-level entries.
+
+    os.walk counting .cfg is ~10–50× cheaper than ConfigNode-parsing them.
+    Top-level mtimes catch added/removed mod folders under GameData.
+    """
+    n_cfg = 0
+    max_mt = 0.0
+    try:
+        for name in os.listdir(root):
+            try:
+                max_mt = max(max_mt, float(os.path.getmtime(os.path.join(root, name))))
+            except Exception:
+                pass
+    except Exception:
+        pass
+    try:
+        for dirpath, dirnames, filenames in os.walk(root):
+            dirnames[:] = [
+                d for d in dirnames
+                if d and d[0] not in "._" and d != "@thumbs"
+            ]
+            for fn in filenames:
+                if fn.lower().endswith(".cfg"):
+                    n_cfg += 1
+    except Exception:
+        pass
+    return (int(n_cfg), float(max_mt))
+
+
+def _disk_cache_load(root: str, mtime: float, fingerprint=None):
+    try:
+        import pickle
+        path = _disk_cache_path(root)
+        if not os.path.isfile(path):
+            return None
+        with open(path, "rb") as fh:
+            blob = pickle.load(fh)
+        if not isinstance(blob, dict):
+            return None
+        if blob.get("root") != root:
+            return None
+        if not blob.get("parts"):
+            return None
+        # Prefer fingerprint (cfg count + top-level mtimes) over single root mtime
+        fp = fingerprint
+        if fp is None:
+            fp = _fingerprint_gamedata(root)
+        if blob.get("fingerprint") is not None and tuple(blob.get("fingerprint")) != tuple(fp):
+            return None
+        # Legacy caches without fingerprint: fall back to root mtime
+        if blob.get("fingerprint") is None:
+            if abs(float(blob.get("mtime") or 0) - float(mtime)) > 1e-3:
+                return None
+        return blob
+    except Exception:
+        return None
+
+
+def _disk_cache_enforce_file_limit(cache_dir: str, keep_path: str = ""):
+    """Keep at most DISK_CACHE_MAX_FILES catalog .pkl files; drop oldest."""
+    try:
+        files = []
+        for fn in os.listdir(cache_dir):
+            if not fn.startswith("mu_catalog_") or not fn.endswith(".pkl"):
+                continue
+            fp = os.path.join(cache_dir, fn)
+            if not os.path.isfile(fp):
+                continue
+            try:
+                mt = os.path.getmtime(fp)
+            except Exception:
+                mt = 0.0
+            files.append((mt, fp))
+        files.sort(key=lambda x: x[0])  # oldest first
+        # Always keep the file we just wrote if provided
+        keep_norm = os.path.normcase(os.path.normpath(keep_path)) if keep_path else ""
+        while len(files) > DISK_CACHE_MAX_FILES:
+            mt, fp = files.pop(0)
+            if keep_norm and os.path.normcase(os.path.normpath(fp)) == keep_norm:
+                files.append((mt, fp))  # rotate to end, try another
+                if len(files) <= DISK_CACHE_MAX_FILES:
+                    break
+                # if all are keep, stop
+                if all(
+                    os.path.normcase(os.path.normpath(p)) == keep_norm
+                    for _, p in files
+                ):
+                    break
+                continue
+            try:
+                os.remove(fp)
+                print("[mu_catalog] disk cache pruned oldest:", os.path.basename(fp), flush=True)
+            except Exception:
+                pass
+    except Exception as e:
+        print("[mu_catalog] disk cache prune failed:", type(e).__name__, e, flush=True)
+
+
+def _disk_cache_save(cache_dict: dict):
+    """Save catalog pickle; enforce 100MB size + 10-file limit."""
+    try:
+        import pickle
+        root = cache_dict.get("root") or ""
+        path = _disk_cache_path(root)
+        # Build payload; if too large, truncate parts list until under limit
+        parts = list(cache_dict.get("parts") or [])
+        by_cat = dict(cache_dict.get("by_category") or {})
+        n_full = len(parts)
+        payload = dict(cache_dict)
+        payload["parts"] = parts
+        payload["by_category"] = by_cat
+        payload["truncated"] = False
+        blob = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
+        if len(blob) > DISK_CACHE_MAX_BYTES:
+            # Binary search how many parts fit
+            lo, hi = 0, n_full
+            best = 0
+            best_blob = None
+            while lo <= hi:
+                mid = (lo + hi) // 2
+                sub = parts[:mid]
+                sub_cat = {}
+                for p in sub:
+                    sub_cat.setdefault(p.category, []).append(p)
+                trial = dict(cache_dict)
+                trial["parts"] = sub
+                trial["by_category"] = sub_cat
+                trial["truncated"] = True
+                trial["full_part_count"] = n_full
+                b = pickle.dumps(trial, protocol=pickle.HIGHEST_PROTOCOL)
+                if len(b) <= DISK_CACHE_MAX_BYTES:
+                    best = mid
+                    best_blob = b
+                    lo = mid + 1
+                else:
+                    hi = mid - 1
+            if best_blob is None or best <= 0:
+                print(
+                    "[mu_catalog] WARNING: disk cache exceeds %d MB even for 0 parts — skip save"
+                    % (DISK_CACHE_MAX_BYTES // (1024 * 1024)),
+                    flush=True,
+                )
+                return
+            blob = best_blob
+            print(
+                "[mu_catalog] WARNING: disk cache truncated %d → %d parts "
+                "(limit %d MB); remainder loads via full scan when needed"
+                % (n_full, best, DISK_CACHE_MAX_BYTES // (1024 * 1024)),
+                flush=True,
+            )
+        tmp = path + ".tmp"
+        with open(tmp, "wb") as fh:
+            fh.write(blob)
+        os.replace(tmp, path)
+        _disk_cache_enforce_file_limit(_disk_cache_dir(), keep_path=path)
+    except Exception as e:
+        print("[mu_catalog] disk cache save failed:", type(e).__name__, e, flush=True)
 
 
 def _scan_internal_node(node, cfg_path: str, gamedata_root: str, parts: List[PartEntry], seen_internal: set, claimed_mu: set, locs: Dict[str, str]):
@@ -366,27 +615,81 @@ def scan_gamedata(root: Optional[str] = None, *, force: bool = False) -> List[Pa
     seen_parts = set()
     seen_internal = set()
     claimed_mu = set()
+    import time as _time
+    t0 = _time.perf_counter()
     _scan_progress_set(current=0, total=1, title="Loading categories", active=True)
+
+    fp = None
+    if not force:
+        fp = _fingerprint_gamedata(root)
+        disk = _disk_cache_load(root, mtime, fingerprint=fp)
+        if disk is not None:
+            _cache.clear()
+            _cache.update(disk)
+            n_parts = len(_cache.get("parts") or [])
+            dt = _time.perf_counter() - t0
+            print(
+                "[mu_catalog] disk cache HIT (%d parts, %.2fs)"
+                % (n_parts, dt),
+                flush=True,
+            )
+            _scan_progress_set(
+                current=n_parts,
+                total=max(n_parts, 1),
+                title="Categories ready %d/%d in %.1f s from cache"
+                % (n_parts, n_parts, dt),
+                active=False,
+            )
+            return list(_cache.get("parts") or [])
+        print("[mu_catalog] disk cache MISS → full scan", flush=True)
+
     cfg_files = list(_walk_cfgs(root))
-    # Parse each CFG exactly once. The old implementation loaded every CFG
-    # twice (localization pass + PART/INTERNAL pass), doubling disk I/O and
-    # ConfigNode parsing on large GameData trees.
+    # Fingerprint from this walk (no second os.walk) for save
+    try:
+        top_mt = 0.0
+        for name in os.listdir(root):
+            try:
+                top_mt = max(top_mt, float(os.path.getmtime(os.path.join(root, name))))
+            except Exception:
+                pass
+        fp = (len(cfg_files), float(top_mt))
+    except Exception:
+        fp = (len(cfg_files), 0.0)
     n_cfg = max(1, len(cfg_files))
     parsed_cfgs = []
-    for i, cfg_path in enumerate(cfg_files):
-        cfg_path = cfg_path.replace("\\", "/")
-        try:
-            cfg = ConfigNode.loadfile(cfg_path)
-        except Exception:
-            cfg = None
-        if cfg:
-            parsed_cfgs.append((cfg_path, cfg))
-        if (i & 31) == 0 or i + 1 == n_cfg:
-            _scan_progress_set(
-                current=i + 1,
-                total=n_cfg,
-                title="Loading categories",
-            )
+    workers = min(8, max(2, (os.cpu_count() or 4)))
+    done = 0
+    try:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            for cfg_path, cfg in pool.map(_load_cfg_safe, cfg_files, chunksize=32):
+                done += 1
+                if cfg is not None:
+                    parsed_cfgs.append((cfg_path, cfg))
+                if (done & 63) == 0 or done == n_cfg:
+                    _scan_progress_set(
+                        current=min(done, max(n_cfg - 1, 1)),
+                        total=n_cfg,
+                        title="Loading categories",
+                    )
+    except Exception as e:
+        print("[mu_catalog] parallel parse fallback:", type(e).__name__, e)
+        for i, cfg_path in enumerate(cfg_files):
+            p = cfg_path.replace(chr(92), "/")
+            try:
+                if not _cfg_needs_full_parse(p):
+                    cfg = None
+                else:
+                    cfg = ConfigNode.loadfile(p)
+            except Exception:
+                cfg = None
+            if cfg:
+                parsed_cfgs.append((p, cfg))
+            if (i & 31) == 0 or i + 1 == n_cfg:
+                _scan_progress_set(
+                    current=min(i + 1, max(n_cfg - 1, 1)),
+                    total=n_cfg,
+                    title="Loading categories",
+                )
 
     # Localization: prefer English; never overwrite English with another language.
     _EN_LANG = {"en-us", "en", "en_us", "english", "en-gb", "en_gb"}
@@ -434,7 +737,7 @@ def scan_gamedata(root: Optional[str] = None, *, force: bool = False) -> List[Pa
     for i, (cfg_path, cfg) in enumerate(parsed_cfgs):
         if (i & 31) == 0 or i + 1 == n_parsed:
             _scan_progress_set(
-                current=n_cfg,  # CFG walk done; still parsing content
+                current=max(n_cfg - 1, 1),
                 total=n_cfg,
                 title="Loading categories",
             )
@@ -498,7 +801,7 @@ def scan_gamedata(root: Optional[str] = None, *, force: bool = False) -> List[Pa
                     cfg_path, type(e).__name__, e,
                 )
     # FX models are claimed before scanning generic Assets.
-    _scan_progress_set(current=n_cfg, total=n_cfg, title="Loading categories")
+    _scan_progress_set(current=max(n_cfg - 1, 1), total=n_cfg, title="Loading categories")
     before_fx = set(claimed_mu)
     _scan_fx_folder(root, parts, set(), claimed_mu)
     fx_paths = claimed_mu - before_fx
@@ -508,16 +811,33 @@ def scan_gamedata(root: Optional[str] = None, *, force: bool = False) -> List[Pa
     by_cat: Dict[str, List[PartEntry]] = {}
     for p in parts:
         by_cat.setdefault(p.category, []).append(p)
-    _cache = {"root": root, "mtime": mtime, "parts": parts, "by_category": by_cat}
+    _cache = {
+        "root": root,
+        "mtime": mtime,
+        "fingerprint": fp,
+        "parts": parts,
+        "by_category": by_cat,
+    }
     n_parts = len(parts)
+    dt = _time.perf_counter() - t0
+    ready_msg = "Categories ready %d/%d in %.1f s" % (n_parts, n_parts, dt)
     _scan_progress_set(
         current=n_parts,
         total=max(n_parts, 1),
-        title="Categories ready (%d parts)" % n_parts,
+        title=ready_msg,
         active=False,
     )
+    print(ready_msg, flush=True)
     if not _catalog_worker_active:
         schedule_thumbnail_cleanup(root, parts, mtime)
+    try:
+        _disk_cache_save(_cache)
+        print(
+            "[mu_catalog] disk cache SAVED (%d parts)" % n_parts,
+            flush=True,
+        )
+    except Exception as e:
+        print("[mu_catalog] disk cache save failed:", type(e).__name__, e, flush=True)
     return list(parts)
 
 
@@ -571,21 +891,28 @@ def schedule_thumbnail_cleanup(root: str, parts: List[PartEntry], mtime: float):
                 return 0.01
             if st["phase"] == "thumbs":
                 d = st["thumb_dir"]
-                st["files"] = {f for f in os.listdir(d) if f.lower().endswith('.png')} if os.path.isdir(d) else set()
+                st["files"] = {f for f in os.listdir(d) if f.lower().endswith(('.png', '.webp', '.avif', '.exr'))} if os.path.isdir(d) else set()
                 def thumb_name(p):
                     mu = os.path.splitext(os.path.basename(p.mu_path))[0]
                     mu = "".join(c if c.isalnum() or c in "-_." else "_" for c in mu).strip("_.")[:40] or "unknown"
                     name = "".join(c if c.isalnum() or c in "-_." else "_" for c in (p.name or "part")).strip("_.")[:40] or "unknown"
-                    return "%s_%s.png" % (mu, name)
+                    return "%s_%s%s" % (mu, name, THUMB_EXTENSION) #return "%s_%s.png" % (mu, name)
                 used_thumbs = {thumb_name(p) for p in st["parts"] if p.mu_path}
-                used_thumbs.add("_default_thumbnail.png")
+                used_thumbs.add("_default_thumbnail" + THUMB_EXTENSION) #used_thumbs.add("_default_thumbnail.png")
                 st["used"] = used_thumbs
                 catalogued_mu = {_norm(p.mu_path) for p in st["parts"] if p.mu_path}
                 all_mu = st["all_mu"]
-                print("[mu_catalog] MU: %d/%d THUMBS: %d/%d junk=%d" % (
-                    len(catalogued_mu), len(all_mu),
-                    len(st["files"] & used_thumbs), len(st["files"]),
-                    len(st["files"] - used_thumbs)))
+                print(
+                    "\n[mu_catalog] MU: %d/%d THUMBS: %d/%d junk=%d"
+                    % (
+                        len(catalogued_mu),
+                        len(all_mu),
+                        len(st["files"] & used_thumbs),
+                        len(st["files"]),
+                        len(st["files"] - used_thumbs),
+                    ),
+                    flush=True,
+                )
                 st["delete"] = iter(st["files"] - used_thumbs)
                 st["phase"] = "delete"
                 return 0.01
@@ -595,7 +922,7 @@ def schedule_thumbnail_cleanup(root: str, parts: List[PartEntry], mtime: float):
                     try:
                         fn = next(st["delete"])
                     except StopIteration:
-                        print("[mu_catalog] thumbnail cleanup complete")
+                        print("[mu_catalog] thumbnail cleanup complete", flush=True)
                         _cleanup_state = None
                         _cleanup_scheduled = False
                         return None
@@ -729,6 +1056,11 @@ def categories() -> List[str]:
     if OTHER_CATEGORY in keys:
         rest.append(OTHER_CATEGORY)
     return ordered + rest
+
+def all_parts() -> List[PartEntry]:
+    """All catalog entries from the in-memory cache (never blocks)."""
+    return list(_cache.get("parts") or [])
+
 
 def parts_in_category(category: str) -> List[PartEntry]:
     """Return all entries belonging to a category.
