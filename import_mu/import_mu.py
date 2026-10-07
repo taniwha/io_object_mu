@@ -33,7 +33,7 @@ from ..utils import set_transform, create_data_object
 
 from .exception import MuImportError
 from .animation import create_action, create_object_paths
-from .armature import process_skins
+from .armature import process_skins, connect_object_bones
 from .armature import is_armature, parent_to_bone
 from .camera import create_camera
 from .collider import create_collider
@@ -199,7 +199,10 @@ def process_mu(mu, mudir):
     create_object_paths(mu)
     create_armatures(mu)
     mu.imported_objects = set()
-    return create_object(mu, mu.obj, None)
+    mu.object_bones = []
+    obj = create_object(mu, mu.obj, None)
+    connect_object_bones(mu)
+    return obj
 
 def import_mu(collection, filepath, create_colliders, force_armature, force_mesh=False):
     mu = Mu()

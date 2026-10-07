@@ -118,16 +118,25 @@ def create_bindPose(mu, muobj, skin):
         bone = mu.objects[bname]
         posebone = skin.bindPose_obj.pose.bones[bname]
         constraint = posebone.constraints.new('COPY_TRANSFORMS')
-        try:
-            constraint.target = bone.owner.armature_obj
-        except Exception as e:
-            print(f"ERROR: {e}, for armature: {muobj.armature}")
-            #FIXME add handle to no attribute 'armature_obj'
-        constraint.subtarget = bname
+        owner = getattr(bone, "owner", None)
+        if owner:
+            constraint.target = owner.armature_obj
+            constraint.subtarget = bname
+        else:
+            # find_bones did not put the bone in any armature, so it will be
+            # imported as an object, which might not exist yet
+            mu.object_bones.append((constraint, bone))
     # don't clutter the main collection if importing to a different collection
     ctx.layer_collection.collection.objects.unlink(skin.bindPose_obj)
     #however, do need to link the bindPose armature to the import collection
     mu.collection.objects.link(skin.bindPose_obj)
+
+def connect_object_bones(mu):
+    for constraint, bone in mu.object_bones:
+        if hasattr(bone, "bobj"):
+            constraint.target = bone.bobj
+        else:
+            print(f"Warning: no object for bone {bone.transform.name}")
 
 def find_bones(mu, skins, siblings):
     siblings = set(siblings)
