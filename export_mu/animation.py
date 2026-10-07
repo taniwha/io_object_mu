@@ -19,6 +19,8 @@
 
 # <pep8 compliant>
 
+from math import pi
+
 import bpy
 from mathutils import Vector, Quaternion
 
@@ -26,6 +28,18 @@ from ..mu import MuAnimation, MuClip, MuCurve, MuKey
 from ..utils import strip_nnn
 
 from .light import light_types, light_power
+
+# Action.fcurves was removed in Blender 5.0 in favor of slotted actions
+if bpy.app.version >= (5, 0, 0):
+    from bpy_extras import anim_utils
+
+    def strip_fcurves(strip):
+        channelbag = anim_utils.action_get_channelbag_for_slot(strip.action,
+                                                               strip.action_slot)
+        return channelbag.fcurves if channelbag else []
+else:
+    def strip_fcurves(strip):
+        return strip.action.fcurves
 
 def shader_animations(mat, path):
     animations = {}
@@ -36,7 +50,7 @@ def shader_animations(mat, path):
             continue
         anims = []
         strip = track.strips[0]
-        for curve in strip.action.fcurves:
+        for curve in strip_fcurves(strip):
             dp = curve.data_path.split(".")
             if dp[0] == "mumatprop" and dp[1] in ["color", "vector", "float2", "float3"]:
                 anims.append((track, path, mat))
@@ -63,7 +77,7 @@ def object_animations(obj, path):
         # opened for tweaking, so export action only if there are no nla tracks
         if not animations and obj.animation_data.action:
             action = obj.animation_data.action
-            animations[action.name] = [(action, path, typ)]
+            animations[action.name] = [(obj.animation_data, path, typ)]
     return animations
 
 def extend_animations(animations, anims):
@@ -159,9 +173,9 @@ property_map = {
         ("m_Intensity", 1/light_power, 2),
     ),
     "rotation_euler":(
-        ("localEulerAnglesRaw.x", 1, 0),
-        ("localEulerAnglesRaw.z", 1, 0),
-        ("localEulerAnglesRaw.y", 1, 0),
+        ("localEulerAnglesRaw.x", -180 / pi, 0),
+        ("localEulerAnglesRaw.z", -180 / pi, 0),
+        ("localEulerAnglesRaw.y", -180 / pi, 0),
     )
 }
 
@@ -303,9 +317,10 @@ def make_animations(mu, animations, anim_root):
                 print(f"Object path not found: {path}")
                 continue
             path = path[len(anim_root) + 1:]
-            action = track if isinstance(track, bpy.types.Action) else track.strips[0].action
-            if action:
-                for curve in action.fcurves:
+            # AnimData and NlaStrip both provide action and action_slot
+            strip = track if isinstance(track, bpy.types.AnimData) else track.strips[0]
+            if strip.action:
+                for curve in strip_fcurves(strip):
                     curve_data = make_curve(mu, muobj, curve, path, typ)
                     if curve_data:
                         clip.curves.append(curve_data)
