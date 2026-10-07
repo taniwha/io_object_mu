@@ -35,6 +35,18 @@ typemap = {
 
 use_index = { None, "Vector", "Value", "Shader" }
 
+# Node types that newer versions of Blender no longer have (missing as of
+# 5.2), with their replacements and the names the replacements use for the
+# old sockets.
+replaced_nodes = {
+    "ShaderNodeSeparateRGB": ("ShaderNodeSeparateColor", {
+        "Image": "Color", "R": "Red", "G": "Green", "B": "Blue",
+    }),
+    "ShaderNodeCombineRGB": ("ShaderNodeCombineColor", {
+        "R": "Red", "G": "Green", "B": "Blue", "Image": "Color",
+    }),
+}
+
 def parse_value(valstr):
     valstr = valstr.strip()
     if valstr in {"False", "false"}:
@@ -76,13 +88,14 @@ def set_property(obj, prop, valstr):
             value = value[0]
     setattr(obj, prop, value)
 
-def find_socket(sockets, sock):
+def find_socket(sockets, sock, renamed={}):
     if "," in sock:
         index, name = sock.split(",")
         name = name.strip()
     else:
         index = sock
         name = None
+    name = renamed.get(name, name)
     if name in use_index:
         index = int(index.strip())
         return sockets[index]
@@ -134,9 +147,13 @@ def build_nodes(matname, node_tree, ntcfg):
     if not ntcfg.HasNode("nodes"):
         return
     refs = []
+    renamed_sockets = {}
     nodes = node_tree.nodes
     for n in ntcfg.GetNode("nodes").nodes:
         sntype, sndata, line = n.name, n, n.line
+        renamed = {}
+        if sntype in replaced_nodes and not hasattr(bpy.types, sntype):
+            sntype, renamed = replaced_nodes[sntype]
         sn = nodes.new(sntype)
         for snvalue in sndata.values:
             a, v = snvalue.name, snvalue.value
@@ -148,6 +165,7 @@ def build_nodes(matname, node_tree, ntcfg):
                 sn.node_tree = bpy.data.node_groups[v]
             else:
                 set_property(sn, a, v)
+        renamed_sockets[sn.name] = renamed
         if sndata.HasNode("inputs"):
             input_nodes = sndata.GetNode("inputs").GetNodes("input")
             if sntype == "ShaderNodeVectorMath":
@@ -163,6 +181,7 @@ def build_nodes(matname, node_tree, ntcfg):
                         continue
                     value = ip.GetValue("default_value")
                     name = ip.GetValue("name")
+                    name = renamed.get(name, name)
                     if name in use_index:
                         input = sn.inputs[i]
                     elif name in sn.inputs:
@@ -191,8 +210,10 @@ def build_nodes(matname, node_tree, ntcfg):
     for ln in linknodes.GetNodes("link"):
         from_node = nodes[ln.GetValue("from_node")]
         to_node = nodes[ln.GetValue("to_node")]
-        from_socket = find_socket(from_node.outputs, ln.GetValue("from_socket"))
-        to_socket = find_socket(to_node.inputs, ln.GetValue("to_socket"))
+        from_socket = find_socket(from_node.outputs, ln.GetValue("from_socket"),
+                                  renamed_sockets[from_node.name])
+        to_socket = find_socket(to_node.inputs, ln.GetValue("to_socket"),
+                                renamed_sockets[to_node.name])
         if from_socket and to_socket:
             links.new(from_socket, to_socket)
 
