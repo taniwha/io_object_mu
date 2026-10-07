@@ -27,6 +27,18 @@ from ..utils import strip_nnn
 
 from .light import light_types, light_power
 
+# Action.fcurves was removed in Blender 5.0 in favor of slotted actions
+if bpy.app.version >= (5, 0, 0):
+    from bpy_extras import anim_utils
+
+    def strip_fcurves(strip):
+        channelbag = anim_utils.action_get_channelbag_for_slot(strip.action,
+                                                               strip.action_slot)
+        return channelbag.fcurves if channelbag else []
+else:
+    def strip_fcurves(strip):
+        return strip.action.fcurves
+
 def shader_animations(mat, path):
     animations = {}
     if not mat.animation_data:
@@ -36,7 +48,7 @@ def shader_animations(mat, path):
             continue
         anims = []
         strip = track.strips[0]
-        for curve in strip.action.fcurves:
+        for curve in strip_fcurves(strip):
             dp = curve.data_path.split(".")
             if dp[0] == "mumatprop" and dp[1] in ["color", "vector", "float2", "float3"]:
                 anims.append((track, path, mat))
@@ -58,12 +70,15 @@ def object_animations(obj, path):
     if obj.animation_data:
         for track in obj.animation_data.nla_tracks:
             if track.strips:
-                animations[track.name] = [(track, path, typ)]
+                # an object can have several tracks with the same name
+                if track.name not in animations:
+                    animations[track.name] = []
+                animations[track.name].append((track, path, typ))
         # if nla_tracks exist, then action will be an nla track that has been
         # opened for tweaking, so export action only if there are no nla tracks
         if not animations and obj.animation_data.action:
             action = obj.animation_data.action
-            animations[action.name] = [(action, path, typ)]
+            animations[action.name] = [(obj.animation_data, path, typ)]
     return animations
 
 def extend_animations(animations, anims):
@@ -276,6 +291,9 @@ def transform_curves(muarm):
                         rotation[1].keys[i].tangent[j] = -tan.x
                         rotation[2].keys[i].tangent[j] = -tan.y
                         rotation[3].keys[i].tangent[j] = -tan.z
+        # the curves have been transformed, so they must not be seen again
+        del bone.curves
+    muarm.animated_bones.clear()
 
 def make_animations(mu, animations, anim_root):
     anim = MuAnimation()
@@ -296,6 +314,7 @@ def make_animations(mu, animations, anim_root):
         clip.wrapMode = 1
         #print(f"Creating clip: {clip_name}") # Debug clip animations
         
+        armatures = []
         for data in animations[clip_name]:
             track, path, typ = data
             muobj = mu.object_paths.get(path)
@@ -303,14 +322,19 @@ def make_animations(mu, animations, anim_root):
                 print(f"Object path not found: {path}")
                 continue
             path = path[len(anim_root) + 1:]
-            action = track if isinstance(track, bpy.types.Action) else track.strips[0].action
-            if action:
-                for curve in action.fcurves:
+            # AnimData and NlaStrip both provide action and action_slot
+            strip = track if isinstance(track, bpy.types.AnimData) else track.strips[0]
+            if strip.action:
+                for curve in strip_fcurves(strip):
                     curve_data = make_curve(mu, muobj, curve, path, typ)
                     if curve_data:
                         clip.curves.append(curve_data)
-                if hasattr(muobj, "animated_bones"):
-                    transform_curves(muobj)
+                if hasattr(muobj, "animated_bones") and muobj not in armatures:
+                    armatures.append(muobj)
+        # a bone's curves may be spread over several tracks, so transform
+        # them only after all the tracks of the clip have been collected
+        for muarm in armatures:
+            transform_curves(muarm)
         anim.clips.append(clip)
     
     if default_clip_name:
