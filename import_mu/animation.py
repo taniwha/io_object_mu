@@ -83,10 +83,38 @@ def shader_property(obj, prop):
                 return mat, path, rnaIndex
     return None
 
+# Action.fcurves was removed in Blender 5.0 in favor of slotted actions
+if bpy.app.version >= (5, 0, 0):
+    from bpy_extras import anim_utils
+
+    def new_action(name, obj):
+        action = bpy.data.actions.new(name)
+        action.slots.new(obj.id_type, name)
+        return action
+
+    def new_fcurve(action, dp, ind):
+        channelbag = anim_utils.action_ensure_channelbag_for_slot(action,
+                                                                  action.slots[0])
+        return channelbag.fcurves.new(data_path = dp, index = ind)
+
+    def new_strip(track, action):
+        strip = track.strips.new(action.name, 1, action)
+        strip.action_slot = action.slots[0]
+        return strip
+else:
+    def new_action(name, obj):
+        return bpy.data.actions.new(name)
+
+    def new_fcurve(action, dp, ind):
+        return action.fcurves.new(data_path = dp, index = ind)
+
+    def new_strip(track, action):
+        return track.strips.new(action.name, 1, action)
+
 def create_fcurve(action, curve, propmap):
     dp, ind, mult = propmap
     fps = bpy.context.scene.render.fps
-    fc = action.fcurves.new(data_path = dp, index = ind)
+    fc = new_fcurve(action, dp, ind)
     fc.keyframe_points.add(len(curve.keys))
     for i, key in enumerate(curve.keys):
         x,y = key.time * fps + bpy.context.scene.frame_start, key.value * mult
@@ -160,7 +188,7 @@ def create_action(mu, path, clip):
         name = objname
         actpath = "/".join([curve.path, name])
         if actpath not in actions:
-            actions[actpath] = bpy.data.actions.new(name), obj
+            actions[actpath] = new_action(name, obj), obj
         act, obj = actions[actpath]
         fcurve = create_fcurve(act, curve, fullpropmap)
         if hasattr(muobj, "bone"):
@@ -226,7 +254,7 @@ def create_action(mu, path, clip):
             obj.animation_data_create()
         track = obj.animation_data.nla_tracks.new()
         track.name = clip.name
-        track.strips.new(act.name, 1, act)
+        new_strip(track, act)
 
 def create_object_paths(mu):
     def recurse (mu, obj, parent_names, parent):
