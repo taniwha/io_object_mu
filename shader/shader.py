@@ -197,7 +197,8 @@ def build_nodes(matname, node_tree, ntcfg):
             links.new(from_socket, to_socket)
 
 def call_update(item, prop, context):
-    annotations = item.__annotations__[prop]
+    # as of Python 3.14, annotations can be read only from the class
+    annotations = type(item).__annotations__[prop]
     if hasattr(annotations, "keywords"):
         keywords = annotations.keywords
     else:
