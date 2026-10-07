@@ -25,7 +25,7 @@ from mathutils import Vector, Quaternion
 from ..mu import MuObject, MuTransform, MuTagLayer
 from ..utils import strip_nnn, collect_armature_modifiers
 
-from .export import make_obj_core
+from .export import make_obj, make_obj_core
 from .mesh import create_skinned_mesh
 
 def bone_transform(bone, obj):
@@ -41,16 +41,23 @@ def bone_transform(bone, obj):
 
 
 def export_bone(bone, mu, armature, bone_children, path, parent_tag_and_layer=None):
+    parent_path = path
     if path:
         path += "/"
     path += bone.name
     mubone = MuObject()
-    obj = bone_children.get(bone.name)
+    objs = bone_children.get(bone.name)
     armature.bone_paths[f'pose.bones["{bone.name}"]'] = path
-    mubone.transform = bone_transform(bone, obj)
+    mubone.transform = bone_transform(bone, objs)
     
-    if obj:
-        make_obj_core(mu, obj, path, mubone)
+    if objs:
+        # The first object shares its MuObject with the bone. make_obj_core
+        # adds the bone's name to the path itself.
+        make_obj_core(mu, objs[0], parent_path, mubone)
+        for obj in objs[1:]:
+            child = make_obj(mu, obj, path)
+            if child:
+                mubone.children.append(child)
     else:
         mubone.tag_and_layer = MuTagLayer()
         if parent_tag_and_layer:
