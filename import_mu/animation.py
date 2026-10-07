@@ -111,7 +111,13 @@ def create_action(mu, path, clip):
     #print(clip.name)
     actions = {}
     bones = set()
+    # Sibling objects with the same name give curves with the same path and
+    # property. KSP adds each curve with AnimationClip.SetCurve, so only the
+    # last of them is used.
+    curves = {}
     for curve in clip.curves:
+        curves[(curve.path, curve.property)] = curve
+    for curve in curves.values():
         if not curve.keys:
             print("Curve has no keys")
             continue
