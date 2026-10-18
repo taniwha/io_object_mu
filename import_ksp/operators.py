@@ -91,12 +91,13 @@ def import_ksp_op(self, context, filepath, build_viewport, pixel_scale):
     undo = bpy.context.preferences.edit.use_global_undo
     bpy.context.preferences.edit.use_global_undo = False
     try:
-        if not ensure_unitypy(True):
-            from .deps import need_restart
-            err = last_error() or "unknown"
-            lvl = {'WARNING'} if need_restart() else {'ERROR'}
-            self.report(lvl, err if need_restart() else ("UnityPy unavailable: %s" % err))
-            return {'CANCELLED'}
+        if not ensure_unitypy(False):
+            from .deps import ensure_unitypy_or_prompt, need_restart
+            if not ensure_unitypy_or_prompt():
+                err = last_error() or "unknown"
+                lvl = {'WARNING'} if need_restart() else {'ERROR'}
+                self.report(lvl, err if need_restart() else ("UnityPy unavailable: %s" % err))
+                return {'CANCELLED'}
         collection = context.view_layer.active_layer_collection.collection
         try:
             from .progress_util import progress_bar
@@ -205,6 +206,36 @@ class KSPMU_OT_ReimportKspBundle(bpy.types.Operator):
         new_root.select_set(True)
         self.report({'INFO'}, "Reimported %s" % path)
         return {'FINISHED'}
+
+
+class KSPMU_OT_InstallUnityPyPrompt(bpy.types.Operator):
+    """Ask before installing UnityPy and Pillow."""
+    bl_idname = "import_object.ksp_install_unitypy_prompt"
+    bl_label = "Python module required"
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=460)
+
+    def draw(self, context):
+        col = self.layout.column(align=True)
+        col.label(text="Python modules are required (UnityPy, Pillow).")
+        col.label(text="Install them?")
+
+    def execute(self, context):
+        from .deps import last_error, last_source, need_restart
+        ok = ensure_unitypy(True)
+        if ok:
+            self.report(
+                {'INFO'},
+                "Installed (%s). Retry the import or export."
+                % (last_source() or "ok"),
+            )
+            return {'FINISHED'}
+        err = last_error() or "unknown"
+        lvl = {'WARNING'} if need_restart() else {'ERROR'}
+        self.report(lvl, err)
+        return {'CANCELLED'}
 
 
 class KSPMU_OT_EnsureUnityPy(bpy.types.Operator):
@@ -611,6 +642,7 @@ classes_to_register = (
     KSPMU_OT_ImportKspBundle,
     KSPMU_OT_ReimportKspBundle,
     KSPMU_OT_EnsureUnityPy,
+    KSPMU_OT_InstallUnityPyPrompt,
     KSPMU_OT_ApplyUiText,
     KSPMU_OT_ShowKspPage,
     KSPMU_OT_SelectBundle,

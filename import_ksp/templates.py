@@ -13,15 +13,8 @@ from . import viewport
 
 
 def _bg_dir():
-    """Prefer bundled PartTools copy; fall back to import_ksp/backgrounds."""
+    """Bundled KSPedia backgrounds live in import_ksp/backgrounds."""
     here = os.path.dirname(os.path.abspath(__file__))
-    root = os.path.dirname(here)
-    for folder in (
-        os.path.join(root, "assets", "kspedia_backgrounds"),
-        os.path.join(here, "backgrounds"),
-    ):
-        if os.path.isdir(folder):
-            return folder
     return os.path.join(here, "backgrounds")
 
 

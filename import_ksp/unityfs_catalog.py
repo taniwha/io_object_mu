@@ -159,8 +159,8 @@ def inspect_ksp_unityfs(filepath: str) -> Optional[dict]:
     if not path or not os.path.isfile(path):
         return None
     try:
-        from .deps import ensure_unitypy
-        if not ensure_unitypy(True):
+        from .deps import ensure_unitypy_or_prompt
+        if not ensure_unitypy_or_prompt():
             return None
         import UnityPy
         env = UnityPy.load(path)

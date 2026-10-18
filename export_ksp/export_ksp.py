@@ -1603,10 +1603,12 @@ def export_ksp(
         mapped = lo + int(round((hi - lo) * (float(value) / 100.0)))
         tick(mapped, text=text, force=force)
 
-    if not ensure_unitypy(True):
-        raise KspBundleError(
-            "UnityPy is not available: %s" % (last_error() or "unknown")
-        )
+    if not ensure_unitypy(False):
+        from ..import_ksp.deps import ensure_unitypy_or_prompt
+        if not ensure_unitypy_or_prompt():
+            raise KspBundleError(
+                "UnityPy is not available: %s" % (last_error() or "unknown")
+            )
     if root is None or not root.ksp_bundle.is_ksp_bundle:
         raise KspBundleError("Object is not a KSP bundle root")
 

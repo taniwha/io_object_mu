@@ -118,8 +118,41 @@ def sanitize_ksp_bundle_pointers(kb, root=None) -> int:
     return n
 
 
+def _blend_has_ksp_data():
+    """True when this .blend actually holds a KSP bundle or locale buffer."""
+    try:
+        import bpy
+    except Exception:
+        return False
+    try:
+        for text in list(getattr(bpy.data, "texts", []) or []):
+            if (getattr(text, "name", "") or "").startswith("ksp_locale_buffers"):
+                return True
+    except Exception:
+        pass
+    try:
+        objects = list(getattr(bpy.data, "objects", []) or [])
+    except Exception:
+        objects = []
+    for obj in objects:
+        try:
+            if obj.get("ksp_locale_buffers_json"):
+                return True
+        except Exception:
+            pass
+        try:
+            kb = obj.ksp_bundle
+            if getattr(kb, "is_ksp_bundle", False):
+                return True
+        except Exception:
+            continue
+    return False
+
+
 @persistent
 def _ksp_locale_save_pre(_dummy):
+    if not _blend_has_ksp_data():
+        return
     try:
         import bpy
         from . import locale_buffers
@@ -147,6 +180,8 @@ def _ksp_locale_save_pre(_dummy):
 
 @persistent
 def _ksp_locale_load_post(_dummy):
+    if not _blend_has_ksp_data():
+        return
     try:
         from . import locale_buffers
         n = locale_buffers.hydrate_all_bundles()
@@ -206,6 +241,8 @@ def ensure_blend_handlers():
     _HANDLERS_OK = True
     try:
         def _hydrate_after_register():
+            if not _blend_has_ksp_data():
+                return None
             try:
                 from . import locale_buffers
                 locale_buffers.hydrate_all_bundles()

@@ -34,10 +34,6 @@ def _ensure_unitypy():
     here = Path(os.path.dirname(os.path.abspath(__file__)))
     candidates = [
         here.parent.parent / "modules",
-        Path(
-            r"c:\Users\popos\AppData\Roaming\Blender Foundation"
-            r"\Blender\5.2\scripts\addons\modules"
-        ),
     ]
     for p in candidates:
         if p.is_dir() and str(p) not in sys.path:

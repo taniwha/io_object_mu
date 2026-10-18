@@ -184,6 +184,36 @@ def ensure_unitypy(install=True):
     return False
 
 
+def ensure_unitypy_or_prompt():
+    """Return True when UnityPy is usable.
+
+    If it is missing, ask before pip. Cancel leaves a message and installs
+    nothing. Background Blender (tests) never opens a dialog.
+    """
+    global _LAST_ERROR
+    if ensure_unitypy(False):
+        return True
+    try:
+        import bpy
+    except Exception:
+        bpy = None
+    if bpy is None or getattr(bpy.app, "background", False):
+        _LAST_ERROR = (
+            "Python modules are required (UnityPy, Pillow). "
+            "Install them with Ensure UnityPy."
+        )
+        return False
+    _LAST_ERROR = (
+        "Python modules are required (UnityPy, Pillow). "
+        "Confirm install in the dialog, then retry the operation."
+    )
+    try:
+        bpy.ops.import_object.ksp_install_unitypy_prompt("INVOKE_DEFAULT")
+    except Exception as exc:
+        _LAST_ERROR = "Could not open the install prompt: %s" % exc
+    return False
+
+
 def last_error():
     return _LAST_ERROR
 

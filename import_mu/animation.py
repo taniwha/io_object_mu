@@ -28,8 +28,9 @@ import importlib
 from ..utils import action_compat as _action_compat_mod
 importlib.reload(_action_compat_mod)
 from ..utils.action_compat import (
-    fcurve_new, push_action_to_nla, apply_mu_curve_wrap, apply_mu_clip_wrap_to_strip,
-    mu_wrap_name, count_action_fcurves, actions_clip_length,
+    fcurve_new, iter_action_fcurves, push_action_to_nla, apply_mu_curve_wrap,
+    apply_mu_clip_wrap_to_strip, mu_wrap_name, count_action_fcurves,
+    actions_clip_length,
 )
 
 #mess with the heads of 6.28... fans :P
@@ -325,14 +326,66 @@ def _convert_empty_to_light(obj, light_type='SPOT'):
     return light, new_obj
 
 
+def _find_action_fcurve(action, data_path, index):
+    for fc in iter_action_fcurves(action):
+        try:
+            if fc.data_path == data_path and int(fc.array_index) == int(index):
+                return fc
+        except Exception:
+            continue
+    return None
+
+
+def _incoming_keys_match(fc, keys, mult, fps, frame0):
+    """True when this F-curve already stores the same Unity keys."""
+    try:
+        existing = list(fc.keyframe_points)
+    except Exception:
+        return False
+    if len(existing) != len(keys):
+        return False
+    for kp, key in zip(existing, keys):
+        try:
+            x = float(key.time) * fps + frame0
+            y = float(key.value) * float(mult)
+        except Exception:
+            return False
+        if abs(float(kp.co[0]) - x) > 1e-3 or abs(float(kp.co[1]) - y) > 1e-4:
+            return False
+    return True
+
+
 def create_fcurve(action, curve, propmap, datablock, rest_value=None):
     if datablock is None:
         print(f"WARNING: skip fcurve {propmap[0]!r} — no datablock")
         return None
     dp, ind, mult = propmap
     fps = bpy.context.scene.render.fps
-    fc = fcurve_new(action, datablock, dp, index=ind)
     keys = list(curve.keys)
+    frame0 = float(bpy.context.scene.frame_start)
+    existing = _find_action_fcurve(action, dp, ind)
+    if existing is not None:
+        if _incoming_keys_match(existing, keys, mult, fps, frame0):
+            return existing
+        try:
+            existing.keyframe_points.clear()
+        except Exception:
+            pass
+        fc = existing
+    else:
+        try:
+            fc = fcurve_new(action, datablock, dp, index=ind)
+        except RuntimeError as exc:
+            fc = _find_action_fcurve(action, dp, ind)
+            if fc is None:
+                print("WARNING: duplicate curve skipped (%s): %s" % (dp, exc))
+                return None
+            if _incoming_keys_match(fc, keys, mult, fps, frame0):
+                return fc
+            try:
+                fc.keyframe_points.clear()
+            except Exception:
+                pass
     # Unity AnimationCurve Clamp: before the first key the value is the *first
     # key's value*, not the GO bind pose. Padding with bind (deployed gear /
     # open hatch) made LandingGear Large/Medium/Small start with the wheel out
@@ -1891,6 +1944,12 @@ def finalize_animation_preview():
     except Exception:
         gen = 0
     has_autoplay = _import_has_autoplay(gen)
+    try:
+        from ..tools.display import animations_are_off
+        if animations_are_off():
+            has_autoplay = False
+    except Exception:
+        pass
 
     if has_autoplay:
         try:
@@ -1943,11 +2002,25 @@ def finalize_animation_preview():
             ad.action = None
         except Exception:
             pass
+        try:
+            if hasattr(ad, "use_nla"):
+                ad.use_nla = True
+        except Exception:
+            pass
 
     for obj in bpy.data.objects:
         _finalize(obj)
     for mat in bpy.data.materials:
         _finalize(mat)
+
+    try:
+        from ..tools.display import animations_are_off, apply_animations_off
+        if animations_are_off():
+            apply_animations_off(bpy.context.scene, True)
+            _MU_PLAY_TIMER_GEN = -1
+            has_autoplay = False
+    except Exception:
+        pass
 
     if has_autoplay:
         _MU_PLAY_TIMER_GEN = gen

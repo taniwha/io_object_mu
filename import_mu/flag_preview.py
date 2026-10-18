@@ -10,8 +10,12 @@
 
 # <pep8 compliant>
 
-"""Viewport FlagDecal preview: copy GameData flags into addon ``flags/`` and
-swap ``_MainTex`` on the flagged quad (export skips via ``mu_flag_preview``).
+"""Viewport FlagDecal preview.
+
+Bundled ``flags/default.webp`` plus any image dropped in ``flags/``.
+The rest is read from GameData ``Flags*`` folders (png, dds, tga).
+DDS is copied to an unpacked image. Blender already stores those pixels
+right-side up, so the shader must not flip them again.
 """
 
 from __future__ import annotations
@@ -76,14 +80,106 @@ def unregister_flag_previews():
 
 
 def _flag_preview_image_path(stem, path=None):
-    """Prefer PNG in flags/ over DDS/TGA for enum thumbnails."""
-    dest = flags_dir()
-    for ext in (".png", ".tga", ".dds"):
-        candidate = os.path.join(dest, stem + ext)
-        if os.path.isfile(candidate):
-            return candidate
+    """Resolve a flag file. ``path`` from the live list wins."""
     if path and os.path.isfile(path):
         return path
+    want = (stem or "").lower()
+    if not want:
+        return None
+    for name, candidate in list_flag_files():
+        if name.lower() == want and os.path.isfile(candidate):
+            return candidate
+    return None
+
+
+_DDS_ICON_QUEUE = []
+_DDS_ICON_PENDING = set()
+_DDS_ICON_TIMER = False
+_DDS_PIXEL_REV = 2
+
+
+def _flag_icon_cache_dir():
+    path = os.path.join(addon_root(), "cache", "flag_icons")
+    try:
+        os.makedirs(path, exist_ok=True)
+    except Exception:
+        return None
+    return path
+
+
+def _flag_icon_cache_png(stem):
+    folder = _flag_icon_cache_dir()
+    if not folder:
+        return None
+    path = os.path.join(folder, "%s.v%d.png" % (stem, _DDS_PIXEL_REV))
+    if os.path.isfile(path) and os.path.getsize(path) > 32:
+        return path
+    return None
+
+
+def _queue_dds_icon(src_path, stem):
+    """Decode DDS thumbs off the enum draw so the menu stays instant."""
+    global _DDS_ICON_TIMER
+    key = stem.lower()
+    if key in _DDS_ICON_PENDING or _flag_icon_cache_png(stem):
+        return
+    _DDS_ICON_PENDING.add(key)
+    _DDS_ICON_QUEUE.append((src_path, stem))
+    if _DDS_ICON_TIMER:
+        return
+    try:
+        bpy.app.timers.register(_dds_icon_timer, first_interval=0.05)
+        _DDS_ICON_TIMER = True
+    except Exception:
+        _DDS_ICON_TIMER = False
+
+
+def _dds_icon_timer():
+    """One DDS per tick: flip, write PNG, drop the DDS datablock."""
+    global _DDS_ICON_TIMER, _flag_enum_items_cache
+    if not _DDS_ICON_QUEUE:
+        _DDS_ICON_TIMER = False
+        return None
+    src_path, stem = _DDS_ICON_QUEUE.pop(0)
+    _write_dds_icon_png(src_path, stem)
+    _DDS_ICON_PENDING.discard(stem.lower())
+    _flag_enum_items_cache = []
+    try:
+        for window in bpy.context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.type == "VIEW_3D":
+                    area.tag_redraw()
+    except Exception:
+        pass
+    if not _DDS_ICON_QUEUE:
+        _DDS_ICON_TIMER = False
+        return None
+    return 0.02
+
+
+def _write_dds_icon_png(src_path, stem):
+    dst = None
+    folder = _flag_icon_cache_dir()
+    if folder:
+        dst = os.path.join(folder, "%s.v%d.png" % (stem, _DDS_PIXEL_REV))
+    raw = None
+    try:
+        raw = bpy.data.images.load(src_path, check_existing=False)
+        _flip_image_vertical(raw)
+        if dst:
+            raw.filepath_raw = dst
+            raw.file_format = "PNG"
+            raw.save()
+    except Exception:
+        return None
+    finally:
+        if raw is not None:
+            try:
+                bpy.data.images.remove(raw)
+            except Exception:
+                pass
+    if dst and os.path.isfile(dst):
+        return dst
     return None
 
 
@@ -99,13 +195,12 @@ def _flag_preview_icon_id(stem, path=None):
     if not img_path:
         return 0
     low = img_path.lower()
-    # Prefer PNG; skip very large DDS so the enum stays responsive.
     if low.endswith(".dds"):
-        try:
-            if os.path.getsize(img_path) > 2 * 1024 * 1024:
-                return 0
-        except Exception:
+        cached = _flag_icon_cache_png(stem)
+        if not cached:
+            _queue_dds_icon(img_path, stem)
             return 0
+        img_path = cached
     try:
         pcoll.load(key, img_path, "IMAGE")
         return pcoll[key].icon_id
@@ -162,122 +257,239 @@ def _walk_gamedata_roots(mudir=None):
 
 
 def _flag_source_dirs(mudir=None):
-    """GameData/**/Flags* directories that hold agency/player flag PNGs (not part meshes)."""
+    """Flag folders one or two levels under GameData.
+
+    Stock is ``Squad/Flags``, ``FlagsAgency``, ``FlagsOrganization``.
+    Mods use ``<Mod>/Flags*`` or ``<Mod>/Assets/Flags*``. No full tree walk.
+    """
     out = []
+    seen = set()
+
+    def _add(path):
+        if not path or not os.path.isdir(path):
+            return
+        key = os.path.normcase(os.path.abspath(path))
+        if key in seen:
+            return
+        seen.add(key)
+        out.append(path)
+
+    def _take_flags(parent):
+        try:
+            names = os.listdir(parent)
+        except Exception:
+            return
+        for name in names:
+            if not name.lower().startswith("flags"):
+                continue
+            _add(os.path.join(parent, name))
+
     for gd in _walk_gamedata_roots(mudir):
         if not os.path.isdir(gd):
             continue
-        for root, dirs, _files in os.walk(gd):
-            base = os.path.basename(root)
-            low = base.lower()
-            norm = root.replace("\\", "/").lower()
-            # Squad/Flags, FlagsAgency, FlagsOrganization — not Parts/.../flags/
-            if low.startswith("flags") and "/parts/" not in norm:
-                out.append(root)
-            # Prune deep part trees a bit
-            if "parts" in low and low != "parts":
-                dirs[:] = [d for d in dirs if not d.lower().startswith("flag")]
-    # Prefer shallow Squad/Flags* first
-    def rank(p):
-        n = os.path.basename(p).lower()
-        if n == "flags":
-            return 0
-        if "agency" in n:
-            return 1
-        if "organization" in n:
-            return 2
-        return 3
-    return sorted(set(out), key=rank)
-
-
-def sync_flags_from_gamedata(mudir=None, force=False):
-    """Copy PNG/DDS from GameData Flags* into addon ``flags/``; write manifest.
-
-    Returns number of files copied/updated.
-    """
-    dest = flags_dir()
-    os.makedirs(dest, exist_ok=True)
-    manifest = {"flags": []}
-    seen = set()
-    copied = 0
-    for src_dir in _flag_source_dirs(mudir):
+        _take_flags(gd)
         try:
-            names = os.listdir(src_dir)
+            mods = os.listdir(gd)
         except Exception:
             continue
-        for fn in names:
-            low = fn.lower()
-            if not low.endswith((".png", ".dds", ".tga")):
+        for mod in mods:
+            mod_path = os.path.join(gd, mod)
+            if not os.path.isdir(mod_path):
                 continue
-            stem = os.path.splitext(fn)[0]
-            key = stem.lower()
-            if key in seen:
+            if mod.lower() == "parts":
                 continue
-            seen.add(key)
-            src = os.path.join(src_dir, fn)
-            dst_name = stem + os.path.splitext(fn)[1].lower()
-            dst = os.path.join(dest, dst_name)
-            try:
-                need = force or (not os.path.isfile(dst)) or (
-                    os.path.getmtime(src) > os.path.getmtime(dst)
-                )
-            except Exception:
-                need = True
-            if need:
-                try:
-                    shutil.copy2(src, dst)
-                    copied += 1
-                except Exception:
-                    continue
-            if not os.path.isfile(dst):
-                continue
-            manifest["flags"].append({
-                "name": stem,
-                "file": dst_name,
-                "source": _gamedata_relative_source(src),
-            })
-    manifest["flags"].sort(key=lambda e: e["name"].lower())
+            _take_flags(mod_path)
+            assets = os.path.join(mod_path, "Assets")
+            if os.path.isdir(assets):
+                _take_flags(assets)
+    return out
+
+
+_FLAG_EXTS = {".webp", ".png", ".tga", ".dds"}
+_FLAG_RANK = {".webp": 0, ".png": 1, ".tga": 2, ".dds": 3}
+_FLAG_LIST_CACHE = {"key": None, "items": []}
+
+
+def _consider_flag(by_stem, stem, path, local):
+    ext = os.path.splitext(path)[1].lower()
+    rank = _FLAG_RANK.get(ext, 9)
+    # Files dropped into addon flags/ win over the same stem in GameData.
+    score = (0 if local else 1, rank)
+    key = stem.lower()
+    prev = by_stem.get(key)
+    if prev is None or score < prev[0]:
+        by_stem[key] = (score, stem, path)
+
+
+def _scan_flag_folder(folder, by_stem, local):
     try:
-        with open(flags_manifest_path(), "w", encoding="utf-8") as f:
-            json.dump(manifest, f, indent=2)
+        names = os.listdir(folder)
     except Exception:
-        pass
-    # Thumbnails may be stale after copy/update.
-    clear_flag_previews()
-    return copied
+        return
+    for fn in names:
+        ext = os.path.splitext(fn)[1].lower()
+        if ext not in _FLAG_EXTS:
+            continue
+        stem = os.path.splitext(fn)[0]
+        if not stem or stem.lower() == "manifest":
+            continue
+        _consider_flag(by_stem, stem, os.path.join(folder, fn), local)
 
 
 def list_flag_files():
-    """Return [(stem, filepath), ...] from addon flags/ (sync if empty).
+    """Bundled ``flags/`` plus GameData ``Flags*`` folders.
 
-    One entry per stem; prefers PNG over TGA/DDS when several formats exist.
+    Listing only reads directory names. DDS files stay on disk and are
+    flipped when the image is shown.
     """
     dest = flags_dir()
-    if not os.path.isdir(dest) or not any(
-        n.lower().endswith((".png", ".dds", ".tga"))
-        for n in (os.listdir(dest) if os.path.isdir(dest) else [])
-    ):
-        sync_flags_from_gamedata()
-    out = []
-    if not os.path.isdir(dest):
-        return out
-    # rank: lower wins (PNG best for previews and viewport)
-    rank = {".png": 0, ".tga": 1, ".dds": 2}
+    roots = tuple(_walk_gamedata_roots(None))
+    try:
+        local_m = os.path.getmtime(dest) if os.path.isdir(dest) else 0
+    except Exception:
+        local_m = 0
+    key = (roots, local_m)
+    cached = _FLAG_LIST_CACHE.get("key")
+    if cached == key:
+        return list(_FLAG_LIST_CACHE.get("items") or [])
     by_stem = {}
-    for fn in sorted(os.listdir(dest), key=str.lower):
-        low = fn.lower()
-        ext = os.path.splitext(low)[1]
-        if ext not in rank:
+    if os.path.isdir(dest):
+        _scan_flag_folder(dest, by_stem, True)
+    for folder in _flag_source_dirs():
+        _scan_flag_folder(folder, by_stem, False)
+    out = [(stem, path) for _score, stem, path in sorted(
+        by_stem.values(), key=lambda t: t[1].lower())]
+    _FLAG_LIST_CACHE["key"] = key
+    _FLAG_LIST_CACHE["items"] = out
+    return list(out)
+
+
+def sync_flags_from_gamedata(mudir=None, force=False):
+    """Kept for callers. Flags are read in place; nothing is copied."""
+    _FLAG_LIST_CACHE["key"] = None
+    return 0
+
+
+def _flip_image_vertical(img):
+    """Reflect across the X axis (top row becomes the bottom row)."""
+    try:
+        w, h = int(img.size[0]), int(img.size[1])
+    except Exception:
+        return
+    if w < 1 or h < 1:
+        return
+    try:
+        px = list(img.pixels)
+    except Exception:
+        return
+    row = w * 4
+    if len(px) < row * h:
+        return
+    flipped = []
+    for y in range(h - 1, -1, -1):
+        start = y * row
+        flipped.extend(px[start:start + row])
+    try:
+        img.pixels = flipped
+    except Exception:
+        pass
+
+
+def _save_image_webp(img, dst_path, quality=90):
+    scene = bpy.context.scene
+    settings = scene.render.image_settings
+    old_fmt = settings.file_format
+    old_q = settings.quality
+    try:
+        settings.file_format = "WEBP"
+        settings.quality = int(quality)
+        try:
+            img.file_format = "WEBP"
+        except Exception:
+            pass
+        img.save_render(dst_path)
+    finally:
+        try:
+            settings.file_format = old_fmt
+            settings.quality = old_q
+        except Exception:
+            pass
+
+
+def store_flag_as_webp(src_path, dest_dir, stem, quality=90):
+    """Write ``stem.webp``. DDS is stored upside down, so flip it first."""
+    os.makedirs(dest_dir, exist_ok=True)
+    dst = os.path.join(dest_dir, stem + ".webp")
+    low = (src_path or "").lower()
+    if low.endswith(".webp"):
+        if os.path.abspath(src_path) != os.path.abspath(dst):
+            shutil.copy2(src_path, dst)
+        return dst
+    img = bpy.data.images.load(src_path, check_existing=False)
+    try:
+        if low.endswith(".dds"):
+            _flip_image_vertical(img)
+        _save_image_webp(img, dst, quality=quality)
+    finally:
+        try:
+            bpy.data.images.remove(img)
+        except Exception:
+            pass
+    return dst
+
+
+def convert_bundled_flags_to_webp():
+    """Replace PNG/DDS/TGA already in ``flags/`` with quality-90 WebP."""
+    dest = flags_dir()
+    if not os.path.isdir(dest):
+        return 0
+    converted = 0
+    for fn in list(os.listdir(dest)):
+        ext = os.path.splitext(fn)[1].lower()
+        if ext not in (".png", ".dds", ".tga"):
             continue
         stem = os.path.splitext(fn)[0]
-        key = stem.lower()
-        path = os.path.join(dest, fn)
-        prev = by_stem.get(key)
-        if prev is None or rank[ext] < prev[0]:
-            by_stem[key] = (rank[ext], stem, path)
-    for _r, stem, path in sorted(by_stem.values(), key=lambda t: t[1].lower()):
-        out.append((stem, path))
-    return out
+        src = os.path.join(dest, fn)
+        try:
+            store_flag_as_webp(src, dest, stem)
+        except Exception as exc:
+            print("WARNING: flag webp %s: %s" % (fn, exc))
+            continue
+        if os.path.isfile(os.path.join(dest, stem + ".webp")):
+            try:
+                os.remove(src)
+            except Exception:
+                pass
+            converted += 1
+    manifest_path = flags_manifest_path()
+    try:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
+    except Exception:
+        manifest = {"flags": []}
+    flags = []
+    seen = set()
+    for entry in manifest.get("flags") or []:
+        stem = str(entry.get("name") or "")
+        if not stem or stem.lower() in seen:
+            continue
+        webp = stem + ".webp"
+        if not os.path.isfile(os.path.join(dest, webp)):
+            continue
+        seen.add(stem.lower())
+        flags.append({
+            "name": stem,
+            "file": webp,
+            "source": entry.get("source") or "",
+        })
+    flags.sort(key=lambda e: e["name"].lower())
+    try:
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump({"flags": flags}, f, indent=2)
+    except Exception:
+        pass
+    clear_flag_previews()
+    return converted
 
 
 def parse_flag_decal(cfg_text):
@@ -383,7 +595,7 @@ def find_flag_quad(root, texture_quad_name=None):
     return None
 
 
-def _configure_flag_image(img, path):
+def _configure_flag_image(img):
     try:
         img.alpha_mode = "STRAIGHT"
     except Exception:
@@ -392,11 +604,44 @@ def _configure_flag_image(img, path):
         img.colorspace_settings.is_data = False
     except Exception:
         pass
-    if path and str(path).lower().endswith(".dds"):
+    try:
+        img.muimageprop.invertY = False
+    except Exception:
+        pass
+
+
+def _unpack_loaded_image(src_img, stem, flip=False):
+    """Copy pixels into a generated image with no source filepath."""
+    try:
+        w, h = int(src_img.size[0]), int(src_img.size[1])
+    except Exception:
+        return None
+    if w < 1 or h < 1:
+        return None
+    name = ("mu_flag_%s" % stem)[:60]
+    img = bpy.data.images.get(name)
+    if img is not None:
         try:
-            img.muimageprop.invertY = True
+            bpy.data.images.remove(img)
         except Exception:
             pass
+    img = bpy.data.images.new(name, width=w, height=h, alpha=True)
+    try:
+        img.pixels = list(src_img.pixels)
+    except Exception:
+        return None
+    if flip:
+        _flip_image_vertical(img)
+    try:
+        img.pack()
+    except Exception:
+        pass
+    try:
+        img["mu_flag_px"] = _DDS_PIXEL_REV if flip else 1
+    except Exception:
+        pass
+    _configure_flag_image(img)
+    return img
 
 
 def load_flag_image(stem_or_path):
@@ -412,6 +657,32 @@ def load_flag_image(stem_or_path):
         else:
             return None
     img_name = f"mu_flag_{stem}"[:60]
+    if str(path).lower().endswith(".dds"):
+        existing = bpy.data.images.get(img_name)
+        try:
+            ready = (
+                existing is not None
+                and not (existing.filepath or "")
+                and int(existing.get("mu_flag_px") or 0) == _DDS_PIXEL_REV
+            )
+        except Exception:
+            ready = False
+        if ready:
+            _configure_flag_image(existing)
+            return existing
+        raw = None
+        try:
+            raw = bpy.data.images.load(path, check_existing=False)
+            img = _unpack_loaded_image(raw, stem, flip=True)
+        except Exception:
+            img = None
+        finally:
+            if raw is not None:
+                try:
+                    bpy.data.images.remove(raw)
+                except Exception:
+                    pass
+        return img
     if img_name in bpy.data.images:
         img = bpy.data.images[img_name]
         try:
@@ -420,12 +691,12 @@ def load_flag_image(stem_or_path):
                 img.reload()
         except Exception:
             pass
-        _configure_flag_image(img, path)
+        _configure_flag_image(img)
         return img
     try:
         img = bpy.data.images.load(path)
         img.name = img_name
-        _configure_flag_image(img, path)
+        _configure_flag_image(img)
         return img
     except Exception:
         return None
@@ -447,6 +718,12 @@ def _set_maintex_image(mat, img):
     if node is None:
         return False
     node.image = img
+    try:
+        scale = node.texture_mapping.scale
+        if scale.y < 0:
+            scale.y = abs(float(scale.y))
+    except Exception:
+        pass
     return True
 
 

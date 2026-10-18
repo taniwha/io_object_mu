@@ -748,6 +748,97 @@ def _mu_animation_entries(context):
     # Tagged .blend but no unambiguous scope (empty col / Scene Collection) → hide list.
     if _scene_uses_mu_import_ids(context):
         return []
+    return _legacy_mu_animation_entries(context)
+
+
+def _object_hidden_by_variant(name):
+    """True when this object or an ancestor is hidden by the active variant."""
+    if not name:
+        return False
+    obj = bpy.data.objects.get(str(name))
+    if obj is None:
+        return False
+    cur = obj
+    while cur is not None:
+        try:
+            if cur.get("mu_variant_hidden"):
+                return True
+        except Exception:
+            pass
+        cur = getattr(cur, "parent", None)
+    return False
+
+
+def _active_variant_disabled_clips(context):
+    """Clip names disabled by the active ModulePartVariants entry."""
+    import json
+    disabled = set()
+    try:
+        import_id = _resolve_mu_import_id(context) or ""
+    except Exception:
+        import_id = ""
+    for obj in bpy.data.objects:
+        try:
+            if import_id and str(obj.get("mu_import_id") or "") != str(import_id):
+                continue
+            raw = obj.get("mu_variants")
+        except Exception:
+            continue
+        if not raw:
+            continue
+        try:
+            data = json.loads(raw)
+        except Exception:
+            continue
+        active = data.get("active") or data.get("base")
+        for variant in data.get("variants") or []:
+            if variant.get("name") != active:
+                continue
+            for name in variant.get("disabledAnimations") or []:
+                if name:
+                    disabled.add(str(name).strip().lower())
+            break
+        break
+    return disabled
+
+
+def _filter_variant_anim_entries(context, entries):
+    """Keep clips that belong to the active variant.
+
+    Hidden variant objects drop out. Clips named in disabledAnimations drop out.
+    With the filter off, the list is unchanged.
+    """
+    try:
+        enabled = bool(getattr(context.scene, "mu_anim_variant_filter", False))
+    except Exception:
+        enabled = False
+    if not enabled:
+        return entries
+    disabled = _active_variant_disabled_clips(context)
+    out = []
+    for ent in entries or []:
+        clip = str(ent.get("clip_name") or "").strip().lower()
+        if clip and disabled and any(
+            clip == name or name in clip or clip in name for name in disabled
+        ):
+            continue
+        owner = str(ent.get("owner") or ent.get("anim_bobj") or "")
+        nla = ""
+        act = ent.get("action")
+        if act is not None:
+            try:
+                nla = str(act.get("mu_nla_owner") or "")
+            except Exception:
+                nla = ""
+        if owner and _object_hidden_by_variant(owner):
+            continue
+        if nla and nla != owner and _object_hidden_by_variant(nla):
+            continue
+        out.append(ent)
+    return out
+
+
+def _legacy_mu_animation_entries(context):
     # Legacy fallback for .blend files imported before mu_import_id existed.
     obj = getattr(context, "object", None)
     roots = []
@@ -2761,7 +2852,8 @@ class VIEW3D_PT_mu_part_browser(bpy.types.Panel):
                     row.label(text="Attach rules: %s" % item.attach_rules)
 
         # ---- MU Animation (host → clips tree) + viewport FX ----
-        entries = _mu_animation_entries(context)
+        entries = _filter_variant_anim_entries(
+            context, _mu_animation_entries(context))
         import_id = ""
         try:
             import_id = _resolve_mu_import_id(context) or ""
@@ -2797,6 +2889,13 @@ class VIEW3D_PT_mu_part_browser(bpy.types.Panel):
                 header.label(
                     text="Animation (%d host / %d clip)" % (n_hosts, n_clips),
                     icon="ANIM")
+            if hasattr(context.scene, "mu_anim_variant_filter"):
+                header.prop(
+                    context.scene,
+                    "mu_anim_variant_filter",
+                    text="All / variant",
+                    toggle=True,
+                )
             if _anim_section_expanded:
                 ui = _sync_anim_clip_collection(context, entries)
                 if ui is not None and len(ui.rows) > 0:

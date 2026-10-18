@@ -19,7 +19,7 @@ import tempfile
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
-from .deps import ensure_unitypy, last_error
+from .deps import ensure_unitypy, ensure_unitypy_or_prompt, last_error
 
 
 class KspBundleError(Exception):
@@ -1126,7 +1126,7 @@ def load_env_for_export(filepath: str):
 
 def _open_unityfs_env(filepath: str):
     """Load a UnityFS file into UnityPy. Shared by full and locale-only parsers."""
-    if not ensure_unitypy(True):
+    if not ensure_unitypy_or_prompt():
         from .deps import need_restart
         msg = last_error() or "unknown"
         if need_restart():

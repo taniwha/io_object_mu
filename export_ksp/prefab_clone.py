@@ -445,22 +445,13 @@ def bundled_kspedia_backgrounds_dir() -> str:
     """Addon-local stock backgrounds (PartTools / SquadCore, no B:\\PartTools)."""
     here = os.path.dirname(os.path.abspath(__file__))
     root = os.path.dirname(here)
-    primary = os.path.join(root, "assets", "kspedia_backgrounds")
-    if os.path.isdir(primary):
-        return primary
     return os.path.join(root, "import_ksp", "backgrounds")
 
 
 def bundled_background_png(name: str = "BackgroundBlueGrid.png") -> str:
-    here = os.path.dirname(os.path.abspath(__file__))
-    root = os.path.dirname(here)
-    for folder in (
-        os.path.join(root, "assets", "kspedia_backgrounds"),
-        os.path.join(root, "import_ksp", "backgrounds"),
-    ):
-        path = os.path.join(folder, name)
-        if os.path.isfile(path):
-            return path
+    path = os.path.join(bundled_kspedia_backgrounds_dir(), name)
+    if os.path.isfile(path):
+        return path
     return ""
 
 

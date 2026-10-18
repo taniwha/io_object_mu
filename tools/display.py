@@ -561,6 +561,191 @@ def _is_fx_nla_source(id_data, track):
     return False
 
 
+def animations_are_off(scene=None):
+    """Scene toggle from Options: mute Mu clips and do not auto-play."""
+    try:
+        if scene is None:
+            scene = bpy.context.scene
+        return bool(getattr(scene, "mu_animations_off", False))
+    except Exception:
+        return False
+
+
+def _stop_timeline_playback():
+    try:
+        wm = bpy.context.window_manager
+    except Exception:
+        return
+    for window in getattr(wm, "windows", []) or []:
+        screen = getattr(window, "screen", None)
+        if screen is None or not getattr(screen, "is_animation_playing", False):
+            continue
+        try:
+            with bpy.context.temp_override(window=window, screen=screen):
+                bpy.ops.screen.animation_play()
+        except Exception:
+            pass
+
+
+# Saved NLA mute flags. Blender 5 NlaTrack does not support ID properties.
+_SAVED_NLA_MUTE = {}
+
+
+def _nla_mute_key(id_data, index):
+    try:
+        ptr = id_data.as_pointer()
+    except Exception:
+        ptr = getattr(id_data, "name", "")
+    return (ptr, int(index))
+
+
+def apply_animations_off(scene, off):
+    """Mute or restore non-FX NLA. FX preview tracks stay as they were."""
+    off = bool(off)
+    if off:
+        _stop_timeline_playback()
+        try:
+            scene.frame_set(int(scene.frame_start))
+        except Exception:
+            pass
+    ids = list(getattr(bpy.data, "objects", []) or [])
+    ids.extend(list(getattr(bpy.data, "materials", []) or []))
+    for id_data in ids:
+        ad = getattr(id_data, "animation_data", None)
+        if ad is None:
+            continue
+        tracks = list(getattr(ad, "nla_tracks", []) or [])
+        for index, track in enumerate(tracks):
+            if _is_fx_nla_source(id_data, track):
+                continue
+            key = _nla_mute_key(id_data, index)
+            if off:
+                if key not in _SAVED_NLA_MUTE:
+                    try:
+                        _SAVED_NLA_MUTE[key] = bool(track.mute)
+                    except Exception:
+                        _SAVED_NLA_MUTE[key] = False
+                track.mute = True
+            elif key in _SAVED_NLA_MUTE:
+                track.mute = bool(_SAVED_NLA_MUTE.pop(key))
+        if off:
+            try:
+                ad.action = None
+            except Exception:
+                pass
+        else:
+            try:
+                ad.action = None
+            except Exception:
+                pass
+            try:
+                if hasattr(ad, "use_nla"):
+                    ad.use_nla = True
+            except Exception:
+                pass
+            _unmute_fallback_clip(id_data)
+    if not off and _any_autoplay_audible():
+        _start_timeline_playback()
+
+
+def _unmute_fallback_clip(id_data):
+    """If every Mu clip stayed muted, unmute the Auto Play clip or the first one."""
+    ad = getattr(id_data, "animation_data", None)
+    if ad is None:
+        return
+    tracks = [
+        track for track in list(getattr(ad, "nla_tracks", []) or [])
+        if not _is_fx_nla_source(id_data, track)
+    ]
+    if not tracks or any(not track.mute for track in tracks):
+        return
+    keep = None
+    for track in tracks:
+        for strip in getattr(track, "strips", []) or []:
+            act = getattr(strip, "action", None)
+            try:
+                if act is not None and (
+                    int(act.get("mu_auto_play") or 0)
+                    or _host_autoplay_flag(act)
+                ):
+                    keep = track.name
+                    break
+            except Exception:
+                pass
+        if keep:
+            break
+    if not keep:
+        keep = tracks[0].name
+    for track in tracks:
+        track.mute = track.name != keep
+
+
+def _host_autoplay_flag(act):
+    try:
+        bname = act.get("mu_anim_bobj")
+        if not bname:
+            return False
+        bobj = bpy.data.objects.get(str(bname))
+        return bool(bobj is not None and int(bobj.get("mu_animation_autoplay") or 0))
+    except Exception:
+        return False
+
+
+def _any_autoplay_audible():
+    ids = list(getattr(bpy.data, "objects", []) or [])
+    ids.extend(list(getattr(bpy.data, "materials", []) or []))
+    for id_data in ids:
+        ad = getattr(id_data, "animation_data", None)
+        if ad is None:
+            continue
+        for track in getattr(ad, "nla_tracks", []) or []:
+            if track.mute or _is_fx_nla_source(id_data, track):
+                continue
+            for strip in getattr(track, "strips", []) or []:
+                act = getattr(strip, "action", None)
+                try:
+                    if act is not None and (
+                        int(act.get("mu_auto_play") or 0)
+                        or _host_autoplay_flag(act)
+                    ):
+                        return True
+                except Exception:
+                    pass
+    return False
+
+
+def _start_timeline_playback():
+    try:
+        scene = bpy.context.scene
+        scene.frame_set(int(scene.frame_start))
+    except Exception:
+        pass
+
+    def _play():
+        try:
+            for window in bpy.context.window_manager.windows:
+                screen = window.screen
+                if screen is None:
+                    continue
+                with bpy.context.temp_override(window=window, screen=screen):
+                    if not screen.is_animation_playing:
+                        bpy.ops.screen.animation_play()
+                    return None
+        except Exception:
+            pass
+        return None
+
+    try:
+        bpy.app.timers.register(_play, first_interval=0.05)
+    except Exception:
+        _play()
+
+
+def _update_animations_off(self, context):
+    scene = getattr(context, "scene", None) or self
+    apply_animations_off(scene, bool(getattr(scene, "mu_animations_off", False)))
+
+
 def _collect_preview_clip_names(context):
     """NLA track names + MuParticles host labels for Preview Clip enum."""
     names = []
@@ -2064,6 +2249,8 @@ class WORKSPACE_PT_mu_options(bpy.types.Panel):
         col.label(text="Preview Clip")
         if hasattr(context.scene, "mu_preview_clip"):
             col.prop(context.scene, "mu_preview_clip", text="")
+        if hasattr(context.scene, "mu_animations_off"):
+            col.prop(context.scene, "mu_animations_off", text="Animations Off")
         # SuspensionTravel is synthetic FX (viewport) — off by default
         row = col.row(align=True)
         row.prop(
@@ -2265,6 +2452,29 @@ def ensure_scene_props():
         ),
     )
     _add(
+        "mu_anim_variant_filter",
+        bpy.props.BoolProperty(
+            name="All / variant",
+            description=(
+                "On: Animation list shows only clips for the active part variant. "
+                "Off: show every clip"
+            ),
+            default=False,
+        ),
+    )
+    _add(
+        "mu_animations_off",
+        bpy.props.BoolProperty(
+            name="Animations Off",
+            description=(
+                "Mute Mu animation clips and stop timeline playback. "
+                "Clips stay in the file. FX preview tracks are left alone"
+            ),
+            default=False,
+            update=_update_animations_off,
+        ),
+    )
+    _add(
         "mu_suspension_preview",
         bpy.props.BoolProperty(
             name="SuspensionTravel",
@@ -2327,6 +2537,10 @@ def unregister():
             pass
     if hasattr(bpy.types.Scene, "mu_preview_clip"):
         del bpy.types.Scene.mu_preview_clip
+    if hasattr(bpy.types.Scene, "mu_animations_off"):
+        del bpy.types.Scene.mu_animations_off
+    if hasattr(bpy.types.Scene, "mu_anim_variant_filter"):
+        del bpy.types.Scene.mu_anim_variant_filter
     if hasattr(bpy.types.Scene, "mu_suspension_preview"):
         del bpy.types.Scene.mu_suspension_preview
     try:
