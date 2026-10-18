@@ -14,8 +14,8 @@
 
 Bundled ``flags/default.webp`` plus any image dropped in ``flags/``.
 The rest is read from GameData ``Flags*`` folders (png, dds, tga).
-DDS is copied to an unpacked image. Blender already stores those pixels
-right-side up, so the shader must not flip them again.
+DDS pixels are flipped once into RAM (preview icon and the flag quad).
+Nothing is written under cache/flag_icons.
 """
 
 from __future__ import annotations
@@ -96,32 +96,48 @@ _DDS_ICON_QUEUE = []
 _DDS_ICON_PENDING = set()
 _DDS_ICON_TIMER = False
 _DDS_PIXEL_REV = 2
+_DDS_ICON_MAX = 128
 
 
-def _flag_icon_cache_dir():
-    path = os.path.join(addon_root(), "cache", "flag_icons")
-    try:
-        os.makedirs(path, exist_ok=True)
-    except Exception:
-        return None
-    return path
+def _icon_key(stem):
+    return "flag_" + (stem or "").lower()
 
 
-def _flag_icon_cache_png(stem):
-    folder = _flag_icon_cache_dir()
-    if not folder:
-        return None
-    path = os.path.join(folder, "%s.v%d.png" % (stem, _DDS_PIXEL_REV))
-    if os.path.isfile(path) and os.path.getsize(path) > 32:
-        return path
-    return None
+def _downscale_rgba(pixels, width, height, limit):
+    """Nearest-neighbor shrink so enum icons stay small in RAM."""
+    if width <= limit and height <= limit:
+        return pixels, width, height
+    scale = limit / float(max(width, height))
+    nw = max(1, int(width * scale))
+    nh = max(1, int(height * scale))
+    out = [0.0] * (nw * nh * 4)
+    for y in range(nh):
+        sy = min(height - 1, int(y / scale))
+        for x in range(nw):
+            sx = min(width - 1, int(x / scale))
+            src = (sy * width + sx) * 4
+            dst = (y * nw + x) * 4
+            out[dst:dst + 4] = pixels[src:src + 4]
+    return out, nw, nh
+
+
+def _premultiply_rgba(pixels):
+    """UI icons blend premultiplied alpha. DDS stores white RGB where alpha is 0."""
+    out = list(pixels)
+    for i in range(0, len(out), 4):
+        a = out[i + 3]
+        out[i] *= a
+        out[i + 1] *= a
+        out[i + 2] *= a
+    return out
 
 
 def _queue_dds_icon(src_path, stem):
     """Decode DDS thumbs off the enum draw so the menu stays instant."""
     global _DDS_ICON_TIMER
-    key = stem.lower()
-    if key in _DDS_ICON_PENDING or _flag_icon_cache_png(stem):
+    key = (stem or "").lower()
+    pcoll = _ensure_flag_previews()
+    if key in _DDS_ICON_PENDING or _icon_key(stem) in pcoll:
         return
     _DDS_ICON_PENDING.add(key)
     _DDS_ICON_QUEUE.append((src_path, stem))
@@ -135,14 +151,14 @@ def _queue_dds_icon(src_path, stem):
 
 
 def _dds_icon_timer():
-    """One DDS per tick: flip, write PNG, drop the DDS datablock."""
+    """One DDS per tick: flip into the preview collection, then drop the file."""
     global _DDS_ICON_TIMER, _flag_enum_items_cache
     if not _DDS_ICON_QUEUE:
         _DDS_ICON_TIMER = False
         return None
     src_path, stem = _DDS_ICON_QUEUE.pop(0)
-    _write_dds_icon_png(src_path, stem)
-    _DDS_ICON_PENDING.discard(stem.lower())
+    _load_dds_icon_ram(src_path, stem)
+    _DDS_ICON_PENDING.discard((stem or "").lower())
     _flag_enum_items_cache = []
     try:
         for window in bpy.context.window_manager.windows:
@@ -157,35 +173,36 @@ def _dds_icon_timer():
     return 0.02
 
 
-def _write_dds_icon_png(src_path, stem):
-    dst = None
-    folder = _flag_icon_cache_dir()
-    if folder:
-        dst = os.path.join(folder, "%s.v%d.png" % (stem, _DDS_PIXEL_REV))
+def _load_dds_icon_ram(src_path, stem):
+    """Flip a DDS into the in-memory preview collection. No file is written."""
+    key = _icon_key(stem)
+    pcoll = _ensure_flag_previews()
+    if key in pcoll:
+        return
     raw = None
     try:
         raw = bpy.data.images.load(src_path, check_existing=False)
         _flip_image_vertical(raw)
-        if dst:
-            raw.filepath_raw = dst
-            raw.file_format = "PNG"
-            raw.save()
+        width, height = int(raw.size[0]), int(raw.size[1])
+        pixels, width, height = _downscale_rgba(
+            list(raw.pixels), width, height, _DDS_ICON_MAX)
+        pixels = _premultiply_rgba(pixels)
+        preview = pcoll.new(key)
+        preview.icon_size = (width, height)
+        preview.icon_pixels_float = pixels
     except Exception:
-        return None
+        return
     finally:
         if raw is not None:
             try:
                 bpy.data.images.remove(raw)
             except Exception:
                 pass
-    if dst and os.path.isfile(dst):
-        return dst
-    return None
 
 
 def _flag_preview_icon_id(stem, path=None):
     """Load (or reuse) a small preview; return icon_id, or 0 on failure."""
-    key = "flag_" + (stem or "").lower()
+    key = _icon_key(stem)
     if not key or key == "flag_":
         return 0
     pcoll = _ensure_flag_previews()
@@ -194,13 +211,9 @@ def _flag_preview_icon_id(stem, path=None):
     img_path = _flag_preview_image_path(stem, path)
     if not img_path:
         return 0
-    low = img_path.lower()
-    if low.endswith(".dds"):
-        cached = _flag_icon_cache_png(stem)
-        if not cached:
-            _queue_dds_icon(img_path, stem)
-            return 0
-        img_path = cached
+    if img_path.lower().endswith(".dds"):
+        _queue_dds_icon(img_path, stem)
+        return 0
     try:
         pcoll.load(key, img_path, "IMAGE")
         return pcoll[key].icon_id
