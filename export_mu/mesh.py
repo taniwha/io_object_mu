@@ -40,12 +40,20 @@ Matrix_YZ = Matrix(((1,0,0,0),
 MU_MAX_VERTS = 65534
 
 def build_submeshes(mesh):
-    submeshes = []
-    submesh = []
-    for i in range(len(mesh.loop_triangles)):
-        submesh.append(i)
-    submeshes.append(submesh)
-    return submeshes
+    """One Mu submesh per used material_index (sorted), matching materials[]."""
+    from collections import defaultdict
+    buckets = defaultdict(list)
+    for i, tri in enumerate(mesh.loop_triangles):
+        buckets[int(tri.material_index)].append(i)
+    if not buckets:
+        return [[]]
+    return [buckets[k] for k in sorted(buckets.keys())]
+
+
+def _used_material_indices(mesh):
+    if not mesh.loop_triangles:
+        return []
+    return sorted({int(t.material_index) for t in mesh.loop_triangles})
 
 def make_tris(mesh, submeshes, vertex_map):
     for sm in submeshes:
@@ -75,7 +83,7 @@ def get_vertex_data(mu, mesh, obj):
     tangentsOk = True
     if full_data and mesh.uv_layers:
         uv_layers = mesh.uv_layers
-        #FIXME active UV layer?
+        # UV0 = first layer, UV2 = second (KSP convention; not "active" layer)
         uvs = list(map(lambda a: Vector(a.uv).freeze(), uv_layers[0].data))
         if len(uv_layers) > 1:
             uv2s = list(map(lambda a: Vector(a.uv).freeze(), uv_layers[1].data))
@@ -92,8 +100,15 @@ def get_vertex_data(mu, mesh, obj):
     colors = [None] * len(mesh.loops)
     if full_data and mesh.color_attributes:
         color_layer = mesh.color_attributes.active_color
-        if color_layer.name != "∧default":
-            print(f"color_layer: {color_layer.name}")
+        # Skip synthetic white (no MU VCols) and legacy "∧default" stubs.
+        export_vcol = (
+            color_layer is not None
+            and color_layer.name != "∧default"
+            and not mesh.get("mu_synthetic_vcol")
+        )
+        if export_vcol:
+            # Vertex colors exported into Mu mesh (not an error)
+            # print(f"INFO: color_layer: {color_layer.name}")
             if color_layer.domain == 'POINT':
                 for i, l in enumerate (mesh.loops):
                     c = color_layer.data[l.vertex_index]
@@ -101,6 +116,12 @@ def get_vertex_data(mu, mesh, obj):
             else:
                 for i, c in enumerate (color_layer.data):
                     colors[i] = Vector(c.color).freeze()
+    mu_tan = None
+    if full_data and mesh.get("mu_has_tangents"):
+        try:
+            mu_tan = mesh.attributes.get("mu_tangent")
+        except Exception:
+            mu_tan = None
     for i in range(len(mesh.loops)):
         v = mesh.loops[i].vertex_index
         if full_data:
@@ -110,7 +131,15 @@ def get_vertex_data(mu, mesh, obj):
         uv = uvs[i]
         uv2 = uv2s[i]
         col = colors[i]
-        if uv != None and tangentsOk:
+        if mu_tan is not None:
+            try:
+                c = mu_tan.data[v].color
+                t = Vector((c[0], c[1], c[2])).freeze()
+                bts = float(c[3])
+            except Exception:
+                t = None
+                bts = None
+        elif uv != None and tangentsOk:
             t = Vector(mesh.loops[i].tangent).freeze()
             bts = mesh.loops[i].bitangent_sign
         else:
@@ -153,8 +182,7 @@ def process_shape_keys(mesh, mumesh, vertex_map, vertex_data):
         mumesh.colors.extend([Vector((1, 1, 1, 1))] * new_verts)
 
     if (hasattr(mumesh, "tangents")):
-        #unfornately, don't know how to do tangents properly, so set
-        #deltas to 0 FIXME
+        # Shape-key deltas: tangents left at 0 (Unity recomputes as needed)
         mumesh.tangents.extend([(0, 0, 0, 0)] * new_verts)
     mumesh.verts = mumesh.verts * num_shapes
     if (hasattr(mumesh, "normals")):
@@ -228,6 +256,11 @@ def make_mumesh(mesh, submeshes, vertex_data, vertex_map, num_verts):
 def make_mesh(mu, obj):
     mesh = get_mesh(obj)
     if not len(mesh.loops):
+        # Particle preview stubs / empty emitters — not a real mesh loss
+        if ("particles" in obj.name.lower() or ".preview" in obj.name
+                or ".fx_preview" in obj.name or ".fx_emitter" in obj.name
+                or obj.get("mu_fx_preview")):
+            return None
         mu.messages.append(({'WARNING'}, f"Mesh has ZERO vertices {obj.name}"))
         return None
     #mesh is always a copy of the object mesh data, but this is non-destructive
@@ -250,11 +283,24 @@ def make_mesh(mu, obj):
     return mumesh
 
 def mesh_materials(mu, mesh):
+    """Materials in submesh order (same sorted material_index as build_submeshes)."""
     materials = []
-    for mat in mesh.materials:
+    # Collider / orphan meshes often have face material_index but no slots
+    if not mesh.materials:
+        return materials
+    used = _used_material_indices(mesh)
+    if not used:
+        # Fallback: all non-empty slots (empty mesh / no tris yet)
+        used = list(range(len(mesh.materials)))
+    for mi in used:
+        if mi < 0 or mi >= len(mesh.materials):
+            mu.messages.append(({'WARNING'}, f"{mesh.name} material_index "
+                                f"{mi} out of range"))
+            continue
+        mat = mesh.materials[mi]
         if not mat:
             mu.messages.append(({'WARNING'}, f"{mesh.name} has empty material "
-                                "slot"))
+                                f"slot {mi}"))
             continue
         if mat.mumatprop.shaderName:
             if mat.name not in mu.materials:
@@ -264,8 +310,21 @@ def mesh_materials(mu, mesh):
 
 def make_renderer(mu, obj, mesh):
     rend = MuRenderer()
-    #FIXME shadows
-    rend.materials = mesh_materials(mu, mesh)
+    # Preserve full material slot list (incl. duplicate indices like strut
+    # Connector's (0,0) with a single submesh). Multi-submesh parts still
+    # align via face material_index → build_submeshes order.
+    if len(mesh.materials) > 1:
+        materials = []
+        for mat in mesh.materials:
+            if not mat:
+                continue
+            if mat.mumatprop.shaderName:
+                if mat.name not in mu.materials:
+                    mu.materials[mat.name] = make_material(mu, mat)
+                materials.append(mu.materials[mat.name].index)
+        rend.materials = materials
+    else:
+        rend.materials = mesh_materials(mu, mesh)
     rend.castShadows = obj.muproperties.castShadows
     rend.receiveShadows = obj.muproperties.receiveShadows
     if not rend.materials:
@@ -303,7 +362,24 @@ def mesh_bones(obj, mumesh, armature):
         mumesh.boneWeights[i] = bw
     return bones, maxlen
 
-def make_bindPoses(smr, armature, arm_mat):
+def make_bindPoses(smr, armature_obj, arm_mat):
+    # Use the EDIT BONE rest matrix (bone.matrix_local), in the SAME
+    # armature object's own local space that import used to build it:
+    # import sets `edit_bone.matrix = bindPoses[i].inverted()` directly
+    # (see import_mu.armature.create_bindPose), so re-deriving bindPoses
+    # from that same edit-bone matrix is the exact inverse operation and
+    # round-trips losslessly, regardless of any pose-bone scale/animation
+    # or COPY_TRANSFORMS constraints layered on top for deformation.
+    #
+    # IMPORTANT: armature_obj must be the armature actually assigned to
+    # the mesh's Armature modifier (often a per-skin "bindPose" helper
+    # armature), NOT a "control" armature resolved through a
+    # COPY_TRANSFORMS constraint target. The helper's bones live in its
+    # own object space, which generally differs (translation/rotation and
+    # any compounded ancestor scale) from the control armature's space,
+    # so substituting the control armature here reintroduces exactly the
+    # kind of bad stretch/skew this function is meant to avoid.
+    armature = armature_obj.data
     smr.mesh.bindPoses = [None] * len(smr.bones)
     for i, bone in enumerate(smr.bones):
         poseBone = armature.bones[bone]
@@ -320,35 +396,58 @@ def handle_mesh(obj, muobj, mu):
         mu.messages.append(({'WARNING'}, f"{obj.name} too many "
                             "armatures, ignoring excess"))
     if mods:
-        armature = mods[0].object.data
+        # Use the armature actually assigned to the modifier (may be a
+        # per-skin "bindPose" helper armature whose pose bones COPY_TRANSFORMS
+        # from a shared control armature). Its pose-bone matrices are in its
+        # OWN object space, where any compounded ancestor/control scale is
+        # already cancelled out by the constraint evaluation \u2014 this is
+        # exactly the reference frame the Armature modifier itself deforms
+        # in, so bindPoses computed from it round-trip correctly. Resolving
+        # to the control armature instead (as was tried previously) mixes
+        # reference frames and reintroduces the control's compounded pose
+        # scale into the bind matrix, badly stretching the mesh on reimport.
+        arm_obj = mods[0].object
         for i in range(len(mods)):
             m = mods[i]
             mods[i] = (m, m.show_viewport, m.show_render)
             m.show_viewport = False
             m.show_render = False
-        smr = create_skinned_mesh(obj, mu, armature)
+        smr = create_skinned_mesh(obj, mu, arm_obj)
         for m in mods:
             m[0].show_viewport = m[1]
             m[0].show_render = m[2]
         muobj.skinned_mesh_renderer = smr
     else:
         muobj.shared_mesh = make_mesh(mu, obj)
-        muobj.renderer = make_renderer(mu, obj, obj.data)
+        # Pure MeshCollider GOs have faces with material_index but no slots —
+        # skip empty renderer (avoids material_index out-of-range warnings).
+        if not (is_collider(obj) and not obj.data.materials):
+            muobj.renderer = make_renderer(mu, obj, obj.data)
     return muobj
 
-def create_skinned_mesh(obj, mu, armature):
+def create_skinned_mesh(obj, mu, armature_obj):
+    armature = armature_obj.data
     smr = MuSkinnedMeshRenderer()
     smr.mesh = make_mesh(mu, obj)
     smr.bones, smr.quality = mesh_bones(obj, smr.mesh, armature)
     #armature-relative transform between armature and mesh
     arm_mat = obj.matrix_local
-    if arm_mat != Matrix():
-        mu.messages.append(({'WARNING'}, f"{obj.name}: non-identity armature-mesh matrix"))
-    make_bindPoses (smr, armature, arm_mat)
-    smr.materials = mesh_materials(mu, obj.data)
-    #FIXME center, size, updateWhenOffscreen
-    #however, with updateWhenOffscreen = 1, Unity will recaculate the mesh
-    #bounds every frame, so take the easy way for now
+    # Non-identity is common and handled by make_bindPoses; keep quiet unless
+    # extreme (likely a real authoring error).
+    try:
+        delta = arm_mat - Matrix.Identity(4)
+        err = sum(delta[i][j] ** 2 for i in range(4) for j in range(4))
+        if err > 1e-2:
+            mu.messages.append(({'INFO'},
+                f"{obj.name}: non-identity armature-mesh matrix (baked into bindPoses)"))
+    except Exception:
+        pass
+    make_bindPoses (smr, armature_obj, arm_mat)
+    # Same slot-preserving rules as make_renderer (multi-mat / duplicate slots)
+    rend = make_renderer(mu, obj, obj.data)
+    smr.materials = rend.materials if rend else mesh_materials(mu, obj.data)
+    # AABB from skinned mesh verts; updateWhenOffscreen lets Unity refresh
+    # bounds each frame (cheap and avoids bind-pose mismatch).
     mins = Vector(smr.mesh.verts[0])
     maxs = Vector(smr.mesh.verts[0])
     for v in smr.mesh.verts:

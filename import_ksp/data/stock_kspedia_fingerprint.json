@@ -1,0 +1,1143 @@
+{
+  "xml_sha1": "f1fb869fa9671c1cd1a2e6240a8b0c024ef92c0e",
+  "n_screens": 182,
+  "n_categories": 10,
+  "screens": [
+    {
+      "name": "ActionSets",
+      "bundle": "kspedia_actionsets",
+      "title": "#autoLOC_6011079",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ActionSets.prefab"
+    },
+    {
+      "name": "Aircraft",
+      "bundle": "kspedia_aircraft",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Aircraft.prefab"
+    },
+    {
+      "name": "AircraftBasics",
+      "bundle": "kspedia_aircraftbasics",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AircraftBasics.prefab"
+    },
+    {
+      "name": "AircraftBasicsBalance",
+      "bundle": "kspedia_aircraftbasicsbalance",
+      "title": "#autoLOC_6001714",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AircraftBasicsBalance.prefab"
+    },
+    {
+      "name": "AircraftBasicsBalance2",
+      "bundle": "kspedia_aircraftbasicsbalance2",
+      "title": "#autoLOC_6001715",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AircraftBasicsBalance2.prefab"
+    },
+    {
+      "name": "AircraftBasicsCoL",
+      "bundle": "kspedia_aircraftbasicscol",
+      "title": "#autoLOC_6001713",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AircraftBasicsCoL.prefab"
+    },
+    {
+      "name": "AircraftBasicsControl",
+      "bundle": "kspedia_aircraftbasicscontrol",
+      "title": "#autoLOC_6001695",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AircraftBasicsControl.prefab"
+    },
+    {
+      "name": "AircraftBasicsControlSurfaces",
+      "bundle": "kspedia_aircraftbasicscontrolsurfaces",
+      "title": "#autoLOC_6001712",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AircraftBasicsControlSurfaces.prefab"
+    },
+    {
+      "name": "AircraftBasicsDrag",
+      "bundle": "kspedia_aircraftbasicsdrag",
+      "title": "#autoLOC_6001711",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AircraftBasicsDrag.prefab"
+    },
+    {
+      "name": "AircraftBasicsEngines",
+      "bundle": "kspedia_aircraftbasicsengines",
+      "title": "#autoLOC_6001709",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AircraftBasicsEngines.prefab"
+    },
+    {
+      "name": "AircraftBasicsForces",
+      "bundle": "kspedia_aircraftbasicsforces",
+      "title": "#autoLOC_6001690",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AircraftBasicsForces.prefab"
+    },
+    {
+      "name": "AircraftBasicsIntakes",
+      "bundle": "kspedia_aircraftbasicsintakes",
+      "title": "#autoLOC_6001710",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AircraftBasicsIntakes.prefab"
+    },
+    {
+      "name": "AircraftBasicsLandingGear",
+      "bundle": "kspedia_aircraftbasicslandinggear",
+      "title": "#autoLOC_6001716",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AircraftBasicsLandingGear.prefab"
+    },
+    {
+      "name": "AircraftBasicsLift",
+      "bundle": "kspedia_aircraftbasicslift",
+      "title": "#autoLOC_6001708",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AircraftBasicsLift.prefab"
+    },
+    {
+      "name": "AxisGroups",
+      "bundle": "kspedia_axisgroups",
+      "title": "#autoLOC_6011080",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/AxisGroups.prefab"
+    },
+    {
+      "name": "Career",
+      "bundle": "kspedia_career",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Career.prefab"
+    },
+    {
+      "name": "CareerBasicsContracts",
+      "bundle": "kspedia_careerbasicscontracts",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerBasicsContracts.prefab"
+    },
+    {
+      "name": "CareerBasicsCrew",
+      "bundle": "kspedia_careerbasicscrew",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerBasicsCrew.prefab"
+    },
+    {
+      "name": "CareerBasicsCurrencies",
+      "bundle": "kspedia_careerbasicscurrencies",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerBasicsCurrencies.prefab"
+    },
+    {
+      "name": "CareerBasicsExperience",
+      "bundle": "kspedia_careerbasicsexperience",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerBasicsExperience.prefab"
+    },
+    {
+      "name": "CareerBasicsFacilities",
+      "bundle": "kspedia_careerbasicsfacilities",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerBasicsFacilities.prefab"
+    },
+    {
+      "name": "CareerBasicsStrategies",
+      "bundle": "kspedia_careerbasicsstrategies",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerBasicsStrategies.prefab"
+    },
+    {
+      "name": "CareerBasicsTechnology",
+      "bundle": "kspedia_careerbasicstechnology",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerBasicsTechnology.prefab"
+    },
+    {
+      "name": "CareerUI",
+      "bundle": "kspedia_careerui",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerUI.prefab"
+    },
+    {
+      "name": "CareerUI-AC",
+      "bundle": "kspedia_careerui-ac",
+      "title": "#autoLOC_6001643",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerUI-AC.prefab"
+    },
+    {
+      "name": "CareerUI-Admin",
+      "bundle": "kspedia_careerui-admin",
+      "title": "#autoLOC_6001644",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerUI-Admin.prefab"
+    },
+    {
+      "name": "CareerUI-KSC",
+      "bundle": "kspedia_careerui-ksc",
+      "title": "#autoLOC_6001642",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerUI-KSC.prefab"
+    },
+    {
+      "name": "CareerUI-MC",
+      "bundle": "kspedia_careerui-mc",
+      "title": "#autoLOC_6001645",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerUI-MC.prefab"
+    },
+    {
+      "name": "CareerUI-ScienceArchives",
+      "bundle": "kspedia_careerui-sciencearchives",
+      "title": "#autoLOC_6001647",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerUI-ScienceArchives.prefab"
+    },
+    {
+      "name": "CareerUI-TS",
+      "bundle": "kspedia_careerui-ts",
+      "title": "#autoLOC_6001648",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerUI-TS.prefab"
+    },
+    {
+      "name": "CareerUI-TechTree",
+      "bundle": "kspedia_careerui-techtree",
+      "title": "#autoLOC_6001646",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CareerUI-TechTree.prefab"
+    },
+    {
+      "name": "CargoApp",
+      "bundle": "kspedia_cargoapp",
+      "title": "#autoLOC_6011173",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CargoApp.prefab"
+    },
+    {
+      "name": "CargoMode",
+      "bundle": "kspedia_cargomode",
+      "title": "#autoLOC_6011172",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CargoMode.prefab"
+    },
+    {
+      "name": "CargoSystem",
+      "bundle": "kspedia_cargosystem",
+      "title": "#autoLOC_6011171",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CargoSystem.prefab"
+    },
+    {
+      "name": "CargoSystem-PlaceableParts",
+      "bundle": "kspedia_cargosystem-placeableparts",
+      "title": "#autoLOC_6011069",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CargoSystem-PlaceableParts.prefab"
+    },
+    {
+      "name": "Chute",
+      "bundle": "kspedia_chute",
+      "title": "#autoLOC_8400139",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Chute.prefab"
+    },
+    {
+      "name": "CommNet",
+      "bundle": "kspedia_commnet",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CommNet.prefab"
+    },
+    {
+      "name": "CommNetBasics",
+      "bundle": "kspedia_commnetbasics",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CommNetBasics.prefab"
+    },
+    {
+      "name": "CommNetControlLinks",
+      "bundle": "kspedia_commnetcontrollinks",
+      "title": "#autoLOC_6001720",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CommNetControlLinks.prefab"
+    },
+    {
+      "name": "CommNetGUI",
+      "bundle": "kspedia_commnetgui",
+      "title": "#autoLOC_6001719",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CommNetGUI.prefab"
+    },
+    {
+      "name": "CommNetRange",
+      "bundle": "kspedia_commnetrange",
+      "title": "#autoLOC_6001723",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CommNetRange.prefab"
+    },
+    {
+      "name": "CommNetRelays",
+      "bundle": "kspedia_commnetrelays",
+      "title": "#autoLOC_6001722",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CommNetRelays.prefab"
+    },
+    {
+      "name": "CommNetTransmission",
+      "bundle": "kspedia_commnettransmission",
+      "title": "#autoLOC_6001721",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/CommNetTransmission.prefab"
+    },
+    {
+      "name": "ConstructionUI",
+      "bundle": "kspedia_constructionui",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ConstructionUI.prefab"
+    },
+    {
+      "name": "ConstructionUI-ActionGroups",
+      "bundle": "kspedia_constructionui-actiongroups",
+      "title": "#autoLOC_6001607",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ConstructionUI-ActionGroups.prefab"
+    },
+    {
+      "name": "ConstructionUI-AppLauncher",
+      "bundle": "kspedia_constructionui-applauncher",
+      "title": "#autoLOC_6001610",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ConstructionUI-AppLauncher.prefab"
+    },
+    {
+      "name": "ConstructionUI-Crew",
+      "bundle": "kspedia_constructionui-crew",
+      "title": "#autoLOC_6001608",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ConstructionUI-Crew.prefab"
+    },
+    {
+      "name": "ConstructionUI-EngineersReport",
+      "bundle": "kspedia_constructionui-engineersreport",
+      "title": "#autoLOC_6001611",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ConstructionUI-EngineersReport.prefab"
+    },
+    {
+      "name": "ConstructionUI-Gizmos",
+      "bundle": "kspedia_constructionui-gizmos",
+      "title": "#autoLOC_6001613",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ConstructionUI-Gizmos.prefab"
+    },
+    {
+      "name": "ConstructionUI-Infos",
+      "bundle": "kspedia_constructionui-infos",
+      "title": "#autoLOC_6001612",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ConstructionUI-Infos.prefab"
+    },
+    {
+      "name": "ConstructionUI-PartDetails",
+      "bundle": "kspedia_constructionui-partdetails",
+      "title": "#autoLOC_6001606",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ConstructionUI-PartDetails.prefab"
+    },
+    {
+      "name": "ConstructionUI-Parts",
+      "bundle": "kspedia_constructionui-parts",
+      "title": "#autoLOC_6001605",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ConstructionUI-Parts.prefab"
+    },
+    {
+      "name": "ConstructionUI-Symmetry",
+      "bundle": "kspedia_constructionui-symmetry",
+      "title": "#autoLOC_6001614",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ConstructionUI-Symmetry.prefab"
+    },
+    {
+      "name": "ConstructionUI-VesselDetails",
+      "bundle": "kspedia_constructionui-vesseldetails",
+      "title": "#autoLOC_6001609",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ConstructionUI-VesselDetails.prefab"
+    },
+    {
+      "name": "Controls",
+      "bundle": "kspedia_controls",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls.prefab"
+    },
+    {
+      "name": "Controls-DockingMode",
+      "bundle": "kspedia_controls-dockingmode",
+      "title": "#autoLOC_6001635",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls-DockingMode.prefab"
+    },
+    {
+      "name": "Controls-EVA",
+      "bundle": "kspedia_controls-eva",
+      "title": "#autoLOC_6001636",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls-EVA.prefab"
+    },
+    {
+      "name": "Controls-Editor",
+      "bundle": "kspedia_controls-editor",
+      "title": "#autoLOC_6001637",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls-Editor.prefab"
+    },
+    {
+      "name": "Controls-EditorGizmos",
+      "bundle": "kspedia_controls-editorgizmos",
+      "title": "#autoLOC_6001638",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls-EditorGizmos.prefab"
+    },
+    {
+      "name": "Controls-Flight",
+      "bundle": "kspedia_controls-flight",
+      "title": "#autoLOC_6001632",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls-Flight.prefab"
+    },
+    {
+      "name": "Controls-FlightActivities",
+      "bundle": "kspedia_controls-flightactivities",
+      "title": "#autoLOC_6001633",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls-FlightActivities.prefab"
+    },
+    {
+      "name": "Controls-FlightDirections",
+      "bundle": "kspedia_controls-flightdirections",
+      "title": "#autoLOC_6001631",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls-FlightDirections.prefab"
+    },
+    {
+      "name": "Controls-General",
+      "bundle": "kspedia_controls-general",
+      "title": "#autoLOC_6001629",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls-General.prefab"
+    },
+    {
+      "name": "Controls-MapAndTime",
+      "bundle": "kspedia_controls-mapandtime",
+      "title": "#autoLOC_6001630",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls-MapAndTime.prefab"
+    },
+    {
+      "name": "Controls-MouseConstruction",
+      "bundle": "kspedia_controls-mouseconstruction",
+      "title": "#autoLOC_6001640",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls-MouseConstruction.prefab"
+    },
+    {
+      "name": "Controls-MouseFlight",
+      "bundle": "kspedia_controls-mouseflight",
+      "title": "#autoLOC_6001639",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls-MouseFlight.prefab"
+    },
+    {
+      "name": "Controls-RCS",
+      "bundle": "kspedia_controls-rcs",
+      "title": "#autoLOC_6001634",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Controls-RCS.prefab"
+    },
+    {
+      "name": "EVAConstructionMode",
+      "bundle": "kspedia_evaconstructionmode",
+      "title": "#autoLOC_6011174",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/EVAConstructionMode.prefab"
+    },
+    {
+      "name": "EasterEggs",
+      "bundle": "kspedia_eastereggs",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/EasterEggs.prefab"
+    },
+    {
+      "name": "Facilities-AC",
+      "bundle": "kspedia_facilities-ac",
+      "title": "#autoLOC_6001643",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Facilities-AC.prefab"
+    },
+    {
+      "name": "Facilities-Admin",
+      "bundle": "kspedia_facilities-admin",
+      "title": "#autoLOC_6001644",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Facilities-Admin.prefab"
+    },
+    {
+      "name": "Facilities-Context",
+      "bundle": "kspedia_facilities-context",
+      "title": "#autoLOC_6001664",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Facilities-Context.prefab"
+    },
+    {
+      "name": "Facilities-KSC",
+      "bundle": "kspedia_facilities-ksc",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Facilities-KSC.prefab"
+    },
+    {
+      "name": "Facilities-Launchpad",
+      "bundle": "kspedia_facilities-launchpad",
+      "title": "#autoLOC_6001663",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Facilities-Launchpad.prefab"
+    },
+    {
+      "name": "Facilities-MC",
+      "bundle": "kspedia_facilities-mc",
+      "title": "#autoLOC_6001645",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Facilities-MC.prefab"
+    },
+    {
+      "name": "Facilities-RandD",
+      "bundle": "kspedia_facilities-randd",
+      "title": "#autoLOC_6001646",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Facilities-RandD.prefab"
+    },
+    {
+      "name": "Facilities-Runway",
+      "bundle": "kspedia_facilities-runway",
+      "title": "#autoLOC_6001662",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Facilities-Runway.prefab"
+    },
+    {
+      "name": "Facilities-SPH",
+      "bundle": "kspedia_facilities-sph",
+      "title": "#autoLOC_6001661",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Facilities-SPH.prefab"
+    },
+    {
+      "name": "Facilities-TS",
+      "bundle": "kspedia_facilities-ts",
+      "title": "#autoLOC_6001648",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Facilities-TS.prefab"
+    },
+    {
+      "name": "Facilities-VAB",
+      "bundle": "kspedia_facilities-vab",
+      "title": "#autoLOC_6001660",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Facilities-VAB.prefab"
+    },
+    {
+      "name": "FlightUI",
+      "bundle": "kspedia_flightui",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI.prefab"
+    },
+    {
+      "name": "FlightUI-Altimeter",
+      "bundle": "kspedia_flightui-altimeter",
+      "title": "#autoLOC_6001619",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-Altimeter.prefab"
+    },
+    {
+      "name": "FlightUI-AppLauncher",
+      "bundle": "kspedia_flightui-applauncher",
+      "title": "#autoLOC_6001621",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-AppLauncher.prefab"
+    },
+    {
+      "name": "FlightUI-EVAActivities",
+      "bundle": "kspedia_flightui-evaactivities",
+      "title": "#autoLOC_6001623",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-EVAActivities.prefab"
+    },
+    {
+      "name": "FlightUI-ManeuverModeEditor",
+      "bundle": "kspedia_flightui-maneuvermodeeditor",
+      "title": "#autoLOC_6011008",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-ManeuverModeEditor.prefab"
+    },
+    {
+      "name": "FlightUI-ManeuverModeEditorCont",
+      "bundle": "kspedia_flightui-maneuvermodeeditorcont",
+      "title": "#autoLOC_6011009",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-ManeuverModeEditorCont.prefab"
+    },
+    {
+      "name": "FlightUI-ManeuverModeOrbit",
+      "bundle": "kspedia_flightui-maneuvermodeorbit",
+      "title": "#autoLOC_6011007",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-ManeuverModeOrbit.prefab"
+    },
+    {
+      "name": "FlightUI-ManeuverToolInfo",
+      "bundle": "kspedia_flightui-maneuvertoolinfo",
+      "title": "#autoLOC_6006124",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-ManeuverToolInfo.prefab"
+    },
+    {
+      "name": "FlightUI-ManeuverToolMain",
+      "bundle": "kspedia_flightui-maneuvertoolmain",
+      "title": "#autoLOC_6006123",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-ManeuverToolMain.prefab"
+    },
+    {
+      "name": "FlightUI-ModeControl",
+      "bundle": "kspedia_flightui-modecontrol",
+      "title": "#autoLOC_6001617",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-ModeControl.prefab"
+    },
+    {
+      "name": "FlightUI-Navball",
+      "bundle": "kspedia_flightui-navball",
+      "title": "#autoLOC_6001616",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-Navball.prefab"
+    },
+    {
+      "name": "FlightUI-PartRepairs",
+      "bundle": "kspedia_flightui-partrepairs",
+      "title": "#autoLOC_6011170",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-PartRepairs.prefab"
+    },
+    {
+      "name": "FlightUI-Portraits",
+      "bundle": "kspedia_flightui-portraits",
+      "title": "#autoLOC_6001622",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-Portraits.prefab"
+    },
+    {
+      "name": "FlightUI-Staging",
+      "bundle": "kspedia_flightui-staging",
+      "title": "#autoLOC_6001618",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-Staging.prefab"
+    },
+    {
+      "name": "FlightUI-TimeandAction",
+      "bundle": "kspedia_flightui-timeandaction",
+      "title": "#autoLOC_6001620",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/FlightUI-TimeandAction.prefab"
+    },
+    {
+      "name": "Heat",
+      "bundle": "kspedia_heat",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Heat.prefab"
+    },
+    {
+      "name": "HeatActiveRadiators",
+      "bundle": "kspedia_heatactiveradiators",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/HeatActiveRadiators.prefab"
+    },
+    {
+      "name": "HeatCore",
+      "bundle": "kspedia_heatcore",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/HeatCore.prefab"
+    },
+    {
+      "name": "HeatEngines",
+      "bundle": "kspedia_heatengines",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/HeatEngines.prefab"
+    },
+    {
+      "name": "HeatFlow",
+      "bundle": "kspedia_heatflow",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/HeatFlow.prefab"
+    },
+    {
+      "name": "HeatPart",
+      "bundle": "kspedia_heatpart",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/HeatPart.prefab"
+    },
+    {
+      "name": "HeatPassiveRadiators",
+      "bundle": "kspedia_heatpassiveradiators",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/HeatPassiveRadiators.prefab"
+    },
+    {
+      "name": "HeatShields",
+      "bundle": "kspedia_heatshields",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/HeatShields.prefab"
+    },
+    {
+      "name": "KerbNet",
+      "bundle": "kspedia_kerbnet",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/KerbNet.prefab"
+    },
+    {
+      "name": "KerbNetInterface",
+      "bundle": "kspedia_kerbnetinterface",
+      "title": "#autoLOC_6001725",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/KerbNetInterface.prefab"
+    },
+    {
+      "name": "KerbNetModes",
+      "bundle": "kspedia_kerbnetmodes",
+      "title": "#autoLOC_6001726",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/KerbNetModes.prefab"
+    },
+    {
+      "name": "KerbNetWaypoints",
+      "bundle": "kspedia_kerbnetwaypoints",
+      "title": "#autoLOC_6001727",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/KerbNetWaypoints.prefab"
+    },
+    {
+      "name": "Locations",
+      "bundle": "kspedia_locations",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Locations.prefab"
+    },
+    {
+      "name": "Manual",
+      "bundle": "kspedia_manual",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Manual.prefab"
+    },
+    {
+      "name": "MapUI",
+      "bundle": "kspedia_mapui",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/MapUI.prefab"
+    },
+    {
+      "name": "MapUI-AlarmClockCreation",
+      "bundle": "kspedia_mapui-alarmclockcreation",
+      "title": "#autoLOC_6006125",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/MapUI-AlarmClockCreation.prefab"
+    },
+    {
+      "name": "MapUI-AlarmClockMain",
+      "bundle": "kspedia_mapui-alarmclockmain",
+      "title": "#autoLOC_6006126",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/MapUI-AlarmClockMain.prefab"
+    },
+    {
+      "name": "MapUI-BurnIndicator",
+      "bundle": "kspedia_mapui-burnindicator",
+      "title": "#autoLOC_6005011",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/MapUI-BurnIndicator.prefab"
+    },
+    {
+      "name": "MapUI-DvToolsFlight",
+      "bundle": "kspedia_mapui-dvtoolsflight",
+      "title": "#autoLOC_6011006",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/MapUI-DvToolsFlight.prefab"
+    },
+    {
+      "name": "MapUI-DvToolsVAB",
+      "bundle": "kspedia_mapui-dvtoolsvab",
+      "title": "#autoLOC_6011005",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/MapUI-DvToolsVAB.prefab"
+    },
+    {
+      "name": "MapUI-ManNodes",
+      "bundle": "kspedia_mapui-mannodes",
+      "title": "#autoLOC_6001627",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/MapUI-ManNodes.prefab"
+    },
+    {
+      "name": "MapUI-OrbitNodes",
+      "bundle": "kspedia_mapui-orbitnodes",
+      "title": "#autoLOC_6001625",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/MapUI-OrbitNodes.prefab"
+    },
+    {
+      "name": "MapUI-OrbitNodes2",
+      "bundle": "kspedia_mapui-orbitnodes2",
+      "title": "#autoLOC_6001626",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/MapUI-OrbitNodes2.prefab"
+    },
+    {
+      "name": "OrbitalBasics",
+      "bundle": "kspedia_orbitalbasics",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalBasics.prefab"
+    },
+    {
+      "name": "OrbitalBasics-Atmosphere",
+      "bundle": "kspedia_orbitalbasics-atmosphere",
+      "title": "#autoLOC_6001674",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalBasics-Atmosphere.prefab"
+    },
+    {
+      "name": "OrbitalBasics-GettingBackDown",
+      "bundle": "kspedia_orbitalbasics-gettingbackdown",
+      "title": "#autoLOC_6001678",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalBasics-GettingBackDown.prefab"
+    },
+    {
+      "name": "OrbitalBasics-GettingUpThere",
+      "bundle": "kspedia_orbitalbasics-gettingupthere",
+      "title": "#autoLOC_6001675",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalBasics-GettingUpThere.prefab"
+    },
+    {
+      "name": "OrbitalBasics-GravityTurn",
+      "bundle": "kspedia_orbitalbasics-gravityturn",
+      "title": "#autoLOC_6001676",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalBasics-GravityTurn.prefab"
+    },
+    {
+      "name": "OrbitalBasics-Orbits",
+      "bundle": "kspedia_orbitalbasics-orbits",
+      "title": "#autoLOC_6001673",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalBasics-Orbits.prefab"
+    },
+    {
+      "name": "OrbitalBasics-StayingUpThere",
+      "bundle": "kspedia_orbitalbasics-stayingupthere",
+      "title": "#autoLOC_6001677",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalBasics-StayingUpThere.prefab"
+    },
+    {
+      "name": "OrbitalDefinitions",
+      "bundle": "kspedia_orbitaldefinitions",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalDefinitions.prefab"
+    },
+    {
+      "name": "OrbitalDefinitions-ApPe",
+      "bundle": "kspedia_orbitaldefinitions-appe",
+      "title": "#autoLOC_6001669",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalDefinitions-ApPe.prefab"
+    },
+    {
+      "name": "OrbitalDefinitions-DirAndInc",
+      "bundle": "kspedia_orbitaldefinitions-dirandinc",
+      "title": "#autoLOC_6001668",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalDefinitions-DirAndInc.prefab"
+    },
+    {
+      "name": "OrbitalDefinitions-Directions",
+      "bundle": "kspedia_orbitaldefinitions-directions",
+      "title": "#autoLOC_6001671",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalDefinitions-Directions.prefab"
+    },
+    {
+      "name": "OrbitalDefinitions-Eccentricity",
+      "bundle": "kspedia_orbitaldefinitions-eccentricity",
+      "title": "#autoLOC_6001670",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalDefinitions-Eccentricity.prefab"
+    },
+    {
+      "name": "OrbitalManeuvers",
+      "bundle": "kspedia_orbitalmaneuvers",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalManeuvers.prefab"
+    },
+    {
+      "name": "OrbitalManeuvers-AdjustingInclination",
+      "bundle": "kspedia_orbitalmaneuvers-adjustinginclination",
+      "title": "#autoLOC_6001682",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalManeuvers-AdjustingInclination.prefab"
+    },
+    {
+      "name": "OrbitalManeuvers-DeltaV",
+      "bundle": "kspedia_orbitalmaneuvers-deltav",
+      "title": "#autoLOC_6001680",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalManeuvers-DeltaV.prefab"
+    },
+    {
+      "name": "OrbitalManeuvers-Efficiency",
+      "bundle": "kspedia_orbitalmaneuvers-efficiency",
+      "title": "#autoLOC_6001686",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalManeuvers-Efficiency.prefab"
+    },
+    {
+      "name": "OrbitalManeuvers-HohmannTransfer",
+      "bundle": "kspedia_orbitalmaneuvers-hohmanntransfer",
+      "title": "#autoLOC_6001684",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalManeuvers-HohmannTransfer.prefab"
+    },
+    {
+      "name": "OrbitalManeuvers-HohmannTransfer2",
+      "bundle": "kspedia_orbitalmaneuvers-hohmanntransfer2",
+      "title": "#autoLOC_6001685",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalManeuvers-HohmannTransfer2.prefab"
+    },
+    {
+      "name": "OrbitalManeuvers-OrbitTypes",
+      "bundle": "kspedia_orbitalmaneuvers-orbittypes",
+      "title": "#autoLOC_6001687",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalManeuvers-OrbitTypes.prefab"
+    },
+    {
+      "name": "OrbitalManeuvers-RadAndAntiRad",
+      "bundle": "kspedia_orbitalmaneuvers-radandantirad",
+      "title": "#autoLOC_6001683",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalManeuvers-RadAndAntiRad.prefab"
+    },
+    {
+      "name": "OrbitalManeuvers-ShapingUp",
+      "bundle": "kspedia_orbitalmaneuvers-shapingup",
+      "title": "#autoLOC_6001681",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/OrbitalManeuvers-ShapingUp.prefab"
+    },
+    {
+      "name": "Planets-Dres",
+      "bundle": "kspedia_planets-dres",
+      "title": "#autoLOC_910043",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Planets-Dres.prefab"
+    },
+    {
+      "name": "Planets-Duna",
+      "bundle": "kspedia_planets-duna",
+      "title": "#autoLOC_910045",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Planets-Duna.prefab"
+    },
+    {
+      "name": "Planets-Eeloo",
+      "bundle": "kspedia_planets-eeloo",
+      "title": "#autoLOC_910039",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Planets-Eeloo.prefab"
+    },
+    {
+      "name": "Planets-Eve",
+      "bundle": "kspedia_planets-eve",
+      "title": "#autoLOC_910049",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Planets-Eve.prefab"
+    },
+    {
+      "name": "Planets-Jool",
+      "bundle": "kspedia_planets-jool",
+      "title": "#autoLOC_910041",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Planets-Jool.prefab"
+    },
+    {
+      "name": "Planets-Kerbin",
+      "bundle": "kspedia_planets-kerbin",
+      "title": "#autoLOC_910048",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Planets-Kerbin.prefab"
+    },
+    {
+      "name": "Planets-Moho",
+      "bundle": "kspedia_planets-moho",
+      "title": "#autoLOC_910051",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Planets-Moho.prefab"
+    },
+    {
+      "name": "Planets-Sun",
+      "bundle": "kspedia_planets-sun",
+      "title": "#autoLOC_910053",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Planets-Sun.prefab"
+    },
+    {
+      "name": "Planets-System",
+      "bundle": "kspedia_planets-system",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Planets-System.prefab"
+    },
+    {
+      "name": "Resources",
+      "bundle": "kspedia_resources",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Resources.prefab"
+    },
+    {
+      "name": "Resources-AsteroidMining",
+      "bundle": "kspedia_resources-asteroidmining",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Resources-AsteroidMining.prefab"
+    },
+    {
+      "name": "Resources-ConversionManagement",
+      "bundle": "kspedia_resources-conversionmanagement",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Resources-ConversionManagement.prefab"
+    },
+    {
+      "name": "Resources-Drilling",
+      "bundle": "kspedia_resources-drilling",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Resources-Drilling.prefab"
+    },
+    {
+      "name": "Resources-FindingIt",
+      "bundle": "kspedia_resources-findingit",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Resources-FindingIt.prefab"
+    },
+    {
+      "name": "Resources-FindingIt2",
+      "bundle": "kspedia_resources-findingit2",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Resources-FindingIt2.prefab"
+    },
+    {
+      "name": "Resources-StorageAndConversion",
+      "bundle": "kspedia_resources-storageandconversion",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Resources-StorageAndConversion.prefab"
+    },
+    {
+      "name": "Rocketry",
+      "bundle": "kspedia_rocketry",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Rocketry.prefab"
+    },
+    {
+      "name": "RocketryAdvanced",
+      "bundle": "kspedia_rocketryadvanced",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryAdvanced.prefab"
+    },
+    {
+      "name": "RocketryAdvanced-Fairings",
+      "bundle": "kspedia_rocketryadvanced-fairings",
+      "title": "#autoLOC_6001706",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryAdvanced-Fairings.prefab"
+    },
+    {
+      "name": "RocketryAdvanced-Girders",
+      "bundle": "kspedia_rocketryadvanced-girders",
+      "title": "#autoLOC_6001705",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryAdvanced-Girders.prefab"
+    },
+    {
+      "name": "RocketryBasics",
+      "bundle": "kspedia_rocketrybasics",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasics.prefab"
+    },
+    {
+      "name": "RocketryBasicsAero",
+      "bundle": "kspedia_rocketrybasicsaero",
+      "title": "#autoLOC_6001694",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsAero.prefab"
+    },
+    {
+      "name": "RocketryBasicsCentered",
+      "bundle": "kspedia_rocketrybasicscentered",
+      "title": "#autoLOC_6001692",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsCentered.prefab"
+    },
+    {
+      "name": "RocketryBasicsChutes",
+      "bundle": "kspedia_rocketrybasicschutes",
+      "title": "#autoLOC_6001700",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsChutes.prefab"
+    },
+    {
+      "name": "RocketryBasicsControl",
+      "bundle": "kspedia_rocketrybasicscontrol",
+      "title": "#autoLOC_6001695",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsControl.prefab"
+    },
+    {
+      "name": "RocketryBasicsECRecharging",
+      "bundle": "kspedia_rocketrybasicsecrecharging",
+      "title": "#autoLOC_6001699",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsECRecharging.prefab"
+    },
+    {
+      "name": "RocketryBasicsEngines",
+      "bundle": "kspedia_rocketrybasicsengines",
+      "title": "#autoLOC_6001696",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsEngines.prefab"
+    },
+    {
+      "name": "RocketryBasicsForces",
+      "bundle": "kspedia_rocketrybasicsforces",
+      "title": "#autoLOC_6001690",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsForces.prefab"
+    },
+    {
+      "name": "RocketryBasicsHatchesAndLadders",
+      "bundle": "kspedia_rocketrybasicshatchesandladders",
+      "title": "#autoLOC_6001701",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsHatchesAndLadders.prefab"
+    },
+    {
+      "name": "RocketryBasicsHibernation",
+      "bundle": "kspedia_rocketrybasicshibernation",
+      "title": "#autoLOC_6001970",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsHibernation.prefab"
+    },
+    {
+      "name": "RocketryBasicsResources",
+      "bundle": "kspedia_rocketrybasicsresources",
+      "title": "#autoLOC_6001697",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsResources.prefab"
+    },
+    {
+      "name": "RocketryBasicsServiceContainers",
+      "bundle": "kspedia_rocketrybasicsservicecontainers",
+      "title": "#autoLOC_6001698",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsServiceContainers.prefab"
+    },
+    {
+      "name": "RocketryBasicsStability",
+      "bundle": "kspedia_rocketrybasicsstability",
+      "title": "#autoLOC_6001691",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsStability.prefab"
+    },
+    {
+      "name": "RocketryBasicsStabilityAssist",
+      "bundle": "kspedia_rocketrybasicsstabilityassist",
+      "title": "#autoLOC_6001703",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsStabilityAssist.prefab"
+    },
+    {
+      "name": "RocketryBasicsStaging",
+      "bundle": "kspedia_rocketrybasicsstaging",
+      "title": "#autoLOC_6001702",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsStaging.prefab"
+    },
+    {
+      "name": "RocketryBasicsSymmetry",
+      "bundle": "kspedia_rocketrybasicssymmetry",
+      "title": "#autoLOC_6001693",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/RocketryBasicsSymmetry.prefab"
+    },
+    {
+      "name": "Science",
+      "bundle": "kspedia_science",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/Science.prefab"
+    },
+    {
+      "name": "ScienceData",
+      "bundle": "kspedia_sciencedata",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ScienceData.prefab"
+    },
+    {
+      "name": "ScienceExperiments",
+      "bundle": "kspedia_scienceexperiments",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ScienceExperiments.prefab"
+    },
+    {
+      "name": "ScienceLab",
+      "bundle": "kspedia_sciencelab",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ScienceLab.prefab"
+    },
+    {
+      "name": "ScienceTransmitted",
+      "bundle": "kspedia_sciencetransmitted",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/ScienceTransmitted.prefab"
+    },
+    {
+      "name": "SpaceTravel",
+      "bundle": "kspedia_spacetravel",
+      "title": ".",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/SpaceTravel.prefab"
+    },
+    {
+      "name": "VariantSwitcher",
+      "bundle": "kspedia_variantswitcher",
+      "title": "#autoLOC_8400159",
+      "asset": "Assets/Squad/KSPedia/Screens/en-us/VariantSwitcher.prefab"
+    }
+  ],
+  "categories": [
+    {
+      "name": "#autoLOC_6001603",
+      "title": "#autoLOC_6001603"
+    },
+    {
+      "name": "#autoLOC_6001649",
+      "title": "#autoLOC_6001649"
+    },
+    {
+      "name": "#autoLOC_6001666",
+      "title": "#autoLOC_6001666"
+    },
+    {
+      "name": "#autoLOC_6001688",
+      "title": "#autoLOC_6001688"
+    },
+    {
+      "name": "#autoLOC_6001707",
+      "title": "#autoLOC_6001707"
+    },
+    {
+      "name": "#autoLOC_6001717",
+      "title": "#autoLOC_6001717"
+    },
+    {
+      "name": "#autoLOC_6001728",
+      "title": "#autoLOC_6001728"
+    },
+    {
+      "name": "#autoLOC_6001735",
+      "title": "#autoLOC_6001735"
+    },
+    {
+      "name": "#autoLOC_6001742",
+      "title": "#autoLOC_6001742"
+    },
+    {
+      "name": "#autoLOC_6001746",
+      "title": "#autoLOC_6001746"
+    }
+  ],
+  "source": "Squad/KSPedia/kspedia.ksp",
+  "n_subcategories": 40
+}

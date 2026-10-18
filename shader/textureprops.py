@@ -29,6 +29,58 @@ from bpy.props import BoolProperty, StringProperty
 from bpy.props import CollectionProperty
 from bpy.props import FloatVectorProperty, IntProperty
 
+def _bump_dxt_nodes(nodes):
+    out = []
+    for n in nodes:
+        if n.name == "dxtNormal":
+            out.append(n)
+        elif (n.type == "GROUP" and getattr(n, "node_tree", None)
+              and n.node_tree.name == "dxtNormal"):
+            out.append(n)
+    return out
+
+
+def _apply_bump_rgb_norm(mat, texprop):
+    """Route _BumpMap through dxtNormal only for GA maps; RGB goes straight."""
+    if texprop.name != "_BumpMap" or not mat or not mat.node_tree:
+        return
+    nt = mat.node_tree
+    bump = nt.nodes.get("_BumpMap")
+    if not bump:
+        return
+    use_rgb = bool(texprop.rgbNorm)
+    dxts = _bump_dxt_nodes(nt.nodes)
+    if not dxts:
+        return
+    color_out = bump.outputs.get("Color") or bump.outputs[0]
+    for dxt in dxts:
+        dxt_out = dxt.outputs[0] if dxt.outputs else None
+        if not dxt_out:
+            continue
+        # Remember destinations currently fed by this dxt (or already by bump)
+        dests = [(l.to_node, l.to_socket) for l in list(dxt_out.links)]
+        if not dests:
+            # Already bypassed: collect sockets fed by bump that dxt used to own
+            dests = [(l.to_node, l.to_socket) for l in list(color_out.links)
+                     if l.to_node != dxt]
+        for to_node, to_socket in dests:
+            for l in list(to_socket.links):
+                nt.links.remove(l)
+            if use_rgb:
+                nt.links.new(color_out, to_socket)
+            else:
+                nt.links.new(dxt_out, to_socket)
+        dxt.mute = use_rgb
+        # Keep GA path wired from bump into dxt
+        if not use_rgb:
+            rgb_in = dxt.inputs[0] if dxt.inputs else None
+            a_in = dxt.inputs[1] if len(dxt.inputs) > 1 else None
+            if rgb_in is not None and not rgb_in.links:
+                nt.links.new(color_out, rgb_in)
+            if a_in is not None and not a_in.links and len(bump.outputs) > 1:
+                nt.links.new(bump.outputs[1], a_in)
+
+
 def texture_update_mapping(self, context):
     if not hasattr(context, "material") or not context.material:
         return
@@ -36,20 +88,15 @@ def texture_update_mapping(self, context):
     nodes = mat.node_tree.nodes
     scale = Vector(self.scale)
     offset = Vector(self.offset)
-    image_convertNorm = False
     if self.name in nodes:
         if self.tex in bpy.data.images:
             img = bpy.data.images[self.tex]
             if img.muimageprop.invertY:
                 scale.y *= -1
                 offset.y = 1 - offset.y
-            image_convertNorm = img.muimageprop.convertNorm
         nodes[self.name].texture_mapping.translation.xy = offset
         nodes[self.name].texture_mapping.scale.xy = scale
-    #if "dxtNormal" in nodes:
-    #    dxtNormal = nodes["dxtNormal"]
-    #    fac = float(image_convertNorm or not self.rgbNorm)
-    #    dxtNormal.inputs[0].default_value = fac
+    _apply_bump_rgb_norm(mat, self)
 
 def texture_update_tex(self, context):
     if not hasattr(context, "material") or not context.material:

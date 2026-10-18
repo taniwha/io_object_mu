@@ -29,11 +29,20 @@ from .armature import create_vertex_groups, create_armature_modifier
 from .armature import create_bindPose
 
 def attach_material(mesh, renderer, mu):
-    if mu.materials and renderer.materials:
-        #KSP supports only the first submesh and thus only the first
-        #material
-        mumat = mu.materials[renderer.materials[0]]
-        mesh.materials.append(mumat.material)
+    """Attach all renderer material slots (one per submesh when present)."""
+    if not mu.materials or not getattr(renderer, "materials", None):
+        return
+    for mid in renderer.materials:
+        try:
+            mid = int(mid)
+        except Exception:
+            continue
+        if mid < 0 or mid >= len(mu.materials):
+            continue
+        mumat = mu.materials[mid]
+        bmat = getattr(mumat, "material", None)
+        if bmat:
+            mesh.materials.append(bmat)
 
 def create_uvs(mu, uvs, mesh, name):
     uv_layer = mesh.uv_layers.new(name=name).data
@@ -53,23 +62,71 @@ def create_normals(mu, normals, mesh):
         mesh.use_auto_smooth = True
 
 def create_colors(mu, colors, mesh):
+    # Always use "colors" so ShaderNodeVertexColor.layer_name matches.
+    # Blender 5 returns black for a missing layer; MainColor does V*C*T so a
+    # mismatched name (e.g. shader "∧default" vs mesh "colors") blacks out albedo.
+    # Synthetic white (no MU vertex colors) is tagged so export can skip it.
     if not mesh.color_attributes:
-        name = "colors" if colors else "∧default"
-        mesh.color_attributes.new(name, 'FLOAT_COLOR', 'POINT')
+        mesh.color_attributes.new("colors", 'FLOAT_COLOR', 'POINT')
     color_layer = mesh.color_attributes.active_color
+    use_white = not colors
     if colors:
+        # Near-black VCols (common docking / airlock-style data) multiply
+        # MainColor albedo to ~0 — treat as unused and use synthetic white.
+        try:
+            n = min(len(colors), 256)
+            acc = 0.0
+            for i in range(n):
+                c = colors[i]
+                acc += (float(c[0]) + float(c[1]) + float(c[2])) / 3.0
+            use_white = (acc / max(1, n)) < 0.02
+        except Exception:
+            use_white = False
+    if colors and not use_white:
         for i, c in enumerate(colors):
             color_layer.data[i].color = c
+        if "mu_synthetic_vcol" in mesh:
+            del mesh["mu_synthetic_vcol"]
     else:
         for i in range(len(color_layer.data)):
-            color_layer.data[i].color = (1,1,1,1)
+            color_layer.data[i].color = (1, 1, 1, 1)
+        mesh["mu_synthetic_vcol"] = 1
+
+def create_tangents(mumesh, mesh):
+    """Store Mu per-vertex tangents (xyzw) for round-trip / normal mapping."""
+    tangents = getattr(mumesh, "tangents", None) or []
+    if not tangents or len(tangents) != len(mumesh.verts):
+        return
+    # FLOAT_COLOR POINT: rgb = tangent xyz, a = handedness (bitangent sign)
+    if "mu_tangent" in mesh.attributes:
+        try:
+            mesh.attributes.remove(mesh.attributes["mu_tangent"])
+        except Exception:
+            pass
+    attr = mesh.attributes.new("mu_tangent", 'FLOAT_COLOR', 'POINT')
+    for i, t in enumerate(tangents):
+        try:
+            x, y, z = float(t[0]), float(t[1]), float(t[2])
+            w = float(t[3]) if len(t) > 3 else 1.0
+        except Exception:
+            x = y = z = 0.0
+            w = 1.0
+        attr.data[i].color = (x, y, z, w)
+    mesh["mu_has_tangents"] = 1
 
 def create_mesh(mu, mumesh, name):
     mesh = bpy.data.meshes.new(name)
     faces = []
-    for sm in mumesh.submeshes:
-        faces.extend(sm)
+    face_mat = []
+    for smi, sm in enumerate(mumesh.submeshes):
+        for face in sm:
+            faces.append(face)
+            face_mat.append(smi)
     mesh.from_pydata(mumesh.verts, [], faces)
+    # Submesh index → material slot (renderer.materials[i])
+    for i, poly in enumerate(mesh.polygons):
+        if i < len(face_mat):
+            poly.material_index = face_mat[i]
     if mumesh.uvs:
         create_uvs(mu, mumesh.uvs, mesh, "UVMap")
     if mumesh.uv2s:
@@ -77,15 +134,33 @@ def create_mesh(mu, mumesh, name):
     if mumesh.normals:
         create_normals(mu, mumesh.normals, mesh)
     create_colors(mu, mumesh.colors, mesh)
-    #FIXME how to set tangents?
-    #if mumesh.tangents:
-    #    for i, t in enumerate(mumesh.tangents):
-    #        bv[i].tangent = t
+    create_tangents(mumesh, mesh)
     return mesh
 
 def mesh_post(obj, renderer):
     obj.muproperties.castShadows = renderer.castShadows
     obj.muproperties.receiveShadows = renderer.receiveShadows
+    # Viewport EEVEE shadows follow KSP renderer flags — except additive /
+    # translucent (ModuleLight Flare): Blender 5 ignores cfg shadow_method=NONE,
+    # and use_transparent_shadow=False + visible_shadow stamps opaque silhouettes
+    # onto part textures (gear lamp halo cards).
+    cast = bool(renderer.castShadows)
+    try:
+        from .flare_preview import mesh_should_skip_viewport_shadows
+        if mesh_should_skip_viewport_shadows(obj, renderer):
+            cast = False
+    except Exception:
+        pass
+    try:
+        obj.visible_shadow = cast
+    except Exception:
+        pass
+    try:
+        # receive: Blender has no per-object receive flag in 5.x; material-level
+        # is handled in shader tune when receiveShadows is False.
+        obj["mu_receive_shadows"] = 1 if renderer.receiveShadows else 0
+    except Exception:
+        pass
 
 def create_mesh_component(mu, muobj, mumesh, name):
     if not mu.force_mesh and not hasattr(muobj, "renderer"):
@@ -99,13 +174,25 @@ def create_mesh_component(mu, muobj, mumesh, name):
 
 def create_skinned_mesh_component(mu, muobj, skin, name):
     create_bindPose(mu, muobj, skin)
+    # bindPose stays at identity so Matrix_YZ skinning stays correct, but the
+    # Unity SMR local transform (often -90° X) must be remembered for:
+    #   • export (restore on the SMR node)
+    #   • non-skin children (mesh colliders) so they match the skinned mesh
+    bp = skin.bindPose_obj
+    xform = muobj.transform
+    try:
+        bp["mu_smr_location"] = list(xform.localPosition)
+        bp["mu_smr_rotation"] = list(xform.localRotation)
+        bp["mu_smr_scale"] = list(xform.localScale)
+    except Exception:
+        pass
     mesh = create_mesh(mu, skin.mesh, name)
     obj = create_data_object(mu.collection, name + ".skin", mesh, None)
     create_vertex_groups(obj, skin.bones, skin.mesh.boneWeights)
     attach_material(mesh, skin, mu)
-    obj.parent = skin.bindPose_obj
-    create_armature_modifier(obj, "BindPose", skin.bindPose_obj)
-    return "armature", skin.bindPose_obj, None
+    obj.parent = bp
+    create_armature_modifier(obj, "BindPose", bp)
+    return "armature", bp, None
     #return None
 
 type_handlers = {

@@ -1,0 +1,113 @@
+{
+  "source": "c:\\Users\\popos\\AppData\\Roaming\\Blender Foundation\\Blender\\5.2\\scripts\\addons\\io_object_mu-master\\test tools v2\\GameData\\Squad\\KSPedia\\squadcore.ksp",
+  "textures": [
+    {
+      "name": "BackgroundStars",
+      "file": "BackgroundStars.png",
+      "path_id": -4321589334282462281,
+      "width": 2048,
+      "height": 1536,
+      "bytes": 1029418
+    },
+    {
+      "name": "BackgroundBlue",
+      "file": "BackgroundBlue.png",
+      "path_id": -4284701417916938330,
+      "width": 1024,
+      "height": 768,
+      "bytes": 58325
+    },
+    {
+      "name": "BackgroundBlackTS",
+      "file": "BackgroundBlackTS.png",
+      "path_id": -3753085568916618642,
+      "width": 1024,
+      "height": 768,
+      "bytes": 70127
+    },
+    {
+      "name": "BackgroundBlueGrid",
+      "file": "BackgroundBlueGrid.png",
+      "path_id": 2117719224225652472,
+      "width": 1024,
+      "height": 768,
+      "bytes": 140606
+    },
+    {
+      "name": "BackgroundKSC",
+      "file": "BackgroundKSC.png",
+      "path_id": 5781532533015911479,
+      "width": 1024,
+      "height": 768,
+      "bytes": 67049
+    },
+    {
+      "name": "BackgroundBlack",
+      "file": "BackgroundBlack.png",
+      "path_id": -2977756864322010247,
+      "width": 1024,
+      "height": 768,
+      "bytes": 31680
+    },
+    {
+      "name": "BackgroundWhite",
+      "file": "BackgroundWhite.png",
+      "path_id": -2977756864322010247,
+      "width": 1024,
+      "height": 768,
+      "bytes": 60611
+    },
+    {
+      "name": "SpriteAtlasTexture-KSPedia-1024x2048-fmt10",
+      "file": "SpriteAtlasTexture-KSPedia-1024x2048-fmt10.png",
+      "path_id": -2977756864322010247,
+      "width": 1024,
+      "height": 2048,
+      "bytes": 96376
+    }
+  ],
+  "sprites": [
+    {
+      "name": "BackgroundKSC",
+      "sprite_path_id": -8887663771971464904,
+      "texture_path_id": 5781532533015911479,
+      "file": "BackgroundKSC.png"
+    },
+    {
+      "name": "BackgroundBlackTS",
+      "sprite_path_id": -8404253749117265367,
+      "texture_path_id": -3753085568916618642,
+      "file": "BackgroundBlackTS.png"
+    },
+    {
+      "name": "BackgroundBlack",
+      "sprite_path_id": -8303578244531736116,
+      "texture_path_id": -2977756864322010247,
+      "file": "BackgroundBlack.png"
+    },
+    {
+      "name": "BackgroundBlueGrid",
+      "sprite_path_id": -3086945314533932280,
+      "texture_path_id": 2117719224225652472,
+      "file": "BackgroundBlueGrid.png"
+    },
+    {
+      "name": "BackgroundWhite",
+      "sprite_path_id": -282954017419016938,
+      "texture_path_id": -2977756864322010247,
+      "file": "BackgroundWhite.png"
+    },
+    {
+      "name": "BackgroundBlue",
+      "sprite_path_id": 7297914127563293180,
+      "texture_path_id": -4284701417916938330,
+      "file": "BackgroundBlue.png"
+    },
+    {
+      "name": "BackgroundStars",
+      "sprite_path_id": 8836673136476997153,
+      "texture_path_id": -4321589334282462281,
+      "file": "BackgroundStars.png"
+    }
+  ]
+}

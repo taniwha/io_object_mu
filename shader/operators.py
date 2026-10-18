@@ -19,12 +19,95 @@
 
 # <pep8 compliant>
 
+import os
+
 import bpy
 from bpy_extras.io_utils import ExportHelper
-from bpy.props import StringProperty
+from bpy.props import StringProperty, EnumProperty
 from bl_operators.presets import AddPresetBase
 from .shader_extract import record_material
 from .shader import create_nodes
+from .. import preferences
+
+
+def _iter_shader_preset_dirs():
+    """User-installed preset dirs, then bundled preferences/shaders."""
+    subdir = preferences.package_name + "/shaders"
+    seen = set()
+    for path in bpy.utils.preset_paths(subdir) or []:
+        if not path or not os.path.isdir(path):
+            continue
+        key = os.path.normcase(os.path.abspath(path))
+        if key in seen:
+            continue
+        seen.add(key)
+        yield path
+    try:
+        bundled = os.path.join(os.path.dirname(preferences.__file__), "shaders")
+    except Exception:
+        bundled = None
+    if bundled and os.path.isdir(bundled):
+        key = os.path.normcase(os.path.abspath(bundled))
+        if key not in seen:
+            yield bundled
+
+
+def _shader_preset_enum_items(self, context):
+    items = []
+    seen = set()
+    for path in _iter_shader_preset_dirs():
+        try:
+            names = sorted(os.listdir(path))
+        except Exception:
+            continue
+        for fn in names:
+            if not fn.lower().endswith(".py"):
+                continue
+            stem = os.path.splitext(fn)[0]
+            if stem in seen:
+                continue
+            seen.add(stem)
+            label = bpy.path.display_name(fn)
+            items.append((stem, label, ""))
+    if not items:
+        items = [("NONE", "(no presets)", "")]
+    return items
+
+
+def _resolve_shader_preset(stem):
+    if not stem or stem == "NONE":
+        return None
+    subdir = preferences.package_name + "/shaders"
+    filepath = bpy.utils.preset_find(stem, subdir, ext=".py")
+    if not filepath:
+        filepath = bpy.utils.preset_find(
+            stem, subdir, display_name=True, ext=".py"
+        )
+    if filepath:
+        return filepath
+    for path in _iter_shader_preset_dirs():
+        candidate = os.path.join(path, stem + ".py")
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
+
+def _materials_on_selection(context):
+    mats = []
+    seen = set()
+    objs = list(context.selected_objects)
+    if not objs and context.active_object:
+        objs = [context.active_object]
+    for obj in objs:
+        for slot in getattr(obj, "material_slots", []) or []:
+            mat = slot.material
+            if mat is None or mat.name in seen:
+                continue
+            if not hasattr(mat, "mumatprop"):
+                continue
+            seen.add(mat.name)
+            mats.append(mat)
+    return mats
 
 class KSPMU_OT_MuShaderPropExpand(bpy.types.Operator):
     '''Expand/collapse mu shader property set'''
@@ -106,6 +189,53 @@ class IO_OBJECT_MU_OT_shader_rebuild(bpy.types.Operator):
         create_nodes(context.material)
         return {'FINISHED'}
 
+
+class IO_OBJECT_MU_OT_shader_preset_selection(bpy.types.Operator):
+    '''Apply a Mu Shader preset to all materials on selected objects'''
+    bl_idname = "io_object_mu.shader_preset_selection"
+    bl_label = "Apply Shader Preset to Selection"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    preset: EnumProperty(
+        name="Preset",
+        items=_shader_preset_enum_items,
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return bool(_materials_on_selection(context))
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        self.layout.prop(self, "preset", text="")
+
+    def execute(self, context):
+        from .menus import IO_OBJECT_MU_MT_shader_presets
+
+        filepath = _resolve_shader_preset(self.preset)
+        if not filepath:
+            self.report({'WARNING'}, "Preset not found")
+            return {'CANCELLED'}
+        mats = _materials_on_selection(context)
+        if not mats:
+            self.report({'WARNING'}, "No materials on selection")
+            return {'CANCELLED'}
+        n = 0
+        for mat in mats:
+            try:
+                with context.temp_override(material=mat):
+                    IO_OBJECT_MU_MT_shader_presets.reset_cb(context)
+                    bpy.utils.execfile(filepath)
+                    IO_OBJECT_MU_MT_shader_presets.post_cb(context)
+                n += 1
+            except Exception as e:
+                self.report({'WARNING'}, f"{mat.name}: {e}")
+        self.report({'INFO'}, f"Applied preset to {n} material(s)")
+        return {'FINISHED'}
+
+
 class IO_OBJECT_MU_OT_shader_export(bpy.types.Operator, ExportHelper):
     '''Save a material as a .cfg file'''
     bl_idname = "export_material.ksp_cfg"
@@ -129,5 +259,6 @@ classes_to_register = (
     KSPMU_OT_MuShaderPropRemove,
     IO_OBJECT_MU_OT_shader_presets,
     IO_OBJECT_MU_OT_shader_rebuild,
+    IO_OBJECT_MU_OT_shader_preset_selection,
     IO_OBJECT_MU_OT_shader_export,
 )

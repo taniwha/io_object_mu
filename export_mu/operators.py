@@ -33,15 +33,200 @@ tau = 180 / pi
 from . import export
 from . import volume
 
-def export_mu(operator, context, filepath):
-    collections = export.enable_collections()
+def export_root_object(obj):
+    """Pick the hierarchy root to export.
+
+    Walk to the topmost parent, but if that root is a tiny bone fragment
+    (e.g. joint35) while a much richer scene-root exists, prefer the
+    richest root so TriBitDrill/Serenity parts export completely.
+    """
+    if obj is None:
+        return None
+
+    def score(o):
+        n = 0
+        stack = [o]
+        while stack:
+            cur = stack.pop()
+            n += 1
+            stack.extend(cur.children)
+        return n
+
+    root = obj
+    while root.parent:
+        root = root.parent
+    scene_roots = [o for o in bpy.context.scene.objects if o.parent is None]
+    if not scene_roots:
+        return root
+    best = max(scene_roots, key=score)
+    # Prefer richer root when walked root looks like an orphan bone chain
+    name = strip_nnn(root.name).lower()
+    looks_like_bone = name.startswith("joint") or name.startswith("bone")
+    if best is not root and (looks_like_bone or score(best) >= score(root) * 3):
+        return best
+    return root
+
+def _alive_object(obj):
+    """Return obj if it is a live Blender Object, else None (stale RNA)."""
+    if obj is None:
+        return None
     try:
-        mu = export.export_object (context.active_object, filepath)
+        _ = obj.name
+        return obj
+    except ReferenceError:
+        return None
+
+def export_mu(operator, context, filepath, bake_active_variant=False):
+    collections = export.enable_collections()
+    prev_variant = None
+    flag_restore = None
+    root = None
+    mu = None
+    try:
+        active = _alive_object(context.active_object)
+        # If nothing sensible is active, pick richest scene root
+        if active is None:
+            roots = [o for o in context.scene.objects if o.parent is None]
+            active = max(roots, key=lambda o: len(o.children_recursive)) if roots else None
+        obj = export_root_object(active)
+        root = obj
+        active_name = None
+        alive_active = _alive_object(context.active_object)
+        if alive_active is not None:
+            active_name = strip_nnn(alive_active.name)
+        if obj is not None and obj is not alive_active:
+            operator.report(
+                {'INFO'},
+                f"Exporting hierarchy root '{strip_nnn(obj.name)}' "
+                f"(active was '{active_name}')")
+        # Normal export: always write stock .mu materials / GAMEOBJECTS, even
+        # when Options preview shows a paint or model variant.
+        if not bake_active_variant and obj is not None:
+            try:
+                from ..import_mu.cfg_preview import (
+                    prepare_stock_for_export,
+                    find_variant_root,
+                )
+                vroot = find_variant_root(obj, context=context) or obj
+                prev_variant = prepare_stock_for_export(vroot)
+                root = vroot
+            except Exception as e:
+                operator.report({'WARNING'}, f"variant stock restore: {e}")
+            # Robotics preview may have rotated Bar mesh data / hardMin pose;
+            # restore authored bind (incl. mu_robotic_mesh_backup) before write.
+            try:
+                from ..import_mu.robotics_preview import restore_robotics_bind_pose
+                restore_robotics_bind_pose(context.scene)
+            except Exception as e:
+                operator.report({'WARNING'}, f"robotics bind restore: {e}")
+        # No Flag hides FlagDecal in viewport; unhide so .mu keeps the mesh.
+        if obj is not None:
+            try:
+                from ..import_mu.flag_preview import (
+                    find_flag_root,
+                    prepare_flag_for_export,
+                )
+                froot = find_flag_root(obj, context=context) or root or obj
+                flag_restore = prepare_flag_for_export(froot)
+            except Exception as e:
+                operator.report({'WARNING'}, f"flag export unhide: {e}")
+        mu = export.export_object(
+            obj, filepath, bake_active_variant=bake_active_variant
+        )
     finally:
+        if not bake_active_variant and prev_variant and root is not None:
+            try:
+                from ..import_mu.cfg_preview import finish_stock_export
+                finish_stock_export(root, prev_variant)
+            except Exception:
+                pass
+        try:
+            from ..import_mu.flag_preview import finish_flag_export
+            finish_flag_export(flag_restore)
+        except Exception:
+            pass
         export.restore_collections(collections)
-    for m in mu.messages:
-        operator.report(m[0], m[1])
+    if mu is not None:
+        for m in mu.messages:
+            operator.report(m[0], m[1])
+        # When exporting .mu to a different folder than the stock cfg,
+        # also write a patched part.cfg beside the new .mu (no overwrite prompt).
+        try:
+            _maybe_write_cfg_beside_mu(root, filepath, operator)
+        except Exception as e:
+            operator.report({'WARNING'}, f"part cfg beside mu: {e}")
     return {'FINISHED'}
+
+
+def _maybe_write_cfg_beside_mu(root, filepath, operator):
+    if root is None or not filepath:
+        return
+    try:
+        from ..preferences import Preferences
+        if not Preferences().WritePartCfg:
+            return
+    except Exception:
+        pass
+    import json
+    import os
+    from .variants_cfg import write_part_cfg
+    data = None
+    raw = root.get("mu_variants")
+    if raw:
+        try:
+            data = json.loads(raw)
+        except Exception:
+            data = None
+    mu_sounds = None
+    try:
+        from ..import_mu.sound_preview import (
+            MU_SOUNDS_KEY,
+            flush_sounds_from_vse,
+        )
+        flush_sounds_from_vse(root)
+        sraw = root.get(MU_SOUNDS_KEY)
+        if sraw:
+            mu_sounds = json.loads(sraw)
+    except Exception:
+        mu_sounds = None
+    if not data and not mu_sounds:
+        return
+    orig = root.get("mu_cfg_path") or ""
+    out_dir = os.path.dirname(os.path.abspath(filepath))
+    orig_dir = os.path.dirname(os.path.abspath(orig)) if orig else ""
+    if orig_dir and os.path.normpath(out_dir) == os.path.normpath(orig_dir):
+        # Same folder as original — do not silently overwrite; use Save Part Cfg
+        return
+    source = None
+    if orig and os.path.isfile(orig):
+        with open(orig, "r", encoding="utf-8", errors="ignore") as f:
+            source = f.read()
+    cfg_name = os.path.basename(orig) if orig else (
+        os.path.splitext(os.path.basename(filepath))[0] + ".cfg"
+    )
+    out_cfg = os.path.join(out_dir, cfg_name)
+    try:
+        from ..import_mu.sound_preview import log_sound_entries
+        log_sound_entries("KSP sound export", mu_sounds)
+    except Exception:
+        pass
+    write_part_cfg(
+        out_cfg,
+        data or {},
+        source_text=source,
+        mudir=out_dir,
+        mu_basename=os.path.basename(filepath),
+        mu_sounds=mu_sounds,
+    )
+    if operator is not None:
+        n = len((mu_sounds or {}).get("entries") or []) if mu_sounds else 0
+        if n:
+            operator.report(
+                {'INFO'}, f"Wrote {out_cfg} (+ {n} animation sound entr(y/ies))"
+            )
+        else:
+            operator.report({'INFO'}, f"Wrote {out_cfg}")
+
 
 exportable_objects = {
     type(None),
@@ -89,6 +274,47 @@ class KSPMU_OT_ExportMu_quick(bpy.types.Operator, ExportHelper):
         obj = context.active_object
         if obj != None:
             self.filepath = strip_nnn(obj.name) + self.filename_ext
+        return ExportHelper.invoke(self, context, event)
+
+
+class KSPMU_OT_ExportMu_variant(bpy.types.Operator, ExportHelper):
+    '''Export .mu baked with the currently active ModulePartVariants look'''
+    bl_idname = "export_object.ksp_mu_variant"
+    bl_label = "Export Active Variant"
+
+    filename_ext = ".mu"
+    filter_glob: StringProperty(default="*.mu", options={'HIDDEN'})
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return obj != None and type(obj.data) in exportable_objects
+
+    def execute(self, context):
+        keywords = self.as_keywords(ignore=("check_existing", "filter_glob",
+                                            "axis_forward", "axis_up"))
+        return export_mu(self, context, bake_active_variant=True, **keywords)
+
+    def invoke(self, context, event):
+        obj = context.active_object
+        if obj is not None:
+            suffix = ""
+            try:
+                from ..import_mu.cfg_preview import (
+                    find_variant_root,
+                    get_active_variant_name,
+                )
+                vroot = find_variant_root(obj, context=context)
+                active = get_active_variant_name(vroot) if vroot else None
+                if active:
+                    safe = "".join(
+                        c if c.isalnum() or c in "-_" else "_"
+                        for c in active
+                    )
+                    suffix = "_" + safe
+            except Exception:
+                pass
+            self.filepath = strip_nnn(obj.name) + suffix + self.filename_ext
         return ExportHelper.invoke(self, context, event)
 
 volume_selection_enum = (

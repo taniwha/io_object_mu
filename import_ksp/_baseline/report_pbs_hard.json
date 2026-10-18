@@ -1,0 +1,1485 @@
+{
+  "tol": 2.0,
+  "tol_max": 5.0,
+  "fix_status": {
+    "display_cap_factor": {
+      "present": true,
+      "path": "c:\\Users\\popos\\AppData\\Roaming\\Blender Foundation\\Blender\\5.2\\scripts\\addons\\io_object_mu-master\\import_ksp\\fonts_faceinfo.py",
+      "marker": "\"display\": 1.593"
+    },
+    "paragraph_gap_line_mul": {
+      "present": true,
+      "path": "c:\\Users\\popos\\AppData\\Roaming\\Blender Foundation\\Blender\\5.2\\scripts\\addons\\io_object_mu-master\\import_ksp\\viewport.py",
+      "marker": "TMP_PARAGRAPH_GAP_LINE_MUL"
+    },
+    "sibling_pitch_max_lines": {
+      "present": true,
+      "path": "c:\\Users\\popos\\AppData\\Roaming\\Blender Foundation\\Blender\\5.2\\scripts\\addons\\io_object_mu-master\\import_ksp\\layout.py",
+      "marker": "Prefer max-lines tall peer pitch"
+    },
+    "table_col_not_prose": {
+      "present": true,
+      "path": "c:\\Users\\popos\\AppData\\Roaming\\Blender Foundation\\Blender\\5.2\\scripts\\addons\\io_object_mu-master\\import_ksp\\viewport.py",
+      "marker": "not Career Limits / body prose"
+    },
+    "title_box_align_widen": {
+      "present": false,
+      "path": "c:\\Users\\popos\\AppData\\Roaming\\Blender Foundation\\Blender\\5.2\\scripts\\addons\\io_object_mu-master\\import_ksp\\viewport.py",
+      "marker": "Keep Unity alignment edge/center when growing the box"
+    },
+    "center_wrap_symmetric": {
+      "present": true,
+      "path": "c:\\Users\\popos\\AppData\\Roaming\\Blender Foundation\\Blender\\5.2\\scripts\\addons\\io_object_mu-master\\import_ksp\\viewport.py",
+      "marker": "Symmetric widen from FaceInfo pad + wrap bonus"
+    },
+    "title_amaranth_fallback": {
+      "present": true,
+      "path": "c:\\Users\\popos\\AppData\\Roaming\\Blender Foundation\\Blender\\5.2\\scripts\\addons\\io_object_mu-master\\import_ksp\\viewport.py",
+      "marker": "font_family = \"Amaranth\""
+    },
+    "sibling_draw_order": {
+      "present": true,
+      "path": "c:\\Users\\popos\\AppData\\Roaming\\Blender Foundation\\Blender\\5.2\\scripts\\addons\\io_object_mu-master\\import_ksp\\layout.py",
+      "marker": "Unity m_Children order"
+    },
+    "rich_line_pitch_no_double": {
+      "present": true,
+      "path": "c:\\Users\\popos\\AppData\\Roaming\\Blender Foundation\\Blender\\5.2\\scripts\\addons\\io_object_mu-master\\import_ksp\\viewport.py",
+      "marker": "Do NOT multiply another 1.25 here"
+    },
+    "multiline_no_width_bonus": {
+      "present": true,
+      "path": "c:\\Users\\popos\\AppData\\Roaming\\Blender Foundation\\Blender\\5.2\\scripts\\addons\\io_object_mu-master\\import_ksp\\viewport.py",
+      "marker": "Explicit \\\\n bullet lists (EVA) must wrap to the *true* rect"
+    }
+  },
+  "n_pages": 8,
+  "n_hard": 8,
+  "n_soft": 0,
+  "n_fail": 0,
+  "results": [
+    {
+      "mean_abs": 13.49135971069336,
+      "mean_txt": 68.70904541015625,
+      "worst_shift": 0.25,
+      "global_shift": {
+        "dx": 1.8229166666666572,
+        "dy": -0.75
+      },
+      "bg_align": {
+        "dx": -23.0692138671875,
+        "dy": 103.31402587890625
+      },
+      "shifts": {
+        "ocr_residual": {
+          "dx": -0.1770833333333428,
+          "dy": 0.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "n": 12
+        },
+        "you_can_configure_which_cate": {
+          "dx": -0.30000000000001137,
+          "dy": 0.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "filter_for_life_support": {
+          "dx": -3.5625,
+          "dy": 2.0,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "this_option_adds_category": {
+          "dx": -0.1875,
+          "dy": 0.4375,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "you_can_configure": {
+          "dx": -0.0833333333333286,
+          "dy": 0.1666666666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "can_configure_which": {
+          "dx": -0.1666666666666572,
+          "dy": 0.1666666666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "configure_which_categories": {
+          "dx": -0.5,
+          "dy": 0.3333333333333286,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "available_when_filter": {
+          "dx": -0.08333333333331439,
+          "dy": -0.16666666666668561,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "which_categories_are": {
+          "dx": -0.4166666666666856,
+          "dy": 0.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "categories_are_added": {
+          "dx": -0.16666666666668561,
+          "dy": 0.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "category_the_filter": {
+          "dx": 10.75,
+          "dy": 2.8333333333333144,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": true
+        },
+        "file_own_available": {
+          "dx": -6.333333333333314,
+          "dy": 0.0,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": true
+        },
+        "own_available_when": {
+          "dx": 0.1666666666666714,
+          "dy": 0.0,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        }
+      },
+      "ocr_n": 12,
+      "hard_pass": true,
+      "soft_pass": false,
+      "fail": false,
+      "causes": [],
+      "ksp": "pbs_configuration",
+      "jpg": "8.png",
+      "page_name": "Configuration",
+      "suite": "pbs",
+      "match_mse": null,
+      "bg_align_metric": 12.232264518737793,
+      "bg_opencv": {
+        "method": "sift_similarity_native",
+        "ok": true,
+        "canvas": "ref",
+        "dx": -23.0692138671875,
+        "dy": 103.31402587890625,
+        "mean_abs": 12.232264518737793,
+        "good_matches": 341,
+        "inliers": 271,
+        "inlier_ratio": 0.7947214076246334,
+        "scale": 1.3901227406955425,
+        "scale_expected": 1.1133535856129544,
+        "src_wh": [
+          1280,
+          720
+        ],
+        "dst_wh": [
+          1235,
+          925
+        ]
+      },
+      "text_align": {
+        "method": "bg_transform_only",
+        "ok": false,
+        "dx": 0.0,
+        "dy": 0.0
+      },
+      "phrases_meas": [
+        "you can configure which categories",
+        "category in function filter",
+        "filter for life support",
+        "own subcategory",
+        "this option adds category to the function filter",
+        "this can be done in the configuration file",
+        "you can configure",
+        "can configure which",
+        "configuration",
+        "gamedata planetarybaselnc kpbs config cfg configuration file"
+      ]
+    },
+    {
+      "mean_abs": 14.554841041564941,
+      "mean_txt": 45.86793518066406,
+      "worst_shift": 0.375,
+      "global_shift": {
+        "dx": 2.6666666666666856,
+        "dy": -0.625
+      },
+      "bg_align": {
+        "dx": -22.49041748046875,
+        "dy": 103.39077758789062
+      },
+      "shifts": {
+        "ocr_residual": {
+          "dx": -0.3333333333333144,
+          "dy": 0.375,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "n": 18
+        },
+        "connect_your_base": {
+          "dx": 0.5833333333333712,
+          "dy": 3.75,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "dynamic_parts_connect": {
+          "dx": 1.25,
+          "dy": 3.75,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "parts_connect_your": {
+          "dx": 0.9166666666666856,
+          "dy": 3.75,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "your_base_with": {
+          "dx": 0.08333333333331439,
+          "dy": 2.9166666666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "comes_variety_corridor": {
+          "dx": -0.8333333333333144,
+          "dy": 1.0833333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "variety_corridor_parts": {
+          "dx": -0.5,
+          "dy": 1.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "adapt_their_appearance": {
+          "dx": -1.25,
+          "dy": -0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "their_appearance_where": {
+          "dx": -1.1666666666666856,
+          "dy": -0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "stations_the_corridor": {
+          "dx": -0.3333333333333144,
+          "dy": 0.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "connected_other_parts": {
+          "dx": -0.9166666666666288,
+          "dy": -0.3333333333333144,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "build_space_stations": {
+          "dx": -0.9166666666666288,
+          "dy": 0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "have_special_feature": {
+          "dx": 0.6666666666666288,
+          "dy": 0.1666666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "special_feature_they": {
+          "dx": 0.16666666666662877,
+          "dy": -0.08333333333334281,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "appearance_where_you": {
+          "dx": -0.8333333333333712,
+          "dy": -0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "have_connected_other": {
+          "dx": -0.9166666666667425,
+          "dy": -0.4166666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "corridor_parts_that": {
+          "dx": -0.3333333333333144,
+          "dy": 1.3333333333333144,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "corridor_parts_have": {
+          "dx": 0.3333333333333144,
+          "dy": 0.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        }
+      },
+      "ocr_n": 18,
+      "hard_pass": true,
+      "soft_pass": false,
+      "fail": false,
+      "causes": [],
+      "ksp": "pbs_corridors",
+      "jpg": "4.png",
+      "page_name": "Corridors",
+      "suite": "pbs",
+      "match_mse": null,
+      "bg_align_metric": 15.11773681640625,
+      "bg_opencv": {
+        "method": "sift_similarity_native",
+        "ok": true,
+        "canvas": "ref",
+        "dx": -22.49041748046875,
+        "dy": 103.39077758789062,
+        "mean_abs": 15.11773681640625,
+        "good_matches": 47,
+        "inliers": 42,
+        "inlier_ratio": 0.8936170212765957,
+        "scale": 1.3870784049414522,
+        "scale_expected": 1.1130528822791843,
+        "src_wh": [
+          1280,
+          720
+        ],
+        "dst_wh": [
+          1233,
+          926
+        ]
+      },
+      "text_align": {
+        "method": "bg_transform_only",
+        "ok": false,
+        "dx": 0.0,
+        "dy": 0.0
+      },
+      "phrases_meas": [
+        "dynamic parts to connect your base",
+        "once in space it can only go down",
+        "very useful when not enough space is available",
+        "this can be done in the configuration file",
+        "dynamic parts connect",
+        "parts connect your",
+        "connect your base",
+        "your base with",
+        "corridors",
+        "comes variety corridor"
+      ]
+    },
+    {
+      "mean_abs": 12.048970222473145,
+      "mean_txt": 48.9210090637207,
+      "worst_shift": 0.625,
+      "global_shift": {
+        "dx": 1.8333333333333286,
+        "dy": -0.8229166666666288
+      },
+      "bg_align": {
+        "dx": -23.712890625,
+        "dy": 101.99237060546875
+      },
+      "shifts": {
+        "ocr_residual": {
+          "dx": -0.625,
+          "dy": 0.2604166666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "n": 14
+        },
+        "deployable_parts": {
+          "dx": -1.125,
+          "dy": 0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "following_three_parts_can": {
+          "dx": -0.25,
+          "dy": 0.1875,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "habitat_mk2": {
+          "dx": -1.375,
+          "dy": -0.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "when_retracted_these_part_ca": {
+          "dx": 0.375,
+          "dy": -0.28125,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "the_habitat_mk2_can_hold_ker": {
+          "dx": -1.71875,
+          "dy": -0.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "some_parts_the": {
+          "dx": 1.6666666666666572,
+          "dy": 2.8333333333333286,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "parts_the_mod": {
+          "dx": 1.1666666666666856,
+          "dy": 2.75,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "retracted_the_deployable": {
+          "dx": -1.0833333333333144,
+          "dy": 1.1666666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "deployed_and_retracted": {
+          "dx": -1.1666666666666288,
+          "dy": 2.6666666666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "vessel_when_retracted": {
+          "dx": 0.16666666666668561,
+          "dy": -0.16666666666668561,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "following_three_parts": {
+          "dx": -0.08333333333334281,
+          "dy": 0.16666666666674246,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "the_deployable_parts": {
+          "dx": -1.0,
+          "dy": 0.4166666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "deployable_parts_are": {
+          "dx": -1.0833333333333144,
+          "dy": 0.3333333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "when_retracted_these": {
+          "dx": 0.5833333333333144,
+          "dy": -0.3333333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        }
+      },
+      "ocr_n": 14,
+      "hard_pass": true,
+      "soft_pass": false,
+      "fail": false,
+      "causes": [],
+      "ksp": "pbs_deployable_parts",
+      "jpg": "2.png",
+      "page_name": "Deployable Parts",
+      "suite": "pbs",
+      "match_mse": null,
+      "bg_align_metric": 13.041566848754883,
+      "bg_opencv": {
+        "method": "sift_similarity_native",
+        "ok": true,
+        "canvas": "ref",
+        "dx": -23.712890625,
+        "dy": 101.99237060546875,
+        "mean_abs": 13.041566848754883,
+        "good_matches": 170,
+        "inliers": 144,
+        "inlier_ratio": 0.8470588235294118,
+        "scale": 1.3877589576355258,
+        "scale_expected": 1.1135041504437941,
+        "src_wh": [
+          1280,
+          720
+        ],
+        "dst_wh": [
+          1234,
+          926
+        ]
+      },
+      "text_align": {
+        "method": "bg_transform_only",
+        "ok": false,
+        "dx": 0.0,
+        "dy": 0.0
+      },
+      "phrases_meas": [
+        "deployable parts",
+        "some parts of the mod can be deployed",
+        "following three parts can be deployed",
+        "habitat mk2",
+        "when retracted these part cannot hold any crew",
+        "the habitat mk2 can hold kerbals when deployed",
+        "some parts the",
+        "parts the mod",
+        "retract",
+        "deploy"
+      ]
+    },
+    {
+      "mean_abs": 12.053913116455078,
+      "mean_txt": 38.63045120239258,
+      "worst_shift": 0.1666666666666714,
+      "global_shift": {
+        "dx": 1.0833333333333144,
+        "dy": 0.8333333333333286
+      },
+      "bg_align": {
+        "dx": -22.92828369140625,
+        "dy": 102.83734130859375
+      },
+      "shifts": {
+        "ocr_residual": {
+          "dx": 0.08333333333331439,
+          "dy": -0.1666666666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "n": 19
+        },
+        "before_you_can_create_base": {
+          "dx": 1.5999999999999943,
+          "dy": -0.10000000000000853,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "with_three_slots": {
+          "dx": -0.9166666666666856,
+          "dy": -1.1666666666666288,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "with_two_slots": {
+          "dx": -1.1666666666666856,
+          "dy": -1.5833333333333712,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "before_you_can": {
+          "dx": 1.8333333333333428,
+          "dy": -0.1666666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "you_can_create": {
+          "dx": 1.5833333333333428,
+          "dy": -0.0833333333333286,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "can_create_base": {
+          "dx": 1.3333333333333144,
+          "dy": 0.0,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "create_base_another": {
+          "dx": 0.8333333333333712,
+          "dy": 0.0,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "base_another_planet": {
+          "dx": 0.4166666666666856,
+          "dy": -0.0833333333333286,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "another_planet_you": {
+          "dx": 0.16666666666662877,
+          "dy": -0.1666666666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "the_right_example": {
+          "dx": -0.33333333333325754,
+          "dy": -1.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "right_example_the": {
+          "dx": -0.25,
+          "dy": -1.4166666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "parts_into_space": {
+          "dx": -0.6666666666667425,
+          "dy": -0.1666666666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "into_space_first": {
+          "dx": -1.083333333333485,
+          "dy": -0.1666666666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "space_first_kpbs": {
+          "dx": -0.9166666666666288,
+          "dy": -0.8333333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "three_parts_that": {
+          "dx": -0.16666666666668561,
+          "dy": -1.5833333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "parts_that_allow": {
+          "dx": 0.08333333333331439,
+          "dy": -1.5833333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "example_the_base": {
+          "dx": -0.08333333333337123,
+          "dy": -1.3333333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "rocket_the_first": {
+          "dx": 1.1666666666666288,
+          "dy": -1.3333333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "planet_you_have": {
+          "dx": 0.41666666666662877,
+          "dy": -0.1666666666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        }
+      },
+      "ocr_n": 19,
+      "hard_pass": true,
+      "soft_pass": false,
+      "fail": false,
+      "causes": [],
+      "ksp": "pbs_getting_into_space",
+      "jpg": "6.png",
+      "page_name": "Getting into space",
+      "suite": "pbs",
+      "match_mse": null,
+      "bg_align_metric": 13.798949241638184,
+      "bg_opencv": {
+        "method": "sift_similarity_native",
+        "ok": true,
+        "canvas": "ref",
+        "dx": -22.92828369140625,
+        "dy": 102.83734130859375,
+        "mean_abs": 13.798949241638184,
+        "good_matches": 315,
+        "inliers": 304,
+        "inlier_ratio": 0.9650793650793651,
+        "scale": 1.390101854076582,
+        "scale_expected": 1.1139552357977007,
+        "src_wh": [
+          1280,
+          720
+        ],
+        "dst_wh": [
+          1235,
+          926
+        ]
+      },
+      "text_align": {
+        "method": "bg_transform_only",
+        "ok": false,
+        "dx": 0.0,
+        "dy": 0.0
+      },
+      "phrases_meas": [
+        "getting into space",
+        "before you can create a base",
+        "following three parts can be deployed",
+        "tri coupler with three slots",
+        "bi coupler with two slots",
+        "before you can",
+        "you can create",
+        "can create base",
+        "parts top 2 5m",
+        "create base another"
+      ]
+    },
+    {
+      "mean_abs": 11.769095420837402,
+      "mean_txt": 16.101802825927734,
+      "worst_shift": 0.4999999999999716,
+      "global_shift": {
+        "dx": 1.4999999999999716,
+        "dy": -0.2083333333333286
+      },
+      "bg_align": {
+        "dx": -22.8988037109375,
+        "dy": 103.16494750976562
+      },
+      "shifts": {
+        "ocr_residual": {
+          "dx": 0.4999999999999716,
+          "dy": -0.2083333333333286,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "n": 16
+        },
+        "building_bases_other": {
+          "dx": 1.75,
+          "dy": 2.4166666666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "bases_other_planets": {
+          "dx": 1.3333333333333144,
+          "dy": 2.4166666666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "hard_sometimes_therefore": {
+          "dx": 0.3333333333333144,
+          "dy": -0.5833333333333144,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "sometimes_therefore_you": {
+          "dx": 0.9166666666666572,
+          "dy": -0.8333333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "been_easier_honestly": {
+          "dx": -0.16666666666668561,
+          "dy": 1.5833333333333144,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "easier_honestly_this": {
+          "dx": -0.3333333333333144,
+          "dy": 0.75,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "still_hard_sometimes": {
+          "dx": -0.25,
+          "dy": -0.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "information_you_need": {
+          "dx": 0.25,
+          "dy": -1.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "honestly_this_still": {
+          "dx": -0.5833333333333428,
+          "dy": -0.1666666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "all_the_information": {
+          "dx": 0.9166666666666288,
+          "dy": -0.9166666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "the_information_you": {
+          "dx": 0.6666666666666288,
+          "dy": -1.1666666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "therefore_you_will": {
+          "dx": 1.3333333333333428,
+          "dy": -1.1666666666666856,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "other_planets_has": {
+          "dx": 1.0,
+          "dy": 2.4166666666666714,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "planets_has_never": {
+          "dx": 0.75,
+          "dy": 2.3333333333333286,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "never_been_easier": {
+          "dx": 0.16666666666662877,
+          "dy": 2.333333333333343,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "this_still_hard": {
+          "dx": -0.3333333333333428,
+          "dy": -0.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        }
+      },
+      "ocr_n": 16,
+      "hard_pass": true,
+      "soft_pass": false,
+      "fail": false,
+      "causes": [],
+      "ksp": "pbs_kerbal_planetary_base_systems",
+      "jpg": "1.png",
+      "page_name": "Kerbal Planetary Base Systems",
+      "suite": "pbs",
+      "match_mse": null,
+      "bg_align_metric": 11.258103370666504,
+      "bg_opencv": {
+        "method": "sift_similarity_native",
+        "ok": true,
+        "canvas": "ref",
+        "dx": -22.8988037109375,
+        "dy": 103.16494750976562,
+        "mean_abs": 11.258103370666504,
+        "good_matches": 757,
+        "inliers": 713,
+        "inlier_ratio": 0.9418758256274768,
+        "scale": 1.388489237364102,
+        "scale_expected": 1.1135041504437941,
+        "src_wh": [
+          1280,
+          720
+        ],
+        "dst_wh": [
+          1234,
+          926
+        ]
+      },
+      "text_align": {
+        "method": "bg_transform_only",
+        "ok": false,
+        "dx": 0.0,
+        "dy": 0.0
+      },
+      "phrases_meas": [
+        "kerbal planetary base systems",
+        "building bases on other planets",
+        "kerbal planetary base",
+        "planetary base systems",
+        "base systems building",
+        "systems building bases",
+        "building bases other",
+        "bases other planets",
+        "hard sometimes therefore",
+        "sometimes therefore you"
+      ]
+    },
+    {
+      "mean_abs": 13.144886016845703,
+      "mean_txt": 61.12138748168945,
+      "worst_shift": 0.5,
+      "global_shift": {
+        "dx": -0.6666666666666288,
+        "dy": -0.5833333333333712
+      },
+      "bg_align": {
+        "dx": -22.07830810546875,
+        "dy": 103.15582275390625
+      },
+      "shifts": {
+        "ocr_residual": {
+          "dx": 0.25,
+          "dy": 0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "n": 13
+        },
+        "landing_legs": {
+          "dx": 1.0,
+          "dy": 4.125,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "attachable_wheel": {
+          "dx": 0.875,
+          "dy": 0.375,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "the_bigfoot_landing_leg": {
+          "dx": -0.5,
+          "dy": -1.0,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "landing_leg_the": {
+          "dx": -0.41666666666662877,
+          "dy": -1.1666666666667425,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "little_bigfoot_underside": {
+          "dx": 0.33333333333337123,
+          "dy": 0.4166666666666856,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "docking_nodes_underneath": {
+          "dx": 0.08333333333331439,
+          "dy": 0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "attached_parts_docking": {
+          "dx": 0.5,
+          "dy": 0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "sometimes_your_bases": {
+          "dx": 3.6666666666666856,
+          "dy": 2.333333333333343,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "landing_legs_bigfoot": {
+          "dx": 0.8333333333333428,
+          "dy": 2.833333333333343,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "bigfoot_can_attached": {
+          "dx": 0.25,
+          "dy": 0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "nodes_underneath_the": {
+          "dx": -0.08333333333325754,
+          "dy": 0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "bigfoot_low_profile": {
+          "dx": -0.16666666666668561,
+          "dy": 0.3333333333333144,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        }
+      },
+      "ocr_n": 13,
+      "hard_pass": true,
+      "soft_pass": false,
+      "fail": false,
+      "causes": [],
+      "ksp": "pbs_landing_legs_and_wheels",
+      "jpg": "5.png",
+      "page_name": "Landing Legs and Wheels",
+      "suite": "pbs",
+      "match_mse": null,
+      "bg_align_metric": 13.66312313079834,
+      "bg_opencv": {
+        "method": "sift_similarity_native",
+        "ok": true,
+        "canvas": "ref",
+        "dx": -22.07830810546875,
+        "dy": 103.15582275390625,
+        "mean_abs": 13.66312313079834,
+        "good_matches": 276,
+        "inliers": 271,
+        "inlier_ratio": 0.9818840579710145,
+        "scale": 1.3902094340854618,
+        "scale_expected": 1.1135041504437941,
+        "src_wh": [
+          1280,
+          720
+        ],
+        "dst_wh": [
+          1234,
+          926
+        ]
+      },
+      "text_align": {
+        "method": "bg_transform_only",
+        "ok": false,
+        "dx": 0.0,
+        "dy": 0.0
+      },
+      "phrases_meas": [
+        "landing legs and wheels",
+        "landing legs",
+        "reentry and landing",
+        "once in space it can only go down",
+        "attachable wheel",
+        "very useful when not enough space is available",
+        "this can be done in the configuration file",
+        "it best fits on the bigfoot landing leg",
+        "bigfoot underside landing leg",
+        "profile landing leg little"
+      ]
+    },
+    {
+      "mean_abs": 13.566109657287598,
+      "mean_txt": 45.95488357543945,
+      "worst_shift": 0.45833333333337123,
+      "global_shift": {
+        "dx": 1.4583333333333712,
+        "dy": -0.4166666666666856
+      },
+      "bg_align": {
+        "dx": -22.60833740234375,
+        "dy": 101.81027221679688
+      },
+      "shifts": {
+        "ocr_residual": {
+          "dx": 0.45833333333337123,
+          "dy": -0.4166666666666856,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "n": 16
+        },
+        "landing_without_atmosphere": {
+          "dx": 0.08333333333331439,
+          "dy": 1.75,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "once_space_can": {
+          "dx": 2.5833333333333144,
+          "dy": 1.0,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "space_can_only": {
+          "dx": 2.0833333333333712,
+          "dy": 1.0,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "following_configuration_prov": {
+          "dx": 0.6666666666667425,
+          "dy": -0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "reliable_parachute_airbrakes": {
+          "dx": 0.25,
+          "dy": -0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "the_following_configuration": {
+          "dx": 0.9166666666667425,
+          "dy": -0.4166666666666856,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "parachute_airbrakes_wheels": {
+          "dx": -0.3333333333333144,
+          "dy": -0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "atmosphere_the_following": {
+          "dx": 1.0,
+          "dy": -0.4166666666666856,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "configuration_proves_the": {
+          "dx": 0.5,
+          "dy": -0.4166666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "reentry_into_atmosphere": {
+          "dx": 0.5,
+          "dy": -0.3333333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "most_reliable_parachute": {
+          "dx": 0.41666666666674246,
+          "dy": -0.4166666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "airbrakes_wheels_and": {
+          "dx": -0.41666666666662877,
+          "dy": -0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "into_atmosphere_the": {
+          "dx": 0.75,
+          "dy": -0.3333333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "the_shield_protects": {
+          "dx": 0.08333333333337123,
+          "dy": -0.6666666666666856,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "shield_protects_you": {
+          "dx": 0.33333333333337123,
+          "dy": -0.6666666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "while_the_airbreaks": {
+          "dx": 0.41666666666662877,
+          "dy": -0.5833333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        }
+      },
+      "ocr_n": 16,
+      "hard_pass": true,
+      "soft_pass": false,
+      "fail": false,
+      "causes": [],
+      "ksp": "pbs_reentry_and_landing",
+      "jpg": "7.png",
+      "page_name": "Reentry and landing",
+      "suite": "pbs",
+      "match_mse": null,
+      "bg_align_metric": 15.782490730285645,
+      "bg_opencv": {
+        "method": "sift_similarity_native",
+        "ok": true,
+        "canvas": "ref",
+        "dx": -22.60833740234375,
+        "dy": 101.81027221679688,
+        "mean_abs": 15.782490730285645,
+        "good_matches": 359,
+        "inliers": 311,
+        "inlier_ratio": 0.8662952646239555,
+        "scale": 1.3886936959067717,
+        "scale_expected": 1.1133535856129544,
+        "src_wh": [
+          1280,
+          720
+        ],
+        "dst_wh": [
+          1235,
+          925
+        ]
+      },
+      "text_align": {
+        "method": "bg_transform_only",
+        "ok": false,
+        "dx": 0.0,
+        "dy": 0.0
+      },
+      "phrases_meas": [
+        "reentry and landing",
+        "once in space it can only go down",
+        "landing legs and wheels",
+        "landing without atmosphere",
+        "landing legs",
+        "this can be done in the configuration file",
+        "once space can",
+        "space can only",
+        "configuration",
+        "following configuration proves"
+      ]
+    },
+    {
+      "mean_abs": 12.19020938873291,
+      "mean_txt": 34.002254486083984,
+      "worst_shift": 0.375,
+      "global_shift": {
+        "dx": 0.75,
+        "dy": -1.375
+      },
+      "bg_align": {
+        "dx": -21.33917236328125,
+        "dy": 102.64328002929688
+      },
+      "shifts": {
+        "ocr_residual": {
+          "dx": -0.25,
+          "dy": -0.375,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "n": 15
+        },
+        "storage_system": {
+          "dx": -1.375,
+          "dy": -0.375,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "for_all_your_storage_needs": {
+          "dx": 3.8499999999999943,
+          "dy": 1.75,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "attaching_the_containers": {
+          "dx": 0.08333333333331439,
+          "dy": 0.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "storage_racks": {
+          "dx": 4.0,
+          "dy": -0.625,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "storage_racks_and_containers": {
+          "dx": 1.6875,
+          "dy": -0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "for_all_your": {
+          "dx": 3.833333333333343,
+          "dy": 1.8333333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "provides_modular_storage": {
+          "dx": -1.0833333333333712,
+          "dy": -0.6666666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "containers_storage_racks": {
+          "dx": -0.5833333333333144,
+          "dy": 0.6666666666666572,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "storage_racks_containers": {
+          "dx": -0.25,
+          "dy": 2.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "storage_system_multiple": {
+          "dx": -1.5833333333333712,
+          "dy": -0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "system_consists_storage": {
+          "dx": 4.4166666666667425,
+          "dy": -0.5833333333333428,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "modular_storage_system": {
+          "dx": -1.3333333333333144,
+          "dy": -0.5,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "consists_storage_racks": {
+          "dx": 4.166666666666515,
+          "dy": -0.75,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "and_containers_storage": {
+          "dx": -0.4166666666666714,
+          "dy": -0.25,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        },
+        "racks_containers_there": {
+          "dx": -0.41666666666674246,
+          "dy": 2.4166666666666856,
+          "mode": "ocr_phrase",
+          "ok_mask": true,
+          "outlier": false
+        }
+      },
+      "ocr_n": 15,
+      "hard_pass": true,
+      "soft_pass": false,
+      "fail": false,
+      "causes": [],
+      "ksp": "pbs_storage",
+      "jpg": "3.png",
+      "page_name": "Storage",
+      "suite": "pbs",
+      "match_mse": null,
+      "bg_align_metric": 13.281414031982422,
+      "bg_opencv": {
+        "method": "sift_similarity_native",
+        "ok": true,
+        "canvas": "ref",
+        "dx": -21.33917236328125,
+        "dy": 102.64328002929688,
+        "mean_abs": 13.281414031982422,
+        "good_matches": 235,
+        "inliers": 211,
+        "inlier_ratio": 0.8978723404255319,
+        "scale": 1.3892310583085319,
+        "scale_expected": 1.114406138562897,
+        "src_wh": [
+          1280,
+          720
+        ],
+        "dst_wh": [
+          1236,
+          926
+        ]
+      },
+      "text_align": {
+        "method": "bg_transform_only",
+        "ok": false,
+        "dx": 0.0,
+        "dy": 0.0
+      },
+      "phrases_meas": [
+        "storage system",
+        "for all your storage needs",
+        "bi coupler with two slots",
+        "attaching the containers",
+        "storage racks",
+        "the system consists of storage racks and containers",
+        "this can be done in the configuration file",
+        "for all your",
+        "storage",
+        "containers"
+      ]
+    }
+  ]
+}

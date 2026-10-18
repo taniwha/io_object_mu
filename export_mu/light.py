@@ -53,6 +53,10 @@ def make_light(mu, light, obj):
     return mulight
 
 def handle_light(obj, muobj, mu):
+    # Animation-only stub from import (no Light in source .mu) → keep GO, no
+    # MuLight component, so round-trip does not invent lights.
+    if obj.get("mu_synth_light"):
+        return muobj
     muobj.light = make_light(mu, obj.data, obj)
     muobj.transform.localRotation @= rotation_correction
     return muobj

@@ -83,13 +83,11 @@ def material_generate(prefix, data):
         color = from_srgb(parse_color(color))
         name = f"{prefix}:{name}"
         if name in bpy.data.materials:
-            mat = bpy.data.materials[name]
-            #bpy.data.materials.remove(mat)
-        else:
-            mat = bpy.data.materials.new(name)
+            continue
+        mat = bpy.data.materials.new(name)
         mat.use_fake_user = True
         mat.diffuse_color = color
-        mat.use_nodes = True
+        # use_nodes deprecated Blender 5+ (always True)
         bsdf = mat.node_tree.nodes["Principled BSDF"]
         bsdf.inputs[0].default_value = color
 
@@ -206,15 +204,47 @@ palette_presets = [
     ("Nertea", html_generate, list(zip(*nertea_data))[1]),
 ]
 
-def install():
+def install(overwrite=False):
+    """Create community color palettes/materials baked in this module.
+
+    By default only missing palettes/materials are created.
+    """
     for palette in palette_presets:
         name, generate, data = palette
         colors = generate(data)
+        if name in bpy.data.palettes and not overwrite:
+            continue
         if name in bpy.data.palettes:
             pal = bpy.data.palettes[name]
+            while len(pal.colors):
+                pal.colors.remove(pal.colors[0])
         else:
             pal = bpy.data.palettes.new(name)
         for c in colors:
             col = pal.colors.new().color
             col.r, col.g, col.b = c
     material_generate("Nertea", nertea_data)
+
+
+@bpy.app.handlers.persistent
+def _ensure_palettes_on_load(_dummy):
+    try:
+        install(overwrite=False)
+    except Exception:
+        pass
+
+
+def register():
+    handlers = bpy.app.handlers.load_post
+    if _ensure_palettes_on_load not in handlers:
+        handlers.append(_ensure_palettes_on_load)
+    try:
+        install(overwrite=False)
+    except Exception:
+        pass
+
+
+def unregister():
+    handlers = bpy.app.handlers.load_post
+    if _ensure_palettes_on_load in handlers:
+        handlers.remove(_ensure_palettes_on_load)

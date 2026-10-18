@@ -1,0 +1,98 @@
+{
+  "xml_sha1": "72d0e2acf7695695e6dc685dbecfadca62806982",
+  "n_screens": 14,
+  "n_categories": 1,
+  "screens": [
+    {
+      "name": "BladeCyclic-Collective-Behaviour",
+      "bundle": "kspedia_bladecyclic-collective-behaviour",
+      "title": "#autoLOC_6011127",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/BladeCyclic-Collective-Behaviour.prefab"
+    },
+    {
+      "name": "BladeCyclic-Collective-Controls",
+      "bundle": "kspedia_bladecyclic-collective-controls",
+      "title": "#autoLOC_6011128",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/BladeCyclic-Collective-Controls.prefab"
+    },
+    {
+      "name": "DeployedScience",
+      "bundle": "kspedia_deployedscience",
+      "title": ".",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/DeployedScience.prefab"
+    },
+    {
+      "name": "DeployedScience-Experiments",
+      "bundle": "kspedia_deployedscience-experiments",
+      "title": "#autoLOC_6011067",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/DeployedScience-Experiments.prefab"
+    },
+    {
+      "name": "GripPads",
+      "bundle": "kspedia_grippads",
+      "title": "#autoLOC_8005441",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/GripPads.prefab"
+    },
+    {
+      "name": "LayindTracks",
+      "bundle": "kspedia_layindtracks",
+      "title": "#autoLOC_6011076",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/LayindTracks.prefab"
+    },
+    {
+      "name": "Propellers",
+      "bundle": "kspedia_propellers",
+      "title": "#autoLOC_8005442",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/Propellers.prefab"
+    },
+    {
+      "name": "PropellersAerodynamics",
+      "bundle": "kspedia_propellersaerodynamics",
+      "title": "#autoLOC_8005443",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/PropellersAerodynamics.prefab"
+    },
+    {
+      "name": "RoboticController",
+      "bundle": "kspedia_roboticcontroller",
+      "title": "#autoLOC_6011075",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/RoboticController.prefab"
+    },
+    {
+      "name": "RoboticParts",
+      "bundle": "kspedia_roboticparts",
+      "title": ".",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/RoboticParts.prefab"
+    },
+    {
+      "name": "Surface Features-Overview",
+      "bundle": "kspedia_surface features-overview",
+      "title": ".",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/Surface Features-Overview.prefab"
+    },
+    {
+      "name": "Surface Features-RoverArmDetails",
+      "bundle": "kspedia_surface features-roverarmdetails",
+      "title": "#autoLOC_6011072",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/Surface Features-RoverArmDetails.prefab"
+    },
+    {
+      "name": "TrackEditor",
+      "bundle": "kspedia_trackeditor",
+      "title": "#autoLOC_6011077",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/TrackEditor.prefab"
+    },
+    {
+      "name": "TrackEditorToolbar",
+      "bundle": "kspedia_trackeditortoolbar",
+      "title": "#autoLOC_8005440",
+      "asset": "Assets/Squad/Serenity/Screens/en-us/TrackEditorToolbar.prefab"
+    }
+  ],
+  "categories": [
+    {
+      "name": "#autoLOC_6011064",
+      "title": "#autoLOC_6011064"
+    }
+  ],
+  "source": "serenity"
+}

@@ -1,0 +1,19 @@
+{
+    "locales":  [
+                    "en-us",
+                    "es-es",
+                    "ja",
+                    "pt-br",
+                    "ru",
+                    "zh-cn"
+                ],
+    "fonts":  [
+
+              ],
+    "tmp_roles":  {
+                      "Amaranth-Regular SDF":  "display",
+                      "NotoSansCJK":  "cjk",
+                      "JD-LCD_rounded SDF":  "lcd",
+                      "NotoSans-Regular SDF":  "sans"
+                  }
+}

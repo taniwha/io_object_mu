@@ -1,0 +1,13 @@
+// Example KSPediaLocalization config (from KSPModFileLocalizer).
+// Place next to your localized .ksp files. Pattern:
+//   <filename>_<locale>.ksp   e.g. planetarybaseinc_en-us.ksp
+//
+// The MU addon auto-detects locale from the filename and reads this
+// cfg when it sits beside the imported .ksp.
+
+KSPediaLocalization
+{
+    path = GameData/PlanetaryBaseInc/KSPedia/
+    filename = planetarybaseinc
+    default = en-us
+}

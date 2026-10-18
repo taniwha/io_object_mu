@@ -74,7 +74,7 @@ def instantiate_model(model, name, loc, rot, scale):
     obj.scale = scale
     if type(rot) == Vector:
         # blender is right-handed, KSP is left-handed
-        # FIXME: it might be better to convert the given euler rotation
+        # Euler from the UI; quaternion path is preferred elsewhere
         # to a quaternion (for consistency)
         # this assumes the rot vector came straight from a ksp cfg file
         # Unity's rotation order is ZXY, which makes it YXZ for blender

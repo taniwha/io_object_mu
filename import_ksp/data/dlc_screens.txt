@@ -1,0 +1,31 @@
+# Making History + Breaking Ground (Serenity) KSPedia Screen ids.
+# Used for catalog lookup (BundleName / AssetPath / Title).
+
+BladeCyclic-Collective-Behaviour
+BladeCyclic-Collective-Controls
+Builder
+BuilderToolbar
+Canvas
+DeployedScience
+DeployedScience-Experiments
+ExportingValidation
+FlightApp
+GAP
+GAPTools
+GripPads
+LayindTracks
+MissionBriefing
+NodeDocking
+NodesConnectors
+Propellers
+PropellersAerodynamics
+ReplayScoreEnd
+RoboticController
+RoboticParts
+SAP
+Sidebar
+Surface Features-Overview
+Surface Features-RoverArmDetails
+TestingCheckPoints
+TrackEditor
+TrackEditorToolbar

@@ -1,0 +1,9 @@
+{
+  "flags": [
+    {
+      "name": "default",
+      "file": "default.webp",
+      "source": "Squad/Flags/default.png"
+    }
+  ]
+}

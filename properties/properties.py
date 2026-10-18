@@ -108,7 +108,6 @@ def GetPropMask(prop):
     return mask
 
 def collider_update(self, context):
-    #FIXME
     from ..collider import update_collider
     obj = context.active_object
     update_collider(obj)

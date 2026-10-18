@@ -80,6 +80,10 @@ class OBJECT_PT_MuMaterialPanel(bpy.types.Panel):
                text=IO_OBJECT_MU_OT_shader_presets.bl_label)
         r.operator("io_object_mu.shader_presets", text="", icon='ADD')
         r.operator("io_object_mu.shader_presets", text="", icon='REMOVE').remove_active = True
+        col.operator(
+            "io_object_mu.shader_preset_selection",
+            text="Apply Preset to Selection",
+        )
         col.prop(matprops, "name")
         r = col.row(align=True)
         r.prop(matprops, "shaderName")

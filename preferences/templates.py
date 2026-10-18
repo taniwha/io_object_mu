@@ -21,23 +21,40 @@
 
 # <pep8 compliant>
 
+import os
+
 import bpy
 from bpy.types import Menu
 
 from . import preferences
 
+
+def _kspcfg_template_paths():
+    """Bundled cfgtemplates first, then any user preset copies."""
+    paths = []
+    bundled = os.path.join(os.path.dirname(__file__), "cfgtemplates")
+    if os.path.isdir(bundled):
+        paths.append(bundled)
+    for path in bpy.utils.preset_paths(preferences.package_name + "/kspcfg") or []:
+        if path and os.path.isdir(path) and path not in paths:
+            paths.append(path)
+    return paths
+
+
 class TEXT_MT_templates_kspcfg(Menu):
     bl_label = "KSP config"
 
-    def draw (self, context):
+    def draw(self, context):
         self.path_menu(
-            bpy.utils.preset_paths(preferences.package_name + "/kspcfg"),
+            _kspcfg_template_paths(),
             "text.open",
             props_default={"internal": True},
         )
 
+
 def text_func_templates(self, context):
-    self.layout.menu("TEXT_MT_templates_kspcfg");
+    self.layout.menu("TEXT_MT_templates_kspcfg")
+
 
 classes_to_register = (
     TEXT_MT_templates_kspcfg,

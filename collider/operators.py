@@ -154,7 +154,8 @@ def add_mesh_colliders(self, context, convex):
             original_collection[0].objects.unlink(col)
         col.parent = obj
         if Preferences().AutohideColliders:
-            col.hide_set(True)
+            # Match Toggle Colliders (hide_viewport), not outliner restrict.
+            col.hide_viewport = True
         else:
             col.select_set(True)
         bpy.context.view_layer.objects.active = col

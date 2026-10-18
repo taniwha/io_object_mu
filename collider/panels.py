@@ -37,6 +37,7 @@ class WORKSPACE_PT_tools_mu_collider(bpy.types.Panel):
             layout.operator("mucollider.sphere", text = "Sphere")
             layout.operator("mucollider.capsule", text = "Capsule")
             layout.operator("mucollider.box", text = "Box")
+            layout.operator("mucollider.wheel", text = "Wheel")
 
         if context.mode in ['OBJECT']:
             col = layout.column(align=True)

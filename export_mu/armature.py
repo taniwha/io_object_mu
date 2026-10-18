@@ -25,32 +25,84 @@ from mathutils import Vector, Quaternion
 from ..mu import MuObject, MuTransform, MuTagLayer
 from ..utils import strip_nnn, collect_armature_modifiers
 
-from .export import make_obj_core
-from .mesh import create_skinned_mesh
+from .export import make_obj_core, make_obj
+from .mesh import create_skinned_mesh, handle_mesh
 
-def bone_transform(bone, obj):
-    matrix = bone.matrix_local
+def is_bindpose_armature(obj):
+    """Blender-only helper armature created on import — must not be written to .mu."""
+    if not obj or type(obj.data) != bpy.types.Armature:
+        return False
+    name = strip_nnn(obj.name)
+    if name.endswith(".bindPose") or ".bindPose." in name:
+        return True
+    # Import creates COPY_TRANSFORMS on every pose bone → control armature
+    try:
+        for pbone in obj.pose.bones:
+            for c in pbone.constraints:
+                if (c.type == 'COPY_TRANSFORMS' and c.target
+                        and c.target != obj
+                        and type(getattr(c.target, "data", None)) == bpy.types.Armature):
+                    return True
+    except Exception:
+        pass
+    return False
+
+def bindpose_base_name(obj):
+    name = strip_nnn(obj.name)
+    if name.endswith(".bindPose"):
+        return name[:-len(".bindPose")]
+    return name
+
+def bone_transform(bone, arm_obj):
+    # Respect inherit flags: when scale is not inherited, use a parent matrix
+    # with unit scale so the exported local scale matches pose evaluation.
+    matrix = bone.matrix_local.copy()
     if bone.parent:
-        matrix = bone.parent.matrix_local.inverted() @ matrix
+        parent_mat = bone.parent.matrix_local.copy()
+        inherit_scale = getattr(bone, "inherit_scale", 'FULL')
+        if inherit_scale == 'NONE':
+            # Remove parent scale contribution
+            loc, rot, _sca = parent_mat.decompose()
+            parent_mat = rot.to_matrix().to_4x4()
+            parent_mat.translation = loc
+        matrix = parent_mat.inverted() @ matrix
     transform = MuTransform()
     transform.name = bone.name
     transform.localPosition = matrix.translation
     transform.localRotation = matrix.to_quaternion()
+    # Edit-bone matrices are unit-scale; Unity localScale lives on pose bones
+    # (import uses Blender scale = (ux, uz, uy)).
     transform.localScale = matrix.to_scale()
+    if arm_obj is not None and bone.name in arm_obj.pose.bones:
+        ps = arm_obj.pose.bones[bone.name].scale
+        transform.localScale = Vector((ps[0], ps[2], ps[1]))
     return transform
 
 
-def export_bone(bone, mu, armature, bone_children, path, parent_tag_and_layer=None):
+def export_bone(bone, mu, muobj, bone_children, path, arm_obj,
+                parent_tag_and_layer=None):
+    # path is the parent Mu path; make_obj_core appends transform.name itself.
+    parent_path = path
     if path:
-        path += "/"
-    path += bone.name
+        path = path + "/" + bone.name
+    else:
+        path = bone.name
     mubone = MuObject()
-    obj = bone_children.get(bone.name)
-    armature.bone_paths[f'pose.bones["{bone.name}"]'] = path
-    mubone.transform = bone_transform(bone, obj)
-    
-    if obj:
-        make_obj_core(mu, obj, path, mubone)
+    objs = bone_children.get(bone.name) or []
+    if not isinstance(objs, (list, tuple)):
+        objs = [objs]
+    first = objs[0] if objs else None
+    muobj.bone_paths[f'pose.bones["{bone.name}"]'] = path
+    mubone.transform = bone_transform(bone, arm_obj)
+
+    if first:
+        # Merge first bone-child into the bone GO (Unity-style); extra children
+        # become MuObjects under the bone — never pass a list to make_obj_core.
+        make_obj_core(mu, first, parent_path, mubone)
+        for extra in objs[1:]:
+            child = make_obj(mu, extra, path)
+            if child:
+                mubone.children.append(child)
     else:
         mubone.tag_and_layer = MuTagLayer()
         if parent_tag_and_layer:
@@ -60,13 +112,14 @@ def export_bone(bone, mu, armature, bone_children, path, parent_tag_and_layer=No
         else:
             mubone.tag_and_layer.tag = "Untagged"
             mubone.tag_and_layer.layer = 0
-    
-    mu.object_paths[path] = mubone
-    
+        mu.object_paths[path] = mubone
+
     for child in bone.children:
-        muchild = export_bone(child, mu, armature, bone_children, path, mubone.tag_and_layer)
+        muchild = export_bone(
+            child, mu, muobj, bone_children, path, arm_obj,
+            mubone.tag_and_layer)
         mubone.children.append(muchild)
-    
+
     return mubone
 
 def find_bone_children(obj):
@@ -87,7 +140,44 @@ def find_deform_children(obj):
                 deform_children.append(child)
     return deform_children
 
+def handle_bindpose(obj, muobj, mu):
+    """Export bindPose as the original SMR owner node (no second armature)."""
+    muobj.transform.name = bindpose_base_name(obj)
+    # Restore Unity SMR local transform stored at import (often -90° X)
+    try:
+        if "mu_smr_rotation" in obj:
+            muobj.transform.localPosition = Vector(obj["mu_smr_location"])
+            muobj.transform.localRotation = Quaternion(obj["mu_smr_rotation"])
+            muobj.transform.localScale = Vector(obj["mu_smr_scale"])
+    except Exception:
+        pass
+    # Prefer skinned mesh child (*.skin); fall back to any mesh with ArmatureModifier
+    skins = []
+    others = []
+    for child in obj.children:
+        mods = collect_armature_modifiers(child) if child.data and type(child.data) == bpy.types.Mesh else []
+        if mods:
+            skins.append(child)
+        else:
+            others.append(child)
+    if skins:
+        # SMR lives on this node (Unity/KSP style); mark skins exported so
+        # make_obj_core does not recurse into them as separate objects.
+        handle_mesh(skins[0], muobj, mu)
+        for s in skins:
+            mu.exported_objects.add(s)
+        # Extra skins become child MuObjects
+        for s in skins[1:]:
+            child = make_obj(mu, s, mu.path)
+            if child:
+                muobj.children.append(child)
+    # Non-skin children are left for make_obj_core's normal recursion
+    return muobj
+
 def handle_armature(obj, muobj, mu):
+    if is_bindpose_armature(obj):
+        return handle_bindpose(obj, muobj, mu)
+
     armature = obj.data
     bone_children = find_bone_children(obj)
     path = mu.path
@@ -98,8 +188,16 @@ def handle_armature(obj, muobj, mu):
         if bone.parent:
             #not a root bone
             continue
-        mubone = export_bone(bone, mu, muobj, bone_children, path)
+        mubone = export_bone(bone, mu, muobj, bone_children, path, obj)
         muobj.children.append(mubone)
+    # Skin meshes parented under a sibling bindPose are exported when that
+    # bindPose is visited; deform children directly under control are rare.
+    for child in find_deform_children(obj):
+        if child in mu.exported_objects:
+            continue
+        muchild = make_obj(mu, child, path)
+        if muchild:
+            muobj.children.append(muchild)
     return muobj
 
 type_handlers = {

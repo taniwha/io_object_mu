@@ -1,0 +1,98 @@
+{
+  "xml_sha1": "d8969b60a868f8fa2b88051fbe8d0c63839d6304",
+  "n_screens": 14,
+  "n_categories": 1,
+  "screens": [
+    {
+      "name": "Builder",
+      "bundle": "kspedia_builder",
+      "title": ".",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/Builder.prefab"
+    },
+    {
+      "name": "BuilderToolbar",
+      "bundle": "kspedia_buildertoolbar",
+      "title": "#autoLOC_8400010",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/BuilderToolbar.prefab"
+    },
+    {
+      "name": "Canvas",
+      "bundle": "kspedia_canvas",
+      "title": "#autoLOC_8400030",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/Canvas.prefab"
+    },
+    {
+      "name": "ExportingValidation",
+      "bundle": "kspedia_exportingvalidation",
+      "title": "#autoLOC_8400102",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/ExportingValidation.prefab"
+    },
+    {
+      "name": "FlightApp",
+      "bundle": "kspedia_flightapp",
+      "title": "#autoLOC_8400109",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/FlightApp.prefab"
+    },
+    {
+      "name": "GAP",
+      "bundle": "kspedia_gap",
+      "title": "#autoLOC_8400072",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/GAP.prefab"
+    },
+    {
+      "name": "GAPTools",
+      "bundle": "kspedia_gaptools",
+      "title": "#autoLOC_8400081",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/GAPTools.prefab"
+    },
+    {
+      "name": "MissionBriefing",
+      "bundle": "kspedia_missionbriefing",
+      "title": "#autoLOC_8400092",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/MissionBriefing.prefab"
+    },
+    {
+      "name": "NodeDocking",
+      "bundle": "kspedia_nodedocking",
+      "title": "#autoLOC_8400052",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/NodeDocking.prefab"
+    },
+    {
+      "name": "NodesConnectors",
+      "bundle": "kspedia_nodesconnectors",
+      "title": "#autoLOC_8400042",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/NodesConnectors.prefab"
+    },
+    {
+      "name": "ReplayScoreEnd",
+      "bundle": "kspedia_replayscoreend",
+      "title": "#autoLOC_8400129",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/ReplayScoreEnd.prefab"
+    },
+    {
+      "name": "SAP",
+      "bundle": "kspedia_sap",
+      "title": "#autoLOC_8400062",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/SAP.prefab"
+    },
+    {
+      "name": "Sidebar",
+      "bundle": "kspedia_sidebar",
+      "title": "#autoLOC_8400020",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/Sidebar.prefab"
+    },
+    {
+      "name": "TestingCheckPoints",
+      "bundle": "kspedia_testingcheckpoints",
+      "title": "#autoLOC_8400119",
+      "asset": "Assets/Squad/MakingHistory/Screens/en-us/TestingCheckPoints.prefab"
+    }
+  ],
+  "categories": [
+    {
+      "name": "#autoLOC_8400166",
+      "title": "#autoLOC_8400166"
+    }
+  ],
+  "source": "makinghistory"
+}

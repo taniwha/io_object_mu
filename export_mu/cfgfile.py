@@ -50,9 +50,7 @@ def find_template(mu, filepath):
     return None, None
 
 def add_internal_node(node, internal):
-    # NOTE this assumes the internal is the direct child of the part's root
-    # also, it assumes the internal is correctly oriented relative to the part
-    # (FIXME?)
+    # Assumes INTERNAL is a direct child of the part root and correctly oriented.
     inode = node.AddNewNode('INTERNAL')
     inode.AddValue("name", strip_nnn(internal.name))
     if internal.location:

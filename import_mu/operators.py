@@ -34,7 +34,9 @@ def import_mu_op(self, context, filepath, create_colliders, force_armature, forc
 
     collection = bpy.context.view_layer.active_layer_collection.collection
     try:
-        ret = import_mu(collection, filepath, create_colliders, force_armature, force_mesh)
+        from .progress_util import mu_progress_bar
+        with mu_progress_bar(context, total=100, title="MU Import"):
+            ret = import_mu(collection, filepath, create_colliders, force_armature, force_mesh)
     except MuImportError as e:
         operator.report({'ERROR'}, e.message)
         return {'CANCELLED'}
@@ -48,6 +50,19 @@ def import_mu_op(self, context, filepath, create_colliders, force_armature, forc
             o.select_set(False)
         
         bpy.context.view_layer.objects.active = obj
+        # Remember the file's own root transform before snapping the import
+        # to the 3D cursor — most parts author the root at the origin so
+        # this never mattered, but some (eg. turboJet, turboRamJet) bake a
+        # real offset into the root transform that must round-trip back out
+        # on export. Reuses the same mu_unity_* convention make_transform()
+        # already understands for collider/bindPose children.
+        if "mu_unity_rotation" not in obj:
+            try:
+                obj["mu_unity_location"] = list(obj.location)
+                obj["mu_unity_rotation"] = list(obj.rotation_quaternion)
+                obj["mu_unity_scale"] = list(obj.scale)
+            except Exception:
+                pass
         obj.location = context.scene.cursor.location
         obj.rotation_quaternion = Quaternion((1, 0, 0, 0))
         obj.scale = Vector((1, 1, 1))

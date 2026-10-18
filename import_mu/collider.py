@@ -47,15 +47,32 @@ def create_collider(mu, muobj, col, name):
     obj, cobj = collider.create_collider_object(name, mesh)
 
     obj.muproperties.isTrigger = False
-    # if the collider is the only component on the game object, then make
-    # sure it is kept separate when exporting
-    # FIXME animated colliders? (does anybody do that?)
-    obj.muproperties.separate = len(muobj.components) == 1
+    # Keep a separate GO when this object is collider-only. Unity often also
+    # stores an orphan MeshFilter (no MeshRenderer) on the same GO — ignore
+    # that when deciding, otherwise wing COL / ColWalls get inlined and lost.
+    # Animated colliders: export refuses to inline any collider that has its
+    # own Action/NLA (see export_mu.export.find_single_collider), so transform
+    # clips on "collider 1" etc. (SP-10C) round-trip correctly.
+    def _count_for_separate(mo):
+        n = 0
+        has_renderer = getattr(mo, "renderer", None) is not None
+        for c in mo.components:
+            if type(c).__name__ == "MuMesh" and not has_renderer:
+                continue
+            n += 1
+        return n
+    obj.muproperties.separate = _count_for_separate(muobj) == 1
     if type(col) != MuColliderWheel:
         obj.muproperties.isTrigger = col.isTrigger
     if type(col) == MuColliderMesh:
         obj.muproperties.collider = 'MU_COL_MESH'
         obj.muproperties.isConvex = col.convex
+        try:
+            from ..preferences import Preferences
+            if Preferences().AutohideColliders:
+                obj.hide_viewport = True
+        except Exception:
+            pass
     elif type(col) == MuColliderSphere:
         obj.muproperties.radius = col.radius
         obj.muproperties.center = col.center

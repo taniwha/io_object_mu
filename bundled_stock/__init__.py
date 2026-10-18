@@ -1,0 +1,1 @@
+# bundled stock assets package

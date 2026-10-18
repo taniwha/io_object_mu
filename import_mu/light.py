@@ -41,6 +41,8 @@ def create_light(mu, muobj, mulight, name):
         light.spot_size = mulight.spotAngle * pi / 180
     muprops = light.mulightprop
     properties.SetPropMask(muprops.cullingMask, mulight.cullingMask)
+    # Default for m_Enabled animation curves (Unity Light.enabled)
+    muobj._light_enabled_default = 1.0
     return "light", light, Quaternion((0.5**0.5, 0.5**0.5, 0, 0))
 
 type_handlers = {

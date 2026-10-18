@@ -30,6 +30,7 @@ from .operators import KSPMU_OT_MuFindCoM
 from .operators import KSPMU_OT_MuVolume
 from .operators import KSPMU_OT_ExportMu
 from .operators import KSPMU_OT_ExportMu_quick
+from .operators import KSPMU_OT_ExportMu_variant
 from .panels import WORKSPACE_PT_tools_mu_export
 
 from . import export_modules
@@ -40,6 +41,7 @@ def export_mu_menu_func(self, context):
 classes_to_register = (
     KSPMU_OT_ExportMu,
     KSPMU_OT_ExportMu_quick,
+    KSPMU_OT_ExportMu_variant,
     WORKSPACE_PT_tools_mu_export,
     KSPMU_OT_MuVolume,
     KSPMU_OT_MuFindCoM,

@@ -39,9 +39,8 @@ def create_data_object(collection, name, data, transform):
     set_transform(obj, transform)
     return obj
 
-#FIXME horible hack to work around blender 2.8 not (yet) allowing control
-# over render/preview when converting an object to a mesh
 def collect_modifiers(obj):
+    """Viewport-only modifiers (show_viewport, not show_render) for to_mesh."""
     modifiers = []
     for mod in obj.modifiers:
         if mod.show_viewport and not mod.show_render:

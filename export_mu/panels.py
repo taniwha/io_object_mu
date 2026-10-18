@@ -27,11 +27,18 @@ class WORKSPACE_PT_tools_mu_export(bpy.types.Panel):
     bl_category = "Tool"
     bl_context = ".objectmode"
     bl_label = "Export Mu"
+    bl_order = 3
 
     def draw(self, context):
         layout = self.layout
         #col = layout.column(align=True)
-        layout.operator("export_object.ksp_mu_quick", text = "Export Mu Model");
+        layout.operator("import_object.ksp_mu", text="Import Mu Model")
+        layout.operator("export_object.ksp_mu_quick", text="Export Mu Model")
+        layout.operator(
+            "export_object.ksp_mu_variant", text="Export Active Variant"
+        )
         layout.operator_menu_enum("object.mu_volume", "selection")
-        layout.operator("object.mu_snap_cursor_to_com", text = "Find Mu CoM");
-        layout.operator("object.mu_show_transform", text = "Show MODEL{} Transform");
+        layout.operator("object.mu_snap_cursor_to_com", text="Find Mu CoM")
+        layout.operator(
+            "object.mu_show_transform", text="Show MODEL{} Transform"
+        )

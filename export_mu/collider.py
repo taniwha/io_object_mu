@@ -46,11 +46,17 @@ def make_friction(fric):
 
 def make_collider(mu, obj):
     if (obj.muproperties.collider == 'MU_COL_MESH' and obj.data
-        and type (obj.data) == bpy.types.Mesh):
+        and type(obj.data) == bpy.types.Mesh):
+        mesh = make_mesh(mu, obj)
+        if mesh is None:
+            # Empty mesh collider — keep structure for round-trip fidelity
+            from ..mu import MuMesh
+            mesh = MuMesh()          # verts=[], submeshes=[]
+            print(f"INFO: Empty mesh collider exported as empty MuMesh: {obj.name}")
         col = MuColliderMesh(True)
         col.isTrigger = obj.muproperties.isTrigger
         col.convex = obj.muproperties.isConvex
-        col.mesh = make_mesh (mu, obj)
+        col.mesh = mesh
     elif obj.muproperties.collider == 'MU_COL_SPHERE':
         col = MuColliderSphere(True)
         col.isTrigger = obj.muproperties.isTrigger

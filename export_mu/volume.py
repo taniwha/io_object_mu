@@ -82,10 +82,7 @@ def obj_volume_centroid(obj):
         return (0, 0), (origin, origin)
     if obj.muproperties.collider and obj.muproperties.collider != 'MU_COL_NONE':
         return (0, 0), (origin, origin)
-    #FIXME skin_mesh = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
-    #FIXME ext_mesh = obj.to_mesh(bpy.context.scene, True, 'RENDER')
-
-    #FIXME horible hack until I figure out how to get a render mode depsgraph
+    # Volume with all mods vs without viewport-only mods (extinguisher shell).
     modifiers = collect_modifiers(obj)
     depsgraph = bpy.context.evaluated_depsgraph_get()
     skin_mesh = obj.evaluated_get(depsgraph).to_mesh()

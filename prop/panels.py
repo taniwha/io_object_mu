@@ -31,6 +31,7 @@ class WORKSPACE_PT_tools_mu_props(bpy.types.Panel):
     bl_category = "Tool"
     bl_context = ".objectmode"
     bl_label = "Prop Tools"
+    bl_order = 1
 
     def draw(self, context):
         layout = self.layout

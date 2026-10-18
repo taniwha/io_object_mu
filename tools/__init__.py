@@ -19,12 +19,48 @@
 
 # <pep8 compliant>
 
+import bpy
+
 from .. import register_submodules
 
 submodule_names = (
     "applyscale",
     "clearinverse",
+    "display",
     "panels",
     "wingtool",
 )
 register_submodules(__name__, submodule_names)
+
+# Stock "Options" panels (Affect Only, etc.) share Tool + label "Options"
+# with Mu. Hide them so our Options panel is the one before Prop Tools.
+_hidden_options_panels = []
+
+
+def _hide_stock_options_panels():
+    global _hidden_options_panels
+    _hidden_options_panels = []
+    for name in (
+        "VIEW3D_PT_tools_object_options",
+        "VIEW3D_PT_tools_meshedit_options",
+        "VIEW3D_PT_tools_armatureedit_options",
+        "VIEW3D_PT_tools_posedit_options",
+    ):
+        cls = getattr(bpy.types, name, None)
+        if cls is None:
+            continue
+        try:
+            bpy.utils.unregister_class(cls)
+            _hidden_options_panels.append(cls)
+        except Exception:
+            pass
+
+
+def _restore_stock_options_panels():
+    global _hidden_options_panels
+    for cls in _hidden_options_panels:
+        try:
+            bpy.utils.register_class(cls)
+        except Exception:
+            pass
+    _hidden_options_panels = []

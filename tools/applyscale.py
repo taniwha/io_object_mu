@@ -25,9 +25,47 @@ from mathutils import Matrix
 from math import sqrt
 
 from ..collider import update_collider
+from ..utils.action_compat import iter_action_fcurves
 
 def vec(v):
     return "[%5.2f %5.2f %5.2f %5.2f]" % tuple(v)
+
+def _iter_actions(obj):
+    ad = obj.animation_data
+    if not ad:
+        return
+    if ad.action:
+        yield ad.action
+    for track in ad.nla_tracks:
+        for strip in track.strips:
+            if strip.action:
+                yield strip.action
+
+
+def _scale_object_fcurves(obj, sx, sy, sz):
+    """Scale location (and non-uniform-aware scale channels) on object actions."""
+    for action in _iter_actions(obj):
+        for fc in iter_action_fcurves(action):
+            if fc.data_path == "location":
+                mult = (sx, sy, sz)[fc.array_index] if fc.array_index < 3 else 1.0
+                for kp in fc.keyframe_points:
+                    kp.co[1] *= mult
+                    kp.handle_left[1] *= mult
+                    kp.handle_right[1] *= mult
+            elif fc.data_path == "scale":
+                mult = (sx, sy, sz)[fc.array_index] if fc.array_index < 3 else 1.0
+                for kp in fc.keyframe_points:
+                    # baked object scale becomes 1; keys store relative scale
+                    kp.co[1] *= mult
+                    kp.handle_left[1] *= mult
+                    kp.handle_right[1] *= mult
+            elif "pose.bones[" in fc.data_path and fc.data_path.endswith("location"):
+                mult = (sx, sy, sz)[fc.array_index] if fc.array_index < 3 else 1.0
+                for kp in fc.keyframe_points:
+                    kp.co[1] *= mult
+                    kp.handle_left[1] *= mult
+                    kp.handle_right[1] *= mult
+
 
 def apply_scale(obj):
     s = obj.matrix_basis.to_scale()
@@ -36,11 +74,23 @@ def apply_scale(obj):
                     (  0,  0,s.z, 0),
                     (  0,  0,  0, 1)))
     muprops = obj.muproperties
-    #FIXME apply to animation data and armatures
     if type(obj.data) is bpy.types.Mesh:
         mesh = obj.data
         for v in mesh.vertices:
             v.co = scale @ v.co
+    elif type(obj.data) is bpy.types.Armature:
+        # Bake object scale into edit bones so armature export stays consistent
+        arm = obj.data
+        prev = bpy.context.view_layer.objects.active
+        bpy.context.view_layer.objects.active = obj
+        mode = obj.mode
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        for eb in arm.edit_bones:
+            eb.head = scale @ eb.head
+            eb.tail = scale @ eb.tail
+        bpy.ops.object.mode_set(mode=mode if mode != 'EDIT' else 'OBJECT')
+        if prev:
+            bpy.context.view_layer.objects.active = prev
     elif muprops.collider != 'MU_COL_NONE':
         #NOTE mesh colliders handled above
         ct = muprops.collider
@@ -69,6 +119,7 @@ def apply_scale(obj):
             muprops.suspensionSpring.damper *= avg_scale
         muprops.center = scale @ muprops.center
         update_collider(obj)
+    _scale_object_fcurves(obj, s.x, s.y, s.z)
     for child in obj.children:
         child.matrix_basis = scale @ child.matrix_basis
         apply_scale(child)

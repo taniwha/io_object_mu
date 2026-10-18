@@ -88,7 +88,14 @@ def update_collider(obj):
 def create_collider_gizmo(name):
     mesh = bpy.data.meshes.new(name)
     cobj = bpy.data.objects.new("mesh:" + name, mesh)
-    gizmo = collider_collection (name)
+    gizmo = collider_collection(name)
+    # Source mesh lives in a hidden util collection; the Empty instances it.
+    # Keep the source itself non-visible so it does not show as a huge
+    # untextured block at the origin next to the real part (TriBitDrill).
+    gizmo.hide_viewport = True
+    gizmo.hide_render = True
+    cobj.hide_viewport = True
+    cobj.hide_render = True
     gizmo.objects.link(cobj)
     return gizmo, cobj
 

@@ -36,7 +36,7 @@ class MuEnum:
     ET_MESH_RENDERER = 8
     ET_SKINNED_MESH_RENDERER = 9
     ET_MATERIALS = 10
-    ET_MATERIAL = 11    #XXX not used?
+    ET_MATERIAL = 11  # legacy enum; materials are written via ET_MATERIALS
     ET_TEXTURES = 12
     ET_MESH_START = 13
     ET_MESH_VERTS = 14
@@ -258,7 +258,7 @@ def read_material3(self, mu):
         self.textureProperties["_MainTex"] = MuMatTex().read(mu)
     elif type == MuEnum.ST_ALPHA_SPECULAR:
         self.textureProperties["_MainTex"] = MuMatTex().read(mu)
-        #FIXME bogus
+        # Legacy ST_ALPHA_SPECULAR layout (pre-named props)
         self.floatProperties3["_Gloss"] = mu.read_float()
         self.colorProperties["_SpecColor"] = mu.read_float(4)
         self.floatProperties3["_Shininess"] = mu.read_float()
@@ -337,8 +337,9 @@ class MuTransform:
         self.localPosition = mu.read_vector()
         self.localRotation = mu.read_quaternion()
         self.localScale = mu.read_vector()
-        #print("   ", self.name, self.localPosition, self.localRotation,
-        #      self.localScale)
+        if mu.version < 3: # Old PartTools (file version 1 and 2) wrote scale as Vector4
+            mu.read_float()
+        #print("   ", self.name, self.localPosition, self.localRotation, self.localScale)
         return self
     def write(self, mu):
         mu.write_string(self.name)
@@ -456,7 +457,7 @@ class MuAnimation:
         for clip in self.clips:
             clip.write(mu)
         mu.write_string(self.clip)
-        mu.write_byte(self.autoPlay)  #XXX is this right?
+        mu.write_byte(self.autoPlay)
 
 class MuBoneWeight:
     def __init__(self):
@@ -526,12 +527,10 @@ class MuMesh:
                 #print("    sub mesh")
                 num_tris = mu.read_int()
                 tris = []
-                for i in range(int(num_tris / 3)):   #FIXME is this guaranteed?
+                for i in range(int(num_tris / 3)):  # Unity stores 3 indices per tri
                     tri = mu.read_int(3)
-                    #reverse the triangle winding for Blender (because of the
-                    # LHS/RHS swap)
-                    #avoid putting 0 at the end of the list (Blender doesn't
-                    #like that)
+                    #reverse the triangle winding for Blender (because of the LHS/RHS swap)
+                    #avoid putting 0 at the end of the list (Blender doesn't like that)
                     if not tri[0]:
                         tri = tri[0], tri[2], tri[1]
                     else:
@@ -587,8 +586,7 @@ class MuMesh:
             mu.write_int(MuEnum.ET_MESH_TRIANGLES)
             mu.write_int(len(sm) * 3)
             for tri in sm:
-                #reverse the triangle winding for Blender (because of the
-                # LHS/RHS swap)
+                #reverse the triangle winding for Blender (because of the LHS/RHS swap)
                 tri = tri[0], tri[2], tri[1]
                 mu.write_int(tri)
         mu.write_int(MuEnum.ET_MESH_END)
@@ -857,6 +855,7 @@ class MuParticles:
         self.count = mu.read_int()
         return self
     def write(self, mu):
+        mu.write_int(MuEnum.ET_PARTICLES)
         mu.write_byte(self.emit)
         mu.write_int(self.shape)
         mu.write_vector(self.shape3d)
@@ -894,7 +893,7 @@ class MuParticles:
 
 class MuLight:
     def __init__(self):
-        pass
+        self.spotAngle = 30.0 # Unity default for spot lights
     def read(self, mu):
         self.type = mu.read_int()
         self.intensity = mu.read_float()
@@ -903,6 +902,7 @@ class MuLight:
         self.cullingMask = mu.read_uint()
         if mu.version > 1:
             self.spotAngle = mu.read_float()
+        # else keep the default 30.0
         return self
     def write(self, mu):
         mu.write_int(MuEnum.ET_LIGHT)
@@ -911,7 +911,8 @@ class MuLight:
         mu.write_float(self.range)
         mu.write_float(self.color)
         mu.write_uint(self.cullingMask)
-        mu.write_float(self.spotAngle)
+        # always write modern format (version 5)
+        mu.write_float(getattr(self, "spotAngle", 30.0))
 
 class MuObject:
     def __init__(self, name=""):
@@ -976,26 +977,37 @@ class MuObject:
                     mu.textures.append(MuTexture().read(mu))
             else:
                 #print(entry_type, hex(mu.file.tell()))
+                pos = mu.file.tell() - 4
+                raise ValueError(f"Unknown entry_type={entry_type} at offset 0x{pos:x} in '{self.transform.name}'")
                 pass
         return self
     def write(self, mu):
         self.transform.write(mu)
-        self.tag_and_layer.write(mu)
-        if hasattr(self, "collider") and self.collider != None:
+        if hasattr(self, "tag_and_layer"):
+            self.tag_and_layer.write(mu)
+        else:
+            # Very old files (version 0) had no tag/layer entry.
+            tl = MuTagLayer()
+            tl.tag = "Untagged"
+            tl.layer = 0
+            tl.write(mu)
+        if hasattr(self, "collider") and self.collider is not None:
             self.collider.write(mu)
-        if hasattr(self, "shared_mesh") and self.shared_mesh != None:
+        if hasattr(self, "shared_mesh") and self.shared_mesh is not None:
             mu.write_int(MuEnum.ET_MESH_FILTER)
             self.shared_mesh.write(mu)
-        if hasattr(self, "renderer") and self.renderer != None:
+        if hasattr(self, "renderer") and self.renderer is not None:
             self.renderer.write(mu)
-        if hasattr(self, "skinned_mesh_renderer") and self.skinned_mesh_renderer != None:
+        if hasattr(self, "skinned_mesh_renderer") and self.skinned_mesh_renderer is not None:
             self.skinned_mesh_renderer.write(mu)
-        if hasattr(self, "animation") and self.animation != None:
+        if hasattr(self, "animation") and self.animation is not None:
             self.animation.write(mu)
-        if hasattr(self, "camera") and self.camera != None:
+        if hasattr(self, "camera") and self.camera is not None:
             self.camera.write(mu)
-        if hasattr(self, "light") and self.light != None:
+        if hasattr(self, "light") and self.light is not None:
             self.light.write(mu)
+        if hasattr(self, "particles") and self.particles is not None:
+            self.particles.write(mu)
         for child in self.children:
             mu.write_int(MuEnum.ET_CHILD_TRANSFORM_START)
             child.write(mu)
@@ -1098,12 +1110,14 @@ class Mu:
         data = self.file.read(size)
         if len(data) < size:
             raise EOFError
-        if type(data) == type(""):
+        if isinstance(data, str):
             return data
-        s = ""
-        for c in data:
-            s = s + chr(c)
-        return s
+        # PartTools / Unity write UTF-8
+        # Decoding byte-by-byte (chr) produced mojibake and broke Surveyor
+        try:
+            return data.decode("utf-8")
+        except UnicodeDecodeError:
+            return data.decode("latin-1")
 
     def write_byte(self, data):
         if not hasattr(data, "__len__"):
@@ -1167,10 +1181,13 @@ class Mu:
             self.file.write(bytes(size - len(data)))
 
     def write_string(self, data, size=-1):
-        data = data.encode()
-        size = len(data)
+        if isinstance(data, bytes):
+            raw = data
+        else:
+            raw = data.encode("utf-8")
+        size = len(raw)
         self.write_7int(size)
-        self.write_bytes(data, size)
+        self.write_bytes(raw, size)
 
     def __init__(self, name = "mu"):
         self.name = name

@@ -1,0 +1,2078 @@
+{
+  "m_GameObject": {
+    "m_FileID": 0,
+    "m_PathID": 0
+  },
+  "m_Enabled": 1,
+  "m_Script": {
+    "m_FileID": 0,
+    "m_PathID": 3085730341221633478
+  },
+  "m_Name": "NotoSans-Regular SDF",
+  "hashCode": 291966771,
+  "material": {
+    "m_FileID": 0,
+    "m_PathID": -1051713240447717584
+  },
+  "materialHashCode": -2124995496,
+  "fontAssetType": 1,
+  "m_fontInfo": {
+    "Name": "Noto Sans",
+    "PointSize": 68.0,
+    "Scale": 0.9200000166893005,
+    "CharacterCount": 1134,
+    "LineHeight": 92.625,
+    "Baseline": 0.0,
+    "Ascender": 72.6875,
+    "CapHeight": 48.5625,
+    "Descender": -19.9375,
+    "CenterLine": 0.0,
+    "SuperscriptOffset": 72.6875,
+    "SubscriptOffset": -6.806640625,
+    "SubSize": 0.5,
+    "Underline": -6.806640625,
+    "UnderlineThickness": 3.38671875,
+    "strikethrough": 19.424999237060547,
+    "strikethroughThickness": 0.0,
+    "TabWidth": 176.875,
+    "Padding": 8.0,
+    "AtlasWidth": 2048.0,
+    "AtlasHeight": 2048.0
+  },
+  "atlas": {
+    "m_FileID": 0,
+    "m_PathID": -7850919507734300745
+  },
+  "m_glyphInfoList": "len=1134",
+  "m_kerningInfo": {
+    "kerningPairs": [
+      {
+        "m_FirstGlyph": 32,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 65,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 32,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 84,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 32,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 89,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 49,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 49,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 65,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 32,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 65,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 84,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 65,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 86,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 65,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 87,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 65,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 89,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 65,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 118,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 65,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 119,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 65,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 121,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 70,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.7734375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 44,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.7734375
+      },
+      {
+        "m_FirstGlyph": 70,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.7734375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 46,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.7734375
+      },
+      {
+        "m_FirstGlyph": 70,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 65,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 76,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 32,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 76,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 84,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 76,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 86,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 76,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 87,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 76,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 89,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 76,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 121,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 80,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 32,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 80,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -7.8359375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 44,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -7.8359375
+      },
+      {
+        "m_FirstGlyph": 80,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -7.8359375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 46,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -7.8359375
+      },
+      {
+        "m_FirstGlyph": 80,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 65,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 82,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 84,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 82,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 86,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 82,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 87,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 82,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 89,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 32,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.7734375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 44,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.7734375
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 45,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.7734375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 46,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.7734375
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.7734375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 58,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.7734375
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.7734375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 59,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.7734375
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 65,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 79,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.7734375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 97,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.7734375
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.7734375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 99,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.7734375
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.7734375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 101,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.7734375
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 105,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.7734375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 111,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.7734375
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 114,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.7734375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 115,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.7734375
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 117,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 119,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 84,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 121,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -5.578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 44,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -5.578125
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 45,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -5.578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 46,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -5.578125
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 58,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 59,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 65,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 97,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 101,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 105,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 111,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 114,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 117,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 86,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 121,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 87,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 44,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 87,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 45,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 87,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 46,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 87,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 58,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 87,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 59,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 87,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 65,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 87,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 97,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 87,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 101,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 87,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 111,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 87,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 114,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 87,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 117,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 87,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -0.53125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 121,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -0.53125
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 32,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -7.8359375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 44,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -7.8359375
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -5.578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 45,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -5.578125
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -7.8359375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 46,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -7.8359375
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 58,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.984375,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 59,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.984375
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 65,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 97,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -5.578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 101,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -5.578125
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.2578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 105,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.2578125
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -5.578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 111,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -5.578125
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 112,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -5.578125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 113,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -5.578125
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 117,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 89,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 118,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 102,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -1.12890625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 102,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -1.12890625
+      },
+      {
+        "m_FirstGlyph": 114,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 44,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 114,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 46,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 118,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 44,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 118,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 46,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 119,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 44,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 119,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -3.38671875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 46,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -3.38671875
+      },
+      {
+        "m_FirstGlyph": 121,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 44,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 121,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -4.515625,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 46,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -4.515625
+      },
+      {
+        "m_FirstGlyph": 71,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.70703125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 44,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.70703125
+      },
+      {
+        "m_FirstGlyph": 71,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -6.70703125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 46,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -6.70703125
+      },
+      {
+        "m_FirstGlyph": 100,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -0.86328125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 116,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -0.86328125
+      },
+      {
+        "m_FirstGlyph": 100,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -0.86328125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 112,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -0.86328125
+      },
+      {
+        "m_FirstGlyph": 116,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -0.86328125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 97,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -0.86328125
+      },
+      {
+        "m_FirstGlyph": 116,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -0.86328125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 100,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -0.86328125
+      },
+      {
+        "m_FirstGlyph": 116,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -0.86328125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 115,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -0.86328125
+      },
+      {
+        "m_FirstGlyph": 116,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -0.86328125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 102,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -0.86328125
+      },
+      {
+        "m_FirstGlyph": 102,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -0.86328125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 116,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -0.86328125
+      },
+      {
+        "m_FirstGlyph": 102,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -0.86328125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 112,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -0.86328125
+      },
+      {
+        "m_FirstGlyph": 83,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.921875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 116,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.921875
+      },
+      {
+        "m_FirstGlyph": 83,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -2.921875,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 112,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -2.921875
+      },
+      {
+        "m_FirstGlyph": 112,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -0.86328125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 97,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -0.86328125
+      },
+      {
+        "m_FirstGlyph": 112,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -0.86328125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 115,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -0.86328125
+      },
+      {
+        "m_FirstGlyph": 112,
+        "m_FirstGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": -0.86328125,
+          "yAdvance": 0.0
+        },
+        "m_SecondGlyph": 102,
+        "m_SecondGlyphAdjustments": {
+          "xPlacement": 0.0,
+          "yPlacement": 0.0,
+          "xAdvance": 0.0,
+          "yAdvance": 0.0
+        },
+        "xOffset": -0.86328125
+      }
+    ]
+  },
+  "m_kerningPair": {
+    "m_FirstGlyph": 0,
+    "m_FirstGlyphAdjustments": {
+      "xPlacement": 0.0,
+      "yPlacement": 0.0,
+      "xAdvance": 0.0,
+      "yAdvance": 0.0
+    },
+    "m_SecondGlyph": 0,
+    "m_SecondGlyphAdjustments": {
+      "xPlacement": 0.0,
+      "yPlacement": 0.0,
+      "xAdvance": 0.0,
+      "yAdvance": 0.0
+    },
+    "xOffset": 0.0
+  },
+  "fallbackFontAssets": [],
+  "fontCreationSettings": {
+    "fontSourcePath": "",
+    "fontSizingMode": 0,
+    "fontSize": 0,
+    "fontPadding": 0,
+    "fontPackingMode": 0,
+    "fontAtlasWidth": 0,
+    "fontAtlasHeight": 0,
+    "fontCharacterSet": 0,
+    "fontStyle": 0,
+    "fontStlyeModifier": 0.0,
+    "fontRenderMode": 0,
+    "fontKerning": 0
+  },
+  "fontWeights": [
+    {
+      "regularTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      },
+      "italicTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      }
+    },
+    {
+      "regularTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      },
+      "italicTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      }
+    },
+    {
+      "regularTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      },
+      "italicTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      }
+    },
+    {
+      "regularTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      },
+      "italicTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      }
+    },
+    {
+      "regularTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      },
+      "italicTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      }
+    },
+    {
+      "regularTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      },
+      "italicTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      }
+    },
+    {
+      "regularTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      },
+      "italicTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      }
+    },
+    {
+      "regularTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      },
+      "italicTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      }
+    },
+    {
+      "regularTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      },
+      "italicTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      }
+    },
+    {
+      "regularTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      },
+      "italicTypeface": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      }
+    }
+  ],
+  "normalStyle": 0.25,
+  "normalSpacingOffset": 0.0,
+  "boldStyle": 1.0,
+  "boldSpacing": 5.0,
+  "italicStyle": 22,
+  "tabSize": 10
+}

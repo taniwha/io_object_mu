@@ -103,8 +103,24 @@ class ConfigNode:
             return nodes
     @classmethod
     def loadfile(cls, path):
-        bytes = open(path, "rb").read()
-        text = "".join(map(lambda b: chr(b), bytes))
+        with open(path, "rb") as f:
+            raw = f.read()
+
+        # UTF-8 BOM
+        if raw.startswith(b"\xef\xbb\xbf"):
+            raw = raw[3:]
+
+        # Najpierw UTF-8
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            # Starsze pliki mogą być zapisane w Windows-1252
+            try:
+                text = raw.decode("cp1252")
+            except UnicodeDecodeError:
+                # Ostateczność
+                text = raw.decode("latin-1")
+
         return cls.load(text)
     def GetNode(self, key):
         for n in self.nodes:

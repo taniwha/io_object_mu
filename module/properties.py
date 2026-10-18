@@ -186,7 +186,7 @@ class KSPModuleProps(PropertyGroup):
 
     def update_active_field(self, context):
         active_object = bpy.context.active_object
-        #FIXME this is a horrible way of keeping track of the active object
+        # Track active object for the modules UI list
         if ("active_object" in module_active_field
             and module_active_field["active_object"] != active_object.name):
             module_active_field.clear()

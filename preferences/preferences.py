@@ -21,72 +21,15 @@
 
 # <pep8 compliant>
 
-import bpy, os
+import bpy
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty, BoolProperty
 
-from . import colorpalettes
-
 package_name = __package__.split(".")[0]
 
-def install_presets(dstsubdir, srcsubdir):
-    presets=bpy.utils.script_paths()
-    dst = "/".join((presets[-1], "presets", dstsubdir))
-    src=os.path.dirname(os.path.abspath(__file__)) + "/" + srcsubdir
-    if not os.access(dst, os.F_OK):
-        os.makedirs(dst)
-    names = os.listdir(src)
-    for name in names:
-        s = src + "/" + name
-        d = dst + "/" + name
-        with open(s, "rb") as fsrc:
-            with open(d, "wb") as fdst:
-                while True:
-                    buf = fsrc.read(16*1024)
-                    if not buf:
-                        break
-                    fdst.write(buf)
-
-class KSPMU_OT_InstallShaders(bpy.types.Operator):
-    bl_idname = 'io_object_mu_presets.shaders'
-    bl_label = 'Install KSP Shader Presets'
-
-    @classmethod
-    def poll(cls, context):
-        return True
-
-    def execute(self, context):
-        install_presets(package_name + "/shaders", "shaders")
-        self.report({'INFO'}, 'Shader presets installed.')
-        return {'FINISHED'}
-
-class KSPMU_OT_InstallCfgTemplates(bpy.types.Operator):
-    bl_idname = 'io_object_mu_presets.cfgtemplates'
-    bl_label = 'Install KSP Config Templates'
-
-    @classmethod
-    def poll(cls, context):
-        return True
-
-    def execute(self, context):
-        install_presets(package_name + "/kspcfg", "cfgtemplates")
-        self.report({'INFO'}, 'Config templates installed.')
-        return {'FINISHED'}
-
-class KSPMU_OT_CreateColorPalettes(bpy.types.Operator):
-    bl_idname = 'io_object_mu_presets.color_palettes'
-    bl_label = 'Create Community Color Palettes'
-
-    @classmethod
-    def poll(cls, context):
-        return True
-
-    def execute(self, context):
-        colorpalettes.install()
-        self.report({'INFO'}, 'Color palettes created.')
-        return {'FINISHED'}
 
 class IOObjectMu_AddonPreferences(AddonPreferences):
+    """Persistent addon settings (drawn in View3D Options, not here)."""
     bl_idname = package_name
 
     GameData: StringProperty(
@@ -99,25 +42,19 @@ class IOObjectMu_AddonPreferences(AddonPreferences):
         description="Automatically hide new mesh colliders",
         default=False)
 
+    WritePartCfg: BoolProperty(
+        name="Write / Update Part Cfg",
+        description=(
+            "When enabled: Mu export to a new folder writes a patched part.cfg, "
+            "and Save Part Cfg is available. ModulePartVariants live in the cfg "
+            "(GAMEOBJECTS/TEXTURE), not as Outliner collections"
+        ),
+        default=True)
+
     def draw(self, context):
         layout = self.layout
-        box = layout.box ()
-        box.label(text="Editing:")
-        box.prop(self, "AutohideColliders")
-        box.label(text="KSP:")
-        box.prop(self, "GameData")
-        box.label(text="Shaders:")
-        box.operator(KSPMU_OT_InstallShaders.bl_idname,
-                     text=KSPMU_OT_InstallShaders.bl_label);
-        box.label(text="Config Templates:")
-        box.operator(KSPMU_OT_InstallCfgTemplates.bl_idname,
-                     text=KSPMU_OT_InstallCfgTemplates.bl_label);
-        box.label(text="Color Paletes:")
-        cbox = box.box()
-        cbox.operator(KSPMU_OT_CreateColorPalettes.bl_idname,
-                      text=KSPMU_OT_CreateColorPalettes.bl_label);
-        cbox.label(text="NOTE: this must be done for each new blend file or saved to your startup file.", icon="LAYER_USED")
-        cbox.label(text="NOTE2: overwrites existing palettes that have the same names", icon="LAYER_USED")
+        layout.label(text="See View3D Sidebar ▸ Tool ▸ Options")
+
 
 def Preferences():
     preferences = bpy.context.preferences
@@ -125,9 +62,7 @@ def Preferences():
     prefs = addons[package_name]
     return prefs.preferences
 
+
 classes_to_register = (
     IOObjectMu_AddonPreferences,
-    KSPMU_OT_InstallShaders,
-    KSPMU_OT_InstallCfgTemplates,
-    KSPMU_OT_CreateColorPalettes,
 )
